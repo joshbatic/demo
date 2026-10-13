@@ -522,10 +522,15 @@ body.sprinting #rhy{display:none}
    pill visibly stretched/contracted every time one got toggled. The box itself now never changes
    size (fixing that), but a plain background-color fill on this box's actual 38×44 shape paints an
    oval, not a circle, once it's solid — so the "on" fill lives on a centered 34×34 ::before circle
-   instead, sized and positioned independently of the box around it. The icon (a real child) paints
-   above this pseudo-element automatically, no stacking tricks needed. */
+   instead, sized and positioned independently of the box around it. That circle is itself
+   position:absolute with no z-index, which (per normal CSS paint order) actually paints it ON TOP
+   of the icon's plain in-flow box, not behind it — the icon was fully hidden under a solid dot
+   rather than inverting color on top of it. Giving the icon its own position:relative puts it in
+   the same "positioned, auto z-index" paint group as the circle, which then paints in DOM order —
+   circle (earlier sibling) first, icon on top — so the inverted icon is visible again. */
 .grp2 .ib.tgl[aria-pressed=true]{background:none}
 .grp2 .ib.tgl[aria-pressed=true]::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:var(--tint)}
+.grp2 .ib svg{position:relative}
 @media (min-width:980px){body.side .lgrp{display:none}}
 #crumb{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden}
 @media (max-width:979px){#crumb{display:none}}
