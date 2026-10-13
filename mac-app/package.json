@@ -1,0 +1,17 @@
+{
+  "name": "demo-songwriting",
+  "productName": "[demo]",
+  "version": "0.1.0",
+  "description": "A lyric notepad for songwriters",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "package": "electron-packager . \"[demo]\" --platform=darwin --arch=arm64 --icon=build/icon.icns --app-bundle-id=com.demo.songwriting --app-category-type=public.app-category.music --extend-info=build/extend.plist --out=dist --overwrite --ignore=^/dist --ignore=^/build/icon.png"
+  },
+  "devDependencies": {
+    "@electron/packager": "18.3.6",
+    "electron": "33.2.1",
+    "playwright-core": "^1.48.2"
+  }
+}

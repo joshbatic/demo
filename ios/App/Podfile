@@ -1,0 +1,36 @@
+require_relative '../../node_modules/@capacitor/ios/scripts/pods_helpers'
+
+platform :ios, '18.0'
+use_frameworks!
+
+# workaround to avoid Xcode caching of Pods that requires
+# Product -> Clean Build Folder after new Cordova plugins installed
+# Requires CocoaPods 1.6 or newer
+install! 'cocoapods', :disable_input_output_paths => true
+
+def capacitor_pods
+  pod 'Capacitor', :path => '../../node_modules/@capacitor/ios'
+  pod 'CapacitorCordova', :path => '../../node_modules/@capacitor/ios'
+  pod 'CapacitorHaptics', :path => '../../node_modules/@capacitor/haptics'
+  pod 'CapacitorBrowser', :path => '../../node_modules/@capacitor/browser'
+  pod 'CapacitorApp', :path => '../../node_modules/@capacitor/app'
+end
+
+target 'App' do
+  capacitor_pods
+  # Add your Pods here
+end
+
+post_install do |installer|
+  assertDeploymentTarget(installer)
+  # belt-and-braces: force every pod target (and the Pods project itself) to iOS 18, since
+  # some pods ship a project-level default that assertDeploymentTarget alone doesn't override
+  installer.pods_project.build_configurations.each do |config|
+    config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '18.0'
+  end
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '18.0'
+    end
+  end
+end

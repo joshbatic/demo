@@ -1,0 +1,8 @@
+{
+  "appId": "com.joshbatic.songpad",
+  "appName": "*[demo]",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}
