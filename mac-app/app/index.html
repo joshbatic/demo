@@ -362,7 +362,7 @@ body.dnd .newzone{display:block}
 /* Rate mode (#rateb) runs through the same aiJson bridge as every other AI feature here, which
    already works on desktop via the user's own OpenAI key — this blanket hide predates that bridge
    and just never got updated, so it was hiding a feature that actually works fine on Mac now. */
-body.desktop #ctxb,body.desktop #lm{display:none!important}
+body.desktop #ctxb{display:none!important}
 body.desktop.listv .dragbar{display:block;position:fixed;top:0;left:0;right:0;height:44px;z-index:3;-webkit-app-region:drag}
 body.desktop #vList .scroll{padding-top:56px}
 body.desktop #vEdit .bar{-webkit-app-region:drag}
@@ -515,12 +515,17 @@ body.ios .song{padding:13px 24px}
 #sprint button{height:32px;padding:0 14px;border-radius:99px;background:var(--fill);font-size:14px;font-weight:600}
 body.sprinting #rhy{display:none}
 .grp2{display:flex;gap:0!important;border-radius:99px;padding:0 2px;align-items:center}
-.grp2 .ib{width:38px}
+.grp2 .ib{width:38px;position:relative}
 @media (max-width:420px){#cr-app,#cr-app+i{display:none}}
 /* Rhyme map/Syllable counts/Rate used to shrink from 38×44 to 34×34 (plus added margin) the moment
    they were switched on, which changed that button's own footprint in the flex row — so the whole
-   pill visibly stretched/contracted every time one got toggled. The highlighted ("on") look now
-   comes entirely from the background/color swap below; the box itself never changes size. */
+   pill visibly stretched/contracted every time one got toggled. The box itself now never changes
+   size (fixing that), but a plain background-color fill on this box's actual 38×44 shape paints an
+   oval, not a circle, once it's solid — so the "on" fill lives on a centered 34×34 ::before circle
+   instead, sized and positioned independently of the box around it. The icon (a real child) paints
+   above this pseudo-element automatically, no stacking tricks needed. */
+.grp2 .ib.tgl[aria-pressed=true]{background:none}
+.grp2 .ib.tgl[aria-pressed=true]::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:var(--tint)}
 @media (min-width:980px){body.side .lgrp{display:none}}
 #crumb{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden}
 @media (max-width:979px){#crumb{display:none}}
@@ -14906,6 +14911,11 @@ function rhyme(){
   var sp=null;(function(){if(!lines&&!c.sel&&c.cur.trim()&&!c.via){var col=getSel().s-c.ls,m,re=/[A-Za-z']+/g;while((m=re.exec(c.raw))){var s=m.index,e=s+m[0].length;if(col>=s&&col<=e){sp=[c.ls+s,c.ls+e];break}}}if(sp)setHL('tw',sp[0],sp[1]);else setHL('tw')})();
   function chip(txt,cls,badge,fn){var b=document.createElement('button');b.className='r '+cls;b.textContent=txt;if(badge){var i=document.createElement('i');i.textContent=badge;b.appendChild(i)}b.onmousedown=function(e){e.preventDefault()};b.onclick=fn;rc.appendChild(b)}
   $('#wm').hidden=!!lines||!c.word;
+  /* Lines mode writes whole new lines with AI (runGen/lineView below), so it has nothing to show
+     when aiAvailable() is false — that used to fall straight through to the ordinary word-rhyme
+     rendering beneath, word tools hidden but no line view either, which just looked broken (this is
+     the normal state on iOS today, which has no AI bridge at all). Say why instead of going quiet. */
+  if(lines&&!L){var h=document.createElement('div');h.className='hint';h.textContent='Lines needs a connection to write full lines — not available here yet. Turn it off to keep using word rhymes.';rc.appendChild(h);return}
   if(L)return lineView(c);
   if(!c.cur.trim()&&!c.sel&&!lines){chip('Muse','s','',openStuck);var chT=chorusText();['Verse','Pre-Chorus','Chorus','Bridge','Outro'].forEach(function(s){chip('['+s+']'+(s==='Chorus'&&chT?' + lyrics':''),'s','',function(){
     /* The cursor sits on an existing blank line here, which already supplies one line break after
