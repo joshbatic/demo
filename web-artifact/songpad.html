@@ -15033,7 +15033,7 @@ function lineView(c){
   var selT=c.sel.trim();
   if(selT){
     var g=getSel(),kN='S#next#'+selT+pfk(),kR='S#rw#'+selT+pfk(),row=document.createElement('div');row.className='sch';
-    [['Lines that rhyme',kN,'next'],['Rewrite selection',kR,'rw']].forEach(function(x){var b=document.createElement('button');b.className='r'+(LS&&LS.k===x[1]?' f':'');b.textContent=x[0];b.onmousedown=prevent;b.onclick=function(){selGen(selT,x[2],g.s,g.e,!!(LS&&LS.k===x[1]))};row.appendChild(b)});
+    [['Lines that rhyme',kN,'next'],['Rewrite selection',kR,'rw']].forEach(function(x){var b=document.createElement('button');b.className='r'+(LS&&LS.k===x[1]?' f':'');b.textContent=x[0];b.onmousedown=prevent;b.onclick=function(){selGen(selT,x[2],g.s,g.e,!!(LS&&LS.k===x[1]),c.st)};row.appendChild(b)});
     rc.appendChild(row);
     if(LS&&(LS.k===kN||LS.k===kR)){
       if(LS.busy)return hint(LS.k===kN?'Writing lines that rhyme with your selection':'Rewriting your selection',true);
@@ -15060,31 +15060,40 @@ function lineView(c){
 function suggest(c,again){
   var t=c.tl,part=c.cur.trim(),ml=melAt(c.ls);
   runGen({k:(t||'')+'#'+c.p+'#'+c.sch+pfk(),kind:'line',n:ml?ml.n:t?lsyl(t):(lsyl(c.st[c.p-1]||'')||8),lw:t?nw(lastW(t)):'',again:again,
-    at:c.ls,
+    at:c.ls,section:c.st,
     task:'You are writing line '+(c.p+1)+' of this stanza (rhyme scheme '+c.sch+').'+(t?' It should rhyme with line '+(c.ti+1)+': "'+t+'".':' It starts a new rhyme, so end on a common word that is easy to rhyme.')+(part?' The line must begin with: "'+part+'".':'')+(ml?' The melody for this line has '+ml.n+' syllables'+(ml.pat?', with this rhythm (CAPS are strong beats, ~ is a held note): '+ml.pat+'. Put naturally stressed syllables on the strong beats and open vowels on held notes.':'.'):'')});
 }
-function selGen(t,kind,a,b,again){
+function selGen(t,kind,a,b,again,section){
   var v=getText(),ls=v.lastIndexOf('\n',a-1)+1,le=v.indexOf('\n',b);if(le<0)le=v.length;var line=v.slice(ls,le),lw=lastW(t);
   runGen({k:'S#'+kind+'#'+t+pfk(),kind:kind,n:lsyl(t),lw:nw(lw),keep:kind==='rw',again:again,a:a,b:b,src:v.slice(a,b),
-    at:le,
+    at:le,section:section,
     task:kind==='rw'?'Rewrite only this phrase: "'+t+'". It sits in the line: "'+line+'". Each option replaces just that phrase, so the full line must still read naturally. Keep roughly the same meaning and end on a word that rhymes with "'+lw+'" (keeping "'+lw+'" is allowed).':'Write a new line that rhymes with this phrase: "'+t+'". It will go right after the line: "'+line+'".'});
 }
 /* song context: the whole song with a marker where the new text goes */
 function songCtx(o){
   var v=getText(),at=o.at!=null?o.at:v.length,s;
-  if(!VIEW.ctx){var prev=v.slice(0,o.kind==='rw'?v.lastIndexOf('\n',o.a-1)+1:at).split('\n').filter(function(x){return x.trim()}).slice(-2).join('\n');return prev?'Previous lines:\n'+prev:''}
+  if(!VIEW.ctx){
+    /* used to grab just the last 2 non-blank lines anywhere above the cursor, which could cross a
+       section break and pull in a different stanza entirely. o.section (the current stanza's own
+       lines, from stanzaOf()/ctx().st) is the actual section being written, so prefer that — and
+       send the whole thing, not just 2 lines, since the analysis instruction below needs enough of
+       it to actually read tone/style/imagery from rather than guess off a fragment. */
+    var sec=o.section&&o.section.length?o.section:v.slice(0,o.kind==='rw'?v.lastIndexOf('\n',o.a-1)+1:at).split('\n').filter(function(x){return x.trim()}).slice(-2);
+    var prev=sec.join('\n');
+    return prev?'Lines already written in this section:\n'+prev+'\n\nBefore writing, read these lines and note their tone (the emotional register), their writing style (sentence rhythm, vocabulary, formality) and any imagery or metaphors already in play. What you write must match all three, not just continue the plot.':''
+  }
   if(o.kind==='rw')s=v.slice(0,o.a)+'⟦'+v.slice(o.a,o.b)+'⟧'+v.slice(o.b);else s=v.slice(0,at)+'⟦NEW LINE GOES HERE⟧'+v.slice(at);
   if(s.length>5000){var m=s.indexOf('⟦'),st=Math.max(0,m-3500);s=(st?'…':'')+s.slice(st,st+5000)+'…'}
   var head='Song: '+(cur&&cur.title||'Untitled')+(cur&&cur.artist?' by '+cur.artist:'')+(cur&&cur.notes?'\nWriter\'s notes: '+cur.notes.slice(0,400):'');
-  return head+'\nFull lyrics so far ('+(o.kind==='rw'?'⟦ ⟧ marks the phrase being rewritten':'⟦NEW LINE GOES HERE⟧ marks where the new line goes')+'):\n'+s+'\n\nThe new text must belong in this song: continue its story, keep its characters, images, tense and point of view consistent, and do not repeat lines or end words already used nearby.';
+  return head+'\nFull lyrics so far ('+(o.kind==='rw'?'⟦ ⟧ marks the phrase being rewritten':'⟦NEW LINE GOES HERE⟧ marks where the new line goes')+'):\n'+s+'\n\nBefore writing, read what\'s there and note its tone, its writing style (sentence rhythm, vocabulary, formality), and any imagery or metaphors already in play. The new text must belong in this song: match that tone, style and imagery, continue its story, keep its characters, tense and point of view consistent, and do not repeat lines or end words already used nearby.';
 }
 function rhymeSets(lw,cb){if(!lw)return cb({p:[],n:[]});var d=DM[lw];if(!dmOff&&!(d&&!d.then))dmRhymes(lw).then(function(){cb(getR(lw))});else cb(getR(lw))}
 function runGen(o){
   LS={k:o.k,busy:true};rhyme();
   rhymeSets(o.lw,function(S){
     var P=S.p.slice(0,70),Nr=PF.strict?[]:S.n.slice(0,24),ps={},ns={};P.forEach(function(x){ps[x]=1});Nr.forEach(function(x){ns[x]=1});if(o.keep&&o.lw)ps[o.lw]=1;
-    var rule=o.lw?(P.length||Nr.length?'2. Prefer ending on one of these perfect rhymes for "'+o.lw+'": '+P.join(', ')+(Nr.length?'\n   If none fits naturally, end on one of these near/slant rhymes: '+Nr.join(', '):'')+'\n   If neither list works, rhyme by ear.':'2. Rhyme with "'+o.lw+'" by ear.'):'2. End on a word with plenty of rhymes.';
-    aiJson('You write song lyrics.'+pfx()+'\n\n'+songCtx(o)+'\n\n'+o.task+'\n\nPriorities:\n1. Aim for exactly '+o.n+' syllables, as close as you can.\n'+rule+'\n3. Twelve different options, and spread them across several different end words rather than reusing the same one or two rhyming words over and over. Mix exact/perfect rhymes with slant or near rhymes (words that share the vowel sound or final consonant sound but aren\'t identical) so the set offers real variety, not twelve ways to land on the same sound. Match the song\'s voice, tense and imagery. Natural phrasing, no filler.\n\nReturn ONLY a JSON array of 12 strings.',{cache:!o.again}).then(function(r){
+    var rule=o.lw?(P.length||Nr.length?'3. Prefer ending on one of these perfect rhymes for "'+o.lw+'": '+P.join(', ')+(Nr.length?'\n   If none fits naturally, end on one of these near/slant rhymes: '+Nr.join(', '):'')+'\n   If neither list works, rhyme by ear.':'3. Rhyme with "'+o.lw+'" by ear.'):'3. End on a word with plenty of rhymes.';
+    aiJson('You write song lyrics.'+pfx()+'\n\n'+songCtx(o)+'\n\n'+o.task+'\n\nPriorities:\n1. Match the tone, writing style and imagery you just read in the section above — this comes before rhyme or syllable count.\n2. Aim for exactly '+o.n+' syllables, as close as you can.\n'+rule+'\n4. Twelve different options, and spread them across several different end words rather than reusing the same one or two rhyming words over and over. Mix exact/perfect rhymes with slant or near rhymes (words that share the vowel sound or final consonant sound but aren\'t identical) so the set offers real variety, not twelve ways to land on the same sound. Natural phrasing, no filler.\n\nReturn ONLY a JSON array of 12 strings.',{cache:!o.again}).then(function(r){
       var seen={},l=(Array.isArray(r)?r:[]).filter(function(x){return typeof x==='string'&&x.trim()}).map(function(x){x=x.trim();var w=nw(lastW(x)),d=lsyl(x)-o.n,ty=!o.lw?'new':ps[w]?'perfect':ns[w]?'near':'loose';return{line:x,n:lsyl(x),d:d,type:ty,sc:Math.abs(d)+(ty==='near'?1.5:ty==='loose'?3.5:0)}}).filter(function(m){if(seen[m.line])return false;seen[m.line]=1;return true});
       l.sort(function(a,b){return a.sc-b.sc});
       LS=l.length?{k:o.k,list:l.slice(0,8),best:l[0].sc,kind:o.kind,a:o.a,b:o.b,src:o.src}:{k:o.k,err:'No lines came back. Try again.'};rhyme();
@@ -15221,10 +15230,23 @@ function rmap(){
   if(!window.CSS||!CSS.highlights||!window.Highlight)return;for(var i=0;i<8;i++)CSS.highlights.delete('rm'+i);if(!VIEW.map||!cur)return;
   var v=getText(),tok=[],stz=0,pos=0;
   v.split('\n').forEach(function(l){var tr=l.trim();if(!tr||tr[0]==='['){stz++;pos+=l.length+1;return}var re=/[A-Za-z']+/g,m;while((m=re.exec(l))){var w=nw(m[0]);if(w.length>1&&!STOP[w])tok.push({w:w,a:pos+m.index,b:pos+m.index+m[0].length,s:stz})}pos+=l.length+1});
-  var grp={};tok.forEach(function(x){var S=rsets(x.w);if(S.gi==null)return;var k=x.s+'|'+NK[S.gi];(grp[k]=grp[k]||[]).push(x)});
+  /* Used to group only exact rhyme-family matches (same NK key) within a stanza — "time"/"mine"
+     would light up together but "time"/"shine" (a near/slant rhyme, same as the word-tool's "Near"
+     results, gscore>=6) never would. Near-rhyme pairs aren't one single family though, so within
+     each stanza we union-find the rhyme-group indices actually present there whenever two score as
+     a near rhyme, then group and color by the resulting merged set rather than the raw family key. */
+  var byStanza={};
+  tok.forEach(function(x){var S=rsets(x.w);if(S.gi==null)return;x.gi=S.gi;(byStanza[x.s]=byStanza[x.s]||[]).push(x)});
   var col={},ci=0,sets=[[],[],[],[],[],[],[],[]];
-  Object.keys(grp).forEach(function(k){var g=grp[k],ws={};g.forEach(function(x){ws[x.w]=1});if(Object.keys(ws).length<2)return;var sk=k.slice(k.indexOf('|')+1);if(col[sk]==null)col[sk]=(ci++)%8;
-    g.forEach(function(x){var r=document.createRange(),p=locate(x.a),q=locate(x.b);r.setStart(p[0],p[1]);r.setEnd(q[0],q[1]);sets[col[sk]].push(r)})});
+  Object.keys(byStanza).forEach(function(sk){
+    var items=byStanza[sk],gis=[];items.forEach(function(x){if(gis.indexOf(x.gi)<0)gis.push(x.gi)});
+    var parent={};gis.forEach(function(g){parent[g]=g});
+    function find(g){while(parent[g]!==g){parent[g]=parent[parent[g]];g=parent[g]}return g}
+    for(var i=0;i<gis.length;i++)for(var j=i+1;j<gis.length;j++)if(gscore(TK[gis[i]],TK[gis[j]])>=6){var ra=find(gis[i]),rb=find(gis[j]);if(ra!==rb)parent[ra]=rb}
+    var grp={};items.forEach(function(x){var rk=find(x.gi);(grp[rk]=grp[rk]||[]).push(x)});
+    Object.keys(grp).forEach(function(rk){var g=grp[rk],ws={};g.forEach(function(x){ws[x.w]=1});if(Object.keys(ws).length<2)return;var ck=sk+'|'+rk;if(col[ck]==null)col[ck]=(ci++)%8;
+      g.forEach(function(x){var r=document.createRange(),p=locate(x.a),q=locate(x.b);r.setStart(p[0],p[1]);r.setEnd(q[0],q[1]);sets[col[ck]].push(r)})})
+  });
   sets.forEach(function(rs,i){if(rs.length){var h=new Highlight();rs.forEach(function(r){h.add(r)});CSS.highlights.set('rm'+i,h)}});
 }
 function gut(){
