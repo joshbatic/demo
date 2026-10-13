@@ -66,29 +66,17 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 .cbtn{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;color:var(--tint);position:relative;z-index:2;transform:translateZ(0)}
 .cbtn:active,.ib:active{transform:scale(.94)}
 /* editor */
-/* Same backdrop-filter-vs-scrolling-sibling compositing quirk documented below at .dock/.cbtn —
-   this is another translucent "island" sitting over scrolling content (album art thumbnails here)
-   and needs the same forced-layer treatment, or it can start compositing underneath them again. */
-/* iOS/WebKit has a second, opposing quirk from the one above: putting a transform directly on the
-   SAME element as backdrop-filter can silently disable the filter there (it renders as a flat fill
-   instead of a blur) — which is exactly what happened here once .fadeT/.fadeB picked up
-   transform:translateZ(0) to fix the stacking bug. The fix for both at once is to split the two
-   jobs across parent and child: the transform (for compositing/paint order) stays on .fadeT/.fadeB
-   itself, and the backdrop-filter (which must stay untransformed to actually blur) moves onto an
-   inset ::before pseudo-element that has no transform of its own. */
-.fadeT{top:0;height:calc(env(safe-area-inset-top,0px) + 76px);z-index:2;transform:translateZ(0);will-change:transform;pointer-events:none}
-.fadeT::before{content:'';position:absolute;inset:0;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);-webkit-mask-image:linear-gradient(#000 45%,transparent);mask-image:linear-gradient(#000 45%,transparent)}
+.fadeT{top:0;height:calc(env(safe-area-inset-top,0px) + 76px);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);-webkit-mask-image:linear-gradient(#000 45%,transparent);mask-image:linear-gradient(#000 45%,transparent);pointer-events:none}
 /* the song-list/ideas header (.lhead) sits taller than the editor's .bar — its title+badge row runs
    past the 45% fade point above, so the blur was fading out mid-word instead of staying solid behind
    the whole title, reading as a seam cutting across the letters. .lhf widens the solid zone so the
    full .lhead row sits on fully-blurred backing, with only a short fade in the last stretch before
    the list content below it. */
-.fadeT.lhf::before{mask-image:linear-gradient(#000 76%,transparent);-webkit-mask-image:linear-gradient(#000 76%,transparent)}
+.fadeT.lhf{mask-image:linear-gradient(#000 76%,transparent);-webkit-mask-image:linear-gradient(#000 76%,transparent)}
 /* Liquid Glass scroll-edge effect: lyrics fade out before they pass under the floating word-tool panel,
    across the full reserved toolbar-clearance zone — not just a thin strip right at the edge — so the
    text eases away rather than scrolling into a flat, opaque wall of background right before the toolbar */
-.fadeB{bottom:0;height:130px;z-index:2;transform:translateZ(0);will-change:transform;pointer-events:none}
-.fadeB::before{content:'';position:absolute;inset:0;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);-webkit-mask-image:linear-gradient(transparent,#000 85%);mask-image:linear-gradient(transparent,#000 85%)}
+.fadeB{bottom:0;height:130px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);-webkit-mask-image:linear-gradient(transparent,#000 85%);mask-image:linear-gradient(transparent,#000 85%);pointer-events:none}
 .bar{top:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 0}
 .ib{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--tint);flex:none;transition:background-color .15s,color .15s}
 #rhy{position:absolute;left:10px;right:10px;bottom:max(18px,calc(8px + var(--sab,env(safe-area-inset-bottom,0px))));border-radius:30px;padding:12px 12px 12px;transition:bottom .25s cubic-bezier(.32,.72,0,1),transform .3s cubic-bezier(.32,.72,0,1),opacity .3s}
@@ -282,7 +270,7 @@ body.side #side{transform:none}
 /* lifted out of .scroll so the title/account badge sit fixed above the list, instead of
    rubber-banding/bouncing along with it; .fadeT (a sibling, placed just before this in the DOM)
    blurs the list content as it scrolls underneath */
-.lhead{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding-right:16px;padding-top:calc(env(safe-area-inset-top,0px) + 28px);z-index:3}
+.lhead{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding-right:16px;padding-top:calc(env(safe-area-inset-top,0px) + 28px)}
 .acct{display:flex;align-items:center;gap:6px;height:40px;padding:0 6px 0 8px;border-radius:99px;color:var(--ink)}
 /* the 8px/6px split above only balances the pill around the Beta badge + avatar together; with
    the badge hidden (free mode) that same padding leaves the avatar sitting visibly off-center,
