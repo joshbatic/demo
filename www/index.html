@@ -184,10 +184,6 @@ body.ios #dictSheet{top:16%;padding-top:0}
 .hd{display:flex;align-items:center;gap:14px;margin-bottom:20px}
 .hd>div{min-width:0;flex:1}
 .covwrap{position:relative;flex:none}
-.covdisc{position:absolute;top:2px;left:2px;width:64px;height:64px;border-radius:7px;background:linear-gradient(135deg,var(--cv1),var(--cv2));box-shadow:0 3px 9px rgba(0,0,0,.16),0 0 0 .5px var(--ring);opacity:0;transform:rotate(8deg) translate(0,0) scale(.96);transition:transform .45s cubic-bezier(.22,.85,.2,1),opacity .3s ease;pointer-events:none}
-.covdisc::before{content:'';position:absolute;left:9px;right:9px;top:11px;height:42px;background-repeat:no-repeat;background-image:linear-gradient(var(--cvln),var(--cvln)),linear-gradient(var(--cvln),var(--cvln)),linear-gradient(var(--cvln),var(--cvln)),linear-gradient(var(--cvln),var(--cvln)),linear-gradient(var(--cvln),var(--cvln)),linear-gradient(var(--cvln),var(--cvln));background-size:74% 2px,48% 2px,63% 2px,36% 2px,56% 2px,30% 2px;background-position:0 0,0 8px,0 16px,0 24px,0 32px,0 40px;opacity:.75}
-@media (hover:hover){.covwrap:hover .covdisc{opacity:1;transform:rotate(8deg) translate(9px,-7px) scale(1)}}
-.covwrap:active .covdisc,.covwrap:focus-within .covdisc{opacity:1;transform:rotate(8deg) translate(9px,-7px) scale(1)}
 .cov{position:relative;z-index:1;width:68px;height:68px;border-radius:16px;flex:none;background:var(--cv1) center/cover;display:grid;place-items:center;color:var(--mute);box-shadow:0 0 0 .5px var(--ring)}
 #title{display:block;width:100%;border:0;background:none;outline:0;padding:0;font:700 26px/1.2 -apple-system,'SF Pro Display',system-ui,sans-serif;letter-spacing:.3px}
 #sub{font-size:14px;color:var(--mute);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -583,10 +579,10 @@ body.sprinting #rhy{display:none}
 </div>
 
 <div class="view" id="vEdit">
-  <div id="sc"><div id="gut" aria-hidden="true"></div><div id="pres" aria-hidden="true"></div><div class="hd"><span class="covwrap"><span class="covdisc" aria-hidden="true"></span><button class="cov" id="cov" aria-label="Cover art"></button></span><div><input id="title" placeholder="Untitled" aria-label="Title" autocorrect="on"><div id="artist"></div><div id="sub"></div><div id="here" hidden></div></div></div><div id="lyr" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="false" autocapitalize="sentences" autocorrect="on" data-ph="Start with a line…"></div></div>
+  <div id="sc"><div id="gut" aria-hidden="true"></div><div id="pres" aria-hidden="true"></div><div class="hd"><span class="covwrap"><button class="cov" id="cov" aria-label="Cover art"></button></span><div><input id="title" placeholder="Untitled" aria-label="Title" autocorrect="on"><div id="artist"></div><div id="sub"></div><div id="here" hidden></div></div></div><div id="lyr" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="false" autocapitalize="sentences" autocorrect="on" data-ph="Start with a line…"></div></div>
   <div class="abs fadeT"></div>
   <div class="abs fadeB"></div>
-  <div class="abs bar"><div class="bl gl grp2 lgrp"><button class="ib" id="back" aria-label="Songs"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="ib" id="sbt" aria-label="Show sidebar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M9.5 4v16"/></svg></button></div><nav id="crumb" aria-label="Location"><button id="cr-app">[d]</button><i>/</i><button id="cr-fold"></button><i>/</i><span id="cr-song"></span></nav><div class="bl"><div class="gl grp2"><button class="ib tgl" id="vmap" aria-label="Rhyme map" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h9M4 12h6M4 17h9"/><circle cx="18" cy="7" r="2.2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2.2"/><circle cx="18" cy="17" r="2.2" fill="currentColor" stroke="none"/></svg></button><button class="ib tgl" id="vsyl" aria-label="Syllable counts" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 17V11M10 17V7M15 17v-4M20 17V9"/></svg></button><button class="ib tgl" id="rateb" aria-pressed="false" aria-label="Rate song" title="Rate song"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></button></div><button class="gl ib" id="det" aria-label="Details"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button></div></div>
+  <div class="abs bar"><div class="bl gl grp2 lgrp"><button class="ib" id="back" aria-label="Songs"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="ib" id="sbt" aria-label="Show sidebar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M9.5 4v16"/></svg></button></div><nav id="crumb" aria-label="Location"><button id="cr-app">*[d]</button><i>/</i><button id="cr-fold"></button><i>/</i><span id="cr-song"></span></nav><div class="bl"><div class="gl grp2"><button class="ib tgl" id="vmap" aria-label="Rhyme map" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h9M4 12h6M4 17h9"/><circle cx="18" cy="7" r="2.2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2.2"/><circle cx="18" cy="17" r="2.2" fill="currentColor" stroke="none"/></svg></button><button class="ib tgl" id="vsyl" aria-label="Syllable counts" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 17V11M10 17V7M15 17v-4M20 17V9"/></svg></button><button class="ib tgl" id="rateb" aria-pressed="false" aria-label="Rate song" title="Rate song"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></button></div><button class="gl ib" id="det" aria-label="Details"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button></div></div>
   <div id="rhy" class="gl">
     <button class="rhyhandle" id="rhyExpand" aria-label="Open dictionary" title="Open dictionary"><i></i></button>
     <div class="r1"><div id="rs"></div><div class="r1g"><button class="tg ic" id="stuckb" aria-label="Muse" title="Call the muse"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5l1.6 4.4c.3.8.9 1.4 1.7 1.7l4.4 1.6-4.4 1.6c-.8.3-1.4.9-1.7 1.7L10 18.9l-1.6-4.4c-.3-.8-.9-1.4-1.7-1.7L2.3 11.2l4.4-1.6c.8-.3 1.4-.9 1.7-1.7z"/><path d="M18.5 2.5l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6zM18.5 16.5l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6z" fill="currentColor"/></svg></button><button class="tg ic" id="aa" aria-label="Text formatting" aria-pressed="false"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.4 2.6a2 2 0 0 1 2.9 2.9L12 14.8 9.2 12z"/><path d="M9.2 12c-2.2 0-4 1.6-4 3.8 0 1.6-.9 2.9-2.2 3.4 1 1.2 2.6 1.8 4.3 1.8 3 0 4.7-2.3 4.7-4.6"/></svg></button><button class="tg ic" id="ctxb" aria-label="Listen to the whole song" aria-pressed="true" title="Listening to the whole song: suggestions fit your song"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9a5 5 0 0 1 10 0c0 3-2.5 3.6-3.4 5.6-.7 1.6-.9 3.9-3.1 3.9A2.6 2.6 0 0 1 8 16"/><path d="M10 9.4a2 2 0 0 1 4 0c0 1.2-1.1 1.6-1.6 2.4"/></svg></button><button class="tg ic" id="gear" aria-label="Writing voice"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/></svg></button><button class="tg" id="lm" aria-pressed="false">Lines</button></div></div>
@@ -14728,6 +14724,43 @@ syncSideVisibility();
   }
   rhy.addEventListener('touchend',release,{passive:true});
   rhy.addEventListener('touchcancel',release,{passive:true});
+})();
+/* swipe down on the dictionary sheet's header to dismiss it, the same native-feeling drag the
+   sidebar and bottom-toolbar gestures above use — scoped to the header bar only (not the whole
+   sheet) so dragging there never fights scrolling the results list or typing in the search field. */
+(function(){
+  var sh=document.querySelector('#dictSheet .sh');if(!sh)return;
+  var ds=$('#dictSheet'),armed=false,dragging=false,sy0=0,sx0=0,dy=0,lastY=0,lastT=0,vel=0;
+  var FREE=24,CAP=90,C=.6;
+  function resist(d){if(d<=FREE)return d;var over=d-FREE;return FREE+(over*CAP*C)/(CAP+C*Math.abs(over))}
+  sh.addEventListener('touchstart',function(e){
+    if(!ds.classList.contains('on')){armed=false;return}
+    armed=true;dragging=false;var t=e.touches[0];sy0=t.clientY;sx0=t.clientX;
+    lastY=t.clientY;lastT=performance.now();vel=0
+  },{passive:true});
+  sh.addEventListener('touchmove',function(e){
+    if(!armed)return;
+    var t=e.touches[0],ddy=t.clientY-sy0,ddx=t.clientX-sx0;
+    if(!dragging){
+      if(Math.abs(ddx)>Math.abs(ddy)||ddy<0){armed=false;return}
+      if(ddy<8)return;
+      dragging=true;ds.style.transition='none'
+    }
+    var now=performance.now(),dt=now-lastT;if(dt>0)vel=(t.clientY-lastY)/dt;
+    lastY=t.clientY;lastT=now;
+    dy=ddy<0?0:ddy;
+    ds.style.transform='translateY('+resist(dy)+'px)'
+  },{passive:true});
+  function release(){
+    if(!armed)return;armed=false;if(!dragging)return;dragging=false;
+    var FLING=.5,commit=vel>FLING||dy>90;
+    ds.style.transition='transform .34s cubic-bezier(.34,1.56,.64,1)';
+    ds.style.transform='';
+    setTimeout(function(){ds.style.transition=''},360);
+    if(commit)closeDict()
+  }
+  sh.addEventListener('touchend',release,{passive:true});
+  sh.addEventListener('touchcancel',release,{passive:true});
 })();
 if(wideMQ.addEventListener)wideMQ.addEventListener('change',syncSideVisibility);
 $('#sbt').onclick=function(){sideOn(true)};$('#shide').onclick=function(){sideOn(false)};$('#scrim2').onclick=function(){sideOn(false)};
