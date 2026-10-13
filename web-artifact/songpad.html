@@ -333,18 +333,24 @@ body.dnd .newzone{display:block}
    does at a glance. Once revealed they now carry their own tint right away — a neutral fill for
    Pin, a soft destructive tint for Delete — like iOS's own filled swipe-action glyphs, with the
    solid red "armed" state reserved for once you've actually committed to deleting. */
-.rdel{flex:none;display:grid;place-items:center;height:32px;min-width:32px;padding:0 8px;border-radius:99px;background:rgba(255,59,48,.13);color:var(--red);opacity:0;transform:scale(.5);pointer-events:none;transition:opacity .16s,transform .16s cubic-bezier(.32,.72,0,1),background-color .15s,color .15s}
+.rdel{flex:none;display:grid;place-items:center;height:32px;min-width:32px;padding:0 8px;border-radius:99px;background:rgba(255,59,48,.13);color:var(--red);opacity:0;scale:.5;translate:var(--pull,0px) 0;pointer-events:none;transition:opacity .18s,scale .32s cubic-bezier(.34,1.56,.64,1),translate .22s cubic-bezier(.34,1.56,.64,1),background-color .15s,color .15s}
 .si .rdel{height:28px;min-width:28px}
-.rpin{flex:none;display:grid;place-items:center;height:32px;width:32px;border-radius:99px;background:var(--fill);color:var(--ink);opacity:0;transform:scale(.5);pointer-events:none;transition:opacity .16s,transform .16s cubic-bezier(.32,.72,0,1),background-color .15s,color .15s}
+.rpin{flex:none;display:grid;place-items:center;height:32px;width:32px;border-radius:99px;background:var(--fill);color:var(--ink);opacity:0;scale:.5;translate:var(--pull,0px) 0;pointer-events:none;transition:opacity .18s,scale .32s cubic-bezier(.34,1.56,.64,1),translate .22s cubic-bezier(.34,1.56,.64,1),background-color .15s,color .15s}
 .si .rpin{height:28px;width:28px}
 .rpin.on{background:var(--tint);color:var(--ontint)}
 .rpin.on svg{fill:currentColor}
-@media (hover:hover){.song:hover .rpin,.si:hover .rpin,.rpin:focus-visible{opacity:1;transform:scale(1);pointer-events:auto}.rpin:hover{filter:brightness(.95)}}
-.held .rpin{opacity:1;transform:scale(1);pointer-events:auto}
-@media (hover:hover){.song:hover .rdel,.si:hover .rdel,.rdel:focus-visible{opacity:1;transform:scale(1);pointer-events:auto}.rdel:hover{background:rgba(255,59,48,.22)}}
-.held .rdel,.rdel.arm{opacity:1;transform:scale(1);pointer-events:auto}
+@media (hover:hover){.song:hover .rpin,.si:hover .rpin,.rpin:focus-visible{opacity:1;scale:1;pointer-events:auto}.rpin:hover{filter:brightness(.95)}}
+.held .rpin{opacity:1;scale:1;pointer-events:auto}
+@media (hover:hover){.song:hover .rdel,.si:hover .rdel,.rdel:focus-visible{opacity:1;scale:1;pointer-events:auto}.rdel:hover{background:rgba(255,59,48,.22)}}
+.held .rdel,.rdel.arm{opacity:1;scale:1;pointer-events:auto}
 .rdel.arm{background:var(--red);color:#fff;font-size:13px;font-weight:600;padding:0 12px}
-.swdel .rdel{background:var(--red);color:#fff;transform:scale(1.1)}
+.swdel .rdel{background:var(--red);color:#fff;scale:1.1}
+/* While actively dragging, the pull offset tracks the finger 1:1 with no transition lag (real-time
+   rubber-band resistance is computed in JS and written to --pull every frame); opacity/scale/color
+   keep their springy transitions so crossing the reveal/arm thresholds mid-drag still pops nicely.
+   Releasing removes this class, so the pull offset's own transition re-activates and eases/bounces
+   back to rest instead of snapping instantly. */
+.song.swiping .rdel,.song.swiping .rpin,.si.swiping .rdel,.si.swiping .rpin{transition:opacity .18s,scale .32s cubic-bezier(.34,1.56,.64,1),translate 0s,background-color .15s,color .15s}
 .gh{display:flex;align-items:center;gap:8px}.gh b{font:inherit}.gh .fren{width:28px;height:28px;border-radius:8px}
 @media (hover:hover){.gh:hover .fren{opacity:1}}
 .gh .frin{font-size:20px;font-weight:700;padding:2px 8px;max-width:420px}
@@ -15611,6 +15617,19 @@ document.addEventListener('wheel',function(e){if(e.ctrlKey||e.shiftKey||Math.abs
     if(el.scrollHeight>el.clientHeight+1&&/(auto|scroll)/.test(getComputedStyle(el).overflowY))return}},{passive:false});
 /* ---------- delete songs from lists, rename folders ---------- */
 var TRASH='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
+/* Only one row's swipe actions are ever revealed at a time, tracked here instead of a fresh
+   document.querySelectorAll('.held') walk on every touch event (that ran once per touchmove
+   frame during a swipe — cheap alone, but adds up across a long list and was part of what made
+   the gesture feel less smooth than it should). Revealing a new row quietly un-reveals the old
+   one; a tap or scroll anywhere outside the held row clears it the same way a native iOS list
+   does, including snapping an "armed" (solid red, confirm-to-delete) button back to its resting
+   icon rather than leaving it waiting to be tapped by accident later. */
+var HELDROW=null;
+function unholdRow(row){row.classList.remove('held','swdel','swiping');row.style.removeProperty('--pull');var ad=row.querySelector('.rdel.arm');if(ad){ad.classList.remove('arm');ad.innerHTML=TRASH}}
+function setHeld(row){if(HELDROW&&HELDROW!==row)unholdRow(HELDROW);HELDROW=row;row.classList.add('held')}
+function clearHeld(){if(HELDROW){unholdRow(HELDROW);HELDROW=null}}
+document.addEventListener('touchstart',function(e){if(HELDROW&&!(e.target.closest&&e.target.closest('.held')))clearHeld()},{capture:true,passive:true});
+document.addEventListener('scroll',function(){if(HELDROW)clearHeld()},{capture:true,passive:true});
 function rowEl(cls,s){var b=document.createElement('div');b.className=cls;b.setAttribute('role','button');b.tabIndex=0;b.dataset.folder=s.folder||'';dragSrc(b,s);b.onkeydown=function(e){if((e.key==='Enter'||e.key===' ')&&e.target===b){e.preventDefault();b.onclick()}};
   var d=document.createElement('button');d.className='rdel';d.setAttribute('aria-label','Delete '+(s.title||'song'));d.title=s.shared&&s.owner!==(AUTH_USER&&AUTH_USER.id)?'Leave shared song':'Delete song';d.innerHTML=TRASH;
   /* Arming is the one confirm step before an irreversible delete — tapping the glyph once arms
@@ -15620,15 +15639,29 @@ function rowEl(cls,s){var b=document.createElement('div');b.className=cls;b.setA
      tap would — still fast, but it can no longer fire by itself. */
   function armDel(){document.querySelectorAll('.rdel.arm').forEach(function(x){x.classList.remove('arm');x.innerHTML=TRASH});d.classList.add('arm');d.textContent=s.shared&&s.owner!==(AUTH_USER&&AUTH_USER.id)?'Leave':'Delete';clearTimeout(d._t);d._t=setTimeout(function(){d.classList.remove('arm');d.innerHTML=TRASH},3000)}
   d.onclick=function(e){e.stopPropagation();if(!d.classList.contains('arm')){armDel();return}removeSong(s)};
-  var lp=0,swSX=0,swSY=0,swOn=false;
-  b.addEventListener('touchstart',function(e){clearTimeout(lp);lp=setTimeout(function(){document.querySelectorAll('.held').forEach(function(x){x.classList.remove('held')});b.classList.add('held');b._held=Date.now()},500);var t=e.touches[0];swSX=t.clientX;swSY=t.clientY;swOn=false},{passive:true});
-  b.addEventListener('touchmove',function(e){clearTimeout(lp);var t=e.touches[0],dx=t.clientX-swSX,dy=t.clientY-swSY;
-    if(!swOn){if(Math.abs(dx)>14&&Math.abs(dx)>Math.abs(dy)*1.5)swOn=true;else return}
-    if(dx<-24){document.querySelectorAll('.held').forEach(function(x){if(x!==b)x.classList.remove('held')});b.classList.add('held');b.classList.toggle('swdel',dx<-120)}
+  /* The pin/delete icons visually pull out from under your finger as you drag, with increasing
+     resistance past -56px (a real rubber band, not a binary pop), then spring to rest with an
+     overshoot ease once you let go (see the .swiping CSS above). Only one requestAnimationFrame
+     is ever in flight per row, and it's cancelled the moment the touch ends, so a swipe never
+     leaves stray frames queued up competing with scrolling or other rows' own gestures. */
+  var lp=0,swSX=0,swSY=0,swOn=false,swActive=false,swDX=0,swRAF=0;
+  function applyPull(){swRAF=0;if(!swActive)return;var dx=Math.min(0,swDX),MAXP=-56,pull=dx;
+    if(dx<MAXP)pull=MAXP+(dx-MAXP)*.22;
+    b.style.setProperty('--pull',pull.toFixed(1)+'px');
+    if(dx<-24){if(HELDROW!==b)setHeld(b);b.classList.add('swiping');b.classList.toggle('swdel',dx<-120)}
     else b.classList.remove('swdel')
+  }
+  b.addEventListener('touchstart',function(e){clearTimeout(lp);swOn=false;swActive=false;lp=setTimeout(function(){setHeld(b);b._held=Date.now()},500);var t=e.touches[0];swSX=t.clientX;swSY=t.clientY},{passive:true});
+  b.addEventListener('touchmove',function(e){clearTimeout(lp);var t=e.touches[0],dx=t.clientX-swSX,dy=t.clientY-swSY;
+    if(!swOn){if(Math.abs(dx)>14&&Math.abs(dx)>Math.abs(dy)*1.5){swOn=true;swActive=true}else return}
+    swDX=dx;if(!swRAF)swRAF=requestAnimationFrame(applyPull)
   },{passive:true});
-  b.addEventListener('touchend',function(){clearTimeout(lp);if(swOn&&b.classList.contains('swdel')){b.classList.remove('swdel');armDel()}swOn=false},{passive:true});
-  b.addEventListener('touchcancel',function(){clearTimeout(lp);swOn=false;b.classList.remove('swdel')},{passive:true});
+  b.addEventListener('touchend',function(){clearTimeout(lp);if(swRAF){cancelAnimationFrame(swRAF);swRAF=0}
+    var wasArm=swOn&&b.classList.contains('swdel');b.classList.remove('swiping');b.style.removeProperty('--pull');
+    if(wasArm){b.classList.remove('swdel');armDel()}
+    swOn=false;swActive=false;swDX=0
+  },{passive:true});
+  b.addEventListener('touchcancel',function(){clearTimeout(lp);if(swRAF){cancelAnimationFrame(swRAF);swRAF=0}b.classList.remove('swiping','swdel');b.style.removeProperty('--pull');swOn=false;swActive=false;swDX=0},{passive:true});
   var pn=document.createElement('button');pn.className='rpin'+(isPinned(s)?' on':'');pn.setAttribute('aria-label',(isPinned(s)?'Unpin ':'Pin ')+(s.title||'song'));pn.title=isPinned(s)?'Unpin':'Pin to top';pn.innerHTML=PINI;
   pn.onclick=function(e){e.stopPropagation();setPin(s,!isPinned(s))};b.appendChild(pn);
   b.appendChild(d);var go=b.onclick;Object.defineProperty(b,'onclick',{set:function(fn){go=fn},get:function(){return function(){if(b._held&&Date.now()-b._held<700)return;go&&go()}}});b.addEventListener('click',function(e){if(e.target.closest('.rdel'))return;b.onclick()});return b}
