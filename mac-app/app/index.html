@@ -14437,8 +14437,29 @@ var VOICES={Neutral:'',
 'Caribbean':'Caribbean voice: island rhythm, light patois phrasing used with respect, sea, heat and sound systems',
 'Gen Z':'Gen Z online voice: very online, ironic, group-chat phrasing, lowercase energy',
 'Old soul':'old-soul voice: timeless plain words, no modern slang, could have been written any decade'};
+var GENRE_DESC={
+ 'Pop':'pop — hook-first, broad appeal, radio-ready polish',
+ 'Bedroom pop':'bedroom pop — lo-fi, intimate, diary-like detail',
+ 'Indie folk':'indie folk — acoustic, literary, unhurried storytelling',
+ 'Alt-rock':'alternative rock — guitar-driven, moody dynamics',
+ 'Pop-punk':'pop-punk — fast, confessional, big shouted choruses',
+ 'Emo':'emo — raw, melodramatic, painfully specific heartbreak',
+ 'Synth-pop':'synth-pop — glossy, nostalgic 80s-leaning synths',
+ 'Dance-pop':'dance-pop — hook-first, built for the floor',
+ 'Hyperpop':'hyperpop — maximalist, glitchy, internet-native hyperbole',
+ 'R&B':'R&B — smooth, vocal-run phrasing, intimate groove',
+ 'Neo-soul':'neo-soul — warm, loose in the pocket, lyrical',
+ 'Hip-hop':'hip-hop — rhythmic flow, wordplay, punchlines that land',
+ 'Trap':'trap — dark, minimal, repetition and ad-lib energy',
+ 'Drill':'drill — menacing, street-specific, deadpan delivery',
+ 'Country':'country — plainspoken storytelling, small-town detail',
+ 'Americana':'Americana — roots, weathered, open-road imagery',
+ 'Gospel':'gospel — devotional, call-and-response, building toward uplift',
+ 'Blues':'blues — plainspoken hardship, repetition, grit',
+ 'Afrobeats':'Afrobeats — rhythmic, warm, communal and danceable'
+};
 function pfx(){var p=PF,a=[];
-  if(p.genre!=='Any')a.push('Genre: '+p.genre+'.');
+  if(p.genre!=='Any')a.push('Genre: '+(GENRE_DESC[p.genre]||p.genre)+'.');
   if(p.mood!=='Any')a.push('Mood: '+p.mood.toLowerCase()+'.');
   if(p.dial.trim())a.push('Write specifically in this voice: '+p.dial.trim()+'. Use its real vocabulary, idioms and spelling naturally, never as caricature.');
   if(p.era!=='Any')a.push(p.era==='Timeless'?'Era: timeless, avoid dated references.':'Era: write as if it were the '+p.era+' (or right '+p.era.toLowerCase()+'), with period-true references and slang.');
@@ -14474,16 +14495,47 @@ function learnedLinePref(){
 }
 /* the four settings that change results most sit up top; the rest live under Fine-tune */
 var SG_MAIN=[
- ['Genre','genre',['Any','Pop','Rock','Indie','Folk','Country','R&B','Hip-hop','Punk','Electronic','Gospel','Blues'],'row'],
- ['Mood','mood',['Any','Heartbreak','Bittersweet','Hopeful','Euphoric','Romantic','Angry','Nostalgic','Playful','Dark'],'row'],
+ ['Genre','genre',['Any','Pop','Bedroom pop','Indie folk','Alt-rock','Pop-punk','Emo','Synth-pop','Dance-pop','Hyperpop','R&B','Neo-soul','Hip-hop','Trap','Drill','Country','Americana','Gospel','Blues','Afrobeats'],'row'],
+ ['Mood','mood',['Any','Heartbreak','Longing','Bittersweet','Hopeful','Euphoric','Romantic','Infatuated','Angry','Defiant','Grief','Lonely','Nostalgic','Playful','Confident','Anxious','Dark','Tender'],'row'],
  ['Language','reg',['Poetic','Conversational','Slang','Explicit'],'seg'],
  ['','dial','Who’s singing','e.g. 1970s Glasgow shipyard worker, Melbourne skater kid']];
 var SG_MORE=[
  ['Point of view','pov',[['Any','Any'],['I','I'],['You','You'],['We','We'],['Story','They']],'seg'],
  ['Tense','tense',['Any','Present','Past'],'seg'],
  ['Era','era',['Any','60s','70s','80s','90s','2000s','2010s','Now','Timeless'],'row'],
- ['Imagery','img',['City','Small town','Nature','Coast','Road','Night','Home','Weather','Faith','Money','Party','Work'],'multi'],
- ['Techniques','dev',['Concrete detail','Metaphor','Internal rhyme','Wordplay','Repetition','Dialogue'],'multi'],
+ ['Imagery','img',[
+   ['City streets','city streets, skylines, subway platforms'],
+   ['Small town','small-town main streets, porches, diners'],
+   ['Suburbs','suburbs, cul-de-sacs, backyard pools'],
+   ['Nature','forests, mountains, rivers, wide open land'],
+   ['Coast','ocean, tide, salt air, boardwalks'],
+   ['Desert','desert heat, dust, long empty highway'],
+   ['Open road','highways, gas stations, motel signs, headlights'],
+   ['Night','3am, streetlights, empty parking lots'],
+   ['Home','kitchens, bedrooms, worn furniture, family photos'],
+   ['Weather','rain, storms, snow, change in the air'],
+   ['Faith','church pews, prayer, hymns, searching for meaning'],
+   ['Money','debt, rent, dead-end jobs, wanting more'],
+   ['Nightlife','clubs, neon, bass through the floor, strangers'],
+   ['Technology','phone screens, texts left on read, blue light at 2am'],
+   ['Nostalgia objects','polaroids, mixtapes, old voicemails, handwriting'],
+   ['Domestic','laundry, dishes, small routines, quiet arguments'],
+   ['Work','clocking in, tired hands, the grind']
+ ],'multi'],
+ ['Techniques','dev',[
+   ['Concrete detail','concrete, specific physical detail over vague abstraction'],
+   ['Metaphor','metaphor and extended imagery'],
+   ['Simile','simile, explicit like/as comparisons'],
+   ['Internal rhyme','internal rhyme within the line, not just at the end'],
+   ['Wordplay','wordplay, puns, double meanings'],
+   ['Repetition','repetition and refrain that builds'],
+   ['Dialogue','direct quoted dialogue'],
+   ['Second person','direct address to "you"'],
+   ['Specific names','specific real names, places and brands rather than generic ones'],
+   ['List structure','a list or catalog structure, naming several things in a row'],
+   ['Understatement','understatement, saying less than is felt'],
+   ['Callback','a callback line that returns changed by the end']
+ ],'multi'],
  ['Rhymes','strict',[['Perfect and near',false],['Perfect only',true]],'seg'],
  ['Clichés','cliche',[['Allow',false],['Avoid',true]],'seg'],
  ['','refs','Influences','Artists or records for tone, e.g. Phoebe Bridgers'],
