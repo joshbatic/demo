@@ -111,6 +111,13 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 #sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7{position:fixed;left:0;right:0;bottom:0;height:88%;max-width:720px;margin:0 auto;background:var(--sheet);-webkit-backdrop-filter:blur(40px) saturate(190%);backdrop-filter:blur(40px) saturate(190%);box-shadow:none;border-radius:38px 38px 0 0;transform:translateY(105%);transition:transform .38s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;z-index:5;padding-bottom:env(safe-area-inset-bottom,0px)}
 #sheet.on,#sheet2.on,#sheet3.on,#sheet4.on,#sheet5.on,#sheet6.on,#sheet7.on{transform:none;box-shadow:0 0 0 .5px var(--ring),0 -4px 24px var(--sh2),inset 0 1px 0 var(--hl)}
 #sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7{height:auto;max-height:84%;overflow-y:auto;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+/* Account scrolls differently from the other auto-height sheets above: the whole sheet (including
+   its .sh title/Done header) was the scroll container, so the header scrolled away with the content
+   instead of staying put like it does in Details (#sheet), where only the inner pane scrolls and the
+   header sits outside it. Giving #acc its own scroll region and un-setting overflow back on #sheet6
+   itself reproduces that same "fixed header, scrolling body" structure here. */
+#sheet6{overflow-y:hidden}
+#acc{flex:1;min-height:0;overflow-y:auto}
 /* the dictionary: tapped open from the handle atop the rhyme toolbar, it's the same sheet
    mechanics as above but anchored near-fullscreen (top:12% rather than a fixed height) since it's
    a destination in its own right — search any word, not just the one under the cursor — not a
@@ -376,6 +383,13 @@ body.desktop #side{padding-top:50px}body.desktop .sdh{-webkit-app-region:drag}bo
 body.desktop #perf{padding-top:64px}
 /* iOS app: UI was feeling cramped/small vs a native app at phone size — size up the chrome (top bar, sidebar, buttons) without touching Mac/web */
 body.ios .ib{width:49px;height:49px}
+/* ...but the rhyme-map/syllable-counts/rate "traffic light" icons (.tgl) sit three-up in one tight
+   grp2 pill rather than standing alone, so sizing them up the same way everything else on iOS gets
+   sized up (49x49 vs the 38x44 they're meant to be) over-widened the whole pill and visibly spread
+   the icons apart. Pin this trio back to their intended compact size, same as Mac/web - scoped to
+   .tgl specifically (not .grp2 .ib generally) so the back/sidebar-toggle pair, which is also a grp2
+   of plain .ib buttons, keeps its full iOS touch-target size. */
+body.ios .grp2 .ib.tgl{width:38px;height:44px}
 body.ios .ib svg,body.ios .ib2 svg{transform:scale(1.14)}
 body.ios #crumb,body.ios #crumb button{font-size:14px}
 body.ios .ib2{width:40px;height:40px}
