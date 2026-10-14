@@ -14333,7 +14333,7 @@ function rsets(w){
   return SC[w]={gi:gi,p:p,n:n};
 }
 /* ---------- writing voice (saved per song) ---------- */
-var PDEF={genre:'Any',mood:'Any',voice:'Neutral',dial:'',era:'Any',pov:'Any',tense:'Any',img:[],dev:[],reg:'Conversational',strict:false,cliche:true,refs:'',custom:''};
+var PDEF={genre:'Any',mood:'Any',voice:'Neutral',dial:'',era:'Any',pov:'Any',tense:'Any',img:[],dev:[],reg:'Conversational',strict:false,cliche:false,refs:'',custom:''};
 function pgGet(){try{return JSON.parse(localStorage.getItem('songpad:prefs'))||{}}catch(e){return{}}}
 function mkPF(o){var p=JSON.parse(JSON.stringify(PDEF));o=o||{};Object.keys(o).forEach(function(k){if(k in PDEF)p[k]=o[k]});if(o.style&&!o.genre&&o.style!=='Any')p.genre=o.style;return p}
 var PF=mkPF(pgGet()),MC={};
@@ -14350,22 +14350,25 @@ function fl(a){return a.filter(function(x){var f=W[x]&&W[x].f;return!f||(f==='c'
    this returns '' and stops computing anything — it never competes with an explicit choice. */
 var LVC={sig:'',txt:''};
 function songsSig(){return songs.length+'|'+songs.reduce(function(a,s){return a+(s.updated||0)},0)}
-function voiceFingerprint(){
-  var lines=[];
+function voiceFingerprint(suppressPov,suppressImg){
+  var lines=[],words={};
   songs.forEach(function(s){(s.lyrics||'').split('\n').forEach(function(l){l=l.trim();if(l&&l[0]!=='[')lines.push(l)})});
   if(lines.length<8)return null;
   var totW=0,totS=0,pov={I:0,You:0,We:0},imgRx={City:/\b(city|street|block|skyline|subway|downtown)\b/i,'small town':/\b(small town|main street|porch|county|back road)\b/i,nature:/\b(tree|forest|mountain|river|flower|sky)\b/i,coast:/\b(ocean|beach|wave|tide|coast|shore)\b/i,'the road':/\b(highway|road|drive|miles|wheel|car)\b/i,night:/\b(night|moon|dark|stars)\b/i,home:/\b(home|house|kitchen|bed|porch)\b/i,weather:/\b(rain|storm|snow|sun|wind)\b/i,faith:/\b(god|prayer|faith|heaven|soul)\b/i,money:/\b(money|cash|dollar|broke|rich)\b/i,party:/\b(party|dance|drink|club)\b/i},imgCount={};
   lines.forEach(function(l){
     var w=l.match(/[A-Za-z']+/g)||[];totW+=w.length;totS+=lsyl(l);
     if(/\b(i|my|me|i'm|i've)\b/i.test(l))pov.I++;if(/\b(you|your|you're)\b/i.test(l))pov.You++;if(/\b(we|our|we're)\b/i.test(l))pov.We++;
-    Object.keys(imgRx).forEach(function(k){if(imgRx[k].test(l))imgCount[k]=(imgCount[k]||0)+1})
+    Object.keys(imgRx).forEach(function(k){if(imgRx[k].test(l))imgCount[k]=(imgCount[k]||0)+1});
+    w.forEach(function(x){x=x.toLowerCase();if(x.length>3&&!STOP[x])words[x]=(words[x]||0)+1})
   });
   var avgW=(totW/lines.length).toFixed(1),avgS=(totS/lines.length).toFixed(1);
   var topImg=Object.keys(imgCount).filter(function(k){return imgCount[k]>=lines.length*0.04}).sort(function(a,b){return imgCount[b]-imgCount[a]}).slice(0,2);
   var topPov=Object.keys(pov).sort(function(a,b){return pov[b]-pov[a]})[0],bits=[];
+  var topWords=Object.keys(words).filter(function(w){return words[w]>=3}).sort(function(a,b){return words[b]-words[a]}).slice(0,6);
   bits.push('lines average around '+avgW+' words / '+avgS+' syllables');
-  if(topImg.length)bits.push('imagery leans toward '+topImg.join(' and '));
-  if(pov[topPov]>lines.length*0.15)bits.push('mostly written in '+({I:'first person (I/my)',You:'second person (you)',We:'first person plural (we)'}[topPov]));
+  if(!suppressImg&&topImg.length)bits.push('imagery leans toward '+topImg.join(' and '));
+  if(!suppressPov&&pov[topPov]>lines.length*0.15)bits.push('mostly written in '+({I:'first person (I/my)',You:'second person (you)',We:'first person plural (we)'}[topPov]));
+  if(topWords.length)bits.push('words they keep coming back to: '+topWords.join(', '));
   return bits
 }
 function hookLines(){
@@ -14385,12 +14388,18 @@ function hookLines(){
   return res
 }
 function learnedVoice(){
-  if(pfTouched())return'';
-  var sig=songsSig();
+  /* Used to switch off entirely the moment ANY Writing Voice field was touched — but setting a
+     Genre doesn't mean the writer wants their own typical line length, word choices and favorite
+     lines ignored too. Now it keeps contributing on whatever dimensions they haven't explicitly
+     set themselves, and only suppresses the one dimension an explicit choice actually covers
+     (POV, imagery) — still never arguing with an explicit choice, just no longer throwing out
+     everything else along with it. */
+  var suppressPov=PF.pov!=='Any',suppressImg=PF.img.length>0;
+  var sig=songsSig()+'|'+suppressPov+'|'+suppressImg;
   if(LVC.sig!==sig){
     LVC.sig=sig;
-    var fp=voiceFingerprint(),hooks=hookLines(),parts=[];
-    if(fp)parts.push('From this writer\'s own past songs: '+fp.join('; ')+'.');
+    var fp=voiceFingerprint(suppressPov,suppressImg),hooks=hookLines(),parts=[];
+    if(fp&&fp.length)parts.push('From this writer\'s own past songs: '+fp.join('; ')+'.');
     if(hooks.length)parts.push('Lines they themselves marked as a favorite "Hook", for tone and quality only — never reuse or closely paraphrase them: '+hooks.map(function(h){return'"'+h+'"'}).join(' / ')+'.');
     LVC.txt=parts.length?' '+parts.join(' '):'';
     if(typeof DEV_MODE!=='undefined'&&DEV_MODE)console.log('[learnedVoice] recomputed —',fp?fp.join('; '):'not enough lines yet (need 8+)','| hooks:',hooks.length,'| text:',LVC.txt||'(empty)')
@@ -14401,8 +14410,8 @@ function learnedVoice(){
    feature is doing right now — whether it's active, what it computed, and the raw text going into
    every AI prompt via pfx(). */
 window.debugVoice=function(){
-  var touched=pfTouched(),fp=touched?null:voiceFingerprint(),hooks=touched?[]:hookLines(),txt=learnedVoice();
-  var out={active:!touched,reason:touched?'Writing Voice has been customized — learned voice is off':(fp?'learning from catalog + hooks':'not enough lyrics yet (need 8+ non-tag lines across your songs)'),songCount:songs.length,fingerprint:fp,hookLinesFound:hooks,promptText:txt||'(empty)'};
+  var suppressPov=PF.pov!=='Any',suppressImg=PF.img.length>0,fp=voiceFingerprint(suppressPov,suppressImg),hooks=hookLines(),txt=learnedVoice();
+  var out={active:!!(txt||fp&&fp.length),suppressingPov:suppressPov,suppressingImg:suppressImg,reason:fp?'learning from catalog + hooks (skipping POV/imagery you set explicitly)':'not enough lyrics yet (need 8+ non-tag lines across your songs)',songCount:songs.length,fingerprint:fp,hookLinesFound:hooks,promptText:txt||'(empty)'};
   console.log('[debugVoice]',out);return out
 };
 function pfk(){return'#'+JSON.stringify(PF)+'#'+learnedVoice()+(typeof VIEW!=='undefined'&&VIEW.ctx?'#ctx':'')}
@@ -14434,6 +14443,11 @@ function pfx(){var p=PF,a=[];
   if(p.img.length)a.push('Draw imagery from: '+p.img.join(', ').toLowerCase()+'.');
   if(p.dev.length)a.push('Techniques to use: '+p.dev.join(', ').toLowerCase()+'.');
   a.push('Language: '+{Poetic:'poetic and imagistic, with metaphor and no slang',Conversational:'natural everyday speech, contractions welcome',Slang:'casual and slangy like real speech, never forced',Explicit:'raw and uncensored, with profanity where it lands naturally'}[p.reg]+'.');
+  /* Always on, independent of the Clichés setting below — that toggle is specifically about stock
+     rhyme pairs and worn-out phrases a songwriter would recognize as lazy writing. This is about a
+     different, narrower thing: the surface tics that make text read as obviously AI-written even
+     when the content itself is fine — so it applies whether or not clichés are allowed. */
+  a.push('Write like a person drafting by hand, not an AI assistant: skip the tidy "it\'s not X, it\'s Y" contrast, stock openers like "in the silence/stillness" or "let me take you back", em-dash asides, and a neatly uplifting resolution by default. Let a line stay plain, unresolved, or a little rough rather than polishing every single one.');
   if(p.cliche)a.push('Avoid clichés and stock rhyme pairs (fire/desire, heart/apart, eyes/skies, rain/pain, love/above) and stock phrases.');
   if(p.refs.trim())a.push('Influences, for tone only: '+p.refs.trim()+'. Never quote or closely paraphrase existing lyrics.');
   if(p.custom.trim())a.push('Extra direction from the writer: '+p.custom.trim());
@@ -14467,7 +14481,7 @@ var SG_MORE=[
  ['Imagery','img',['City','Small town','Nature','Coast','Road','Night','Home','Weather','Faith','Money','Party','Work'],'multi'],
  ['Techniques','dev',['Concrete detail','Metaphor','Internal rhyme','Wordplay','Repetition','Dialogue'],'multi'],
  ['Rhymes','strict',[['Perfect and near',false],['Perfect only',true]],'seg'],
- ['Clichés','cliche',[['Avoid',true],['Allow',false]],'seg'],
+ ['Clichés','cliche',[['Allow',false],['Avoid',true]],'seg'],
  ['','refs','Influences','Artists or records for tone, e.g. Phoebe Bridgers'],
  ['','custom','Anything else','e.g. short lines, no rhymes on “-ing”']];
 var moreOpen=false;
@@ -14490,7 +14504,7 @@ function buildSettings(){
   mb.innerHTML='<span>Fine-tune</span><em></em><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l4 4 4-4"/></svg>';
   mb.querySelector('em').textContent=n?n+' set':'Point of view, tense, era, imagery and more';mb.onclick=function(){moreOpen=!moreOpen;buildSettings()};o.appendChild(mb);
   if(moreOpen){var box=document.createElement('div');box.className='vbox';o.appendChild(box);SG_MORE.forEach(function(g){field(g,box)})}
-  var nt=document.createElement('div');nt.className='note';nt.style.paddingTop='14px';nt.textContent='Saved with this song. It shapes the lines written for you and the word suggestions.'+(!pfTouched()&&learnedVoice()?' Nothing here is set yet, so it’s quietly picking up your style from your own past songs and favorite lines instead — set anything above and it’ll use that instead.':'');o.appendChild(nt);
+  var nt=document.createElement('div');nt.className='note';nt.style.paddingTop='14px';nt.textContent='Saved with this song. It shapes the lines written for you and the word suggestions, and quietly blends in your own style from past songs and favorite lines wherever you haven’t set something specific above.';o.appendChild(nt);
   $('#sheet2').scrollTop=sc;
 }
 /* ---------- song list ---------- */
