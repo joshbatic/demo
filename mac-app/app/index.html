@@ -16273,32 +16273,44 @@ function cloudPullPlan(){
    the *first* flow, the exchange fails server-side with "invalid flow state, no valid flow state
    found" — the code it comes back with no longer matches anything. One flow at a time, fixes that. */
 var oauthInFlight=false;
+/* TEMPORARY diagnostic trail: writes each step signInOAuth takes into #ag-note so the exact
+   stopping point is visible on-screen on a real device, without needing a Mac + Safari Web
+   Inspector cable hookup. Remove once the iOS/Mac sign-in issue is confirmed fixed. */
+var OAUTH_DEBUG=[];
+function oauthDbg(s){OAUTH_DEBUG.push(s);var ag=$('#ag-note');if(ag)ag.textContent='[debug] '+OAUTH_DEBUG.join(' -> ')}
 function signInOAuth(provider,forceChooser,label){
-  var c=sbClient();if(!c){toast('Sign-in isn’t available right now.');var ag=$('#ag-note');if(ag)ag.textContent='Couldn’t reach the sign-in service. Check your connection and try again.';return}
-  if(oauthInFlight)return;
+  OAUTH_DEBUG=[];oauthDbg('click');
+  var c=sbClient();if(!c){toast('Sign-in isn’t available right now.');oauthDbg('no sbClient');return}
+  oauthDbg('sbClient ok');
+  if(oauthInFlight){oauthDbg('blocked: already in flight');return}
   var onDesktop=!!(window.desktop&&window.desktop.openExternal&&window.desktop.onAuthCallback);
-  var onNativeIOS=!onDesktop&&NATIVE_IOS&&!!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Browser);
-  if(!onDesktop&&!onNativeIOS&&window.top!==window.self){var ag2=$('#ag-note');if(ag2)ag2.textContent=label+' can’t sign in inside this embedded preview. Open this page in its own browser tab (use the artifact’s share link) to sign in.';return}
+  var hasCap=!!window.Capacitor,hasPlugins=!!(window.Capacitor&&window.Capacitor.Plugins),hasBrowserPlugin=!!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Browser);
+  oauthDbg('onDesktop='+onDesktop+' NATIVE_IOS='+NATIVE_IOS+' Capacitor='+hasCap+' Plugins='+hasPlugins+' Browser='+hasBrowserPlugin);
+  var onNativeIOS=!onDesktop&&NATIVE_IOS&&hasBrowserPlugin;
+  if(!onDesktop&&!onNativeIOS&&window.top!==window.self){oauthDbg('blocked: embedded preview, not desktop/native');return}
   var qp=(provider==='google'&&forceChooser)?{prompt:'select_account'}:{};
-  function fail(e){toast('Sign-in failed. Please try again.');var ag=$('#ag-note');if(ag)ag.textContent=(e&&e.message)||(e&&e.error&&e.error.message)||'Sign-in failed.'}
+  function fail(e){toast('Sign-in failed. Please try again.');oauthDbg('error: '+((e&&e.message)||(e&&e.error&&e.error.message)||JSON.stringify(e)))}
   if(onDesktop){
-    oauthInFlight=true;
+    oauthInFlight=true;oauthDbg('desktop branch: calling signInWithOAuth');
     c.auth.signInWithOAuth({provider:provider,options:{redirectTo:'demo://auth-callback',skipBrowserRedirect:true,queryParams:qp}}).then(function(r){
       oauthInFlight=false;
-      if(r&&r.data&&r.data.url)window.desktop.openExternal(r.data.url);
+      if(r&&r.data&&r.data.url){oauthDbg('got url, opening external');window.desktop.openExternal(r.data.url)}
       else if(r&&r.error)fail(r);
+      else oauthDbg('resolved with neither url nor error: '+JSON.stringify(r))
     }).catch(function(e){oauthInFlight=false;fail(e)});
     return;
   }
   if(onNativeIOS){
-    oauthInFlight=true;
+    oauthInFlight=true;oauthDbg('iOS branch: calling signInWithOAuth');
     c.auth.signInWithOAuth({provider:provider,options:{redirectTo:'demo://auth-callback',skipBrowserRedirect:true,queryParams:qp}}).then(function(r){
       oauthInFlight=false;
-      if(r&&r.data&&r.data.url)window.Capacitor.Plugins.Browser.open({url:r.data.url});
+      if(r&&r.data&&r.data.url){oauthDbg('got url, opening via Browser plugin');try{window.Capacitor.Plugins.Browser.open({url:r.data.url});oauthDbg('Browser.open called')}catch(e2){oauthDbg('Browser.open threw: '+(e2&&e2.message))}}
       else if(r&&r.error)fail(r);
+      else oauthDbg('resolved with neither url nor error: '+JSON.stringify(r))
     }).catch(function(e){oauthInFlight=false;fail(e)});
     return;
   }
+  oauthDbg('plain web branch: calling signInWithOAuth (redirects in place)');
   c.auth.signInWithOAuth({provider:provider,options:{redirectTo:window.location.href,queryParams:qp}}).catch(function(e){fail(e)})
 }
 function signInGoogle(forceChooser){signInOAuth('google',forceChooser,'Google')}
