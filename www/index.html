@@ -16267,27 +16267,39 @@ function cloudPullPlan(){
    demo://auth-callback bridge (wired up in sbClient above) hands the result back; everywhere else
    it's a normal same-window redirect. select_account is a Google-only query param (Apple has no
    equivalent chooser prompt), so it's only ever sent for that provider. */
+/* Guards against overlapping sign-in attempts: starting a second PKCE flow (e.g. an impatient
+   double-click while the system browser is still opening) generates a new code_verifier and
+   overwrites the one Supabase stored for the first attempt, so when Google eventually completes
+   the *first* flow, the exchange fails server-side with "invalid flow state, no valid flow state
+   found" — the code it comes back with no longer matches anything. One flow at a time, fixes that. */
+var oauthInFlight=false;
 function signInOAuth(provider,forceChooser,label){
   var c=sbClient();if(!c){toast('Sign-in isn’t available right now.');var ag=$('#ag-note');if(ag)ag.textContent='Couldn’t reach the sign-in service. Check your connection and try again.';return}
+  if(oauthInFlight)return;
   var onDesktop=!!(window.desktop&&window.desktop.openExternal&&window.desktop.onAuthCallback);
   var onNativeIOS=!onDesktop&&NATIVE_IOS&&!!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Browser);
   if(!onDesktop&&!onNativeIOS&&window.top!==window.self){var ag2=$('#ag-note');if(ag2)ag2.textContent=label+' can’t sign in inside this embedded preview. Open this page in its own browser tab (use the artifact’s share link) to sign in.';return}
   var qp=(provider==='google'&&forceChooser)?{prompt:'select_account'}:{};
+  function fail(e){toast('Sign-in failed. Please try again.');var ag=$('#ag-note');if(ag)ag.textContent=(e&&e.message)||(e&&e.error&&e.error.message)||'Sign-in failed.'}
   if(onDesktop){
+    oauthInFlight=true;
     c.auth.signInWithOAuth({provider:provider,options:{redirectTo:'demo://auth-callback',skipBrowserRedirect:true,queryParams:qp}}).then(function(r){
+      oauthInFlight=false;
       if(r&&r.data&&r.data.url)window.desktop.openExternal(r.data.url);
-      else if(r&&r.error){toast('Sign-in failed. Please try again.');var ag3=$('#ag-note');if(ag3)ag3.textContent=r.error.message||'Sign-in failed.'}
-    });
+      else if(r&&r.error)fail(r);
+    }).catch(function(e){oauthInFlight=false;fail(e)});
     return;
   }
   if(onNativeIOS){
+    oauthInFlight=true;
     c.auth.signInWithOAuth({provider:provider,options:{redirectTo:'demo://auth-callback',skipBrowserRedirect:true,queryParams:qp}}).then(function(r){
+      oauthInFlight=false;
       if(r&&r.data&&r.data.url)window.Capacitor.Plugins.Browser.open({url:r.data.url});
-      else if(r&&r.error){toast('Sign-in failed. Please try again.');var ag4=$('#ag-note');if(ag4)ag4.textContent=r.error.message||'Sign-in failed.'}
-    });
+      else if(r&&r.error)fail(r);
+    }).catch(function(e){oauthInFlight=false;fail(e)});
     return;
   }
-  c.auth.signInWithOAuth({provider:provider,options:{redirectTo:window.location.href,queryParams:qp}})
+  c.auth.signInWithOAuth({provider:provider,options:{redirectTo:window.location.href,queryParams:qp}}).catch(function(e){fail(e)})
 }
 function signInGoogle(forceChooser){signInOAuth('google',forceChooser,'Google')}
 function signInApple(forceChooser){signInOAuth('apple',forceChooser,'Apple')}
