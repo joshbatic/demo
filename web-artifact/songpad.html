@@ -14514,7 +14514,19 @@ function hdr(){if(!cur)return;$('#cr-fold').textContent=cur.folder||'Unfiled';$(
 function reveal(center){
   var sc=$('#sc'),s=getSelection();if(!s.rangeCount||!lyr.contains(s.anchorNode))return;
   var r=s.getRangeAt(0).cloneRange();r.collapse(false);var rc=r.getClientRects()[0];
-  if(!rc||!rc.height){if(getSel().e!==getText().length)return;var lb=lyr.getBoundingClientRect();rc={top:lb.bottom-30,bottom:lb.bottom}}
+  if(!rc||!rc.height){
+    if(getSel().e!==getText().length)return;
+    /* the collapsed caret range right at the end of the content often has no measurable rect of its
+       own (typically a trailing empty line, including the editor going empty entirely after a
+       backspace) — used to fall back to #lyr's own box, but #lyr has min-height:58vh, so its bottom
+       sits far below the actual last line and this would scroll the whole page down to empty space
+       instead of to where the caret visually is. Measure where the content actually ends instead:
+       the last rendered line's own rect if there's any text left, or the top of the (empty) editor
+       — where an empty contenteditable's caret actually sits — if there's none. */
+    var all=document.createRange();all.selectNodeContents(lyr);var rects=all.getClientRects();
+    if(rects.length)rc=rects[rects.length-1];
+    else{var lb=lyr.getBoundingClientRect();rc={top:lb.top,bottom:lb.top+30}}
+  }
   var top=$('.bar').getBoundingClientRect().bottom+12,bot=$('#rhy').getBoundingClientRect().top-14;
   if(center){
     var mid=(top+bot)/2,rmid=(rc.top+rc.bottom)/2;
