@@ -1,0 +1,91 @@
+/* *[demo] — TestFlight site
+   Layout concept: a single centered column (max 720px, same as the app's own sheets/reader width)
+   that stacks a hero, a mock editor card, a feature grid and a footer — no sidebars, nothing wider
+   than the app itself ever gets. Tokens below are lifted directly from the app's own :root/dark
+   variables so the site reads as the same product, not a separate marketing skin. */
+:root{
+  --bg:#fff;--ink:#000;--mute:rgba(60,60,67,.6);--sep:rgba(60,60,67,.16);
+  --tint:#1C1C1E;--ontint:#fff;--fill:rgba(118,118,128,.12);
+  --gl:rgba(250,250,252,.72);--ring:rgba(0,0,0,.1);--sh:rgba(0,0,0,.13);--sh2:rgba(0,0,0,.06);
+  --hl:#fff;--hl2:rgba(255,255,255,.55);--red:#FF3B30;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#000;--ink:#fff;--mute:rgba(235,235,245,.6);--sep:rgba(84,84,88,.6);
+    --tint:#F2F2F7;--ontint:#000;--fill:rgba(118,118,128,.28);
+    --gl:rgba(58,58,62,.58);--ring:rgba(255,255,255,.09);--sh:rgba(0,0,0,.7);--sh2:rgba(0,0,0,.45);
+    --hl:rgba(255,255,255,.14);--hl2:rgba(255,255,255,.03);--red:#FF453A;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font:17px/1.4 -apple-system,'SF Pro Text',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  padding:0 20px;
+}
+a{color:inherit}
+img{max-width:100%;display:block}
+.wrap{max-width:680px;margin:0 auto}
+
+/* ---- nav ---- */
+.nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 0;max-width:680px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--ink)}
+.brand img{width:28px;height:28px;border-radius:7px;flex:none}
+.brand b{font-size:19px;font-weight:800;letter-spacing:.2px}
+.navlinks{display:flex;gap:18px;font-size:14px;color:var(--mute)}
+.navlinks a{text-decoration:none}
+.navlinks a:hover{color:var(--ink)}
+
+/* ---- hero ---- */
+.hero{padding:56px 0 8px;text-align:center}
+.badge{display:inline-flex;align-items:center;height:26px;padding:0 12px;border-radius:99px;background:var(--tint);color:var(--ontint);font-size:12.5px;font-weight:700;letter-spacing:.2px;margin-bottom:18px}
+h1{font:800 44px/1.12 -apple-system,'SF Pro Display',system-ui,sans-serif;letter-spacing:-.5px;margin:0 0 16px;text-wrap:balance}
+.sub{font-size:18px;line-height:1.5;color:var(--mute);max-width:480px;margin:0 auto 28px}
+.cta{display:flex;flex-direction:column;align-items:center;gap:10px}
+.go{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:52px;padding:0 28px;border-radius:99px;background:var(--tint);color:var(--ontint);font-size:16.5px;font-weight:700;text-decoration:none;box-shadow:0 1px 2px var(--sh2),0 8px 20px var(--sh2)}
+.cta .fine{font-size:13px;color:var(--mute)}
+
+/* ---- mock editor card ---- */
+.mock{margin:48px auto 0;max-width:420px;padding:22px 22px 18px;border-radius:30px;background:var(--gl);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);box-shadow:0 0 0 .5px var(--ring),0 1px 1px var(--sh2),0 20px 40px var(--sh2),inset 0 1px 0 var(--hl2);text-align:left}
+.mockhd{display:flex;gap:12px;align-items:center;margin-bottom:16px}
+.mockcov{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--fill),var(--sep));flex:none}
+.mocktitle{font-weight:700;font-size:16px}
+.mocksub{font-size:12.5px;color:var(--mute)}
+.mocklines{font-size:16px;line-height:1.7}
+.mocklines .hl{background:rgba(142,142,150,.28);border-radius:4px;padding:0 1px}
+.mockchips{display:flex;gap:7px;margin-top:16px;overflow-x:auto;scrollbar-width:none;margin-left:-22px;margin-right:-22px;padding:0 22px}
+.mockchips::-webkit-scrollbar{display:none}
+.mockchips span{flex:none;height:30px;padding:0 13px;border-radius:99px;background:var(--fill);font-size:13.5px;display:flex;align-items:center;color:var(--ink)}
+.mockchips span:first-child{background:var(--tint);color:var(--ontint)}
+
+/* ---- features ---- */
+.features{padding:64px 0 40px;display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.feat{padding:20px;border-radius:22px;background:var(--gl);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);box-shadow:0 0 0 .5px var(--ring),0 1px 1px var(--sh2),0 10px 24px var(--sh2),inset 0 1px 0 var(--hl2)}
+.feat h3{font-size:16px;margin:0 0 6px}
+.feat p{font-size:14px;line-height:1.45;color:var(--mute);margin:0}
+
+/* ---- footer ---- */
+footer{padding:36px 0 48px;border-top:.5px solid var(--sep);margin-top:16px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;font-size:13px;color:var(--mute)}
+footer a{text-decoration:none}
+footer a:hover{color:var(--ink)}
+footer .links{display:flex;gap:16px}
+
+/* ---- legal pages ---- */
+.doc{padding:28px 0 72px}
+.doc h1{font-size:30px;text-align:left;margin-bottom:4px}
+.doc .updated{font-size:13px;color:var(--mute);margin-bottom:36px}
+.doc h2{font-size:19px;margin:34px 0 10px}
+.doc p,.doc li{font-size:15.5px;line-height:1.6;color:var(--ink)}
+.doc p{margin:0 0 14px}
+.doc ul{margin:0 0 14px;padding-left:22px}
+.doc li{margin-bottom:6px}
+.doc .note{font-size:13.5px;color:var(--mute);padding:14px 16px;border-radius:14px;background:var(--fill);margin-bottom:30px}
+.doc a{text-decoration:underline}
+
+@media (max-width:560px){
+  h1{font-size:34px}
+  .features{grid-template-columns:1fr}
+  .sub{font-size:16.5px}
+}
