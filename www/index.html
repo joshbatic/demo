@@ -14337,7 +14337,7 @@ var PDEF={genre:'Any',mood:'Any',voice:'Neutral',dial:'',era:'Any',pov:'Any',ten
 function pgGet(){try{return JSON.parse(localStorage.getItem('songpad:prefs'))||{}}catch(e){return{}}}
 function mkPF(o){var p=JSON.parse(JSON.stringify(PDEF));o=o||{};Object.keys(o).forEach(function(k){if(k in PDEF)p[k]=o[k]});if(o.style&&!o.genre&&o.style!=='Any')p.genre=o.style;return p}
 var PF=mkPF(pgGet()),MC={};
-function savePF(){if(cur){cur.pf=JSON.parse(JSON.stringify(PF));cur.updated=Date.now();save()}try{localStorage.setItem('songpad:prefs',JSON.stringify(PF))}catch(e){}LS=null;MC={};gearDot()}
+function savePF(){if(cur){cur.pf=JSON.parse(JSON.stringify(PF));cur.updated=Date.now();save()}try{localStorage.setItem('songpad:prefs',JSON.stringify(PF))}catch(e){}LSK=null;MC={};gearDot()}
 /* "touched" = the writer has set at least one of these away from its default. Both the gear
    dot and the auto-learned-voice gate below key off this one check so they never disagree. */
 function pfTouched(){return['genre','mood','dial','era','pov','tense','img','dev','refs','custom'].some(function(k){return JSON.stringify(PF[k])!==JSON.stringify(PDEF[k])})}
@@ -14437,7 +14437,22 @@ function pfx(){var p=PF,a=[];
   if(p.cliche)a.push('Avoid clichés and stock rhyme pairs (fire/desire, heart/apart, eyes/skies, rain/pain, love/above) and stock phrases.');
   if(p.refs.trim())a.push('Influences, for tone only: '+p.refs.trim()+'. Never quote or closely paraphrase existing lyrics.');
   if(p.custom.trim())a.push('Extra direction from the writer: '+p.custom.trim());
-  return' '+a.join(' ')+learnedVoice();
+  return' '+a.join(' ')+learnedVoice()+learnedLinePref();
+}
+/* ---------- learned rhyme-type preference: quietly nudges toward perfect vs near/slant rhymes
+   based on which ones the writer has actually picked over time (word-tool taps and accepted line
+   suggestions both feed this), the same light-touch way learnedVoice() reads their catalog. Backs
+   off whenever "Perfect only" is explicitly set, same principle as learnedVoice backing off the
+   moment Voice is touched — a learned nudge should never argue with an explicit choice. */
+function recordLineAccept(type){if(!type)return;try{var st=JSON.parse(localStorage.getItem('songpad:linepref')||'{}');st[type]=(st[type]||0)+1;localStorage.setItem('songpad:linepref',JSON.stringify(st))}catch(e){}}
+function learnedLinePref(){
+  if(PF.strict)return'';
+  try{
+    var st=JSON.parse(localStorage.getItem('songpad:linepref')||'{}'),perfect=st.perfect||0,near=st.near||0,loose=st.loose||0,total=perfect+near+loose;
+    if(total<8)return'';
+    if(near+loose>perfect*1.3)return' This writer tends to pick near/slant rhymes over perfect ones when both are offered — lean that way when it reads naturally.';
+    return'';
+  }catch(e){return''}
 }
 /* the four settings that change results most sit up top; the rest live under Fine-tune */
 var SG_MAIN=[
@@ -14508,7 +14523,7 @@ $('#f-key').innerHTML=KY.map(function(k){return'<option value="'+k+'">'+(k||'Non
 var map={'#title':'title','#f-artist':'artist','#chd':'chords','#f-key':'key','#f-bpm':'bpm','#f-tuning':'tuning','#f-status':'status','#f-folder':'folder','#f-notes':'notes'};
 Object.keys(map).forEach(function(sel){$(sel).addEventListener('input',function(){if(!cur)return;cur[map[sel]]=this.value;cur.updated=Date.now();save();if(sel==='#f-key')chordChips();hdr()})});
 function openSong(id){
-  cur=songs.filter(function(s){return s.id===id})[0];if(!cur)return;sheet(false);LS=null;scheme=cur.scheme||'auto';if(typeof setRateMode==='function'&&rateMode)setRateMode(false);PF=mkPF(cur.pf||pgGet());MC={};gearDot();
+  cur=songs.filter(function(s){return s.id===id})[0];if(!cur)return;sheet(false);LSK=null;scheme=cur.scheme||'auto';if(typeof setRateMode==='function'&&rateMode)setRateMode(false);PF=mkPF(cur.pf||pgGet());MC={};gearDot();
   Object.keys(map).forEach(function(sel){$(sel).value=cur[map[sel]]||''});setLyr(cur);hdr();
   $('#fl').innerHTML=Array.from(new Set(songs.map(function(s){return s.folder}).filter(Boolean))).map(function(f){return'<option value="'+f.replace(/"/g,'&quot;')+'">'}).join('');
   chordChips();show('vEdit');rhyme();renderSide();if(cur.shared)pullShared(cur);
@@ -14892,7 +14907,7 @@ function dmRhymes(w){
 }
 function getR(w){var d=DM[nw(w)];if(d&&!d.then)return{src:'dm',p:fl(d.p),n:fl(d.n)};var S=rsets(w);return{src:'local',p:fl(S.p),n:fl(S.n)}}
 /* ---------- rhyme bar ---------- */
-var sampleFn=null,LS=null,scheme='auto',lastTk='';
+var sampleFn=null,LSC={},LSK=null,GENHIST={},scheme='auto',lastTk='';
 try{claude.use('sample').then(function(s){sampleFn=s;rhyme()},function(){})}catch(e){}
 /* ---------- AI routing: OpenAI on this Mac (when a key is saved), Claude's sample capability on the web artifact, a baked-in key otherwise (native wrapper builds e.g. iOS) ---------- */
 var oaiReady=false;
@@ -14991,7 +15006,7 @@ function ctx(){
   return{cur:cl,raw:c,ls:ls,le:le,sel:sel,word:word||'',st:st,p:p,sch:sch,ti:ti,tl:tl,via:via,ref:tl||st[p-1]||''};
 }
 function rhyme(){
-  var c=ctx(),rc=$('#rc'),rs=$('#rs'),L=lines&&aiAvailable();rc.innerHTML='';var tk=(lines?'L':'W'+wmode)+c.word+'|'+c.p+(LS&&LS.k?LS.k:'');var chg=tk!==lastTk;lastTk=tk;rc.className=(L?'lines':'')+(chg?' in':'');
+  var c=ctx(),rc=$('#rc'),rs=$('#rs'),L=lines&&aiAvailable();rc.innerHTML='';var tk=(lines?'L':'W'+wmode)+c.word+'|'+c.p+(LSK||'');var chg=tk!==lastTk;lastTk=tk;rc.className=(L?'lines':'')+(chg?' in':'');
   var selPhrase=c.sel.trim(),selWords=selPhrase?selPhrase.split(/\s+/).length:0;
   var mlx=melAt(c.ls),cs=c.cur.trim()?lsyl(c.cur):0,rf=mlx?mlx.n:lsyl(c.ref),left=cs&&rf>cs?rf-cs:0;rs.textContent='';
   if(lines)rs.textContent=c.sel.trim()?'Selection · '+lsyl(c.sel)+' syl · ends “'+lastW(c.sel)+'”':'Line '+(c.p+1)+' · '+(c.ti>=0?'rhymes with line '+(c.ti+1):'new rhyme')+(rf?' · '+rf+' syl'+(mlx?' (melody)':''):'');
@@ -15042,12 +15057,12 @@ function rhyme(){
     pr.then(function(a){MC[k]=a;if(!lines&&ctx().sel.trim()===selPhrase)rhyme()});
   }
   function order(a){if(!left)return a;var f=function(x){return sy(x)===left};return a.filter(f).concat(a.filter(function(x){return!f(x)}))}
-  function add(x){chip(x,left&&sy(x)===left?'f':'',sy(x),function(){var ta=$('#lyr'),pv=ta.value.charAt(ta.selectionStart-1);var orig=c.sel?c.sel.trim():sp?ta.value.slice(sp[0],sp[1]):'',out=x;
+  function add(x,type){chip(x,left&&sy(x)===left?'f':'',sy(x),function(){var ta=$('#lyr'),pv=ta.value.charAt(ta.selectionStart-1);var orig=c.sel?c.sel.trim():sp?ta.value.slice(sp[0],sp[1]):'',out=x;
     if(/^[A-Z][A-Z]+$/.test(orig))out=x.toUpperCase();else if(/^[A-Z]/.test(orig))out=x.charAt(0).toUpperCase()+x.slice(1);
     if(c.sel){ins(ta,out)}
     else if(sp){ta.setSelectionRange(sp[0],sp[1]);ins(ta,out)}
     else{ins(ta,(pv&&!/\s/.test(pv)?' ':'')+out)}
-    flash(out.length)})}
+    recordLineAccept(type);flash(out.length)})}
   if(wmode==='rhy'||wmode==='per'||wmode==='near'){
     var S=getR(tgt),P=wmode==='near'?[]:S.p.slice(0,40),Nr=wmode==='per'||(PF.strict&&wmode==='rhy')?[]:S.n.slice(0,wmode==='near'?60:30);
     if(S.src==='local'&&!dmOff){var want=nw(tgt);dmRhymes(tgt).then(function(r){if(r&&!lines&&nw(ctx().word||'')===want)rhyme()})}
@@ -15056,7 +15071,7 @@ function rhyme(){
     else if(rk&&rk.busy){rs.appendChild(document.createTextNode(' · '));rs.appendChild(aidotsEl());rs.appendChild(document.createTextNode(' ranking for this song'))}
     P=order(P);Nr=order(Nr);
     if(!P.length&&!Nr.length)return hint('No '+(wmode==='per'?'perfect ':wmode==='near'?'near ':'')+'rhymes found for “'+tgt+'”.');
-    P.forEach(add);if(Nr.length){if(P.length){var d=document.createElement('span');d.className='dv';d.textContent='near';rc.appendChild(d)}Nr.forEach(add)}
+    P.forEach(function(x){add(x,'perfect')});if(Nr.length){if(P.length){var d=document.createElement('span');d.className='dv';d.textContent='near';rc.appendChild(d)}Nr.forEach(function(x){add(x,'near')})}
     return;
   }
   if(wmode==='def'){
@@ -15081,30 +15096,37 @@ function lineView(c){
   var rc=$('#rc');
   function hint(x,busy){var h=document.createElement('div');h.className='hint';if(busy){h.appendChild(aidotsEl());h.appendChild(document.createTextNode(' '+x))}else h.appendChild(document.createTextNode(x));rc.appendChild(h)}
   function go(label,fn){var b=document.createElement('button');b.className='go';b.textContent=label;b.onmousedown=prevent;b.onclick=fn;rc.appendChild(b)}
-  function list(apply){if(LS.best>0)hint('No exact match this time. Closest fits first.');
-    LS.list.forEach(function(o){var b=document.createElement('button');b.className='ln';b.innerHTML='<span></span><i></i>';b.children[0].textContent=o.line;b.children[1].textContent=o.n+' syl'+(o.d?' ('+(o.d>0?'+':'')+o.d+')':'')+(o.type&&o.type!=='new'?' · '+(o.type==='loose'?'loose rhyme':o.type==='near'?'near rhyme':o.type):'');b.onmousedown=prevent;b.onclick=function(){apply(o.line)};rc.appendChild(b)})}
+  function list(st2,apply){if(st2.best>0)hint('No exact match this time. Closest fits first.');
+    st2.list.forEach(function(o){var b=document.createElement('button');b.className='ln';b.innerHTML='<span></span><i></i>';b.children[0].textContent=o.line;b.children[1].textContent=o.n+' syl'+(o.d?' ('+(o.d>0?'+':'')+o.d+')':'')+(o.type&&o.type!=='new'?' · '+(o.type==='loose'?'loose rhyme':o.type==='near'?'near rhyme':o.type):'');b.onmousedown=prevent;b.onclick=function(){apply(o)};rc.appendChild(b)})}
   var selT=c.sel.trim();
+  /* LSC caches a finished (or in-flight) generation per key, and LSK is just which key is
+     currently in focus for display — so switching between "Lines that rhyme" / "Rewrite" /
+     "Tighten" on the same selection, or flipping Listen-to-whole-song and back, re-shows an
+     already-fetched batch instantly instead of forcing a fresh AI call and losing the old one. */
   if(selT){
-    var g=getSel(),kN='S#next#'+selT+pfk(),kR='S#rw#'+selT+pfk(),row=document.createElement('div');row.className='sch';
-    [['Lines that rhyme',kN,'next'],['Rewrite selection',kR,'rw']].forEach(function(x){var b=document.createElement('button');b.className='r'+(LS&&LS.k===x[1]?' f':'');b.textContent=x[0];b.onmousedown=prevent;b.onclick=function(){selGen(selT,x[2],g.s,g.e,!!(LS&&LS.k===x[1]),c.st)};row.appendChild(b)});
+    var g=getSel(),kN='S#next#'+selT+pfk(),kR='S#rw#'+selT+pfk(),kT='S#tighten#'+selT+pfk(),row=document.createElement('div');row.className='sch';
+    [['Lines that rhyme',kN,'next'],['Rewrite selection',kR,'rw'],['Tighten',kT,'tighten']].forEach(function(x){var b=document.createElement('button');b.className='r'+(LSK===x[1]?' f':'');b.textContent=x[0];b.onmousedown=prevent;b.onclick=function(){selGen(selT,x[2],g.s,g.e,LSK===x[1],c.st)};row.appendChild(b)});
     rc.appendChild(row);
-    if(LS&&(LS.k===kN||LS.k===kR)){
-      if(LS.busy)return hint(LS.k===kN?'Writing lines that rhyme with your selection':'Rewriting your selection',true);
-      if(LS.err)return hint(LS.err);
-      return list(function(line){var v=getText(),kind=LS.kind;
-        if(kind==='rw'){if(v.slice(LS.a,LS.b)!==LS.src){var i=v.indexOf(LS.src);if(i<0)return toast('The selected text has changed');LS.a=i;LS.b=i+LS.src.length}lyr.setSelectionRange(LS.a,LS.b);ins(lyr,line);flash(line.length)}
-        else{var e=v.indexOf('\n',LS.b);if(e<0)e=v.length;lyr.setSelectionRange(e,e);ins(lyr,'\n'+line);ins(lyr,'\n');flash(line.length)}
-        refreshViews()});
+    var active=(LSK===kN||LSK===kR||LSK===kT)?LSC[LSK]:null;
+    if(active){
+      if(active.busy)return hint(LSK===kN?'Writing lines that rhyme with your selection':LSK===kT?'Tightening your selection':'Rewriting your selection',true);
+      if(active.err)return hint(active.err);
+      return list(active,function(o){var line=o.line,v=getText(),kind=active.kind;
+        if(kind==='rw'||kind==='tighten'){if(v.slice(active.a,active.b)!==active.src){var i=v.indexOf(active.src);if(i<0)return toast('The selected text has changed');active.a=i;active.b=i+active.src.length}lyr.setSelectionRange(active.a,active.b);ins(lyr,line);flash(line.length)}
+        else{var e=v.indexOf('\n',active.b);if(e<0)e=v.length;lyr.setSelectionRange(e,e);ins(lyr,'\n'+line);ins(lyr,'\n');flash(line.length)}
+        recordLineAccept(o.type);refreshViews()});
     }
     return hint('Uses only what you selected: '+lsyl(selT)+' syllables, ending on “'+lastW(selT)+'”.');
   }
   var key=(c.tl||'')+'#'+c.p+'#'+c.sch+pfk(),sr=document.createElement('div');sr.className='sch';
-  [['auto','Auto'],['ABAB','ABAB'],['AABB','AABB'],['ABBA','ABBA'],['ABCB','ABCB']].forEach(function(s){var b=document.createElement('button');b.className='r'+(scheme===s[0]?' f':'');b.textContent=s[1]+(s[0]==='auto'&&scheme==='auto'?' · '+c.sch:'');b.onmousedown=prevent;b.onclick=function(){scheme=s[0];if(cur){cur.scheme=s[0];save()}LS=null;rhyme()};sr.appendChild(b)});
+  [['auto','Auto'],['ABAB','ABAB'],['AABB','AABB'],['ABBA','ABBA'],['ABCB','ABCB']].forEach(function(s){var b=document.createElement('button');b.className='r'+(scheme===s[0]?' f':'');b.textContent=s[1]+(s[0]==='auto'&&scheme==='auto'?' · '+c.sch:'');b.onmousedown=prevent;b.onclick=function(){scheme=s[0];if(cur){cur.scheme=s[0];save()}LSK=null;rhyme()};sr.appendChild(b)});
   rc.appendChild(sr);
-  if(LS&&LS.k===key){
-    if(LS.busy)return hint('Writing line '+(c.p+1),true);
-    if(LS.err){hint(LS.err);return go('Try again',function(){suggest(c,true)})}
-    list(function(line){var k=ctx();if(k.raw.trim()&&!k.cur.trim()){lyr.setSelectionRange(k.le,k.le);ins(lyr,'\n'+line)}else{lyr.setSelectionRange(k.ls,k.le);ins(lyr,line)}ins(lyr,'\n');flash(line.length);refreshViews()});
+  var st=LSC[key];
+  if(st){
+    LSK=key;
+    if(st.busy)return hint('Writing line '+(c.p+1),true);
+    if(st.err){hint(st.err);return go('Try again',function(){suggest(c,true)})}
+    list(st,function(o){var line=o.line,k=ctx();if(k.raw.trim()&&!k.cur.trim()){lyr.setSelectionRange(k.le,k.le);ins(lyr,'\n'+line)}else{lyr.setSelectionRange(k.ls,k.le);ins(lyr,line)}ins(lyr,'\n');flash(line.length);recordLineAccept(o.type);refreshViews()});
     return go('New ideas',function(){suggest(c,true)});
   }
   hint(c.tl?'Line '+(c.p+1)+' will rhyme with “'+lastW(c.tl)+'” (line '+(c.ti+1)+')'+(melAt(c.ls)?' and fit your melody ('+melAt(c.ls).n+' syllables).':' and match its '+lsyl(c.tl)+' syllables.')+' Select words to work from just those.':(c.p?'This line starts a new rhyme. I’ll match the syllables of the line above.':'Start a stanza. Write line 1, then press return for line 2.'));
@@ -15118,9 +15140,9 @@ function suggest(c,again){
 }
 function selGen(t,kind,a,b,again,section){
   var v=getText(),ls=v.lastIndexOf('\n',a-1)+1,le=v.indexOf('\n',b);if(le<0)le=v.length;var line=v.slice(ls,le),lw=lastW(t);
-  runGen({k:'S#'+kind+'#'+t+pfk(),kind:kind,n:lsyl(t),lw:nw(lw),keep:kind==='rw',again:again,a:a,b:b,src:v.slice(a,b),
+  runGen({k:'S#'+kind+'#'+t+pfk(),kind:kind,n:lsyl(t),lw:nw(lw),keep:kind==='rw'||kind==='tighten',again:again,a:a,b:b,src:v.slice(a,b),
     at:le,section:section,
-    task:kind==='rw'?'Rewrite only this phrase: "'+t+'". It sits in the line: "'+line+'". Each option replaces just that phrase, so the full line must still read naturally. Keep roughly the same meaning and end on a word that rhymes with "'+lw+'" (keeping "'+lw+'" is allowed).':'Write a new line that rhymes with this phrase: "'+t+'". It will go right after the line: "'+line+'".'});
+    task:kind==='rw'?'Rewrite only this phrase: "'+t+'". It sits in the line: "'+line+'". Each option replaces just that phrase, so the full line must still read naturally. Keep roughly the same meaning and end on a word that rhymes with "'+lw+'" (keeping "'+lw+'" is allowed).':kind==='tighten'?'Rewrite only this phrase: "'+t+'". It sits in the line: "'+line+'". Each option replaces just that phrase with a noticeably shorter version — fewer syllables, same meaning, still ending on a word that rhymes with "'+lw+'" (keeping "'+lw+'" is allowed) — so the line sings tighter against the melody without losing what it says.':'Write a new line that rhymes with this phrase: "'+t+'". It will go right after the line: "'+line+'".'});
 }
 /* song context: the whole song with a marker where the new text goes */
 function songCtx(o){
@@ -15142,19 +15164,34 @@ function songCtx(o){
 }
 function rhymeSets(lw,cb){if(!lw)return cb({p:[],n:[]});var d=DM[lw];if(!dmOff&&!(d&&!d.then))dmRhymes(lw).then(function(){cb(getR(lw))});else cb(getR(lw))}
 function runGen(o){
-  LS={k:o.k,busy:true};rhyme();
+  LSK=o.k;
+  /* Cache hit: this exact generation (same rhyme target/section/voice/context state) was already
+     fetched — show it immediately rather than re-asking the AI. This is what makes toggling
+     Listen-to-whole-song, or flipping between the selection buttons, instant on the way back
+     instead of resetting to nothing every time. "New ideas"/again always bypasses this. */
+  if(!o.again&&LSC[o.k]&&!LSC[o.k].busy){rhyme();return}
+  /* Regenerating ("again"): remember what was already shown and passed over for this exact spot,
+     so the next batch doesn't just reshuffle the same handful of ideas. Capped so the prompt
+     doesn't grow without bound over a long session of repeated regenerates. */
+  if(o.again&&LSC[o.k]&&LSC[o.k].list&&LSC[o.k].list.length){
+    var h=GENHIST[o.k]=GENHIST[o.k]||[];
+    LSC[o.k].list.forEach(function(x){if(h.indexOf(x.line)<0)h.push(x.line)});
+    if(h.length>30)h.splice(0,h.length-30);
+  }
+  LSC[o.k]={k:o.k,busy:true};rhyme();
   rhymeSets(o.lw,function(S){
     var P=S.p.slice(0,70),Nr=PF.strict?[]:S.n.slice(0,24),ps={},ns={};P.forEach(function(x){ps[x]=1});Nr.forEach(function(x){ns[x]=1});if(o.keep&&o.lw)ps[o.lw]=1;
     var rule=o.lw?(P.length||Nr.length?'3. Prefer ending on one of these perfect rhymes for "'+o.lw+'": '+P.join(', ')+(Nr.length?'\n   If none fits naturally, end on one of these near/slant rhymes: '+Nr.join(', '):'')+'\n   If neither list works, rhyme by ear.':'3. Rhyme with "'+o.lw+'" by ear.'):'3. End on a word with plenty of rhymes.';
-    aiJson('You write song lyrics.'+pfx()+'\n\n'+songCtx(o)+'\n\n'+o.task+'\n\nPriorities:\n1. Match the tone, writing style and imagery you just read in the section above — this comes before rhyme or syllable count.\n2. Aim for exactly '+o.n+' syllables, as close as you can.\n'+rule+'\n4. Twelve different options, and spread them across several different end words rather than reusing the same one or two rhyming words over and over. Mix exact/perfect rhymes with slant or near rhymes (words that share the vowel sound or final consonant sound but aren\'t identical) so the set offers real variety, not twelve ways to land on the same sound. Natural phrasing, no filler.\n\nReturn ONLY a JSON array of 12 strings.',{cache:!o.again}).then(function(r){
+    var skip=GENHIST[o.k]&&GENHIST[o.k].length?'\n5. These were already suggested here and passed over — do not repeat them or near-identical rewordings of them, and vary the approach (different imagery, structure or end word) from all of them: '+GENHIST[o.k].map(function(x){return'"'+x+'"'}).join(' / ')+'.':'';
+    aiJson('You write song lyrics.'+pfx()+'\n\n'+songCtx(o)+'\n\n'+o.task+'\n\nPriorities:\n1. Match the tone, writing style and imagery you just read in the section above — this comes before rhyme or syllable count.\n2. Aim for exactly '+o.n+' syllables, as close as you can.\n'+rule+'\n4. Twelve different options, and spread them across several different end words rather than reusing the same one or two rhyming words over and over. Mix exact/perfect rhymes with slant or near rhymes (words that share the vowel sound or final consonant sound but aren\'t identical) so the set offers real variety, not twelve ways to land on the same sound. Natural phrasing, no filler.'+skip+'\n\nReturn ONLY a JSON array of 12 strings.',{cache:!o.again}).then(function(r){
       var seen={},l=(Array.isArray(r)?r:[]).filter(function(x){return typeof x==='string'&&x.trim()}).map(function(x){x=x.trim();var w=nw(lastW(x)),d=lsyl(x)-o.n,ty=!o.lw?'new':ps[w]?'perfect':ns[w]?'near':'loose';return{line:x,n:lsyl(x),d:d,type:ty,sc:Math.abs(d)+(ty==='near'?1.5:ty==='loose'?3.5:0)}}).filter(function(m){if(seen[m.line])return false;seen[m.line]=1;return true});
       l.sort(function(a,b){return a.sc-b.sc});
-      LS=l.length?{k:o.k,list:l.slice(0,8),best:l[0].sc,kind:o.kind,a:o.a,b:o.b,src:o.src}:{k:o.k,err:'No lines came back. Try again.'};rhyme();
+      LSC[o.k]=l.length?{k:o.k,list:l.slice(0,8),best:l[0].sc,kind:o.kind,a:o.a,b:o.b,src:o.src}:{k:o.k,err:'No lines came back. Try again.'};rhyme();
       /* on mobile, generated lines are picked by tapping one of the result chips, not by typing —
          so once they're in, drop the keyboard to free up the screen for reading/choosing them.
          Gated on the keyboard actually being up (mobile-only signal), so this is a no-op on Mac. */
       if(l.length&&document.body.classList.contains('kb')){var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'))ae.blur()}
-    },function(e){LS={k:o.k,err:e&&e.code==='not_granted'?'Allow access to get line suggestions.':'Could not get suggestions.'};rhyme()});
+    },function(e){LSC[o.k]={k:o.k,err:e&&e.code==='not_granted'?'Allow access to get line suggestions.':'Could not get suggestions.'};rhyme()});
   });
 }
 /* ---------- word modes: rhymes, perfect, near, phrases, meaning ---------- */
@@ -15312,7 +15349,7 @@ function vset(){$('#ctxb').setAttribute('aria-pressed',VIEW.ctx);$('#ctxb').titl
 $('#vmap').onmousedown=prevent;$('#vmap').onclick=function(){VIEW.map=!VIEW.map;vset();toast(VIEW.map?'Rhyme map on':'Rhyme map off')};
 $('#vsyl').onmousedown=prevent;$('#vsyl').onclick=function(){VIEW.syl=!VIEW.syl;vset();toast(VIEW.syl?'Syllable counts on':'Syllable counts off')};
 window.addEventListener('resize',refreshViews);
-$('#ctxb').onmousedown=prevent;$('#ctxb').onclick=function(){if(!isPro())return upsell('listen');VIEW.ctx=!VIEW.ctx;LS=null;vset();rhyme();toast(VIEW.ctx?'Listening to the whole song':'Only listening to nearby lines')};
+$('#ctxb').onmousedown=prevent;$('#ctxb').onclick=function(){if(!isPro())return upsell('listen');VIEW.ctx=!VIEW.ctx;vset();rhyme();toast(VIEW.ctx?'Listening to the whole song':'Only listening to nearby lines')};
 /* ---------- I'm stuck ---------- */
 var CARDS=['Say the quiet part out loud.','Write the line you would never sing to their face.','Swap the feeling for an object you could hold.','Move the scene to a kitchen at 3am.','What is the smallest true detail you remember?','Write the next line as a text you never sent.','Change the tense. Then change it back.','Cut your first line and start at the second.','Give the “you” a name.','Write the opposite of what you mean.','Put the weather in it.','Count something.','Name a real street, shop or brand.','Ask a question you can’t answer.','Turn the next four lines into a list.','Write what happened five minutes before this.','What is the shortest version of this song? Say it in six words.','Let a stranger say the next line.','Lie in the next line.','Use something someone actually said to you.','Tell it from the point of view of the room.','Rhyme on the first word of the line, not the last.','Make it smaller: one room, one minute.','Repeat your best line and change one word.','What’s on the floor?','Hum the melody first. Find words for the vowels.','Write the bridge before the chorus.','Argue with your own title.','Write the ending first.','What does this song want that it can’t have?'];
 var NOUNS=['matchbook','porch light','ferry','radio','ash tray','car keys','hospital bed','church hall','bus shelter','motel pool','windscreen','wedding dress','fishing line','loose tooth','phone charger','backyard','hairbrush','ticket stub','mirror','tram','rain gutter','screen door','kitchen table','petrol station','stairwell','bedsheet','lighthouse','paper cup','jukebox','overcoat'],
@@ -15416,10 +15453,10 @@ function melFrom(blob,name){if(!cur)return;toast('Listening for syllables…');v
   decodeBlob(blob).then(function(buf){var ph=analyze(buf,1);if(!ph.length){toast('No humming found. Try a louder, clearer recording.');return}
     var old=song.melody;song.melody={name:name||'Recording',dur:+buf.duration.toFixed(1),sens:1,apply:(old&&old.apply)||curSection()||'all',phrases:ph};song.updated=Date.now();save();
     audPut(song.id,blob).then(function(ok){if(!ok)toast('Saved the melody. The audio itself couldn’t be stored in this browser.')});
-    if(cur===song){VIEW.syl=true;vset();renderMel();LS=null;rhyme()}
+    if(cur===song){VIEW.syl=true;vset();renderMel();LSK=null;rhyme()}
     var tot=ph.reduce(function(a,p){return a+p.notes.length},0);toast('Found '+ph.length+' phrase'+(ph.length>1?'s':'')+', '+tot+' syllables')
   },function(){toast('Couldn’t read that audio. Try an .m4a, .mp3 or .wav file.')})}
-function reMel(sens){var song=cur;audGet(song.id).then(function(b){if(!b){toast('The recording isn’t stored in this browser. Import it again.');return}decodeBlob(b).then(function(buf){var M=song.melody;M.phrases=analyze(buf,sens);M.sens=sens;song.updated=Date.now();save();if(cur===song){renderMel();refreshViews();LS=null;rhyme()}})})}
+function reMel(sens){var song=cur;audGet(song.id).then(function(b){if(!b){toast('The recording isn’t stored in this browser. Import it again.');return}decodeBlob(b).then(function(buf){var M=song.melody;M.phrases=analyze(buf,sens);M.sens=sens;song.updated=Date.now();save();if(cur===song){renderMel();refreshViews();LSK=null;rhyme()}})})}
 function playSeg(p,btn){var au=$('#mel-au');if(!au.src)return toast('The recording isn’t stored in this browser.');document.querySelectorAll('.mp.on').forEach(function(x){x.classList.remove('on')});btn.classList.add('on');au.currentTime=p.start;au.play().catch(function(){});var stop=function(){if(au.currentTime>=p.end+.05||au.paused){au.pause();btn.classList.remove('on');au.removeEventListener('timeupdate',stop)}};au.addEventListener('timeupdate',stop)}
 function renderMel(){
   var b=$('#mel-body'),au=$('#mel-au'),M=cur&&cur.melody;b.innerHTML='';au.hidden=!M;if(melURL){URL.revokeObjectURL(melURL);melURL=null}au.removeAttribute('src');
@@ -15429,7 +15466,7 @@ function renderMel(){
   function chips(opts,val,fn){var w=document.createElement('div');w.className='opts';opts.forEach(function(o){var x=document.createElement('button');x.className='r'+(o[0]===val?' f':'');x.textContent=o[1];x.onclick=function(){fn(o[0])};w.appendChild(x)});b.appendChild(w)}
   var secs=[['all','Whole song']],seen={};getText().split('\n').forEach(function(l){var m=/^\s*\[([^\]]+)\]\s*$/.exec(l);if(m){var k=secName(m[1]);if(k&&!seen[k]){seen[k]=1;secs.push([k,m[1].replace(/\s*(x\s*\d+|\d+)\s*$/i,'')])}}});
   if(M.apply!=='all'&&!seen[M.apply])secs.push([M.apply,M.apply]);
-  lab('This melody is for');chips(secs,M.apply,function(v){M.apply=v;cur.updated=Date.now();save();renderMel();refreshViews();LS=null;rhyme()});
+  lab('This melody is for');chips(secs,M.apply,function(v){M.apply=v;cur.updated=Date.now();save();renderMel();refreshViews();LSK=null;rhyme()});
   lab('Syllable detection');chips([[0,'Fewer'],[1,'Normal'],[2,'More']],M.sens,function(v){reMel(v)});
   lab(M.phrases.length+' phrases · tap one to hear it · fix a count with − +');
   var g=document.createElement('div');g.className='gf';b.appendChild(g);
@@ -15438,11 +15475,11 @@ function renderMel(){
     var pt=document.createElement('div');pt.className='pat';var ms=p.notes.map(function(n){return n.m}).filter(Boolean),mn=Math.min.apply(null,ms.concat([999])),mx=Math.max.apply(null,ms.concat([0]));
     p.notes.forEach(function(n){var d=document.createElement('i');d.className='nt'+(n.s?' s':'')+(n.l?' l':'');if(n.m&&mx>mn)d.style.marginBottom=Math.round((n.m-mn)/(mx-mn)*18)+'px';pt.appendChild(d)});r.appendChild(pt);
     var mnb=document.createElement('div');mnb.className='mn';mnb.innerHTML='<button aria-label="One fewer syllable">−</button><b></b><button aria-label="One more syllable">+</button>';mnb.querySelector('b').textContent=phN(p);
-    mnb.children[0].onclick=function(e){e.stopPropagation();p.n=Math.max(1,phN(p)-1);if(p.n===p.notes.length)delete p.n;cur.updated=Date.now();save();renderMel();refreshViews();LS=null;rhyme()};
-    mnb.children[2].onclick=function(e){e.stopPropagation();p.n=phN(p)+1;if(p.n===p.notes.length)delete p.n;cur.updated=Date.now();save();renderMel();refreshViews();LS=null;rhyme()};
+    mnb.children[0].onclick=function(e){e.stopPropagation();p.n=Math.max(1,phN(p)-1);if(p.n===p.notes.length)delete p.n;cur.updated=Date.now();save();renderMel();refreshViews();LSK=null;rhyme()};
+    mnb.children[2].onclick=function(e){e.stopPropagation();p.n=phN(p)+1;if(p.n===p.notes.length)delete p.n;cur.updated=Date.now();save();renderMel();refreshViews();LSK=null;rhyme()};
     r.appendChild(mnb);r.onclick=function(){playSeg(p,pb)};g.appendChild(r)});
   var rm=document.createElement('button');rm.className='mrm';rm.textContent='Remove Melody';var arm=0;
-  rm.onclick=function(){if(Date.now()-arm>3000){arm=Date.now();rm.textContent='Tap Again to Remove';setTimeout(function(){rm.textContent='Remove Melody'},3000);return}audDel(cur.id);delete cur.melody;cur.updated=Date.now();save();renderMel();refreshViews();LS=null;rhyme()};b.appendChild(rm);
+  rm.onclick=function(){if(Date.now()-arm>3000){arm=Date.now();rm.textContent='Tap Again to Remove';setTimeout(function(){rm.textContent='Remove Melody'},3000);return}audDel(cur.id);delete cur.melody;cur.updated=Date.now();save();renderMel();refreshViews();LSK=null;rhyme()};b.appendChild(rm);
 }
 $('#mel-imp').onclick=function(){$('#melin').click()};
 $('#melin').onchange=function(){var f=this.files&&this.files[0];this.value='';if(f)melFrom(f,f.name.replace(/\.[^.]+$/,''))};
@@ -15478,7 +15515,7 @@ function pullShared(s){var c=sbClient();if(!c||!AUTH_USER||!s||!s.shared)return;
     if((d.updated||0)>(s.updated||0)){
       var mine=s===cur,sel=mine?getSel():null,focused=mine&&document.activeElement===lyr;
       Object.keys(d).forEach(function(k){s[k]=d[k]});s.owner=r.data.owner_id;s.ownerEmail=r.data.owner_email;s._pushed=d.updated;
-      if(mine){Object.keys(map).forEach(function(sel2){var el=$(sel2);if(document.activeElement!==el)el.value=s[map[sel2]]||''});setLyr(s);if(focused){var L=getText().length;setSel(Math.min(sel.s,L),Math.min(sel.e,L))}PF=mkPF(s.pf||pgGet());hdr();LS=null;rhyme();refreshViews()}
+      if(mine){Object.keys(map).forEach(function(sel2){var el=$(sel2);if(document.activeElement!==el)el.value=s[map[sel2]]||''});setLyr(s);if(focused){var L=getText().length;setSel(Math.min(sel.s,L),Math.min(sel.e,L))}PF=mkPF(s.pf||pgGet());hdr();LSK=null;rhyme();refreshViews()}
       renderList();renderSide()
     }
   })
@@ -15688,7 +15725,7 @@ function intentText(){var a=(cur&&cur.intents)||[];if(!a.length)return'';return'
 function keepIntent(it,why){if(!cur)return;cur.intents=(cur.intents||[]).filter(function(x){return x.quote!==it.quote});cur.intents.push({quote:it.quote,why:why,t:Date.now()});
   var R=cur.rating;if(R&&R.issues)R.issues=R.issues.filter(function(x){return x!==it});cur.updated=Date.now();save();refreshViews();renderRating();toast('Got it. Re-rating with that in mind.');runRate()}
 function findQuote(q){var v=getText();if(!q)return null;var i=v.indexOf(q);if(i<0){i=v.toLowerCase().indexOf(q.toLowerCase())}if(i<0){var s=q.replace(/[“”"]/g,'').trim();i=v.toLowerCase().indexOf(s.toLowerCase());if(i>=0)return[i,i+s.length];return null}return[i,i+q.length]}
-function jumpTo(q,edit){var r=findQuote(q);sheet(false);if(!r){toast('That line has changed since the rating');return}lyr.focus();lyr.setSelectionRange(r[0],r[1]);reveal(true);if(edit){lines=true;LS=null;rhyme();toast('Selected. Tap Rewrite selection for options.')}else{rhyme()}}
+function jumpTo(q,edit){var r=findQuote(q);sheet(false);if(!r){toast('That line has changed since the rating');return}lyr.focus();lyr.setSelectionRange(r[0],r[1]);reveal(true);if(edit){lines=true;LSK=null;rhyme();toast('Selected. Tap Rewrite selection for options.')}else{rhyme()}}
 function renderRating(){var o=$('#rt-out'),R=cur&&cur.rating;o.innerHTML='';if(!R)return;
   var c=document.createElement('div');c.className='rcard';o.appendChild(c);
   var top=document.createElement('div');top.className='rtop';top.innerHTML='<span class="rbig"></span><span class="rdel"></span>';top.querySelector('.rbig').innerHTML=esc(R.overall.toFixed(1))+'<small> / 10</small>';
@@ -15902,7 +15939,7 @@ function renderCleanup(){var o=$('#cu'),v=getText();o.innerHTML='';
   var d=document.createElement('div');d.className='note cudesc';d.textContent=CU.stream?'Streaming-ready: every line starts with a capital, no commas or full stops at line ends, repeats like (x2) written out in full, tidy spacing. These follow common lyric-site conventions; check your platform’s own guidelines before submitting.':'Tidy: consistent capitals, “i” fixed to “I”, straight apostrophes, single spaces, one blank line between sections, tags like [Verse 1] and [Pre-Chorus] made consistent.';o.appendChild(d);
   lab(n?n+' line'+(n>1?'s':'')+' will change':'Already clean');var pv=document.createElement('pre');pv.className='cupv';pv.textContent=cleaned;o.appendChild(pv);
   var a=document.createElement('div');a.className='cuacts';var ap=document.createElement('button');ap.className='go';ap.textContent='Apply to Song';ap.disabled=!n;
-  ap.onclick=function(){snap('Before clean-up');cur.lyrics=cleaned;cur.rich='';cur.updated=Date.now();setLyr(cur);tagBold();cur.rich=lyr.innerHTML;save();sheet(false);LS=null;rhyme();refreshViews();toast('Cleaned up. The original is saved in Versions.')};
+  ap.onclick=function(){snap('Before clean-up');cur.lyrics=cleaned;cur.rich='';cur.updated=Date.now();setLyr(cur);tagBold();cur.rich=lyr.innerHTML;save();sheet(false);LSK=null;rhyme();refreshViews();toast('Cleaned up. The original is saved in Versions.')};
   var cp=document.createElement('button');cp.className='go2 ghost';cp.textContent='Copy Cleaned Text';
   cp.onclick=function(){try{navigator.clipboard.writeText(cleaned).then(function(){toast('Copied cleaned lyrics')},function(){toast('Copy blocked here')})}catch(e){toast('Copy not available')}};
   a.appendChild(ap);a.appendChild(cp);o.appendChild(a);
@@ -16163,7 +16200,7 @@ function applyPlan(){var pro=isPro();document.body.classList.toggle('pro',pro);v
   ['#rateb','#gear','#ctxb'].forEach(function(s){var el=$(s);if(el)el.classList.toggle('prolock',!pro)});
   var lm=$('#lm');if(lm)lm.innerHTML='Lines'+(pro?'':' <i class="protag">Beta</i>');
   var pf=$('#perfb');if(pf)pf.innerHTML='Perform'+(pro?'':' <i class="protag">Beta</i>');
-  LS=null;try{rhyme()}catch(e){}}
+  LSK=null;try{rhyme()}catch(e){}}
 var probT=null;
 function showProBanner(msg,k){
   $('#pb-t').textContent='Beta feature';$('#pb-d').textContent=msg;
@@ -16358,7 +16395,7 @@ $('#acctb').onclick=function(){openAccount('')};$('#sacct').onclick=function(){o
 function snap(label){if(!cur)return false;cur.versions=cur.versions||[];var last=cur.versions[cur.versions.length-1];if(last&&last.lyrics===(cur.lyrics||'')&&last.rich===(cur.rich||''))return false;cur.versions.push({t:Date.now(),lyrics:cur.lyrics||'',rich:cur.rich||'',label:label||''});if(cur.versions.length>30)cur.versions.shift();save();return true}
 function autoSnap(){if(!cur||!(cur.lyrics||'').trim())return;var vs=cur.versions||[],last=vs[vs.length-1];if(!last||Date.now()-last.t>2*3600e3)snap('Auto')}
 function renderVers(){var g=$('#vers');g.innerHTML='';if(!cur)return;var b=document.createElement('button');b.className='row';b.style.color='var(--tint)';b.style.justifyContent='center';b.textContent='Save Version';b.onclick=function(){toast(snap('Saved')?'Version saved':'No changes since the last version');renderVers()};g.appendChild(b);
-  (cur.versions||[]).slice().reverse().forEach(function(v){var r=document.createElement('button');r.className='row vr';r.innerHTML='<span></span><em></em>';r.firstChild.textContent=new Date(v.t).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+(v.label?' · '+v.label:'');r.lastChild.textContent=((v.lyrics||'').match(/[A-Za-z0-9']+/g)||[]).length+' words';r.onclick=function(){snap('Before restore');cur.lyrics=v.lyrics;cur.rich=v.rich;cur.updated=Date.now();save();setLyr(cur);sheet(false);LS=null;rhyme();refreshViews();toast('Restored. Your previous text was saved as a version.')};g.appendChild(r)})}
+  (cur.versions||[]).slice().reverse().forEach(function(v){var r=document.createElement('button');r.className='row vr';r.innerHTML='<span></span><em></em>';r.firstChild.textContent=new Date(v.t).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+(v.label?' · '+v.label:'');r.lastChild.textContent=((v.lyrics||'').match(/[A-Za-z0-9']+/g)||[]).length+' words';r.onclick=function(){snap('Before restore');cur.lyrics=v.lyrics;cur.rich=v.rich;cur.updated=Date.now();save();setLyr(cur);sheet(false);LSK=null;rhyme();refreshViews();toast('Restored. Your previous text was saved as a version.')};g.appendChild(r)})}
 /* ---------- perform mode ---------- */
 var pfRaf=0,pfOn=false,pfSpd=1,pfSize=34,pfLock=null,SPD=[.5,.75,1,1.25,1.5,2,3];
 function pfSet(){$('#pf-txt').style.fontSize=pfSize+'px';$('#pf-sp').textContent=pfSpd+'×'}
