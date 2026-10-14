@@ -16208,10 +16208,73 @@ function sbClient(){
      through the system browser to a custom demo://auth-callback link instead — main.js registers
      that scheme, catches the OS handing it back to the app, and forwards it here over the
      onAuthCallback bridge preload.js exposes. Exchange the code it carries for a real session. */
-  if(window.desktop&&window.desktop.onAuthCallback)window.desktop.onAuthCallback(function(url){
+  function handleAuthUrl(url){
     if(!url)return;
-    sbc.auth.exchangeCodeForSession(url).then(function(r){if(r&&r.error){toast('Sign-in failed. Please try again.');var ag=$('#ag-note');if(ag)ag.textContent=r.error.message||'Sign-in failed.'}}).catch(function(){toast('Sign-in failed. Please try again.')});
-  });
+    oauthDbg('handleAuthUrl: '+url.slice(0,50));
+    var err=null;
+    try{var u=new URL(url);err=u.searchParams.get('error_description')||u.searchParams.get('error')}catch(e){}
+    if(!err){var em=url.match(/[?&#](?:error_description|error)=([^&#]+)/);if(em)err=decodeURIComponent(em[1].replace(/\+/g,' '))}
+    if(err){
+      oauthDbg('oauth error: '+err);
+      toast('Sign-in failed: '+err);
+      var ag=$('#ag-note');if(ag)ag.textContent=err;
+      return;
+    }
+    var code=null;
+    try{var u2=new URL(url);code=u2.searchParams.get('code')}catch(e){}
+    if(!code){var cm=url.match(/[?&#]code=([^&#]+)/);if(cm)code=decodeURIComponent(cm[1])}
+    if(code){
+      oauthDbg('exchanging code for session');
+      sbc.auth.exchangeCodeForSession(code).then(function(r){
+        if(r&&r.error){
+          oauthDbg('exchangeCode error: '+r.error.message);
+          toast('Sign-in failed. Please try again.');
+          var ag=$('#ag-note');if(ag)ag.textContent=r.error.message||'Sign-in failed.';
+        }else{
+          oauthDbg('exchangeCode success');
+        }
+      }).catch(function(e){
+        oauthDbg('exchangeCode thrown: '+((e&&e.message)||e));
+        toast('Sign-in failed. Please try again.');
+      });
+      return;
+    }
+    var at=null,rt=null;
+    var atm=url.match(/[?&#]access_token=([^&#]+)/);if(atm)at=decodeURIComponent(atm[1]);
+    var rtm=url.match(/[?&#]refresh_token=([^&#]+)/);if(rtm)rt=decodeURIComponent(rtm[1]);
+    if(at&&rt){
+      oauthDbg('setting session from tokens');
+      sbc.auth.setSession({access_token:at,refresh_token:rt}).then(function(r){
+        if(r&&r.error){
+          oauthDbg('setSession error: '+r.error.message);
+          toast('Sign-in failed. Please try again.');
+          var ag=$('#ag-note');if(ag)ag.textContent=r.error.message||'Sign-in failed.';
+        }else{
+          oauthDbg('setSession success');
+        }
+      }).catch(function(e){
+        oauthDbg('setSession thrown: '+((e&&e.message)||e));
+      });
+      return;
+    }
+    oauthDbg('fallback raw exchangeCodeForSession');
+    sbc.auth.exchangeCodeForSession(url).then(function(r){
+      if(r&&r.error){toast('Sign-in failed. Please try again.');var ag=$('#ag-note');if(ag)ag.textContent=r.error.message||'Sign-in failed.'}
+    }).catch(function(){toast('Sign-in failed. Please try again.')});
+  }
+  if(window.desktop&&window.desktop.onAuthCallback)window.desktop.onAuthCallback(handleAuthUrl);
+  /* iOS app: same problem as the Mac app above — Google can't redirect back into the WKWebView's
+     own local origin — and the same fix: send the OAuth URL out to the system browser (via
+     Capacitor's Browser plugin) instead of navigating the WebView itself, then catch the OS handing
+     the registered demo:// scheme back to the app through Capacitor's App plugin (appUrlOpen),
+     mirroring the desktop onAuthCallback bridge above. */
+  if(NATIVE_IOS&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App&&window.Capacitor.Plugins.App.addListener){
+    window.Capacitor.Plugins.App.addListener('appUrlOpen',function(data){
+      var url=data&&data.url;if(!url||url.indexOf('demo://auth-callback')!==0)return;
+      if(window.Capacitor.Plugins.Browser&&window.Capacitor.Plugins.Browser.close)try{window.Capacitor.Plugins.Browser.close()}catch(e){}
+      handleAuthUrl(url);
+    });
+  }
   return sbc;
 }
 /* ---------- cloud library sync: mirrors the song list to Supabase, keyed to the signed-in Google account ---------- */
@@ -16255,19 +16318,62 @@ function cloudPullPlan(){
    demo://auth-callback bridge (wired up in sbClient above) hands the result back; everywhere else
    it's a normal same-window redirect. select_account is a Google-only query param (Apple has no
    equivalent chooser prompt), so it's only ever sent for that provider. */
+/* Guards against overlapping sign-in attempts: starting a second PKCE flow (e.g. an impatient
+   double-click while the system browser is still opening) generates a new code_verifier and
+   overwrites the one Supabase stored for the first attempt, so when Google eventually completes
+   the *first* flow, the exchange fails server-side with "invalid flow state, no valid flow state
+   found" — the code it comes back with no longer matches anything. One flow at a time, fixes that. */
+var oauthInFlight=false;
+/* TEMPORARY diagnostic trail: writes each step signInOAuth takes into #ag-note so the exact
+   stopping point is visible on-screen on a real device, without needing a Mac + Safari Web
+   Inspector cable hookup. Remove once the iOS/Mac sign-in issue is confirmed fixed. */
+var OAUTH_DEBUG=[];
+function oauthDbg(s){OAUTH_DEBUG.push(s);var ag=$('#ag-note');if(ag)ag.textContent='[debug] '+OAUTH_DEBUG.join(' -> ')}
 function signInOAuth(provider,forceChooser,label){
-  var c=sbClient();if(!c){toast('Sign-in isn’t available right now.');var ag=$('#ag-note');if(ag)ag.textContent='Couldn’t reach the sign-in service. Check your connection and try again.';return}
+  OAUTH_DEBUG=[];oauthDbg('click');
+  var c=sbClient();if(!c){toast('Sign-in isn’t available right now.');oauthDbg('no sbClient');return}
+  oauthDbg('sbClient ok');
+  if(oauthInFlight){oauthDbg('blocked: already in flight');return}
   var onDesktop=!!(window.desktop&&window.desktop.openExternal&&window.desktop.onAuthCallback);
-  if(!onDesktop&&window.top!==window.self){var ag2=$('#ag-note');if(ag2)ag2.textContent=label+' can’t sign in inside this embedded preview. Open this page in its own browser tab (use the artifact’s share link) to sign in.';return}
+  var hasCap=!!window.Capacitor,hasPlugins=!!(window.Capacitor&&window.Capacitor.Plugins),hasBrowserPlugin=!!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Browser);
+  oauthDbg('onDesktop='+onDesktop+' NATIVE_IOS='+NATIVE_IOS+' Capacitor='+hasCap+' Plugins='+hasPlugins+' Browser='+hasBrowserPlugin);
+  var onNativeIOS=!onDesktop&&NATIVE_IOS&&hasBrowserPlugin;
+  if(!onDesktop&&!onNativeIOS&&window.top!==window.self){oauthDbg('blocked: embedded preview, not desktop/native');return}
   var qp=(provider==='google'&&forceChooser)?{prompt:'select_account'}:{};
+  function fail(e){toast('Sign-in failed. Please try again.');oauthDbg('error: '+((e&&e.message)||(e&&e.error&&e.error.message)||JSON.stringify(e)))}
   if(onDesktop){
+    oauthInFlight=true;oauthDbg('desktop branch: calling signInWithOAuth');
     c.auth.signInWithOAuth({provider:provider,options:{redirectTo:'demo://auth-callback',skipBrowserRedirect:true,queryParams:qp}}).then(function(r){
-      if(r&&r.data&&r.data.url)window.desktop.openExternal(r.data.url);
-      else if(r&&r.error){toast('Sign-in failed. Please try again.');var ag3=$('#ag-note');if(ag3)ag3.textContent=r.error.message||'Sign-in failed.'}
-    });
+      oauthInFlight=false;
+      if(r&&r.data&&r.data.url){oauthDbg('got url, opening external');window.desktop.openExternal(r.data.url)}
+      else if(r&&r.error)fail(r);
+      else oauthDbg('resolved with neither url nor error: '+JSON.stringify(r))
+    }).catch(function(e){oauthInFlight=false;fail(e)});
     return;
   }
-  c.auth.signInWithOAuth({provider:provider,options:{redirectTo:window.location.href,queryParams:qp}})
+  if(onNativeIOS){
+    oauthInFlight=true;oauthDbg('iOS branch: calling signInWithOAuth');
+    c.auth.signInWithOAuth({provider:provider,options:{redirectTo:'demo://auth-callback',skipBrowserRedirect:true,queryParams:qp}}).then(function(r){
+      oauthInFlight=false;
+      if(r&&r.data&&r.data.url){
+        oauthDbg('got url, opening via Browser plugin');
+        try{
+          var p=window.Capacitor.Plugins.Browser.open({url:r.data.url,presentationStyle:'popover'});
+          oauthDbg('Browser.open called');
+          if(p&&p.then){
+            p.then(function(){oauthDbg('Browser.open presented successfully')}).catch(function(err){oauthDbg('Browser.open rejected: '+((err&&err.message)||err))});
+          }
+        }catch(e2){
+          oauthDbg('Browser.open threw: '+(e2&&e2.message));
+        }
+      }
+      else if(r&&r.error)fail(r);
+      else oauthDbg('resolved with neither url nor error: '+JSON.stringify(r))
+    }).catch(function(e){oauthInFlight=false;fail(e)});
+    return;
+  }
+  oauthDbg('plain web branch: calling signInWithOAuth (redirects in place)');
+  c.auth.signInWithOAuth({provider:provider,options:{redirectTo:window.location.href,queryParams:qp}}).catch(function(e){fail(e)})
 }
 function signInGoogle(forceChooser){signInOAuth('google',forceChooser,'Google')}
 function signInApple(forceChooser){signInOAuth('apple',forceChooser,'Apple')}

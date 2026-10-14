@@ -30,8 +30,59 @@ extension WKWebView {
     }
 }
 
+extension CapacitorBridge {
+    private static let swizzlePresentVCOnce: Void = {
+        let origPresent = #selector(CapacitorBridge.presentVC(_:animated:completion:))
+        let swizPresent = #selector(CapacitorBridge.songpad_presentVC(_:animated:completion:))
+        if let m1 = class_getInstanceMethod(CapacitorBridge.self, origPresent),
+           let m2 = class_getInstanceMethod(CapacitorBridge.self, swizPresent) {
+            method_exchangeImplementations(m1, m2)
+        }
+
+        let origDismiss = #selector(CapacitorBridge.dismissVC(animated:completion:))
+        let swizDismiss = #selector(CapacitorBridge.songpad_dismissVC(animated:completion:))
+        if let m1 = class_getInstanceMethod(CapacitorBridge.self, origDismiss),
+           let m2 = class_getInstanceMethod(CapacitorBridge.self, swizDismiss) {
+            method_exchangeImplementations(m1, m2)
+        }
+    }()
+
+    static func swizzlePresentVC() {
+        _ = swizzlePresentVCOnce
+    }
+
+    @objc func songpad_presentVC(_ viewControllerToPresent: UIViewController, animated flag: Bool, completion: (() -> Void)? = nil) {
+        guard let anchor = self.viewController else {
+            songpad_presentVC(viewControllerToPresent, animated: flag, completion: completion)
+            return
+        }
+        var top = anchor
+        while let presented = top.presentedViewController, !presented.isBeingDismissed {
+            top = presented
+        }
+        top.present(viewControllerToPresent, animated: flag, completion: completion)
+    }
+
+    @objc func songpad_dismissVC(animated flag: Bool, completion: (() -> Void)? = nil) {
+        guard let anchor = self.viewController else {
+            songpad_dismissVC(animated: flag, completion: completion)
+            return
+        }
+        var top = anchor
+        while let presented = top.presentedViewController, !presented.isBeingDismissed {
+            top = presented
+        }
+        if top !== anchor {
+            top.dismiss(animated: flag, completion: completion)
+        } else {
+            songpad_dismissVC(animated: flag, completion: completion)
+        }
+    }
+}
+
 class MainViewController: CAPBridgeViewController {
     override func capacitorDidLoad() {
+        CapacitorBridge.swizzlePresentVC()
         guard let webView = bridge?.webView else { return }
         webView.scrollView.bounces = false
         webView.scrollView.isDirectionalLockEnabled = true
@@ -121,7 +172,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // came back) hands the URL here, in connectionOptions, not to AppDelegate's
         // application(_:open:options:) — see the comment on scene(_:openURLContexts:) below for why.
         if let urlContext = connectionOptions.urlContexts.first {
-            ApplicationDelegateProxy.shared.application(UIApplication.shared, open: urlContext.url, options: [:])
+            _ = ApplicationDelegateProxy.shared.application(UIApplication.shared, open: urlContext.url, options: [:])
         }
     }
 
@@ -136,7 +187,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     // notification the App plugin listens for — it doesn't matter which delegate calls it.
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         guard let url = URLContexts.first?.url else { return }
-        ApplicationDelegateProxy.shared.application(UIApplication.shared, open: url, options: [:])
+        _ = ApplicationDelegateProxy.shared.application(UIApplication.shared, open: url, options: [:])
     }
 
 }
