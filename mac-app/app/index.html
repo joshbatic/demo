@@ -16260,6 +16260,24 @@ function renderAccount(){var o=$('#acc'),pro=isPro();o.innerHTML='';
       dc.appendChild(dlp);
       ga.appendChild(dc)
     }
+    if(devFake){
+      /* fires the exact same toast + OS-notification path a real invite uses (notifyInvite), after
+         a 3s delay so there's time to background the app/switch windows first and see the OS banner
+         actually arrive, not just the toast - without needing a second account or a real invite row */
+      var nc=document.createElement('div');nc.className='devcard';
+      var nl=document.createElement('div');nl.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:12px';
+      var nlt=document.createElement('span');nlt.style.color='var(--mute)';nlt.style.fontSize='13px';nlt.textContent='Test invite notification (3s delay)';nl.appendChild(nlt);
+      var nb=document.createElement('button');nb.className='go2';nb.textContent='Send';nl.appendChild(nb);
+      nc.appendChild(nl);
+      nb.onclick=function(){
+        if(nb._t)return;nb.disabled=true;nb.textContent='Sending in 3s…';ensureNotifPermission();
+        nb._t=setTimeout(function(){
+          notifyInvite({id:'debug-'+Date.now(),song_title:'Debug Song'},{display_name:'Debug Collaborator'});
+          nb.disabled=false;nb.textContent='Send';nb._t=null
+        },3000)
+      };
+      ga.appendChild(nc)
+    }
     if(!devFake){var invBox=document.createElement('div');invBox.id='acc-invites';invBox.hidden=true;o.appendChild(invBox);renderInvites();pullInvites()}
   }else{
     var gb=document.createElement('button');gb.className='row';gb.style.justifyContent='center';gb.style.gap='10px';gb.style.background='#000';gb.style.color='#fff';
