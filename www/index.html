@@ -14992,7 +14992,8 @@ function getR(w){var d=DM[nw(w)];if(d&&!d.then)return{src:'dm',p:fl(d.p),n:fl(d.
 /* ---------- rhyme bar ---------- */
 var sampleFn=null,LSC={},LSK=null,GENHIST={},scheme='auto',lastTk='';
 try{claude.use('sample').then(function(s){sampleFn=s;rhyme()},function(){})}catch(e){}
-/* ---------- AI routing: OpenAI on this Mac (when a key is saved), Claude's sample capability on the web artifact, a baked-in key otherwise (native wrapper builds e.g. iOS) ---------- */
+/* ---------- AI routing: OpenAI on this Mac (when a key is saved), Claude's sample capability on the web artifact, Supabase Edge Function ai-proxy, or a baked-in key otherwise ---------- */
+var SB_URL='https://cygfgurzvmbtcegkpnss.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5Z2ZndXJ6dm1idGNlZ2twbnNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODk0MTIsImV4cCI6MjEwNzI2NTQxMn0.kJhE1V8V_W1BIuu0iSVaLqa5GyxeOrUy0lrqylq4_Cs';
 var oaiReady=false;
 if(window.desktop&&window.desktop.hasOpenAIKey){window.desktop.hasOpenAIKey().then(function(has){oaiReady=!!has;if(oaiReady)rhyme()}).catch(function(){})}
 var BAKED_OPENAI_KEY='';
@@ -15025,26 +15026,38 @@ function bakedGuardCall(){
   return{ok:true}
 }
 function bakedOpenAICall(prompt,modelTier){
-  if(!BAKED_OPENAI_KEY)return Promise.reject(new Error('Not available'));
   if(!prompt)return Promise.reject(new Error('Empty prompt.'));
   if(prompt.length>24000)return Promise.reject(new Error('That request is too large to send ('+prompt.length+' characters, limit 24000).'));
   var g=bakedGuardCall();if(!g.ok)return Promise.reject(new Error(g.error));
-  var model=modelTier==='complex'?'gpt-5':'gpt-5-mini',maxTokens=modelTier==='complex'?5000:2000,reasoningEffort=modelTier==='complex'?'medium':'minimal',timeoutMs=modelTier==='complex'?110000:45000;
-  var payload={model:model,messages:[{role:'user',content:prompt}],max_completion_tokens:maxTokens};
-  if(reasoningEffort)payload.reasoning_effort=reasoningEffort;
-  var c=new AbortController(),tm=setTimeout(function(){c.abort()},timeoutMs);
-  return fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+BAKED_OPENAI_KEY},body:JSON.stringify(payload),signal:c.signal}).then(function(r){
-    return r.text().then(function(body){
-      clearTimeout(tm);
-      var j;try{j=JSON.parse(body)}catch(e){}
-      if(!r.ok){var msg=(j&&j.error&&j.error.message)||('HTTP '+r.status);throw new Error(msg)}
-      var choice=j.choices&&j.choices[0],text=(choice&&choice.message&&choice.message.content)||'';
-      if(!text.trim()){if(choice&&choice.finish_reason==='length')throw new Error('OpenAI ran out of tokens before answering (hit the length limit).');throw new Error('OpenAI returned an empty response.')}
-      return text
-    })
-  },function(e){clearTimeout(tm);throw new Error(e&&e.name==='AbortError'?'Timed out reaching OpenAI':String((e&&e.message)||e))})
+  var s=sbClient();
+  if(s&&s.functions){
+    return s.functions.invoke('ai-proxy',{body:{prompt:prompt,modelTier:modelTier}}).then(function(res){
+      if(res.error){var msg=(res.error&&res.error.message)||'AI service error';throw new Error(msg)}
+      if(res.data&&res.data.error)throw new Error(res.data.error);
+      var text=(res.data&&res.data.text)||'';
+      if(!text.trim())throw new Error('AI returned an empty response.');
+      return text;
+    });
+  }
+  if(BAKED_OPENAI_KEY){
+    var model=modelTier==='complex'?'gpt-5':'gpt-5-mini',maxTokens=modelTier==='complex'?5000:2000,reasoningEffort=modelTier==='complex'?'medium':'minimal',timeoutMs=modelTier==='complex'?110000:45000;
+    var payload={model:model,messages:[{role:'user',content:prompt}],max_completion_tokens:maxTokens};
+    if(reasoningEffort)payload.reasoning_effort=reasoningEffort;
+    var c=new AbortController(),tm=setTimeout(function(){c.abort()},timeoutMs);
+    return fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+BAKED_OPENAI_KEY},body:JSON.stringify(payload),signal:c.signal}).then(function(r){
+      return r.text().then(function(body){
+        clearTimeout(tm);
+        var j;try{j=JSON.parse(body)}catch(e){}
+        if(!r.ok){var msg=(j&&j.error&&j.error.message)||('HTTP '+r.status);throw new Error(msg)}
+        var choice=j.choices&&j.choices[0],text=(choice&&choice.message&&choice.message.content)||'';
+        if(!text.trim()){if(choice&&choice.finish_reason==='length')throw new Error('OpenAI ran out of tokens before answering (hit the length limit).');throw new Error('OpenAI returned an empty response.')}
+        return text
+      })
+    },function(e){clearTimeout(tm);throw new Error(e&&e.name==='AbortError'?'Timed out reaching OpenAI':String((e&&e.message)||e))})
+  }
+  return Promise.reject(new Error('AI service not configured.'));
 }
-function aiAvailable(){return oaiReady||!!sampleFn||!!BAKED_OPENAI_KEY}
+function aiAvailable(){return oaiReady||!!sampleFn||(!!window.supabase&&!!window.supabase.createClient)||!!BAKED_OPENAI_KEY}
 function parseAIJson(text){
   text=(text||'').trim();
   try{return JSON.parse(text)}catch(e){}
@@ -15063,7 +15076,7 @@ function aiJson(prompt,opts){
     });
   }
   if(sampleFn)return sampleFn.json(prompt,opts);
-  if(BAKED_OPENAI_KEY)return bakedOpenAICall(prompt,opts.modelTier).then(parseAIJson);
+  if((window.supabase&&window.supabase.createClient)||BAKED_OPENAI_KEY)return bakedOpenAICall(prompt,opts.modelTier).then(parseAIJson);
   return Promise.reject(new Error('Not available'));
 }
 function wordAt(l,c){var re=/[A-Za-z']+/g,m,b=null;while((m=re.exec(l))){var s=m.index,e=s+m[0].length;if(c>=s&&c<=e)return m[0];if(e<=c)b=m[0]}return b}
@@ -16035,7 +16048,6 @@ function renderCleanup(){var o=$('#cu'),v=getText();o.innerHTML='';
 $('#done5').onclick=function(){sheet(false)};
 /* ---------- plans: Free by default, Pro unlocked with a code (payments not connected yet) ---------- */
 /* ---------- account sign-in (Google, via Supabase) ---------- */
-var SB_URL='https://cygfgurzvmbtcegkpnss.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5Z2ZndXJ6dm1idGNlZ2twbnNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODk0MTIsImV4cCI6MjEwNzI2NTQxMn0.kJhE1V8V_W1BIuu0iSVaLqa5GyxeOrUy0lrqylq4_Cs';
 var sbc=null,AUTH_USER=null,cloudDidPull=false,DEV_MODE=false,MY_PROFILE=null;
 try{DEV_MODE=localStorage.getItem('songpad:devmode')==='1'}catch(e){}
 if(DEV_MODE){var ag0=$('#authgate');if(ag0)ag0.style.display='none'}
