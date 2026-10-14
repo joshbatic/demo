@@ -14337,7 +14337,7 @@ function rsets(w){
   return SC[w]={gi:gi,p:p,n:n};
 }
 /* ---------- writing voice (saved per song) ---------- */
-var PDEF={genre:'Any',mood:'Any',voice:'Neutral',dial:'',era:'Any',pov:'Any',tense:'Any',img:[],dev:[],reg:'Conversational',strict:false,cliche:false,refs:'',custom:''};
+var PDEF={genre:'Any',mood:'Any',voice:'Neutral',dial:'',era:'Any',pov:'Any',tense:'Any',img:[],dev:[],reg:'Conversational',strict:true,cliche:false,refs:'',custom:''};
 function pgGet(){try{return JSON.parse(localStorage.getItem('songpad:prefs'))||{}}catch(e){return{}}}
 function mkPF(o){var p=JSON.parse(JSON.stringify(PDEF));o=o||{};Object.keys(o).forEach(function(k){if(k in PDEF)p[k]=o[k]});if(o.style&&!o.genre&&o.style!=='Any')p.genre=o.style;return p}
 var PF=mkPF(pgGet()),MC={};
@@ -14456,7 +14456,8 @@ var GENRE_DESC={
  'Americana':'Americana — roots, weathered, open-road imagery',
  'Gospel':'gospel — devotional, call-and-response, building toward uplift',
  'Blues':'blues — plainspoken hardship, repetition, grit',
- 'Afrobeats':'Afrobeats — rhythmic, warm, communal and danceable'
+ 'Afrobeats':'Afrobeats — rhythmic, warm, communal and danceable',
+ 'Alternative':'alternative — genre-agnostic, idiosyncratic, unconcerned with radio convention'
 };
 function pfx(){var p=PF,a=[];
   if(p.genre!=='Any')a.push('Genre: '+(GENRE_DESC[p.genre]||p.genre)+'.');
@@ -14495,14 +14496,13 @@ function learnedLinePref(){
 }
 /* the four settings that change results most sit up top; the rest live under Fine-tune */
 var SG_MAIN=[
- ['Genre','genre',['Any','Pop','Bedroom pop','Indie folk','Alt-rock','Pop-punk','Emo','Synth-pop','Dance-pop','Hyperpop','R&B','Neo-soul','Hip-hop','Trap','Drill','Country','Americana','Gospel','Blues','Afrobeats'],'row'],
- ['Mood','mood',['Any','Heartbreak','Longing','Bittersweet','Hopeful','Euphoric','Romantic','Infatuated','Angry','Defiant','Grief','Lonely','Nostalgic','Playful','Confident','Anxious','Dark','Tender'],'row'],
+ ['Genre','genre',['Any','Pop','Bedroom pop','Indie folk','Alt-rock','Alternative','Pop-punk','Emo','Synth-pop','Dance-pop','Hyperpop','R&B','Neo-soul','Hip-hop','Trap','Drill','Country','Americana','Gospel','Blues','Afrobeats'],'row'],
+ ['Mood','mood',['Any','Heartbreak','Longing','Bittersweet','Hopeful','Euphoric','Romantic','Infatuated','Jealous','Angry','Defiant','Grief','Regretful','Lonely','Nostalgic','Wistful','Playful','Confident','Empowered','Anxious','Numb','Dark','Tender'],'row'],
  ['Language','reg',['Poetic','Conversational','Slang','Explicit'],'seg'],
  ['','dial','Who’s singing','e.g. 1970s Glasgow shipyard worker, Melbourne skater kid']];
 var SG_MORE=[
  ['Point of view','pov',[['Any','Any'],['I','I'],['You','You'],['We','We'],['Story','They']],'seg'],
  ['Tense','tense',['Any','Present','Past'],'seg'],
- ['Era','era',['Any','60s','70s','80s','90s','2000s','2010s','Now','Timeless'],'row'],
  ['Imagery','img',[
    ['City streets','city streets, skylines, subway platforms'],
    ['Small town','small-town main streets, porches, diners'],
@@ -14547,18 +14547,23 @@ function buildSettings(){
   var o=$('#opts'),sc=$('#sheet2').scrollTop;o.innerHTML='';
   var sum=document.createElement('div');sum.className='vsum';sum.innerHTML='<span></span><button class="vreset">Reset</button>';sum.firstChild.textContent=voiceSummary();
   sum.lastChild.onclick=function(){PF=mkPF({});savePF();buildSettings();rhyme()};o.appendChild(sum);
+  function refreshHeader(){sum.firstChild.textContent=voiceSummary();if(mb)mb.querySelector('em').textContent=moreCount()?moreCount()+' set':'Point of view, tense, imagery and more'}
   function field(g,box){var l=document.createElement('div');l.className='lab';box.appendChild(l);
-    if(!g[0]){l.textContent=g[2];var w=document.createElement('div');w.className='gf tf';var inp=document.createElement('input');inp.id='pf-'+g[1];inp.placeholder=g[3];inp.value=PF[g[1]];inp.oninput=function(){PF[g[1]]=inp.value;sum.firstChild.textContent=voiceSummary();clearTimeout(inp._t);inp._t=setTimeout(savePF,300)};w.appendChild(inp);box.appendChild(w);return}
+    if(!g[0]){l.textContent=g[2];var w=document.createElement('div');w.className='gf tf';var inp=document.createElement('input');inp.id='pf-'+g[1];inp.placeholder=g[3];inp.value=PF[g[1]];inp.oninput=function(){PF[g[1]]=inp.value;refreshHeader();clearTimeout(inp._t);inp._t=setTimeout(savePF,300)};w.appendChild(inp);box.appendChild(w);return}
     l.textContent=g[0];var kind=g[3],w2=document.createElement('div');w2.className=kind==='seg'?'seg vseg':kind==='row'?'vrow':'opts';box.appendChild(w2);
     var vals=g[2].slice();if(kind==='row'&&typeof PF[g[1]]==='string'&&!vals.some(function(v){return(Array.isArray(v)?v[1]:v)===PF[g[1]]}))vals.splice(1,0,PF[g[1]]);
-    vals.forEach(function(v){var lab=Array.isArray(v)?v[0]:v,val=Array.isArray(v)?v[1]:v,on=kind==='multi'?PF[g[1]].indexOf(val)>=0:PF[g[1]]===val,b=document.createElement('button');
-      b.className=kind==='seg'?(on?'on':''):'r'+(on?' f':'');b.textContent=lab;b.setAttribute('aria-pressed',on);
-      b.onclick=function(){if(kind==='multi'){var a=PF[g[1]],i=a.indexOf(val);if(i>=0)a.splice(i,1);else a.push(val)}else PF[g[1]]=val;savePF();var keep=w2.scrollLeft;buildSettings();rhyme()};w2.appendChild(b)});
+    var btns=vals.map(function(v){var lab=Array.isArray(v)?v[0]:v,val=Array.isArray(v)?v[1]:v,b=document.createElement('button');b.textContent=lab;w2.appendChild(b);return{b:b,val:val}});
+    function paint(){btns.forEach(function(o){var on=kind==='multi'?PF[g[1]].indexOf(o.val)>=0:PF[g[1]]===o.val;o.b.className=kind==='seg'?(on?'on':''):'r'+(on?' f':'');o.b.setAttribute('aria-pressed',on)})}
+    paint();
+    btns.forEach(function(o){o.b.onclick=function(){
+      if(kind==='multi'){var a=PF[g[1]],i=a.indexOf(o.val);if(i>=0)a.splice(i,1);else a.push(o.val)}else PF[g[1]]=o.val;
+      savePF();paint();refreshHeader();rhyme();
+    }});
     if(kind==='row'){var on=w2.querySelector('.f');if(on)setTimeout(function(){on.scrollIntoView({block:'nearest',inline:'center'})},0)}}
   SG_MAIN.forEach(function(g){field(g,o)});
   var n=moreCount(),mb=document.createElement('button');mb.className='vmore'+(moreOpen?' open':'');mb.setAttribute('aria-expanded',moreOpen);
   mb.innerHTML='<span>Fine-tune</span><em></em><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l4 4 4-4"/></svg>';
-  mb.querySelector('em').textContent=n?n+' set':'Point of view, tense, era, imagery and more';mb.onclick=function(){moreOpen=!moreOpen;buildSettings()};o.appendChild(mb);
+  mb.querySelector('em').textContent=n?n+' set':'Point of view, tense, imagery and more';mb.onclick=function(){moreOpen=!moreOpen;buildSettings()};o.appendChild(mb);
   if(moreOpen){var box=document.createElement('div');box.className='vbox';o.appendChild(box);SG_MORE.forEach(function(g){field(g,box)})}
   var nt=document.createElement('div');nt.className='note';nt.style.paddingTop='14px';nt.textContent='Saved with this song. It shapes the lines written for you and the word suggestions, and quietly blends in your own style from past songs and favorite lines wherever you haven’t set something specific above.';o.appendChild(nt);
   $('#sheet2').scrollTop=sc;
