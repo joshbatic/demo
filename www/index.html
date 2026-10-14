@@ -16212,6 +16212,18 @@ function sbClient(){
     if(!url)return;
     sbc.auth.exchangeCodeForSession(url).then(function(r){if(r&&r.error){toast('Sign-in failed. Please try again.');var ag=$('#ag-note');if(ag)ag.textContent=r.error.message||'Sign-in failed.'}}).catch(function(){toast('Sign-in failed. Please try again.')});
   });
+  /* iOS app: same problem as the Mac app above — Google can't redirect back into the WKWebView's
+     own local origin — and the same fix: send the OAuth URL out to the system browser (via
+     Capacitor's Browser plugin) instead of navigating the WebView itself, then catch the OS handing
+     the registered demo:// scheme back to the app through Capacitor's App plugin (appUrlOpen),
+     mirroring the desktop onAuthCallback bridge above. */
+  if(NATIVE_IOS&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App&&window.Capacitor.Plugins.App.addListener){
+    window.Capacitor.Plugins.App.addListener('appUrlOpen',function(data){
+      var url=data&&data.url;if(!url||url.indexOf('demo://auth-callback')!==0)return;
+      if(window.Capacitor.Plugins.Browser&&window.Capacitor.Plugins.Browser.close)try{window.Capacitor.Plugins.Browser.close()}catch(e){}
+      sbc.auth.exchangeCodeForSession(url).then(function(r){if(r&&r.error){toast('Sign-in failed. Please try again.');var ag=$('#ag-note');if(ag)ag.textContent=r.error.message||'Sign-in failed.'}}).catch(function(){toast('Sign-in failed. Please try again.')});
+    });
+  }
   return sbc;
 }
 /* ---------- cloud library sync: mirrors the song list to Supabase, keyed to the signed-in Google account ---------- */
@@ -16258,12 +16270,20 @@ function cloudPullPlan(){
 function signInOAuth(provider,forceChooser,label){
   var c=sbClient();if(!c){toast('Sign-in isn’t available right now.');var ag=$('#ag-note');if(ag)ag.textContent='Couldn’t reach the sign-in service. Check your connection and try again.';return}
   var onDesktop=!!(window.desktop&&window.desktop.openExternal&&window.desktop.onAuthCallback);
-  if(!onDesktop&&window.top!==window.self){var ag2=$('#ag-note');if(ag2)ag2.textContent=label+' can’t sign in inside this embedded preview. Open this page in its own browser tab (use the artifact’s share link) to sign in.';return}
+  var onNativeIOS=!onDesktop&&NATIVE_IOS&&!!(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Browser);
+  if(!onDesktop&&!onNativeIOS&&window.top!==window.self){var ag2=$('#ag-note');if(ag2)ag2.textContent=label+' can’t sign in inside this embedded preview. Open this page in its own browser tab (use the artifact’s share link) to sign in.';return}
   var qp=(provider==='google'&&forceChooser)?{prompt:'select_account'}:{};
   if(onDesktop){
     c.auth.signInWithOAuth({provider:provider,options:{redirectTo:'demo://auth-callback',skipBrowserRedirect:true,queryParams:qp}}).then(function(r){
       if(r&&r.data&&r.data.url)window.desktop.openExternal(r.data.url);
       else if(r&&r.error){toast('Sign-in failed. Please try again.');var ag3=$('#ag-note');if(ag3)ag3.textContent=r.error.message||'Sign-in failed.'}
+    });
+    return;
+  }
+  if(onNativeIOS){
+    c.auth.signInWithOAuth({provider:provider,options:{redirectTo:'demo://auth-callback',skipBrowserRedirect:true,queryParams:qp}}).then(function(r){
+      if(r&&r.data&&r.data.url)window.Capacitor.Plugins.Browser.open({url:r.data.url});
+      else if(r&&r.error){toast('Sign-in failed. Please try again.');var ag4=$('#ag-note');if(ag4)ag4.textContent=r.error.message||'Sign-in failed.'}
     });
     return;
   }
