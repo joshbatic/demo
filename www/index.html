@@ -369,10 +369,10 @@ body.dnd .newzone{display:block}
 .ioln{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;padding:28px 16px 8px;font-size:14px;color:var(--mute)}.ioln button{color:var(--mute);padding:6px 4px}
 @media (hover:hover){.ioln button:hover{color:var(--ink)}}
 .dragbar{display:none}
-/* Rate mode (#rateb) runs through the same aiJson bridge as every other AI feature here, which
-   already works on desktop via the user's own OpenAI key — this blanket hide predates that bridge
-   and just never got updated, so it was hiding a feature that actually works fine on Mac now. */
-body.desktop #ctxb{display:none!important}
+/* Rate mode (#rateb), Lines (#lm) and Listen-to-whole-song (#ctxb) all run through the same aiJson
+   bridge as every other AI feature here, which already works on desktop via the user's own OpenAI
+   key — this blanket hide predates that bridge and just never got fully updated, so #ctxb was still
+   being hidden on Mac even after #lm/#rateb were already fixed to show. */
 body.desktop.listv .dragbar{display:block;position:fixed;top:0;left:0;right:0;height:44px;z-index:3;-webkit-app-region:drag}
 body.desktop #vList .scroll{padding-top:56px}
 body.desktop #vEdit .bar{-webkit-app-region:drag}
