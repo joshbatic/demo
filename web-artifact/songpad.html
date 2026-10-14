@@ -187,6 +187,11 @@ body.ios #dictSheet{top:16%;padding-top:0}
 .cov{position:relative;z-index:1;width:68px;height:68px;border-radius:16px;flex:none;background:var(--cv1) center/cover;display:grid;place-items:center;color:var(--mute);box-shadow:0 0 0 .5px var(--ring)}
 #title{display:block;width:100%;border:0;background:none;outline:0;padding:0;font:700 26px/1.2 -apple-system,'SF Pro Display',system-ui,sans-serif;letter-spacing:.3px}
 #sub{font-size:14px;color:var(--mute);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.savestate{font-size:12.5px;color:var(--mute);margin-top:4px;display:flex;align-items:center;gap:5px;opacity:0;transition:opacity .35s}
+.savestate.show{opacity:1}
+.savestate .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.savestate.saving .dot{animation:sspulse 1s ease-in-out infinite}
+@keyframes sspulse{0%,100%{opacity:.35}50%{opacity:1}}
 #lyr{min-height:58vh;outline:0;white-space:pre-wrap;overflow-wrap:break-word;font-size:19px;line-height:1.55;letter-spacing:-.1px;caret-color:var(--tint)}
 #lyr:empty::before{content:attr(data-ph);color:rgba(120,120,128,.55);pointer-events:none}
 #fmt{display:none;gap:6px;overflow-x:auto;margin-bottom:10px;position:relative;z-index:1;scrollbar-width:none;align-items:center}
@@ -275,6 +280,8 @@ body.side #side{transform:none}
 .acctav{width:25px;height:25px;border-radius:50%;object-fit:cover;flex:none;display:block}
 .sacctav{width:27px;height:27px;border-radius:50%;object-fit:cover;flex:none;display:block}
 body.ios .sacctav{width:30px;height:30px}
+.acct{position:relative}.ib2#sacct{position:relative}
+.invdot{position:absolute;top:2px;right:2px;width:10px;height:10px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px var(--bg)}
 .swtch{width:46px;height:28px;border-radius:99px;background:var(--fill);flex:none;position:relative;padding:0;transition:background-color .18s}
 .swtch i{position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .18s cubic-bezier(.32,.72,0,1)}
 /* was var(--tint), which flips to near-white in dark mode — right for most "selected" pills in
@@ -565,7 +572,7 @@ body.sprinting #rhy{display:none}
 <div class="view on" id="vList">
   <div class="scroll"><div id="list"></div><div class="ioln"><button id="newfolderb">New Folder</button><span>·</span><button id="impb">Import Songs</button><span>·</span><button id="expb">Export All Songs</button></div></div>
   <div class="abs fadeT lhf"></div>
-  <div class="lhead"><h1>*[demo]</h1><button class="gl acct" id="acctb" aria-label="Account"><i class="protag" id="acctplan" hidden>Beta</i><img id="acctav" class="acctav" alt="" hidden><svg id="acctsvg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.9-3.6 3.7-5.6 7-5.6s6.1 2 7 5.6"/></svg></button></div>
+  <div class="lhead"><h1>*[demo]</h1><button class="gl acct" id="acctb" aria-label="Account"><i class="protag" id="acctplan" hidden>Beta</i><img id="acctav" class="acctav" alt="" hidden><svg id="acctsvg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.9-3.6 3.7-5.6 7-5.6s6.1 2 7 5.6"/></svg><i class="invdot" id="invdot1" hidden></i></button></div>
   <div class="dock"><div class="gl sbox"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="Search"></div>
   <button class="gl cbtn" id="new" aria-label="New song"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6"/><path d="M18.5 3.5l2 2L11 15l-3 1 1-3z"/></svg></button></div>
 </div>
@@ -579,7 +586,7 @@ body.sprinting #rhy{display:none}
 </div>
 
 <div class="view" id="vEdit">
-  <div id="sc"><div id="gut" aria-hidden="true"></div><div id="pres" aria-hidden="true"></div><div class="hd"><span class="covwrap"><button class="cov" id="cov" aria-label="Cover art"></button></span><div><input id="title" placeholder="Untitled" aria-label="Title" autocorrect="on"><div id="artist"></div><div id="sub"></div><div id="here" hidden></div></div></div><div id="lyr" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="false" autocapitalize="sentences" autocorrect="on" data-ph="Start with a line…"></div></div>
+  <div id="sc"><div id="gut" aria-hidden="true"></div><div id="pres" aria-hidden="true"></div><div class="hd"><span class="covwrap"><button class="cov" id="cov" aria-label="Cover art"></button></span><div><input id="title" placeholder="Untitled" aria-label="Title" autocorrect="on"><div id="artist"></div><div id="sub"></div><div id="savestate" class="savestate" hidden></div><div id="here" hidden></div></div></div><div id="lyr" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="false" autocapitalize="sentences" autocorrect="on" data-ph="Start with a line…"></div></div>
   <div class="abs fadeT"></div>
   <div class="abs fadeB"></div>
   <div class="abs bar"><div class="bl gl grp2 lgrp"><button class="ib" id="back" aria-label="Songs"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="ib" id="sbt" aria-label="Show sidebar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M9.5 4v16"/></svg></button></div><nav id="crumb" aria-label="Location"><button id="cr-app">*[d]</button><i>/</i><button id="cr-fold"></button><i>/</i><span id="cr-song"></span></nav><div class="bl"><div class="gl grp2"><button class="ib tgl" id="vmap" aria-label="Rhyme map" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h9M4 12h6M4 17h9"/><circle cx="18" cy="7" r="2.2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2.2"/><circle cx="18" cy="17" r="2.2" fill="currentColor" stroke="none"/></svg></button><button class="ib tgl" id="vsyl" aria-label="Syllable counts" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 17V11M10 17V7M15 17v-4M20 17V9"/></svg></button><button class="ib tgl" id="rateb" aria-pressed="false" aria-label="Rate song" title="Rate song"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></button></div><button class="gl ib" id="det" aria-label="Details"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button></div></div>
@@ -593,7 +600,7 @@ body.sprinting #rhy{display:none}
 </div>
 
 <aside id="side" aria-label="Songs">
-  <div class="sdh"><b id="logo" role="button" tabindex="0" aria-label="Songs overview">*[demo]</b><div class="gl grp2"><button class="ib2" id="sacct" aria-label="Account"><img id="sacctav" class="sacctav" alt="" hidden><svg id="sacctsvg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.9-3.6 3.7-5.6 7-5.6s6.1 2 7 5.6"/></svg></button><button class="ib2" id="snew" aria-label="New song"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6"/><path d="M18.5 3.5l2 2L11 15l-3 1 1-3z"/></svg></button><button class="ib2" id="sfolder" aria-label="New folder" title="New folder"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5a2 2 0 0 1 2-2h4.5l1.8 2H19a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 12.3v4.4M9.8 14.5h4.4"/></svg></button><button class="ib2" id="shide" aria-label="Hide sidebar"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M9.5 4v16"/></svg></button></div></div>
+  <div class="sdh"><b id="logo" role="button" tabindex="0" aria-label="Songs overview">*[demo]</b><div class="gl grp2"><button class="ib2" id="sacct" aria-label="Account"><img id="sacctav" class="sacctav" alt="" hidden><svg id="sacctsvg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.9-3.6 3.7-5.6 7-5.6s6.1 2 7 5.6"/></svg><i class="invdot" id="invdot2" hidden></i></button><button class="ib2" id="snew" aria-label="New song"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6"/><path d="M18.5 3.5l2 2L11 15l-3 1 1-3z"/></svg></button><button class="ib2" id="sfolder" aria-label="New folder" title="New folder"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5a2 2 0 0 1 2-2h4.5l1.8 2H19a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 12.3v4.4M9.8 14.5h4.4"/></svg></button><button class="ib2" id="shide" aria-label="Hide sidebar"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M9.5 4v16"/></svg></button></div></div>
   <button id="svault"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.4 10.9c.6.4.9 1.1.9 1.8V16h5v-.3c0-.7.3-1.4.9-1.8A6 6 0 0 0 12 3z"/></svg>Ideas<span id="svaultct"></span></button>
   <input id="sq" type="search" placeholder="Search">
   <div id="slist"></div>
@@ -14131,7 +14138,16 @@ function renderIdeas(){
 function editIdea(i){curIdea=i||null;$('#itext').value=i?i.text:'';$('#itags').value=i&&i.tags?i.tags.join(', '):'';$('#idel').hidden=!i;sheet(true,'sheet7');setTimeout(function(){$('#itext').focus()},350)}
 function openIdeas(){sheet(false);show('vIdeas');ifilterTag='';$('#iq').value='';renderIdeas()}
 function ensureStorageForMode(){var k=currentKey();if(k!==ACTIVE_KEY){ACTIVE_KEY=k;cur=null;load();if(typeof show==='function')show('vList');renderList();renderSide()}}
-var st;function save(){clearTimeout(st);st=setTimeout(function(){var key=ACTIVE_KEY||currentKey();try{localStorage.setItem(key,JSON.stringify(songs))}catch(e){toast('Could not save in this browser')}if(key!==K_DEV){desktopMirror();syncShared();cloudPush()}if(document.body.classList.contains('side'))renderSide()},250)}
+var st;function save(){clearTimeout(st);setSaveState('saving');st=setTimeout(function(){var key=ACTIVE_KEY||currentKey();try{localStorage.setItem(key,JSON.stringify(songs))}catch(e){toast('Could not save in this browser');setSaveState(false);return}if(key!==K_DEV){desktopMirror();syncShared();cloudPush()}if(document.body.classList.contains('side'))renderSide();setSaveState('saved')},250)}
+/* visible "Saving…"/"Saved" status next to the title, so autosave (which already runs silently on
+   every edit) is actually trustable to look at rather than just assumed - "saving" shows the moment
+   a change is queued, "saved" replaces it once the debounced write actually lands, then fades out. */
+var saveStateT,saveStateHideT;
+function setSaveState(s){var el=$('#savestate');if(!el)return;clearTimeout(saveStateT);clearTimeout(saveStateHideT);el.hidden=false;
+  if(!s){el.classList.remove('show');return}
+  if(s==='saving'){el.className='savestate saving show';el.innerHTML='<i class="dot"></i>Saving…'}
+  else{el.className='savestate saved show';el.innerHTML='<i class="dot"></i>Saved';saveStateHideT=setTimeout(function(){el.classList.remove('show');setTimeout(function(){if(!el.classList.contains('show'))el.hidden=true},350)},1800)}
+}
 /* positioned relative to the toolbar's real on-screen edge, anchored by `top` rather than `bottom`
    so it never depends on viewport height: on iOS, window.innerHeight doesn't shrink when the
    keyboard opens (only visualViewport does, which is exactly why this app tracks --vvh/--vvt
@@ -15483,7 +15499,14 @@ function inviteCollaborator(target){if(!cur||!AUTH_USER)return;
 function pullInvites(){var c=sbClient();if(!c||!AUTH_USER)return;
   var ors=['invitee_user_id.eq.'+AUTH_USER.id];if(AUTH_USER.email)ors.push('invitee_email.ilike.'+AUTH_USER.email);
   c.from('collab_invites').select('*').eq('status','pending').or(ors.join(',')).then(function(r){
-    if(r&&r.error)return;PENDING_INVITES=r.data||[];renderInvites()
+    if(r&&r.error)return;
+    /* diff against what we already knew about so re-polling doesn't re-notify for invites the
+       person has already seen pop up once - only genuinely new rows trigger the toast/OS banner */
+    var prevIds=PENDING_INVITES.map(function(x){return x.id}),fresh=(r.data||[]).filter(function(x){return prevIds.indexOf(x.id)<0});
+    PENDING_INVITES=r.data||[];renderInvites();paintAcctIcons();
+    if(fresh.length)fetchProfiles(fresh.map(function(x){return x.owner_id}).filter(Boolean),function(profMap){
+      fresh.forEach(function(inv){notifyInvite(inv,profMap[inv.owner_id])})
+    })
   })
 }
 function acceptInvite(inv){var c=sbClient();if(!c||!AUTH_USER)return;
@@ -15873,7 +15896,8 @@ function onAuthUser(){
   if(uid!==lastAuthUid){lastAuthUid=uid;cloudDidPull=false;PENDING_INVITES=[];MY_PROFILE=null}
   var ag=$('#authgate');if(ag)ag.style.display=(AUTH_USER||DEV_MODE)?'none':'flex';
   ensureStorageForMode();
-  if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;cloudPull();cloudPullPlan();pullInvites();loadProfile()}
+  if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling()}
+  if(!AUTH_USER)stopInvitePolling();
   if($('#sheet6').classList.contains('on'))renderAccount();
   paintAcctIcons();
 }
@@ -15895,7 +15919,35 @@ function paintAcctIcons(){
     if(url){im.src=url;im.hidden=false;sv.style.display='none'}
     else{im.hidden=true;im.removeAttribute('src');sv.style.display=''}
   });
+  var has=PENDING_INVITES.length>0;['invdot1','invdot2'].forEach(function(id){var d=$('#'+id);if(d)d.hidden=!has});
 }
+/* ---------- invite notifications: a badge dot (paintAcctIcons, above) plus a toast and, where the
+   OS/browser supports it, a native notification banner - so a pending invite isn't only discovered
+   by happening to open Account settings. Real push while the app is fully closed would need a
+   server-side sender (APNs/FCM) behind Supabase, which this single-file app doesn't have; what we
+   can do without that is notify whenever the app is open, including backgrounded/unfocused, via the
+   Notification API (works in the Mac app and most desktop/web browsers; iOS's in-app webview doesn't
+   support it, so there the in-app badge+toast is what carries it). */
+var notifPerm=false;
+function ensureNotifPermission(){
+  if(typeof Notification==='undefined')return;
+  if(Notification.permission==='granted'){notifPerm=true;return}
+  if(Notification.permission!=='denied')Notification.requestPermission().then(function(p){notifPerm=p==='granted'});
+}
+function notifyInvite(inv,owner){
+  var from=(owner&&(owner.display_name||owner.username))||inv.owner_name||inv.owner_email||'a collaborator';
+  var title=inv.song_title||'a song';
+  toast(from+' invited you to “'+title+'”');
+  try{
+    if(notifPerm&&typeof Notification!=='undefined'&&(document.hidden||!document.hasFocus())){
+      var n=new Notification('*[demo] invite',{body:from+' invited you to "'+title+'"'});
+      n.onclick=function(){try{window.focus()}catch(e){}openAccount('');n.close()};
+    }
+  }catch(e){}
+}
+var INVITE_POLL_T=null;
+function startInvitePolling(){if(INVITE_POLL_T)return;INVITE_POLL_T=setInterval(function(){if(AUTH_USER)pullInvites()},45000)}
+function stopInvitePolling(){if(INVITE_POLL_T){clearInterval(INVITE_POLL_T);INVITE_POLL_T=null}}
 function joinNames(a){a=(a||[]).filter(Boolean);if(!a.length)return'';if(a.length===1)return a[0];if(a.length===2)return a[0]+' & '+a[1];return a.slice(0,-1).join(', ')+' & '+a[a.length-1]}
 var SOCIALS=[
   ['spotify','Spotify','open.spotify.com/artist/… or paste a link','<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.139-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.018zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>'],
@@ -16063,7 +16115,7 @@ function signInGoogle(forceChooser){
   }
   c.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href,queryParams:forceChooser?{prompt:'select_account'}:{}}})
 }
-function signOutGoogle(){var c=sbClient();if(c)c.auth.signOut();AUTH_USER=null;cloudDidPull=false;DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}ensureStorageForMode();renderAccount();paintAcctIcons();sheet(false);var ag=$('#authgate');if(ag)ag.style.display='flex'}
+function signOutGoogle(){var c=sbClient();if(c)c.auth.signOut();AUTH_USER=null;cloudDidPull=false;DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}stopInvitePolling();PENDING_INVITES=[];ensureStorageForMode();renderAccount();paintAcctIcons();sheet(false);var ag=$('#authgate');if(ag)ag.style.display='flex'}
 $('#ag-google').onclick=function(){$('#ag-note').textContent='';signInGoogle(true)};
 setTimeout(function(){if(!AUTH_USER&&!sbClient())$('#ag-note').textContent='Couldn’t reach the sign-in service. Check your connection and try again.'},4000);
 $('#ag-devlink').onclick=function(){var r=$('#ag-devrow');r.classList.toggle('on');if(r.classList.contains('on'))$('#ag-devpw').focus()};
