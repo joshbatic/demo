@@ -14138,7 +14138,18 @@ function renderIdeas(){
 function editIdea(i){curIdea=i||null;$('#itext').value=i?i.text:'';$('#itags').value=i&&i.tags?i.tags.join(', '):'';$('#idel').hidden=!i;sheet(true,'sheet7');setTimeout(function(){$('#itext').focus()},350)}
 function openIdeas(){sheet(false);show('vIdeas');ifilterTag='';$('#iq').value='';renderIdeas()}
 function ensureStorageForMode(){var k=currentKey();if(k!==ACTIVE_KEY){ACTIVE_KEY=k;cur=null;load();if(typeof show==='function')show('vList');renderList();renderSide()}}
-var st;function save(){clearTimeout(st);setSaveState('saving');st=setTimeout(function(){var key=ACTIVE_KEY||currentKey();try{localStorage.setItem(key,JSON.stringify(songs))}catch(e){toast('Could not save in this browser');setSaveState(false);return}if(key!==K_DEV){desktopMirror();syncShared();cloudPush()}if(document.body.classList.contains('side'))renderSide();setSaveState('saved')},250)}
+var st,lastSaveShow=0,showThisSave=false;
+function save(){
+  /* save() fires on basically every keystroke, debounced down to one real write per pause - but
+     showing the "Saving…/Saved" indicator on every single one of those writes made it pop in and out
+     constantly while actively typing, which read as noisy rather than reassuring. It still saves in
+     the background every time either way; the indicator itself now only surfaces once every ~2
+     minutes, decided once per debounce cycle (the !st check) so a fast typing burst doesn't re-roll
+     the decision on every keystroke and end up showing "Saving…" without ever following up "Saved". */
+  if(!st){showThisSave=Date.now()-lastSaveShow>=120000;if(showThisSave){lastSaveShow=Date.now();setSaveState('saving')}}
+  clearTimeout(st);
+  st=setTimeout(function(){st=null;var key=ACTIVE_KEY||currentKey();try{localStorage.setItem(key,JSON.stringify(songs))}catch(e){toast('Could not save in this browser');if(showThisSave)setSaveState(false);return}if(key!==K_DEV){desktopMirror();syncShared();cloudPush()}if(document.body.classList.contains('side'))renderSide();if(showThisSave)setSaveState('saved')},250)
+}
 /* visible "Saving…"/"Saved" status next to the title, so autosave (which already runs silently on
    every edit) is actually trustable to look at rather than just assumed - "saving" shows the moment
    a change is queued, "saved" replaces it once the debounced write actually lands, then fades out. */
