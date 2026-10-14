@@ -118,6 +118,10 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
    itself reproduces that same "fixed header, scrolling body" structure here. */
 #sheet6{overflow-y:hidden}
 #acc{flex:1;min-height:0;overflow-y:auto}
+/* Writing Voice (#sheet2) had the same issue — same fix, scoped to its own content pane (#opts)
+   instead of #acc so its "Writing voice"/Done header stays put while the settings list scrolls. */
+#sheet2{overflow-y:hidden}
+#opts{flex:1;min-height:0;overflow-y:auto}
 /* the dictionary: tapped open from the handle atop the rhyme toolbar, it's the same sheet
    mechanics as above but anchored near-fullscreen (top:12% rather than a fixed height) since it's
    a destination in its own right — search any word, not just the one under the cursor — not a
