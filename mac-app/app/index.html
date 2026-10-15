@@ -14374,14 +14374,34 @@ if(NATIVE_IOS){
     el.style.setProperty('--mfL',over&&el.scrollLeft>2?EF+'px':'0px');
     el.style.setProperty('--mfR',over&&el.scrollLeft<el.scrollWidth-el.clientWidth-2?EF+'px':'0px')
   }
+  /* Tapping an option in one of these rows keeps it in clear view instead of leaving it half under
+     the edge fade (e.g. "Lines" at the far end of the toolbar): if it ends up selected it slides to
+     the middle of the row; anything else that was cut off is nudged just far enough to be whole.
+     Rows that rebuild themselves on a tap (the word-mode tabs) are handled by finding the selected
+     item again after the rebuild. Plain action chips that are fully visible (inserting a rhyme)
+     don't move the row. */
+  var SELQ='.on,.f,[aria-pressed="true"]';
+  function keepInView(el,b){
+    if(el.scrollWidth<=el.clientWidth+1)return;
+    if(!b||!b.isConnected||!el.contains(b))b=el.querySelector(SELQ);if(!b)return;
+    var er=el.getBoundingClientRect(),br=b.getBoundingClientRect(),dx=0,pad=EF+8;
+    if(b.matches(SELQ))dx=(br.left+br.width/2)-(er.left+er.width/2);
+    else if(br.left<er.left+pad)dx=br.left-er.left-pad;
+    else if(br.right>er.right-pad)dx=br.right-er.right+pad;
+    if(Math.abs(dx)<2)return;
+    var calm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+    try{el.scrollBy({left:dx,behavior:calm?'auto':'smooth'})}catch(e){el.scrollLeft+=dx}
+  }
   function wire(el){
     if(!el||el._efWired)return;el._efWired=true;
     edgeFade(el);
+    el.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('button,[role="button"]');if(!b||(b.isConnected&&!el.contains(b)))return;
+      requestAnimationFrame(function(){requestAnimationFrame(function(){keepInView(el,b)})})});
     el.addEventListener('scroll',function(){edgeFade(el)},{passive:true});
     try{new MutationObserver(function(){edgeFade(el)}).observe(el,{childList:true})}catch(e){}
     try{new ResizeObserver(function(){edgeFade(el)}).observe(el)}catch(e){}
   }
-  document.querySelectorAll('.r1g,#rc,.sch,#wm,#fmt').forEach(wire);
+  document.querySelectorAll('.r1g,#rc,.sch,#wm,#fmt,#dictwm').forEach(wire);
   window._wireEdgeFade=wire;
 })();
 
