@@ -14992,7 +14992,8 @@ function getR(w){var d=DM[nw(w)];if(d&&!d.then)return{src:'dm',p:fl(d.p),n:fl(d.
 /* ---------- rhyme bar ---------- */
 var sampleFn=null,LSC={},LSK=null,GENHIST={},scheme='auto',lastTk='';
 try{claude.use('sample').then(function(s){sampleFn=s;rhyme()},function(){})}catch(e){}
-/* ---------- AI routing: OpenAI on this Mac (when a key is saved), Claude's sample capability on the web artifact, a baked-in key otherwise (native wrapper builds e.g. iOS) ---------- */
+/* ---------- AI routing: OpenAI on this Mac (when a key is saved), Claude's sample capability on the web artifact, Supabase Edge Function ai-proxy, or a baked-in key otherwise ---------- */
+var SB_URL='https://cygfgurzvmbtcegkpnss.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5Z2ZndXJ6dm1idGNlZ2twbnNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODk0MTIsImV4cCI6MjEwNzI2NTQxMn0.kJhE1V8V_W1BIuu0iSVaLqa5GyxeOrUy0lrqylq4_Cs';
 var oaiReady=false;
 if(window.desktop&&window.desktop.hasOpenAIKey){window.desktop.hasOpenAIKey().then(function(has){oaiReady=!!has;if(oaiReady)rhyme()}).catch(function(){})}
 var BAKED_OPENAI_KEY='';
@@ -15025,26 +15026,38 @@ function bakedGuardCall(){
   return{ok:true}
 }
 function bakedOpenAICall(prompt,modelTier){
-  if(!BAKED_OPENAI_KEY)return Promise.reject(new Error('Not available'));
   if(!prompt)return Promise.reject(new Error('Empty prompt.'));
   if(prompt.length>24000)return Promise.reject(new Error('That request is too large to send ('+prompt.length+' characters, limit 24000).'));
   var g=bakedGuardCall();if(!g.ok)return Promise.reject(new Error(g.error));
-  var model=modelTier==='complex'?'gpt-5':'gpt-5-mini',maxTokens=modelTier==='complex'?5000:2000,reasoningEffort=modelTier==='complex'?'medium':'minimal',timeoutMs=modelTier==='complex'?110000:45000;
-  var payload={model:model,messages:[{role:'user',content:prompt}],max_completion_tokens:maxTokens};
-  if(reasoningEffort)payload.reasoning_effort=reasoningEffort;
-  var c=new AbortController(),tm=setTimeout(function(){c.abort()},timeoutMs);
-  return fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+BAKED_OPENAI_KEY},body:JSON.stringify(payload),signal:c.signal}).then(function(r){
-    return r.text().then(function(body){
-      clearTimeout(tm);
-      var j;try{j=JSON.parse(body)}catch(e){}
-      if(!r.ok){var msg=(j&&j.error&&j.error.message)||('HTTP '+r.status);throw new Error(msg)}
-      var choice=j.choices&&j.choices[0],text=(choice&&choice.message&&choice.message.content)||'';
-      if(!text.trim()){if(choice&&choice.finish_reason==='length')throw new Error('OpenAI ran out of tokens before answering (hit the length limit).');throw new Error('OpenAI returned an empty response.')}
-      return text
-    })
-  },function(e){clearTimeout(tm);throw new Error(e&&e.name==='AbortError'?'Timed out reaching OpenAI':String((e&&e.message)||e))})
+  var s=sbClient();
+  if(s&&s.functions){
+    return s.functions.invoke('ai-proxy',{body:{prompt:prompt,modelTier:modelTier}}).then(function(res){
+      if(res.error){var msg=(res.error&&res.error.message)||'AI service error';throw new Error(msg)}
+      if(res.data&&res.data.error)throw new Error(res.data.error);
+      var text=(res.data&&res.data.text)||'';
+      if(!text.trim())throw new Error('AI returned an empty response.');
+      return text;
+    });
+  }
+  if(BAKED_OPENAI_KEY){
+    var model=modelTier==='complex'?'gpt-5':'gpt-5-mini',maxTokens=modelTier==='complex'?5000:2000,reasoningEffort=modelTier==='complex'?'medium':'minimal',timeoutMs=modelTier==='complex'?110000:45000;
+    var payload={model:model,messages:[{role:'user',content:prompt}],max_completion_tokens:maxTokens};
+    if(reasoningEffort)payload.reasoning_effort=reasoningEffort;
+    var c=new AbortController(),tm=setTimeout(function(){c.abort()},timeoutMs);
+    return fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+BAKED_OPENAI_KEY},body:JSON.stringify(payload),signal:c.signal}).then(function(r){
+      return r.text().then(function(body){
+        clearTimeout(tm);
+        var j;try{j=JSON.parse(body)}catch(e){}
+        if(!r.ok){var msg=(j&&j.error&&j.error.message)||('HTTP '+r.status);throw new Error(msg)}
+        var choice=j.choices&&j.choices[0],text=(choice&&choice.message&&choice.message.content)||'';
+        if(!text.trim()){if(choice&&choice.finish_reason==='length')throw new Error('OpenAI ran out of tokens before answering (hit the length limit).');throw new Error('OpenAI returned an empty response.')}
+        return text
+      })
+    },function(e){clearTimeout(tm);throw new Error(e&&e.name==='AbortError'?'Timed out reaching OpenAI':String((e&&e.message)||e))})
+  }
+  return Promise.reject(new Error('AI service not configured.'));
 }
-function aiAvailable(){return oaiReady||!!sampleFn||!!BAKED_OPENAI_KEY}
+function aiAvailable(){return oaiReady||!!sampleFn||(!!window.supabase&&!!window.supabase.createClient)||!!BAKED_OPENAI_KEY}
 function parseAIJson(text){
   text=(text||'').trim();
   try{return JSON.parse(text)}catch(e){}
@@ -15063,7 +15076,7 @@ function aiJson(prompt,opts){
     });
   }
   if(sampleFn)return sampleFn.json(prompt,opts);
-  if(BAKED_OPENAI_KEY)return bakedOpenAICall(prompt,opts.modelTier).then(parseAIJson);
+  if((window.supabase&&window.supabase.createClient)||BAKED_OPENAI_KEY)return bakedOpenAICall(prompt,opts.modelTier).then(parseAIJson);
   return Promise.reject(new Error('Not available'));
 }
 function wordAt(l,c){var re=/[A-Za-z']+/g,m,b=null;while((m=re.exec(l))){var s=m.index,e=s+m[0].length;if(c>=s&&c<=e)return m[0];if(e<=c)b=m[0]}return b}
@@ -16035,7 +16048,6 @@ function renderCleanup(){var o=$('#cu'),v=getText();o.innerHTML='';
 $('#done5').onclick=function(){sheet(false)};
 /* ---------- plans: Free by default, Pro unlocked with a code (payments not connected yet) ---------- */
 /* ---------- account sign-in (Google, via Supabase) ---------- */
-var SB_URL='https://cygfgurzvmbtcegkpnss.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5Z2ZndXJ6dm1idGNlZ2twbnNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODk0MTIsImV4cCI6MjEwNzI2NTQxMn0.kJhE1V8V_W1BIuu0iSVaLqa5GyxeOrUy0lrqylq4_Cs';
 var sbc=null,AUTH_USER=null,cloudDidPull=false,DEV_MODE=false,MY_PROFILE=null;
 try{DEV_MODE=localStorage.getItem('songpad:devmode')==='1'}catch(e){}
 if(DEV_MODE){var ag0=$('#authgate');if(ag0)ag0.style.display='none'}
@@ -16208,10 +16220,61 @@ function sbClient(){
      through the system browser to a custom demo://auth-callback link instead — main.js registers
      that scheme, catches the OS handing it back to the app, and forwards it here over the
      onAuthCallback bridge preload.js exposes. Exchange the code it carries for a real session. */
-  if(window.desktop&&window.desktop.onAuthCallback)window.desktop.onAuthCallback(function(url){
+  function handleAuthUrl(url){
     if(!url)return;
-    sbc.auth.exchangeCodeForSession(url).then(function(r){if(r&&r.error){toast('Sign-in failed. Please try again.');var ag=$('#ag-note');if(ag)ag.textContent=r.error.message||'Sign-in failed.'}}).catch(function(){toast('Sign-in failed. Please try again.')});
-  });
+    oauthDbg('handleAuthUrl: '+url.slice(0,50));
+    var err=null;
+    try{var u=new URL(url);err=u.searchParams.get('error_description')||u.searchParams.get('error')}catch(e){}
+    if(!err){var em=url.match(/[?&#](?:error_description|error)=([^&#]+)/);if(em)err=decodeURIComponent(em[1].replace(/\+/g,' '))}
+    if(err){
+      oauthDbg('oauth error: '+err);
+      toast('Sign-in failed: '+err);
+      var ag=$('#ag-note');if(ag)ag.textContent=err;
+      return;
+    }
+    var code=null;
+    try{var u2=new URL(url);code=u2.searchParams.get('code')}catch(e){}
+    if(!code){var cm=url.match(/[?&#]code=([^&#]+)/);if(cm)code=decodeURIComponent(cm[1])}
+    if(code){
+      oauthDbg('exchanging code for session');
+      sbc.auth.exchangeCodeForSession(code).then(function(r){
+        if(r&&r.error){
+          oauthDbg('exchangeCode error: '+r.error.message);
+          toast('Sign-in failed. Please try again.');
+          var ag=$('#ag-note');if(ag)ag.textContent=r.error.message||'Sign-in failed.';
+        }else{
+          oauthDbg('exchangeCode success');
+        }
+      }).catch(function(e){
+        oauthDbg('exchangeCode thrown: '+((e&&e.message)||e));
+        toast('Sign-in failed. Please try again.');
+      });
+      return;
+    }
+    var at=null,rt=null;
+    var atm=url.match(/[?&#]access_token=([^&#]+)/);if(atm)at=decodeURIComponent(atm[1]);
+    var rtm=url.match(/[?&#]refresh_token=([^&#]+)/);if(rtm)rt=decodeURIComponent(rtm[1]);
+    if(at&&rt){
+      oauthDbg('setting session from tokens');
+      sbc.auth.setSession({access_token:at,refresh_token:rt}).then(function(r){
+        if(r&&r.error){
+          oauthDbg('setSession error: '+r.error.message);
+          toast('Sign-in failed. Please try again.');
+          var ag=$('#ag-note');if(ag)ag.textContent=r.error.message||'Sign-in failed.';
+        }else{
+          oauthDbg('setSession success');
+        }
+      }).catch(function(e){
+        oauthDbg('setSession thrown: '+((e&&e.message)||e));
+      });
+      return;
+    }
+    oauthDbg('fallback raw exchangeCodeForSession');
+    sbc.auth.exchangeCodeForSession(url).then(function(r){
+      if(r&&r.error){toast('Sign-in failed. Please try again.');var ag=$('#ag-note');if(ag)ag.textContent=r.error.message||'Sign-in failed.'}
+    }).catch(function(){toast('Sign-in failed. Please try again.')});
+  }
+  if(window.desktop&&window.desktop.onAuthCallback)window.desktop.onAuthCallback(handleAuthUrl);
   /* iOS app: same problem as the Mac app above — Google can't redirect back into the WKWebView's
      own local origin — and the same fix: send the OAuth URL out to the system browser (via
      Capacitor's Browser plugin) instead of navigating the WebView itself, then catch the OS handing
@@ -16221,7 +16284,7 @@ function sbClient(){
     window.Capacitor.Plugins.App.addListener('appUrlOpen',function(data){
       var url=data&&data.url;if(!url||url.indexOf('demo://auth-callback')!==0)return;
       if(window.Capacitor.Plugins.Browser&&window.Capacitor.Plugins.Browser.close)try{window.Capacitor.Plugins.Browser.close()}catch(e){}
-      sbc.auth.exchangeCodeForSession(url).then(function(r){if(r&&r.error){toast('Sign-in failed. Please try again.');var ag=$('#ag-note');if(ag)ag.textContent=r.error.message||'Sign-in failed.'}}).catch(function(){toast('Sign-in failed. Please try again.')});
+      handleAuthUrl(url);
     });
   }
   return sbc;
@@ -16304,7 +16367,18 @@ function signInOAuth(provider,forceChooser,label){
     oauthInFlight=true;oauthDbg('iOS branch: calling signInWithOAuth');
     c.auth.signInWithOAuth({provider:provider,options:{redirectTo:'demo://auth-callback',skipBrowserRedirect:true,queryParams:qp}}).then(function(r){
       oauthInFlight=false;
-      if(r&&r.data&&r.data.url){oauthDbg('got url, opening via Browser plugin');try{window.Capacitor.Plugins.Browser.open({url:r.data.url});oauthDbg('Browser.open called')}catch(e2){oauthDbg('Browser.open threw: '+(e2&&e2.message))}}
+      if(r&&r.data&&r.data.url){
+        oauthDbg('got url, opening via Browser plugin');
+        try{
+          var p=window.Capacitor.Plugins.Browser.open({url:r.data.url,presentationStyle:'popover'});
+          oauthDbg('Browser.open called');
+          if(p&&p.then){
+            p.then(function(){oauthDbg('Browser.open presented successfully')}).catch(function(err){oauthDbg('Browser.open rejected: '+((err&&err.message)||err))});
+          }
+        }catch(e2){
+          oauthDbg('Browser.open threw: '+(e2&&e2.message));
+        }
+      }
       else if(r&&r.error)fail(r);
       else oauthDbg('resolved with neither url nor error: '+JSON.stringify(r))
     }).catch(function(e){oauthInFlight=false;fail(e)});
