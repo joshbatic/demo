@@ -84,6 +84,12 @@ class MainViewController: CAPBridgeViewController {
     override func capacitorDidLoad() {
         CapacitorBridge.swizzlePresentVC()
         guard let webView = bridge?.webView else { return }
+        // Match the launch screen's system background (white / black) until the page paints its
+        // own, so dark mode doesn't flash white between the splash and the app.
+        view.backgroundColor = .systemBackground
+        webView.isOpaque = false
+        webView.backgroundColor = .systemBackground
+        webView.scrollView.backgroundColor = .systemBackground
         webView.scrollView.bounces = false
         webView.scrollView.isDirectionalLockEnabled = true
         webView.scrollView.contentInsetAdjustmentBehavior = .never
