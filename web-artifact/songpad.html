@@ -14134,7 +14134,77 @@ AH-S-IH-N	bussin52s`;
 var APP_COMMIT='0b68cdb';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
 function currentKey(){if(typeof DEV_MODE!=='undefined'&&DEV_MODE&&!AUTH_USER)return K_DEV;if(typeof AUTH_USER!=='undefined'&&AUTH_USER&&AUTH_USER.id)return K+':'+AUTH_USER.id;return K}
-function load(){ACTIVE_KEY=currentKey();try{songs=JSON.parse(localStorage.getItem(ACTIVE_KEY))||[]}catch(e){songs=[]}loadIdeas()}
+function load(){ACTIVE_KEY=currentKey();try{songs=JSON.parse(localStorage.getItem(ACTIVE_KEY))||[]}catch(e){songs=[]}seedGuide();loadIdeas()}
+/* ---------- built-in guide: a "How *[demo] works" song every account starts with ----------
+   Added once per library (each account, and Dev Mode) with a fixed id and a fixed, old `updated`
+   stamp. The fixed id means two devices adding it to the same account make one song, not two; the
+   old stamp means anything newer arriving through sync wins - the writer's own edits to it, or a
+   delete made on another device. Delete it and it stays deleted. To revise the text, bump GUIDE_V
+   and GUIDE_AT: libraries where it's still untouched get the new version, edited ones keep theirs. */
+var GUIDE_V=1,GUIDE_ID='5f1d0c2e-6a8b-4c3d-9e7f-0a1b2c3d4e5f',GUIDE_AT=Date.UTC(2026,9,15);
+function guideSong(){
+  var L=[
+    '[Start here]',
+    'This is a song like any other. Read it, edit it, delete it when you’re done.',
+    'Everything saves as you type, and syncs to every device you’re signed in on.',
+    '',
+    '[Writing]',
+    'Each line here is a lyric line.',
+    'Put a section name on its own line in square brackets, like [Verse] or [Bridge].',
+    'Write your chorus once under [Chorus]. Next time, type [Chorus] and press Enter: it fills itself in.',
+    'Select words to make them bold, colour them, or highlight them.',
+    '{Highlights mark a Hook,} a line to Rework, or an Idea.',
+    '',
+    '[Rhymes]',
+    'The rhyme bar suggests rhymes for the word you just wrote. Tap one to use it.',
+    'Switch it to Perfect, Near, Phrases, Synonyms, Opposites, Define and more.',
+    'Tap the handle on top of the bar to open the Dictionary and look up any word.',
+    'Rhyme map colours the words that rhyme. Syllable counts shows how long each line is.',
+    '',
+    '[When you’re stuck]',
+    'Lines writes rhyming next lines in your voice.',
+    'Muse deals out quick prompts when the page is blank.',
+    'Writing voice sets how you write: genre, mood and style.',
+    'Listen to the whole song makes every suggestion fit the song so far.',
+    'Rate gives an honest co-writer’s read, with a score and notes you can act on.',
+    '',
+    '[Music]',
+    'In Details, add chords, key, tempo, tuning and a status.',
+    'Melody: hum or sing “da da da”, one phrase per line, or import a voice memo.',
+    'Perform turns the song into a scrolling teleprompter, with speed and text size.',
+    '',
+    '[Keeping it safe]',
+    'Save a Version before big changes, and restore it any time.',
+    'Clean up tidies case, spacing and section tags, ready for streaming services.',
+    'Copy Lyrics from Details, or export every song from Account.',
+    'On Mac, songs are also saved as files in Documents › [demo] Songs.',
+    '',
+    '[Organising]',
+    'Make folders, and drag songs between them.',
+    'Swipe a song left in the list to pin it or delete it.',
+    'Ideas, in the sidebar, keeps loose hooks, titles and lines. Tag them to find them later.',
+    '',
+    '[Writing together]',
+    'Choose a username in Account so co-writers can find you.',
+    'Invite them from Details › Collaborators. Shared songs stay in sync for everyone.',
+    'Songs you mark Finished show up under Credits in Account.'
+  ];
+  var lyrics=L.map(function(l){return l.replace(/[{}]/g,'')}).join('\n');
+  var rich=L.map(function(l){
+    if(/^\[[^\]]+\]$/.test(l))return'<span style="font-weight: bold; color: #8E8E96;">'+esc(l)+'</span>';
+    return esc(l).replace(/\{([^}]*)\}/,'<span style="background-color: rgba(255, 204, 0, 0.38);">$1</span>');
+  }).join('<br>');
+  return{id:GUIDE_ID,guide:true,guideAt:GUIDE_AT,title:'How *[demo] works',lyrics:lyrics,rich:rich,chords:'',key:'',bpm:'',capo:'',time:'',tuning:'',status:'Idea',folder:'',notes:'',artist:'',created:GUIDE_AT,updated:GUIDE_AT};
+}
+function seedGuide(){
+  if(!ACTIVE_KEY||ACTIVE_KEY===K)return;
+  var fk='songpad:guide:'+ACTIVE_KEY,had=0;try{had=+localStorage.getItem(fk)||0}catch(e){}
+  if(had>=GUIDE_V)return;
+  var g=guideSong(),ex=songs.filter(function(s){return s.id===GUIDE_ID})[0];
+  if(ex){if(ex.updated===ex.guideAt&&ex.guideAt<GUIDE_AT){Object.keys(ex).forEach(function(k){delete ex[k]});Object.assign(ex,g)}}
+  else if(!had)songs.push(g);
+  try{localStorage.setItem(ACTIVE_KEY,JSON.stringify(songs));localStorage.setItem(fk,String(GUIDE_V))}catch(e){}
+}
 var IK='songpad:ideas:v1',ideas=[],ifilterTag='',curIdea=null;
 function ideasKey(){if(typeof DEV_MODE!=='undefined'&&DEV_MODE&&!AUTH_USER)return IK+':dev';if(typeof AUTH_USER!=='undefined'&&AUTH_USER&&AUTH_USER.id)return IK+':'+AUTH_USER.id;return IK}
 function loadIdeas(){try{ideas=JSON.parse(localStorage.getItem(ideasKey()))||[]}catch(e){ideas=[]}var ct=$('#svaultct');if(ct)ct.textContent=ideas.length||''}
@@ -16321,7 +16391,11 @@ function libMergeList(local,remote,tomb,base,now,pin){
   var rb={};remote.forEach(function(x){if(x&&typeof x.id==='string')rb[x.id]=x});
   var out=[],used={};
   local.forEach(function(x){if(!x||typeof x.id!=='string'||used[x.id])return;used[x.id]=1;var r=rb[x.id],w=x;
-    if(r&&!x.shared&&x.id!==pin&&(r.updated||0)>(x.updated||0))w=r;
+    if(r&&!x.shared&&x.id!==pin){var ru=r.updated||0,xu=x.updated||0;
+      /* same timestamp but different content (e.g. a version snapshot, which doesn't bump `updated`):
+         break the tie the same way on every device, or each would keep its own copy and they'd
+         take turns overwriting the cloud forever */
+      if(ru>xu||(ru===xu&&libStr(libClean(r))>libStr(libClean(x))))w=r}
     if(x.id!==pin&&tomb[x.id]&&tomb[x.id]>=(w.updated||0))return;out.push(w)});
   remote.forEach(function(r){if(!r||typeof r.id!=='string'||used[r.id])return;used[r.id]=1;if(tomb[r.id]&&tomb[r.id]>=(r.updated||0))return;out.push(r)});
   Object.keys(tomb).forEach(function(id){if(now-tomb[id]>LIB_TOMB_TTL)delete tomb[id]});
