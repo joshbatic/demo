@@ -14138,7 +14138,7 @@ function load(){ACTIVE_KEY=currentKey();try{songs=JSON.parse(localStorage.getIte
 var IK='songpad:ideas:v1',ideas=[],ifilterTag='',curIdea=null;
 function ideasKey(){if(typeof DEV_MODE!=='undefined'&&DEV_MODE&&!AUTH_USER)return IK+':dev';if(typeof AUTH_USER!=='undefined'&&AUTH_USER&&AUTH_USER.id)return IK+':'+AUTH_USER.id;return IK}
 function loadIdeas(){try{ideas=JSON.parse(localStorage.getItem(ideasKey()))||[]}catch(e){ideas=[]}var ct=$('#svaultct');if(ct)ct.textContent=ideas.length||''}
-var ist;function saveIdeas(){clearTimeout(ist);ist=setTimeout(function(){try{localStorage.setItem(ideasKey(),JSON.stringify(ideas))}catch(e){toast('Could not save in this browser')}var ct=$('#svaultct');if(ct)ct.textContent=ideas.length||'';if(document.getElementById('vIdeas').classList.contains('on'))renderIdeas()},200)}
+var ist;function saveIdeas(){clearTimeout(ist);ist=setTimeout(function(){try{localStorage.setItem(ideasKey(),JSON.stringify(ideas))}catch(e){toast('Could not save in this browser')}if(typeof cloudPush==='function')cloudPush();var ct=$('#svaultct');if(ct)ct.textContent=ideas.length||'';if(document.getElementById('vIdeas').classList.contains('on'))renderIdeas()},200)}
 function allIdeaTags(){var t={};ideas.forEach(function(i){(i.tags||[]).forEach(function(x){t[x]=(t[x]||0)+1})});return Object.keys(t).sort(function(a,b){return t[b]-t[a]})}
 function renderIdeas(){
   var q=($('#iq').value||'').toLowerCase(),L=$('#ilist');L.innerHTML='';
@@ -14168,6 +14168,7 @@ function openIdeas(){sheet(false);show('vIdeas');ifilterTag='';$('#iq').value=''
 function ensureStorageForMode(){var k=currentKey();if(k!==ACTIVE_KEY){ACTIVE_KEY=k;cur=null;load();if(typeof show==='function')show('vList');renderList();renderSide()}}
 var st,lastSaveShow=0,showThisSave=false;
 function save(){
+  libTyping=Date.now();
   /* save() fires on basically every keystroke, debounced down to one real write per pause - but
      showing the "Saving…/Saved" indicator on every single one of those writes made it pop in and out
      constantly while actively typing, which read as noisy rather than reassuring. It still saves in
@@ -16061,7 +16062,7 @@ function onAuthUser(){
   var ag=$('#authgate');if(ag)ag.style.display=(AUTH_USER||DEV_MODE)?'none':'flex';
   ensureStorageForMode();
   if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling()}
-  if(!AUTH_USER)stopInvitePolling();
+  if(!AUTH_USER){stopInvitePolling();libStop()}
   if($('#sheet6').classList.contains('on'))renderAccount();
   paintAcctIcons();
 }
@@ -16291,24 +16292,123 @@ function sbClient(){
   }
   return sbc;
 }
-/* ---------- cloud library sync: mirrors the song list to Supabase, keyed to the signed-in Google account ---------- */
-var cloudPushT=null;
-function cloudPush(){
-  if(!AUTH_USER||DEV_MODE)return;var c=sbClient();if(!c)return;
-  clearTimeout(cloudPushT);cloudPushT=setTimeout(function(){
-    if(!AUTH_USER||DEV_MODE)return;
-    c.from('cloud_library').upsert({user_id:AUTH_USER.id,data:songs,updated_at:new Date().toISOString()}).then(function(r){if(r&&r.error){console.warn('cloud save failed',r.error.message);toast('Couldn’t sync to your account: '+r.error.message)}})
-  },900)
+/* ---------- cloud library sync: songs + ideas, live across every device signed into the account ----------
+   One cloud_library row per account. Its data is {v:2,songs,ideas,deleted:{songs:{id:ts},ideas:{id:ts}}}
+   (older builds wrote a bare songs array, which is still read). Every sync is pull -> merge -> push:
+   - items merge one by one, newest `updated` wins, so no device's whole list ever replaces another's;
+   - deletions travel as tombstones (spotted by diffing against the ids present at the last sync), so a
+     song deleted on one device doesn't come back from another;
+   - the push is a compare-and-swap on updated_at, so two devices saving at once retry instead of
+     overwriting each other.
+   Other signed-in devices hear about a push straight away over a Supabase Realtime broadcast, with a
+   cheap updated_at poll (every 20s, and on focus/foreground) as the backup. */
+var LIB_DEV=(function(){try{var d=localStorage.getItem('songpad:device');if(!d){d=uuid4();localStorage.setItem('songpad:device',d)}return d}catch(e){return uuid4()}})();
+var libSeenAt=null,libBusy=false,libAgain=false,libT=null,libChan=null,libPollT=null,libTyping=0,libToastAt=0,LIB_TOMB_TTL=90*864e5;
+function libKey(n){return'songpad:sync:'+n+':'+AUTH_USER.id}
+function libGet(n,d){try{return JSON.parse(localStorage.getItem(libKey(n)))||d}catch(e){return d}}
+function libSet(n,v){try{localStorage.setItem(libKey(n),JSON.stringify(v))}catch(e){}}
+function libReady(){return!!(AUTH_USER&&!DEV_MODE&&ACTIVE_KEY===K+':'+AUTH_USER.id&&sbClient())}
+function libStr(v){if(v===null||typeof v!=='object')return JSON.stringify(v)||'null';if(Array.isArray(v))return'['+v.map(libStr).join(',')+']';return'{'+Object.keys(v).sort().filter(function(k){return v[k]!==undefined}).map(function(k){return JSON.stringify(k)+':'+libStr(v[k])}).join(',')+'}'}
+function libClean(x){var o={};Object.keys(x).forEach(function(k){if(k[0]!=='_')o[k]=x[k]});return o}
+/* the cloud copy is kept in id order so devices that list songs differently still agree it's unchanged */
+function libCanon(list){return list.map(libClean).sort(function(a,b){return a.id<b.id?-1:a.id>b.id?1:0})}
+function libNorm(d){if(Array.isArray(d))return{songs:d,ideas:[],deleted:{songs:{},ideas:{}}};d=d||{};var del=d.deleted||{};return{songs:Array.isArray(d.songs)?d.songs:[],ideas:Array.isArray(d.ideas)?d.ideas:[],deleted:{songs:del.songs||{},ideas:del.ideas||{}}}}
+function libMax(a,b){var o={};[a||{},b||{}].forEach(function(m){Object.keys(m).forEach(function(k){if(!(o[k]>=m[k]))o[k]=m[k]})});return o}
+/* local wins ties; `pin` is the item being edited right now, which always keeps the local copy */
+function libMergeList(local,remote,tomb,base,now,pin){
+  var have={};local.forEach(function(x){if(x&&typeof x.id==='string')have[x.id]=1});
+  if(base)base.forEach(function(id){if(!have[id]&&!tomb[id])tomb[id]=now});
+  var rb={};remote.forEach(function(x){if(x&&typeof x.id==='string')rb[x.id]=x});
+  var out=[],used={};
+  local.forEach(function(x){if(!x||typeof x.id!=='string'||used[x.id])return;used[x.id]=1;var r=rb[x.id],w=x;
+    if(r&&!x.shared&&x.id!==pin&&(r.updated||0)>(x.updated||0))w=r;
+    if(x.id!==pin&&tomb[x.id]&&tomb[x.id]>=(w.updated||0))return;out.push(w)});
+  remote.forEach(function(r){if(!r||typeof r.id!=='string'||used[r.id])return;used[r.id]=1;if(tomb[r.id]&&tomb[r.id]>=(r.updated||0))return;out.push(r)});
+  Object.keys(tomb).forEach(function(id){if(now-tomb[id]>LIB_TOMB_TTL)delete tomb[id]});
+  return out;
 }
-function cloudPull(){
-  var c=sbClient();if(!c||!AUTH_USER||DEV_MODE)return;
-  c.from('cloud_library').select('data').eq('user_id',AUTH_USER.id).maybeSingle().then(function(r){
-    if(r&&r.error)return toast('Couldn’t reach cloud storage: '+r.error.message);
-    var remote=(r&&r.data&&r.data.data)||[];
-    if(remote.length){importSongs(remote,true);toast('Synced with your Google account')}
-    cloudPush();
-  })
+/* rebuild a local list from the merge result, keeping object identity (cur/curIdea point into these)
+   and each object's own _-prefixed local bookkeeping */
+function libApplyList(arr,merged,curObj){
+  var by={},seen={},out=[],n=0,curHit=false;merged.forEach(function(m){by[m.id]=m});
+  arr.forEach(function(s){var m=by[s.id];if(!m||seen[s.id]){n++;return}seen[s.id]=1;
+    if(m!==s){var keep={};Object.keys(s).forEach(function(k){if(k[0]==='_')keep[k]=s[k]});Object.keys(s).forEach(function(k){delete s[k]});Object.assign(s,JSON.parse(JSON.stringify(libClean(m))),keep);n++;if(s===curObj)curHit=true}
+    out.push(s)});
+  merged.forEach(function(m){if(!seen[m.id]){seen[m.id]=1;out.push(JSON.parse(JSON.stringify(libClean(m))));n++}});
+  return{list:out,n:n,curHit:curHit};
 }
+function libRefreshCur(){var focused=document.activeElement===lyr,sel=focused?getSel():null;
+  Object.keys(map).forEach(function(k){var el=$(k);if(document.activeElement!==el)el.value=cur[map[k]]||''});
+  setLyr(cur);if(focused){var L=getText().length;setSel(Math.min(sel.s,L),Math.min(sel.e,L))}
+  PF=mkPF(cur.pf||pgGet());hdr();LSK=null;rhyme();refreshViews()}
+function cloudPush(){if(!libReady())return;clearTimeout(libT);libT=setTimeout(function(){cloudSync()},900)}
+function cloudPull(){libSeenAt=null;cloudSync(true);libListen()}
+function cloudSync(first){
+  if(!libReady())return;
+  if(libBusy){libAgain=true;return}
+  libBusy=true;var c=sbClient(),uid=AUTH_USER.id,tries=0;
+  function done(){libBusy=false;if(libAgain){libAgain=false;cloudSync()}}
+  function attempt(){
+    c.from('cloud_library').select('data,updated_at').eq('user_id',uid).maybeSingle().then(function(r){
+      if(!AUTH_USER||AUTH_USER.id!==uid||!libReady())return done();
+      if(r&&r.error){if(first)toast('Couldn’t reach cloud storage: '+r.error.message);return done()}
+      var row=r&&r.data,remote=libNorm(row&&row.data),prevAt=row?row.updated_at:null,now=Date.now();
+      var lt=libGet('tomb',{}),base=libGet('base',null);
+      var tomb={songs:libMax(lt.songs,remote.deleted.songs),ideas:libMax(lt.ideas,remote.deleted.ideas)};
+      var pinS=(cur&&now-libTyping<4000)?cur.id:null;
+      var pinI=(curIdea&&$('#sheet7').classList.contains('on'))?curIdea.id:null;
+      var ms=libMergeList(songs,remote.songs,tomb.songs,base&&base.songs,now,pinS);
+      var mi=libMergeList(ideas,remote.ideas,tomb.ideas,base&&base.ideas,now,pinI);
+      var openId=cur&&cur.id;
+      var as=libApplyList(songs,ms,cur),ai=libApplyList(ideas,mi,null);
+      songs=as.list;ideas=ai.list;libSet('tomb',tomb);
+      if(as.n||ai.n){
+        try{localStorage.setItem(ACTIVE_KEY,JSON.stringify(songs))}catch(e){}
+        try{localStorage.setItem(ideasKey(),JSON.stringify(ideas))}catch(e){}
+        desktopMirror();renderList();renderSide();
+        var ct=$('#svaultct');if(ct)ct.textContent=ideas.length||'';
+        if(document.getElementById('vIdeas').classList.contains('on'))renderIdeas();
+        if(openId&&!songs.some(function(s){return s.id===openId})){toList();toast('That song was deleted on another device')}
+        else if(as.curHit&&cur)libRefreshCur();
+        if(first)toast('Synced with your account');
+        else if(now-libToastAt>15000&&now-libTyping>4000){libToastAt=now;toast('Updated from your other device')}
+      }
+      var ids={songs:songs.map(function(s){return s.id}),ideas:ideas.map(function(i){return i.id})};
+      var payload={v:2,songs:libCanon(ms),ideas:libCanon(mi),deleted:tomb};
+      var was={v:2,songs:libCanon(remote.songs),ideas:libCanon(remote.ideas),deleted:remote.deleted};
+      if(row&&!Array.isArray(row.data)&&libStr(payload)===libStr(was)){libSeenAt=prevAt;libSet('base',ids);return done()}
+      var stamp=new Date().toISOString();
+      var q=prevAt
+        ?c.from('cloud_library').update({data:payload,updated_at:stamp}).eq('user_id',uid).eq('updated_at',prevAt).select('updated_at')
+        :c.from('cloud_library').insert({user_id:uid,data:payload,updated_at:stamp}).select('updated_at');
+      q.then(function(w){
+        var lost=(w&&w.error&&!prevAt&&w.error.code==='23505')||(w&&!w.error&&!(w.data&&w.data.length));
+        if(lost){if(++tries<4)return attempt();return done()}
+        if(w&&w.error){console.warn('cloud save failed',w.error.message);toast('Couldn’t sync to your account: '+w.error.message);return done()}
+        libSeenAt=w.data[0].updated_at;libSet('base',ids);libPing();done();
+      },function(e){console.warn('cloud save failed',e);done()});
+    },function(e){console.warn('cloud pull failed',e);done()});
+  }
+  attempt();
+}
+function libListen(){
+  var c=sbClient();if(!c||!AUTH_USER)return;
+  if(libChan&&libChan._uid===AUTH_USER.id)return;
+  libStop();
+  if(c.channel){try{
+    var ch=c.channel('library:'+AUTH_USER.id,{config:{broadcast:{self:false}}});ch._uid=AUTH_USER.id;
+    ch.on('broadcast',{event:'changed'},function(m){if(m&&m.payload&&m.payload.dev===LIB_DEV)return;clearTimeout(libT);libT=setTimeout(function(){cloudSync()},250)}).subscribe();
+    libChan=ch;
+  }catch(e){libChan=null}}
+  libPollT=setInterval(libPoll,20000);
+}
+function libStop(){if(libChan){try{sbClient().removeChannel(libChan)}catch(e){}libChan=null}if(libPollT){clearInterval(libPollT);libPollT=null}libSeenAt=null}
+function libPing(){if(libChan)try{libChan.send({type:'broadcast',event:'changed',payload:{dev:LIB_DEV}})}catch(e){}}
+function libPoll(){if(!libReady()||document.hidden||libBusy)return;
+  sbClient().from('cloud_library').select('updated_at').eq('user_id',AUTH_USER.id).maybeSingle().then(function(r){if(r&&!r.error&&r.data&&r.data.updated_at!==libSeenAt)cloudSync()},function(){})}
+document.addEventListener('visibilitychange',function(){if(!document.hidden)libPoll()});
+window.addEventListener('focus',libPoll);
+window.addEventListener('online',function(){cloudSync()});
 /* ---------- cloud plan sync: Pro status follows the Google account, not the browser ---------- */
 function cloudPushPlan(){
   var c=sbClient();if(!c||!AUTH_USER)return;
@@ -16391,7 +16491,7 @@ function signInOAuth(provider,forceChooser,label){
 }
 function signInGoogle(forceChooser){signInOAuth('google',forceChooser,'Google')}
 function signInApple(forceChooser){signInOAuth('apple',forceChooser,'Apple')}
-function signOutGoogle(){var c=sbClient();if(c)c.auth.signOut();AUTH_USER=null;cloudDidPull=false;DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}stopInvitePolling();PENDING_INVITES=[];ensureStorageForMode();renderAccount();paintAcctIcons();sheet(false);var ag=$('#authgate');if(ag)ag.style.display='flex'}
+function signOutGoogle(){libStop();var c=sbClient();if(c)c.auth.signOut();AUTH_USER=null;cloudDidPull=false;DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}stopInvitePolling();PENDING_INVITES=[];ensureStorageForMode();renderAccount();paintAcctIcons();sheet(false);var ag=$('#authgate');if(ag)ag.style.display='flex'}
 $('#ag-google').onclick=function(){$('#ag-note').textContent='';signInGoogle(true)};
 $('#ag-apple').onclick=function(){$('#ag-note').textContent='';signInApple(true)};
 /* ---------- account sign-in (email/password): a self-contained fallback that doesn't depend on
