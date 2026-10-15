@@ -469,41 +469,52 @@ body.ios .song{padding:13px 24px}
 .unrow b{font-size:15px}
 .unedit{display:flex;flex-direction:column;gap:8px;padding:12px 20px}
 .unedit input{border:0;background:var(--fill);border-radius:12px;padding:10px 14px;font-size:16px;outline:0;color:var(--ink)}
-/* Profile header redesign: a soft gradient ring around the avatar (a quiet "this is you" signal,
-   not a loud brand treatment), a bigger/bolder name, and the @handle demoted from a boxed pill
-   down to plain inline text — it only ever does one thing (open the editor) and a pill made it
-   look like a button bar item competing with the actual actions below it. */
-.prohero{display:flex;flex-direction:column;align-items:center;gap:4px;padding:34px 20px 20px;text-align:center}
-.proav{position:relative;width:96px;height:96px;cursor:pointer;flex:none;border-radius:50%;padding:3px;background:linear-gradient(135deg,var(--tint),var(--sep) 85%);margin-bottom:8px}
-.proav img,.proavph{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;box-shadow:0 2px 14px var(--sh2)}
-.proavph{background:var(--fill);display:flex;align-items:center;justify-content:center;color:var(--mute)}
-.proavph svg{width:42px;height:42px}
-.proavedit{position:absolute;inset:3px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);opacity:0;transition:opacity .15s}
-.proav:hover .proavedit{opacity:1}
-.proname{font-size:21px;font-weight:800;line-height:1.3;margin-top:4px;letter-spacing:-.2px}
-.prohandle{font-size:14.5px;color:var(--mute)}
-.prohandle button{color:var(--mute);font-size:14px;font-weight:600;background:none;padding:2px 3px}
-@media (hover:hover){.prohandle button:hover{color:var(--ink)}}
-/* Social row: each glyph now carries its own brand color even before a link is set — a quiet
-   outline hint of what it is rather than a flat grey circle indistinguishable from the others —
-   and turns into a full brand-color fill with a little lift once actually connected. */
-.prosoc{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;padding:18px 20px 22px;border-top:.5px solid var(--sep)}
-.soclink{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--fill);color:var(--mute);flex:none;box-shadow:0 0 0 .5px var(--ring);transition:background-color .15s,color .15s,box-shadow .15s}
-.soclink svg{width:20px;height:20px}
-.soclink b{font-size:18px;font-weight:700}
-.soclink[data-k="spotify"]{color:#1DB954}
-.soclink[data-k="instagram"]{color:#e1306c}
-.soclink.set{color:var(--ink);background:var(--row);box-shadow:inset 0 0 0 1px var(--sep)}
-.soclink.set[data-k="spotify"]{background:#1DB954;color:#fff;box-shadow:0 2px 8px rgba(29,185,84,.35)}
-.soclink.set[data-k="instagram"]{background:linear-gradient(45deg,#f09433,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888);color:#fff;box-shadow:0 2px 8px rgba(220,39,67,.3)}
-.soclink.set[data-k="tiktok"]{background:#000;color:#fff;box-shadow:0 2px 8px var(--sh2)}
-.soedit{display:flex;flex-direction:column;gap:9px;padding:14px 20px 16px;border-top:.5px solid var(--sep)}
-.soedit .sorow{display:flex;align-items:center;gap:10px}
-.soedit .sorow>span{width:18px;height:18px;flex:none;color:var(--mute);display:flex;align-items:center;justify-content:center}
-.soedit .sorow>span svg{width:17px;height:17px}
-.soedit .sorow>b{font-size:12.5px;color:var(--mute);width:60px;flex:none;font-weight:600}
-.soedit input{flex:1;min-width:0;border:0;background:var(--fill);border-radius:10px;padding:9px 12px;font-size:16px;outline:0;color:var(--ink)}
-.soact{display:flex;gap:8px;padding-top:2px}
+/* Account sheet, styled after iOS Settings: the profile sits straight on the sheet (no card, no ring
+   around the photo), then inset-grouped rows - an icon tile, the label, a secondary-grey value, a chevron
+   - with separators inset to where the text starts. Social links are rows with each network's own
+   icon and your handle beside it, like contact details. All scoped to #acc. */
+#acc{--sheetsolid:#F2F2F7}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #acc{--sheetsolid:#1C1C1E}}
+:root[data-theme="dark"] #acc{--sheetsolid:#1C1C1E}
+.prohero{display:flex;flex-direction:column;align-items:center;padding:8px 20px 26px;text-align:center}
+.prohero .pbadge{margin-bottom:14px}
+.proav{position:relative;width:96px;height:96px;flex:none;border-radius:50%;padding:0;background:none;cursor:pointer;margin-bottom:14px;-webkit-tap-highlight-color:transparent}
+.proav img,.proavph{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+.proavph{display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#A6AAB3,#868A93);color:#fff;font-size:38px;font-weight:600;letter-spacing:.5px}
+.proavph svg{width:54px;height:54px;color:rgba(255,255,255,.95);margin-top:10px}
+.proavedit{position:absolute;right:-1px;bottom:-1px;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--tint);color:var(--ontint);box-shadow:0 0 0 3px var(--sheetsolid)}
+.proav:active img,.proav:active .proavph{filter:brightness(.88)}
+.proname{font-size:26px;font-weight:700;line-height:1.2;letter-spacing:-.4px}
+.prosub{display:flex;flex-direction:column;gap:3px;margin-top:6px;font-size:15px;color:var(--mute)}
+.prosub .dim{font-size:13.5px}
+#acc .labrow{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;min-height:22px}
+#acc .labact{display:flex;gap:2px;margin:-8px -10px -5px 0}
+#acc .labact button{font-size:15px;font-weight:600;color:var(--ink);background:none;padding:6px 10px;border-radius:99px}
+#acc .labact button.ghost{color:var(--mute);font-weight:500}
+#acc .labact button:disabled{opacity:.4}
+#acc .cell{display:flex;align-items:center;gap:13px;width:100%;min-height:52px;padding:0 16px;background:none;color:var(--ink);font-size:16.5px;text-align:left;position:relative;-webkit-tap-highlight-color:transparent;transition:background-color .12s}
+#acc .cell+.cell::before{content:'';position:absolute;top:0;right:0;left:59px;border-top:.5px solid var(--sep)}
+#acc .cell+.cell.notile::before{left:16px}
+#acc .cell .ct{flex:1;min-width:0;line-height:1.3;padding:13px 0}
+#acc .cell .cv{flex:none;max-width:52%;color:var(--mute);font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#acc .cell .chev{flex:none;display:flex;color:var(--mute);opacity:.5;margin-left:-3px}
+#acc button.cell:active{background:var(--fill)}
+@media (hover:hover){#acc button.cell:hover{background:var(--fill)}}
+#acc .cell.danger{justify-content:center}
+#acc .cell.danger .ct{flex:none;color:var(--red);text-align:center}
+#acc .tile{width:30px;height:30px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--tint);color:var(--ontint)}
+#acc .tile svg{width:17px;height:17px}
+#acc .tile.soc-spotify{background:#1ED760;color:#000}
+#acc .tile.soc-spotify svg{width:20px;height:20px}
+#acc .tile.soc-instagram{background:radial-gradient(circle at 30% 107%,#fdf497 0,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285AEB 90%);color:#fff}
+#acc .tile.soc-instagram svg{width:18px;height:18px}
+#acc .tile.soc-tiktok{background:#000;color:#fff;box-shadow:inset 0 0 0 .5px rgba(255,255,255,.2)}
+#acc .cell.form{cursor:text}
+#acc .cell.form .fl{flex:none;width:96px;padding:13px 0}
+#acc .cell.form input{flex:1;min-width:0;border:0;background:none;outline:0;font-size:16.5px;color:var(--ink);padding:14px 0;border-radius:0}
+#acc .cell.form input::placeholder{color:var(--mute);opacity:.75}
+#acc .atpre{color:var(--mute);margin-right:-13px}
+#acc .devwrap .devcard{margin-top:0}
 #pres{position:absolute;top:0;left:10px;width:4px;pointer-events:none}
 #pres i{position:absolute;left:0;width:4px;border-radius:2px}
 .shd{display:inline-block;width:14px;height:14px;vertical-align:-2px;margin-right:4px;color:var(--mute)}
@@ -16665,88 +16676,103 @@ var accWhy='';
 function openAccount(k){accWhy=k||'';renderAccount();sheet(true,'sheet6')}
 function devProfileGet(){try{return JSON.parse(localStorage.getItem('songpad:devprofile'))||{}}catch(e){return{}}}
 function devProfileSet(p){try{localStorage.setItem('songpad:devprofile',JSON.stringify(p))}catch(e){}}
+/* ---------- Account sheet building blocks: Settings-style rows and section headers ---------- */
+var ACC_ICO={
+  chev:'<svg viewBox="0 0 8 14" width="8" height="14"><path d="M1.5 1.5 6.5 7l-5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  ext:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>',
+  person:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.2"/><path d="M3.8 20.2c0-4.3 3.7-6.9 8.2-6.9s8.2 2.6 8.2 6.9z"/></svg>',
+  swap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/></svg>',
+  down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>',
+  up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M5 21h14"/></svg>',
+  spark:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 2.5l1.7 4.7c.3.9 1 1.6 1.9 1.9l4.7 1.7-4.7 1.7c-.9.3-1.6 1-1.9 1.9L10 19.1l-1.7-4.7c-.3-.9-1-1.6-1.9-1.9L1.7 10.8l4.7-1.7c.9-.3 1.6-1 1.9-1.9z"/></svg>',
+  cam:'<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M9.2 4h5.6l1.5 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2.7z"/><circle cx="12" cy="12.5" r="3.6" fill="var(--tint)"/><circle cx="12" cy="12.5" r="2" fill="currentColor"/></svg>'
+};
+function accCell(o){
+  var b=document.createElement(o.onclick?'button':'div');b.className='cell'+(o.tile?'':' notile')+(o.cls?' '+o.cls:'');
+  if(o.tile){var t=document.createElement('span');t.className='tile'+(o.tileCls?' '+o.tileCls:'');t.innerHTML=o.tile;b.appendChild(t)}
+  var l=document.createElement('span');l.className='ct';l.textContent=o.label;b.appendChild(l);
+  if(o.value!=null&&o.value!==''){var v=document.createElement('span');v.className='cv'+(o.valueCls?' '+o.valueCls:'');v.textContent=o.value;b.appendChild(v)}
+  if(o.chev){var c=document.createElement('span');c.className='chev';c.innerHTML=o.chev==='ext'?ACC_ICO.ext:ACC_ICO.chev;b.appendChild(c)}
+  if(o.onclick)b.onclick=o.onclick;return b}
+function accSection(o,title,actions){
+  if(title||actions){var h=document.createElement('div');h.className='lab labrow';var t=document.createElement('span');t.textContent=title||'';h.appendChild(t);
+    if(actions){var a=document.createElement('span');a.className='labact';actions.forEach(function(x){var b=document.createElement('button');b.textContent=x[0];if(x[2])b.className=x[2];b.onclick=x[1];a.appendChild(b)});h.appendChild(a)}
+    o.appendChild(h)}
+  var g=document.createElement('div');g.className='gf accg';o.appendChild(g);return g}
+/* what to show beside each link: the handle where the URL has one, rather than the raw URL */
+function socialShown(k,u){if(!u)return'';if((k==='instagram'||k==='tiktok')&&!/[\/.]/.test(u))return'@'+u.replace(/^@/,'');var parts=[];try{parts=new URL(/^https?:/i.test(u)?u:'https://'+u).pathname.split('/').filter(Boolean)}catch(e){return u}
+  if((k==='instagram'||k==='tiktok')&&parts[0])return'@'+parts[0].replace(/^@/,'');
+  if(k==='spotify')return parts[0]==='artist'?'Artist page':'Connected';
+  return u.replace(/^https?:\/\/(www\.)?/i,'')}
+function initialsOf(n){n=(n||'').replace(/^@/,'').trim();if(!n)return'';var w=n.split(/\s+/);return((w[0][0]||'')+(w.length>1?w[w.length-1][0]:'')).toUpperCase()}
+/* which part of the sheet is being edited, and what's been typed so far, kept outside renderAccount so
+   a re-render (sign-in state, profile load) doesn't throw away a half-finished edit */
+var ACC_EDIT=null,ACC_DRAFT={};
 function renderAccount(){var o=$('#acc'),pro=isPro();o.innerHTML='';
-  var la=document.createElement('div');la.className='lab';la.textContent='Account';o.appendChild(la);
-  var ga=document.createElement('div');ga.className='gf';o.appendChild(ga);
-  /* Dev Mode has no real Supabase session, so there's nothing to drive the profile hero/social
-     links/segmented actions this sheet otherwise shows — which made Dev Mode look like a stripped-
-     down, dead-end version of the real Account page. devFake fills that hero with a fake, clearly-
-     labeled local-only profile (dp, backed by localStorage, never touching Supabase) so the full
-     redesigned layout can actually be seen and exercised without a real sign-in. */
-  var devFake=!AUTH_USER&&DEV_MODE;
+  /* Dev Mode has no real Supabase session, so devFake fills the profile with a fake, clearly-labeled
+     local-only one (dp, backed by localStorage, never touching Supabase) so the full layout can be
+     seen and exercised without a real sign-in. */
+  var devFake=!AUTH_USER&&DEV_MODE,ga=null;
   if(AUTH_USER||devFake){
     var dp=devFake?devProfileGet():null;
     var meta=AUTH_USER?(AUTH_USER.user_metadata||{}):{};
-    var hero=document.createElement('div');hero.className='prohero';ga.appendChild(hero);
-    if(devFake){var db=document.createElement('div');db.className='pbadge';db.style.marginBottom='2px';db.textContent='Dev Mode — fake profile';hero.appendChild(db)}
+    function prof(k){return devFake?(dp[k]||''):((MY_PROFILE&&MY_PROFILE[k])||'')}
+    var shownName=devFake?(dp.display_name||dp.username||'Dev User'):(myName()||'Your account');
+    var handle=prof('username');
+    /* ---- hero: photo, name, handle, email - straight on the sheet, the way Settings shows your account ---- */
+    var hero=document.createElement('div');hero.className='prohero';o.appendChild(hero);
+    if(devFake){var db=document.createElement('div');db.className='pbadge';db.textContent='Dev Mode · fake profile';hero.appendChild(db)}
     var avSrc=devFake?(dp.avatar_url||''):((MY_PROFILE&&MY_PROFILE.avatar_url)||meta.avatar_url);
-    var avWrap=document.createElement('div');avWrap.className='proav';avWrap.title='Change photo';
+    var avWrap=document.createElement('button');avWrap.className='proav';avWrap.setAttribute('aria-label','Change photo');
     if(avSrc){var av=document.createElement('img');av.src=avSrc;av.alt='';av.referrerPolicy='no-referrer';avWrap.appendChild(av)}
-    else{var avph=document.createElement('div');avph.className='proavph';avph.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>';avWrap.appendChild(avph)}
-    var avEdit=document.createElement('div');avEdit.className='proavedit';avEdit.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';avWrap.appendChild(avEdit);
-    avWrap.onclick=function(){$('#avin').click()};
-    hero.appendChild(avWrap);
-    var nm=document.createElement('div');nm.className='proname';nm.textContent=devFake?(dp.display_name||'Dev User'):(myName()||'Signed in');hero.appendChild(nm);
-    var hv=document.createElement('div');hv.className='prohandle';
-    var hvb=document.createElement('button');hvb.textContent=devFake?(dp.username?'@'+dp.username:'Choose a username'):(MY_PROFILE&&MY_PROFILE.username?'@'+MY_PROFILE.username:'Choose a username');hvb.onclick=function(){unEditing=true;paintUsername()};hv.appendChild(hvb);
-    hero.appendChild(hv);
-    if(devFake){var em=document.createElement('div');em.className='prohandle';em.style.fontSize='12.5px';em.textContent='Local only — nothing here syncs';hero.appendChild(em)}
-    else if(AUTH_USER.email){var em=document.createElement('div');em.className='prohandle';em.style.fontSize='12.5px';em.textContent=AUTH_USER.email;hero.appendChild(em)}
-    var unWrap=document.createElement('div');ga.appendChild(unWrap);var unEditing=false;
-    function paintUsername(){unWrap.innerHTML='';
-      if(!unEditing)return;
-      var box=document.createElement('div');box.className='unedit';
-      var ui=document.createElement('input');ui.placeholder='@username';ui.value='@'+(devFake?(dp.username||''):((MY_PROFILE&&MY_PROFILE.username)||''));ui.autocapitalize='off';ui.autocomplete='off';ui.spellcheck=false;box.appendChild(ui);
-      /* the leading @ lives in the field itself rather than as a separate label — it can't be
-         deleted or duplicated, so whatever's typed after it is always the raw username */
-      function clampAt(){var v='@'+ui.value.replace(/@/g,'');if(v!==ui.value){var pos=ui.selectionStart;ui.value=v;try{ui.setSelectionRange(Math.max(1,pos),Math.max(1,pos))}catch(e){}}}
-      ui.addEventListener('input',clampAt);
-      ui.addEventListener('focus',function(){if(ui.selectionStart<1)try{ui.setSelectionRange(1,1)}catch(e){}});
-      var di=document.createElement('input');di.placeholder='Display name, shown on song credits';di.value=devFake?(dp.display_name||''):((MY_PROFILE&&MY_PROFILE.display_name)||myName());box.appendChild(di);
-      var actr=document.createElement('div');actr.className='row';actr.style.gap='8px';actr.style.padding='0';
-      var sv=document.createElement('button');sv.className='go2';sv.textContent='Save';sv.onclick=function(){sv.disabled=true;
-        var oldName=devFake?(dp.display_name||dp.username||''):myName();
-        var rawUser=ui.value.replace(/^@+/,'').trim();
-        if(devFake){dp.username=rawUser;dp.display_name=di.value.trim();devProfileSet(dp);renameMyArtistCredit(oldName,dp.display_name||dp.username);unEditing=false;toast('Saved (dev only)');renderAccount()}
-        else saveUsername(rawUser,di.value).then(function(){renameMyArtistCredit(oldName,myName());unEditing=false;toast('Saved');renderAccount()},function(e){sv.disabled=false;toast(e.message)})
-      };actr.appendChild(sv);
-      var cx=document.createElement('button');cx.className='go2 ghost';cx.textContent='Cancel';cx.onclick=function(){unEditing=false;paintUsername()};actr.appendChild(cx);
-      box.appendChild(actr);unWrap.appendChild(box)
+    else{var avph=document.createElement('span');avph.className='proavph';var ini=initialsOf(shownName);if(ini)avph.textContent=ini;else avph.innerHTML=ACC_ICO.person;avWrap.appendChild(avph)}
+    var avEdit=document.createElement('span');avEdit.className='proavedit';avEdit.innerHTML=ACC_ICO.cam;avWrap.appendChild(avEdit);
+    avWrap.onclick=function(){$('#avin').click()};hero.appendChild(avWrap);
+    var nm=document.createElement('div');nm.className='proname';nm.textContent=shownName;hero.appendChild(nm);
+    var sub=document.createElement('div');sub.className='prosub';
+    var subt=[handle?'@'+handle:'',devFake?'Local only, nothing here syncs':(AUTH_USER.email||'')].filter(Boolean);
+    subt.forEach(function(t,ix){var sp=document.createElement('span');sp.textContent=t;if(ix)sp.className='dim';sub.appendChild(sp)});
+    hero.appendChild(sub);
+    /* ---- name & username ---- */
+    if(ACC_EDIT==='profile'){
+      var pg=accSection(o,'Name & Username',[['Cancel',function(){ACC_EDIT=null;ACC_DRAFT={};renderAccount()},'ghost'],['Save',saveProfile,'strong']]);
+      var di=formCell(pg,'Name','Shown on song credits','name',devFake?(dp.display_name||''):((MY_PROFILE&&MY_PROFILE.display_name)||myName()));
+      var ui=formCell(pg,'Username','username','user',handle);
+      ui.autocapitalize='off';ui.autocomplete='off';ui.spellcheck=false;
+      var up=document.createElement('span');up.className='atpre';up.textContent='@';ui.parentNode.insertBefore(up,ui);
+      ui.addEventListener('input',function(){var v=ui.value.replace(/@/g,'').replace(/\s+/g,'');if(v!==ui.value)ui.value=v;ACC_DRAFT.user=v});
+      setTimeout(function(){try{di.focus()}catch(e){}},50);
+      function saveProfile(e){var btn=e&&e.target;if(btn)btn.disabled=true;
+        var oldName=devFake?(dp.display_name||dp.username||''):myName(),rawUser=ui.value.replace(/^@+/,'').trim(),dn=di.value.trim();
+        if(devFake){dp.username=rawUser;dp.display_name=dn;devProfileSet(dp);renameMyArtistCredit(oldName,dn||rawUser);ACC_EDIT=null;ACC_DRAFT={};toast('Saved (dev only)');renderAccount()}
+        else saveUsername(rawUser,dn).then(function(){renameMyArtistCredit(oldName,myName());ACC_EDIT=null;ACC_DRAFT={};toast('Saved');renderAccount()},function(err){if(btn)btn.disabled=false;toast(err.message)})}
+    }else{
+      var pg2=accSection(o,'');
+      pg2.appendChild(accCell({tile:ACC_ICO.person,label:'Name & Username',value:handle?'@'+handle:'Not set',valueCls:handle?'':'add',chev:true,onclick:function(){ACC_EDIT='profile';ACC_DRAFT={};renderAccount()}}));
     }
-    paintUsername();
-    var soc=document.createElement('div');soc.className='prosoc';ga.appendChild(soc);
-    var socEditWrap=document.createElement('div');ga.appendChild(socEditWrap);var socEditing=false;
-    function paintSoc(){
-      soc.innerHTML='';socEditWrap.innerHTML='';
-      if(socEditing){
-        var box=document.createElement('div');box.className='soedit';var inputs={};
-        SOCIALS.forEach(function(s){
-          var row=document.createElement('div');row.className='sorow';
-          var ic=document.createElement('span');ic.innerHTML=s[3];row.appendChild(ic);
-          var lb=document.createElement('b');lb.textContent=s[1];row.appendChild(lb);
-          var ip=document.createElement('input');ip.placeholder=s[2];ip.value=devFake?(dp['link_'+s[0]]||''):((MY_PROFILE&&MY_PROFILE['link_'+s[0]])||'');ip.autocapitalize='off';ip.autocomplete='off';ip.spellcheck=false;row.appendChild(ip);
-          inputs[s[0]]=ip;box.appendChild(row)
-        });
-        var actr=document.createElement('div');actr.className='soact';
-        var sv=document.createElement('button');sv.className='go2';sv.textContent='Save';sv.onclick=function(){sv.disabled=true;
-          var fields={};SOCIALS.forEach(function(s){fields['link_'+s[0]]=normalizeLink(s[0],inputs[s[0]].value)});
-          if(devFake){Object.keys(fields).forEach(function(k){dp[k]=fields[k]});devProfileSet(dp);socEditing=false;toast('Saved (dev only)');renderAccount()}
-          else saveLinks(fields).then(function(){socEditing=false;toast('Saved');renderAccount()},function(e){sv.disabled=false;toast(e.message)})
-        };actr.appendChild(sv);
-        var cx=document.createElement('button');cx.className='go2 ghost';cx.textContent='Cancel';cx.onclick=function(){socEditing=false;paintSoc()};actr.appendChild(cx);
-        box.appendChild(actr);socEditWrap.appendChild(box);return
-      }
-      SOCIALS.forEach(function(s){
-        var v=devFake?(dp['link_'+s[0]]||''):((MY_PROFILE&&MY_PROFILE['link_'+s[0]])||'');
-        var btn=document.createElement('button');btn.className='soclink'+(v?' set':'');btn.dataset.k=s[0];btn.title=v?('Open '+s[1]):('Add '+s[1]);btn.innerHTML=s[3];
-        btn.onclick=function(){if(v)openLink(v);else{socEditing=true;paintSoc()}};
-        soc.appendChild(btn)
-      });
-      var eb=document.createElement('button');eb.className='soclink';eb.title='Edit links';eb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';eb.onclick=function(){socEditing=true;paintSoc()};soc.appendChild(eb)
-    }
-    paintSoc();
-    var sw=document.createElement('button');sw.className='row';sw.style.justifyContent='center';sw.style.color='var(--ink)';sw.textContent='Switch Account';sw.onclick=function(){signInGoogle(true)};ga.appendChild(sw);
-    var so=document.createElement('button');so.className='row';so.style.justifyContent='center';so.style.color='var(--red)';so.textContent=devFake?'Exit Dev Mode':'Sign Out';so.onclick=devFake?function(){setDevMode(false)}:signOutGoogle;ga.appendChild(so);
+    /* ---- links: one row per network with its own icon, showing the handle, like contact details ---- */
+    var linking=ACC_EDIT==='links';
+    var lg=accSection(o,'Links',linking?[['Cancel',function(){ACC_EDIT=null;ACC_DRAFT={};renderAccount()},'ghost'],['Save',saveLinksNow,'strong']]:[['Edit',function(){ACC_EDIT='links';ACC_DRAFT={};renderAccount()}]]);
+    var linkInputs={};
+    SOCIALS.forEach(function(sx,ix){
+      var k=sx[0],v=prof('link_'+k);
+      if(linking){var hm=(k==='instagram'||k==='tiktok')&&/(?:instagram|tiktok)\.com\/@?([^\/?#]+)/i.exec(v||'');var ip=formCell(lg,sx[1],k==='spotify'?'Paste your artist link':'@username','l_'+k,hm?'@'+hm[1]:v,sx[3],'soc-'+k);ip.autocapitalize='off';ip.autocomplete='off';ip.spellcheck=false;ip.inputMode='url';linkInputs[k]=ip;if(!ix)setTimeout(function(){try{ip.focus()}catch(e){}},50)}
+      else lg.appendChild(accCell({tile:sx[3],tileCls:'soc-'+k,label:sx[1],value:v?socialShown(k,v):'Add',valueCls:v?'':'add',chev:v?'ext':true,onclick:function(){if(v)openLink(v);else{ACC_EDIT='links';ACC_DRAFT={};renderAccount()}}}));
+    });
+    function saveLinksNow(e){var btn=e&&e.target;if(btn)btn.disabled=true;
+      var fields={};SOCIALS.forEach(function(sx){fields['link_'+sx[0]]=normalizeLink(sx[0],linkInputs[sx[0]].value)});
+      if(devFake){Object.keys(fields).forEach(function(kk){dp[kk]=fields[kk]});devProfileSet(dp);ACC_EDIT=null;ACC_DRAFT={};toast('Saved (dev only)');renderAccount()}
+      else saveLinks(fields).then(function(){ACC_EDIT=null;ACC_DRAFT={};toast('Saved');renderAccount()},function(err){if(btn)btn.disabled=false;toast(err.message)})}
+    /* form row: label on the left, field filling the rest, draft kept across re-renders */
+    function formCell(g,label,ph,dk,val,tile,tileCls){
+      var r=document.createElement('label');r.className='cell form'+(tile?'':' notile');
+      if(tile){var t=document.createElement('span');t.className='tile'+(tileCls?' '+tileCls:'');t.innerHTML=tile;r.appendChild(t)}
+      var l=document.createElement('span');l.className='ct fl';l.textContent=label;r.appendChild(l);
+      var ip=document.createElement('input');ip.placeholder=ph;ip.value=dk in ACC_DRAFT?ACC_DRAFT[dk]:(val||'');
+      ip.addEventListener('input',function(){ACC_DRAFT[dk]=ip.value});
+      ip.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();var sb=o.querySelector('.labact .strong');if(sb)sb.click()}else if(ev.key==='Escape'){ACC_EDIT=null;ACC_DRAFT={};renderAccount()}});
+      r.appendChild(ip);g.appendChild(r);return ip}
+    if(devFake){var dvl=document.createElement('div');dvl.className='lab';dvl.textContent='Developer';ga=document.createElement('div');ga.className='devwrap'}
     if(devFake&&window.desktop&&window.desktop.getDevLimit){
       var dc=document.createElement('div');dc.className='devcard';
       var dl=document.createElement('div');dl.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:12px';
@@ -16781,6 +16807,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();o.innerHTML='';
     }
     if(!devFake){var invBox=document.createElement('div');invBox.id='acc-invites';invBox.hidden=true;o.appendChild(invBox);renderInvites();pullInvites()}
   }else{
+    ga=accSection(o,'');
     var gb=document.createElement('button');gb.className='row';gb.style.justifyContent='center';gb.style.gap='10px';gb.style.background='#000';gb.style.color='#fff';
     gb.innerHTML='<svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg><span>Sign in with Google</span>';
     gb.onclick=function(){signInGoogle(true)};ga.appendChild(gb);
@@ -16817,8 +16844,9 @@ function renderAccount(){var o=$('#acc'),pro=isPro();o.innerHTML='';
     r2.innerHTML='<span class="pfrow"><i class="pfi"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></i><span class="pft"></span></span>';
     r2.querySelector('.pft').textContent=t;fbox.appendChild(r2)
   });
-  var l2=document.createElement('div');l2.className='lab';l2.textContent='Your songs';o.appendChild(l2);var g2=document.createElement('div');g2.className='gf';o.appendChild(g2);
-  [['Import Songs',function(){sheet(false);$('#impin').click()}],['Export All Songs',function(){sheet(false);$('#expb').click()}]].forEach(function(x){var b=document.createElement('button');b.className='row';b.style.justifyContent='center';b.style.color='var(--ink)';b.textContent=x[0];b.onclick=x[1];g2.appendChild(b)});
+  var g2=accSection(o,'Your songs');
+  g2.appendChild(accCell({tile:ACC_ICO.down,label:'Import Songs',chev:true,onclick:function(){sheet(false);$('#impin').click()}}));
+  g2.appendChild(accCell({tile:ACC_ICO.up,label:'Export All Songs',chev:true,onclick:function(){sheet(false);$('#expb').click()}}));
   if(AUTH_USER){
     var l4=document.createElement('div');l4.className='lab';l4.textContent='Credits';o.appendChild(l4);var g4=document.createElement('div');g4.className='gf';o.appendChild(g4);
     var credited=songs.filter(function(s){return s.title&&s.status==='Finished'&&(s.owner===AUTH_USER.id||(s.members||[]).indexOf(AUTH_USER.id)>=0)}).sort(function(a,b){return b.updated-a.updated});
@@ -16829,8 +16857,16 @@ function renderAccount(){var o=$('#acc'),pro=isPro();o.innerHTML='';
       var sub=document.createElement('span');sub.style.color='var(--mute)';sub.style.fontSize='12.5px';sub.textContent=(s.owner===AUTH_USER.id?'Written':'Co-written')+(s.artist?' · '+s.artist:'');sp.appendChild(sub);
       r.appendChild(sp);r.onclick=function(){sheet(false);openSong(s.id)};g4.appendChild(r)})
   }
-  var l3=document.createElement('div');l3.className='lab';l3.textContent='Rating';o.appendChild(l3);var g3=document.createElement('div');g3.className='gf';o.appendChild(g3);
-  var rw=document.createElement('button');rw.className='row';rw.style.justifyContent='center';rw.style.color='var(--ink)';rw.textContent='Forget What Rate Learned About My Style';rw.onclick=function(){try{localStorage.removeItem('songpad:writer')}catch(e){}toast('Rate will learn your style fresh')};g3.appendChild(rw);
+  var g3=accSection(o,'Rate');
+  g3.appendChild(accCell({tile:ACC_ICO.spark,label:'Forget What Rate Learned About My Style',onclick:function(){try{localStorage.removeItem('songpad:writer')}catch(e){}toast('Rate will learn your style fresh')}}));
+  /* developer tools (Dev Mode only), then the account actions last, where Settings keeps Sign Out */
+  if(ga&&devFake){o.appendChild(dvl);o.appendChild(ga)}
+  if(AUTH_USER||devFake){
+    var ag=accSection(o,'');
+    ag.appendChild(accCell({tile:ACC_ICO.swap,label:'Switch Account',chev:true,onclick:function(){signInGoogle(true)}}));
+    var og=accSection(o,'');
+    og.appendChild(accCell({label:devFake?'Exit Dev Mode':'Sign Out',cls:'danger',onclick:devFake?function(){setDevMode(false)}:signOutGoogle}));
+  }
   var ver=document.createElement('div');ver.className='note';ver.style.cssText='text-align:center;padding:18px 0 6px;font-variant-numeric:tabular-nums;-webkit-user-select:text;user-select:text';ver.textContent='Version '+APP_COMMIT;o.appendChild(ver);
 }
 $('#acctb').onclick=function(){openAccount('')};$('#sacct').onclick=function(){openAccount('')};$('#done6').onclick=function(){sheet(false)};
