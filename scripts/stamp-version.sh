@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Writes the current git commit into APP_COMMIT in every copy of the app, then commits that
+# one-line change on its own. Run it after committing app changes and before syncing builds:
+#
+#   scripts/stamp-version.sh
+#
+# The version shown in Account is the commit *before* the stamp commit (a file can't contain the
+# hash of the commit it lives in), which holds exactly the same code apart from the stamp itself.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "Commit or stash your changes first — the stamp has to describe committed code." >&2
+  exit 1
+fi
+
+hash=$(git rev-parse --short HEAD)
+files=(www/index.html web-artifact/songpad.html mac-app/app/index.html)
+
+for f in "${files[@]}"; do
+  [ -f "$f" ] || continue
+  n=$(grep -c "^var APP_COMMIT='[^']*';$" "$f" || true)
+  if [ "$n" != "1" ]; then echo "$f: expected exactly one APP_COMMIT line, found $n" >&2; exit 1; fi
+  sed -i.bak "s/^var APP_COMMIT='[^']*';\$/var APP_COMMIT='$hash';/" "$f" && rm -f "$f.bak"
+done
+
+git add "${files[@]}"
+git commit -q -m "Stamp version $hash"
+echo "Stamped $hash"

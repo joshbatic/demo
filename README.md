@@ -48,3 +48,11 @@ This repo's own `www/index.html` (and every other copy here) must keep
 copy especially is loaded by anyone with its public link, so a real key must
 never land in any file here. If asked to sync a new build to iOS, patch the
 key into `~/Documents/songpad-ios` only, never into this repo.
+
+## Version shown in Account
+
+The bottom of the Account sheet shows `Version <commit>`, read from the `APP_COMMIT` constant in
+the page. After committing app changes, run `scripts/stamp-version.sh` before syncing builds out:
+it writes the current short commit hash into every copy and commits that one-line change as
+`Stamp version <hash>`. The hash it shows is the commit just before the stamp — identical code
+apart from the stamp line itself. Unstamped builds show `Version dev`.
