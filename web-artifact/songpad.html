@@ -14314,7 +14314,8 @@ function haptic(kind){
 }
 /* screens by depth: going deeper pushes (slides in from the right), going back pops; same depth just fades */
 var NAV_DEPTH={vList:0,vIdeas:1,vEdit:1},navT=0;
-function navCalm(){try{return matchMedia('(prefers-reduced-motion: reduce)').matches||(document.body.classList.contains('side')&&matchMedia('(min-width:980px)').matches)}catch(e){return false}}
+/* no slide in the Mac app (window.desktop is its bridge) - it keeps the quick fade, like a desktop app */
+function navCalm(){if(window.desktop)return true;try{return matchMedia('(prefers-reduced-motion: reduce)').matches||(document.body.classList.contains('side')&&matchMedia('(min-width:980px)').matches)}catch(e){return false}}
 function show(id){
   var from=document.querySelector('.view.on'),fromId=from&&from.id,to=document.getElementById(id);
   clearTimeout(navT);document.querySelectorAll('.view').forEach(function(v){v.classList.remove('vout','nav-in-r','nav-out-l','nav-in-l','nav-out-r','navdone')});
