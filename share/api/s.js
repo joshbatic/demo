@@ -1,7 +1,7 @@
 // listen.hellodemo.app/<id>: a *[demo] share link.
 //
 // Messages, WhatsApp and Messenger build their link previews from the page's <meta> tags without running
-// any of its code, so this fills those in on the server (title, opening lines and the preview picture the
+// any of its code, so this fills those in on the server (title, artist and the preview picture the
 // app uploaded) and hands back the normal viewer with the song already inside, so it opens straight away.
 // The viewer (_viewer.js) is generated from the app by scripts/build-share-viewer.py.
 const VIEWER = require('./_viewer.js');
@@ -38,8 +38,9 @@ module.exports = async (req, res) => {
   if (data && typeof data === 'object') {
     const title = txt(data.title, 120) || 'Untitled';
     const artist = txt(data.artist, 120);
-    const lines = (Array.isArray(data.blocks) ? data.blocks : []).filter((b) => b && b.line != null).map((b) => txt(b.line, 120)).filter(Boolean);
-    const desc = lines.length ? lines.slice(0, 2).join(' / ') + (lines.length > 2 ? ' …' : '') : 'Lyrics shared from *[demo]';
+    // no lyrics in the preview: they're for whoever opens the link
+    const hasAudio = !!(data.audio && pub(data.audio.src));
+    const desc = (hasAudio ? 'Listen and read along' : 'Read the lyrics') + ' on *[demo]';
     const heading = title + (artist ? ' – ' + artist : '');
     const og = pub(data.og), img = og || pub(data.art) || 'https://hellodemo.app/icon-512.png';
     const meta = [

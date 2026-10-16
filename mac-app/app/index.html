@@ -17852,17 +17852,14 @@ function shCardDraw(x,cw,song,a,art,ink,k,sk){var H=shCardH(a);
   shWaveDraw(x,a.peaks||[],14,80,cw-30,58,0,ink,0,-1);
   x.font='400 12.5px '+SH_FONT;x.globalAlpha=.6;x.fillStyle=ink;x.fillText('0:00',16,160);var dt='-'+sfTime(a.dur||0);x.fillText(dt,cw-16-x.measureText(dt).width,160);x.globalAlpha=1;
   if(sk[0])x.drawImage(sk[0],cw/2-26-11,145,22,22);if(sk[1])x.drawImage(sk[1],cw/2+26-11,145,22,22)}
-/* the link preview picture (1200×630) that Messages, WhatsApp and Messenger show: the player card and the opening lines */
+/* the link preview picture (1200×630) that Messages, WhatsApp and Messenger show: just the song's player card */
 function shOgImage(song,bg,a){var ink='hsl('+bg.k+')';
   return Promise.all([shLoadImg(shCoverSrc(song)),a?shSvgImg(($('#np-back')||{}).innerHTML,ink):null,a?shSvgImg(($('#np-fwd')||{}).innerHTML,ink):null]).then(function(r){
-  var W=1200,H=630,P=64,c=document.createElement('canvas'),x=c.getContext('2d');c.width=W;c.height=H;
+  var W=1200,H=630,c=document.createElement('canvas'),x=c.getContext('2d');c.width=W;c.height=H;
   var lg=x.createLinearGradient(0,0,W,H);lg.addColorStop(0,bg.top);lg.addColorStop(1,bg.bot);x.fillStyle=lg;x.fillRect(0,0,W,H);
   var rg=x.createRadialGradient(W*.88,0,0,W*.88,0,W*.9);rg.addColorStop(0,bg.glow);rg.addColorStop(1,bg.glow0);x.fillStyle=rg;x.fillRect(0,0,W,H);
-  var S=a?1.86:2.2,cw=(W-P*2)/S;x.save();x.translate(P,P-6);x.scale(S,S);shCardDraw(x,cw,song,a,r[0],ink,bg.k,[r[1],r[2]]);x.restore();
-  var y=P-6+shCardH(a)*S+(a?62:72),f='700 '+(a?40:46)+'px '+SH_FONT,lh=a?50:58,maxW=W-P*2;x.font=f;x.fillStyle=ink;
-  var lines=shBlocks(song).filter(function(b){return b.line}).map(function(b){return b.line});if(!lines.length)lines=['No lyrics yet'];
-  for(var i=0;i<lines.length&&y<=H-34;i++){var t=lines[i];while(t.length>1&&x.measureText(t).width>maxW)t=t.slice(0,-1);if(t!==lines[i])t=t.replace(/\s*\S*$/,'')+'…';x.globalAlpha=i?.55:.95;x.fillText(t,P,y);y+=lh}
-  x.globalAlpha=1;return new Promise(function(res){c.toBlob(res,'image/png')})})}
+  var S=a?2.85:3.3,ch=shCardH(a)*S,cwp=a?1040:1000,cw=cwp/S;x.save();x.translate((W-cwp)/2,(H-ch)/2);x.scale(S,S);shCardDraw(x,cw,song,a,r[0],ink,bg.k,[r[1],r[2]]);x.restore();
+  return new Promise(function(res){c.toBlob(res,'image/png')})})}
 function shImage(song,bg,a){var ink='hsl('+bg.k+')';
   return Promise.all([shLoadImg(shCoverSrc(song)),a?shSvgImg(($('#np-back')||{}).innerHTML,ink):null,a?shSvgImg(($('#np-fwd')||{}).innerHTML,ink):null]).then(function(r){var art=r[0],sk=[r[1],r[2]];
   var W=1080,P=84,S=2.55,c=document.createElement('canvas'),x=c.getContext('2d'),maxW=W-P*2,blocks=shBlocks(song),ops=[],y=P;
@@ -17975,10 +17972,8 @@ function openShare(){var song=cur;if(!song)return;if(document.body.classList.con
   songPalette(song).then(function(p){if(SHR.song!==song)return;SHR.pal=p.length?p:[[220,.1,.3]];sheet(true,'sheet8');renderShare();shMake()})}
 function shMake(){var song=SHR.song;if(!song||!SHR.pal.length)return;var n=++SHR.busy,bg=shBg(SHR.pal,SHR.ci),nm=shName(song);SHR.img=SHR.page=null;paintShareBtns();
   shImage(song,bg,SHR.aud?audCur(song):null).then(function(b){if(n!==SHR.busy||!b)return;SHR.img=new File([b],nm+'.png',{type:'image/png'});paintShareBtns()}).catch(function(){});
-  var wa=SHR.aud&&!!audCur(song);SHR.pageMsg=wa?'Adding the audio…':'';paintShareBtns();
-  shPage(song,bg,wa).then(function(h){if(n!==SHR.busy)return;SHR.page=new File([h],nm+'.html',{type:'text/html'});SHR.pageMsg='';paintShareBtns()},
-    function(e){if(n!==SHR.busy)return;SHR.pageMsg='';toast('Couldn’t add the audio: '+sfErr(e)+'. Sharing the lyrics only.');SHR.aud=false;renderShare();shMake()})}
-function paintShareBtns(){var i=$('#shr-img'),p=$('#shr-page');if(!i)return;i.disabled=!SHR.img;p.disabled=!SHR.page;i.textContent=SHR.img?'Share Image':'Preparing…';p.textContent=SHR.page?'Share Page':(SHR.pageMsg||'Preparing…')}
+}
+function paintShareBtns(){var i=$('#shr-img');if(!i)return;i.disabled=!SHR.img;i.textContent=SHR.img?'Share Image':'Preparing…'}
 function renderShare(){var o=$('#shr'),song=SHR.song;if(!o||!song)return;var bg=SHR.pal.length?shBg(SHR.pal,SHR.ci):{css:'var(--fill)'},blocks=shBlocks(song);
   o.innerHTML='';var cd=document.createElement('div');cd.className='shcard';cd.style.background=bg.css;if(bg.k)cd.style.setProperty('--k',bg.k);
   var pa=SHR.aud?audCur(song):null,pc=document.createElement('canvas');pc.className='shnp';cd.appendChild(pc);
@@ -17996,21 +17991,20 @@ function renderShare(){var o=$('#shr'),song=SHR.song;if(!o||!song)return;var bg=
   if(SHR.linkBusy){var sp=document.createElement('i');sp.className='shspin';lr.appendChild(sp)}
   else if(sfCloud()){var lb=document.createElement('button');lb.className='go2'+(sh?' ghost':'');lb.textContent=sh?'Update':'Create Link';lb.onclick=shLinkGo;lr.appendChild(lb)}
   g.appendChild(lr);
-  if(audCur(song)){var r=document.createElement('div');r.className='row';r.innerHTML='<span>Include audio<small></small></span>';r.querySelector('small').textContent=SHR.aud?'“'+audCur(song).name+'” plays in the page'+(song.sync&&song.sync.audioId===audCur(song).id?', with the lyrics lit in time':''):'Lyrics only';
+  if(audCur(song)){var r=document.createElement('div');r.className='row';r.innerHTML='<span>Include audio<small></small></span>';r.querySelector('small').textContent=SHR.aud?'“'+audCur(song).name+'” plays from the link'+(song.sync&&song.sync.audioId===audCur(song).id?', with the lyrics lit in time':''):'Lyrics only';
     var s=document.createElement('button');s.className='swtch'+(SHR.aud?' on':'');s.setAttribute('role','switch');s.setAttribute('aria-checked',SHR.aud?'true':'false');s.setAttribute('aria-label','Include audio');s.innerHTML='<i></i>';
     s.onclick=function(){SHR.aud=!SHR.aud;renderShare();shMake()};r.appendChild(s);g.appendChild(r)}
   o.appendChild(g);
   var acts=document.createElement('div');acts.className='shacts';
   var bi=document.createElement('button');bi.id='shr-img';bi.className='go2';bi.onclick=function(){shSend(SHR.img)};
-  var bp=document.createElement('button');bp.id='shr-page';bp.className='go2';bp.onclick=function(){shSend(SHR.page)};
   var bt=document.createElement('button');bt.className='go2 ghost';bt.textContent='Copy Lyrics';bt.onclick=function(){var t=(song.title?song.title+(song.artist?' – '+song.artist:'')+'\n\n':'')+(song.lyrics||'');try{navigator.clipboard.writeText(t).then(function(){toast('Copied')},function(){toast('Copy blocked by browser')})}catch(e){toast('Copy not available')}};
   if(sh&&!SHR.linkBusy){var la=document.createElement('div');la.className='shacts shla';var ls=document.createElement('button');ls.className='go2';ls.textContent='Share Link';ls.onclick=shLinkSend;
     var lx=document.createElement('button');lx.className='go2 ghost red';lx.textContent='Stop Sharing';var arm=0;lx.onclick=function(){if(Date.now()-arm>3000){arm=Date.now();lx.textContent='Tap Again to Stop';setTimeout(function(){lx.textContent='Stop Sharing'},3000);return}
       SHR.linkBusy='Stopping…';renderShare();shLinkStop(song).then(function(){SHR.linkBusy=null;toast('The link no longer works');renderShare()},function(e){SHR.linkBusy=null;renderShare();toast('Couldn’t stop sharing: '+shLinkErr(e))})};
     la.appendChild(ls);la.appendChild(lx);o.appendChild(la)}
-  if(sh){bi.classList.add('ghost');bp.classList.add('ghost')}
-  acts.appendChild(bi);acts.appendChild(bp);acts.appendChild(bt);o.appendChild(acts);
-  o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:(sh?'The link shows the song as it was when you last updated it. ':'')+'The image is a lyric card for messages and socials. The page is a single file that opens in any browser'+(audCur(song)?', with the song playing right in it':'')+'.'}));
+  if(sh)bi.classList.add('ghost')
+  acts.appendChild(bi);acts.appendChild(bt);o.appendChild(acts);
+  o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:(sh?'The link shows the song as it was when you last updated it. ':'')+'The image is a lyric card for messages and socials.'}));
   paintShareBtns()}
 /* ---- share links: a copy of the song anyone can open at listen.hellodemo.app/<id>, no account needed ----
    The snapshot (lyrics, timings, colours, waveform) goes in the 'shares' table; the artwork and audio go in the
@@ -18021,7 +18015,7 @@ function shLinkErr(e){var m=(e&&(e.message||e.error||e.code))||String(e||'');
   if(/relation .*shares|could not find the table|schema cache|42P01|PGRST20/i.test(m)||/bucket not found/i.test(m))return'share links aren’t set up on Supabase yet (run supabase/shares.sql).';return sfErr(e)}
 function shArtBlob(song){if(song.art)return fetch(song.art).then(function(r){return r.blob()});
   return shLoadImg(shCoverSrc(song)).then(function(im){var c=document.createElement('canvas');c.width=c.height=480;if(im)c.getContext('2d').drawImage(im,0,0,480,480);return new Promise(function(res){c.toBlob(res,'image/png')})})}
-function shLinkMake(song,bg,withAudio){var c=sbClient(),uid=AUTH_USER.id,id=(song.share&&song.share.id)||shId(),dir=uid+'/'+id+'/',v=Date.now().toString(36),st=c.storage.from(SHARE_BUCKET),a=withAudio?audCur(song):null,keep=[];
+function shLinkMake(song,bg,withAudio,id){var c=sbClient(),uid=AUTH_USER.id;id=id||(song.share&&song.share.id)||shId();var dir=uid+'/'+id+'/',v=Date.now().toString(36),st=c.storage.from(SHARE_BUCKET),a=withAudio?audCur(song):null,keep=[];
   var up=function(name,blob){keep.push(name);return st.upload(dir+name,blob,{upsert:true,contentType:blob.type||'application/octet-stream',cacheControl:'31536000'}).then(function(r){if(r.error)throw r.error;return st.getPublicUrl(dir+name).data.publicUrl})};
   return shArtBlob(song).then(function(b){return up('art-'+v+(b.type==='image/png'?'.png':'.jpg'),b)}).then(function(art){
     return(a?shAudioBlob(a).then(function(b){return up('audio-'+v+'.'+(/mpeg/.test(b.type)?'mp3':sfExt(a.name||a.path||'',b.type||a.mime)),b)}):Promise.resolve(null)).then(function(au){
@@ -18034,9 +18028,17 @@ function shLinkStop(song){var c=sbClient(),id=song.share&&song.share.id;if(!id)r
     return st.list(uid+'/'+id).then(function(l){var n=((l&&l.data)||[]).map(function(f){return uid+'/'+id+'/'+f.name});return n.length?st.remove(n):null}).catch(function(){})})
   .then(function(){delete song.share;sfTouch(song)})}
 function shLinkGo(){var song=SHR.song;if(!song||SHR.linkBusy)return;if(!sfCloud())return toast(DEV_MODE?'Share links need a signed-in account.':'Sign in to make share links.');
-  var had=!!song.share;SHR.linkBusy=had?'Updating the link…':'Making the link…';renderShare();
-  shLinkMake(song,shBg(SHR.pal,SHR.ci),SHR.aud&&!!audCur(song)).then(function(){SHR.linkBusy=null;haptic('success');toast(had?'Link updated':'Link ready. Tap Share Link to send it.');renderShare()},
+  var had=!!song.share,id=(song.share&&song.share.id)||shId();SHR.linkBusy=had?'Updating the link…':'Making the link…';renderShare();
+  var job=shLinkMake(song,shBg(SHR.pal,SHR.ci),SHR.aud&&!!audCur(song),id),copied=shCopyLater(job.then(function(){return SHARE_BASE+id}));
+  job.then(function(){SHR.linkBusy=null;haptic('success');renderShare();
+      copied.then(function(ok){toast((had?'Link updated':'Link ready')+(ok?' and copied':'. Tap Share Link to send it.'))})},
     function(e){SHR.linkBusy=null;renderShare();toast('Couldn’t make the link: '+shLinkErr(e))})}
+/* copy text that's still on its way. Safari only allows clipboard writes during the tap itself, so the write is
+   started now with a promise for the text (ClipboardItem); elsewhere it's written once the text arrives */
+function shCopyLater(p){var plain=function(){return p.then(function(t){return navigator.clipboard.writeText(t)}).then(function(){return true},function(){return false})};
+  try{if(window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write&&!window.desktop){
+    return navigator.clipboard.write([new ClipboardItem({'text/plain':p.then(function(t){return new Blob([t],{type:'text/plain'})})})]).then(function(){return true},function(){return p.then(plain,function(){return false})})}}catch(e){}
+  try{return plain()}catch(e){return Promise.resolve(false)}}
 function shLinkSend(){var song=SHR.song,u=song&&song.share&&SHARE_BASE+song.share.id;if(!u)return;
   if(navigator.share&&!window.desktop){navigator.share({title:song.title||'A song',url:u}).catch(function(){});return}
   try{navigator.clipboard.writeText(u).then(function(){toast('Link copied')},function(){toast(u)})}catch(e){toast(u)}}

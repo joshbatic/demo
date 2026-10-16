@@ -103,7 +103,7 @@ public anon key, and it treats every share's data as untrusted: text is escaped,
 
 New links are `listen.hellodemo.app/<id>`. That subdomain is the Vercel project in `share/`: a small function
 that fills in each song's preview tags (title, opening lines and a 1200×630 picture the app uploads when you
-create or update the link) so Messages, WhatsApp and Messenger show a proper preview, then returns the same
+create or update the link: the song card, no lyrics) so Messages, WhatsApp and Messenger show a proper preview, then returns the same
 viewer with the song inside. Links made before this still open at `hellodemo.app/s/?<id>`, just without the preview.
 
 One-time setup:
