@@ -36,6 +36,7 @@ h1,h2{font-family:-apple-system,'SF Pro Display',system-ui,'Helvetica Neue',sans
 /* ---- nav ---- */
 .nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 0;max-width:1040px;margin:0 auto}
 .brand{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--ink)}
+.brand picture{display:flex;flex:none}
 .brand img{width:30px;height:30px;border-radius:8px;flex:none;box-shadow:0 0 0 .5px var(--ring)}
 .brand b{font-size:19px;font-weight:800;letter-spacing:.2px}
 .navlinks{display:flex;align-items:center;gap:18px;font-size:14.5px;color:var(--mute)}
