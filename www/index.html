@@ -15313,8 +15313,15 @@ lyr.setSelectionRange=function(a,b){lyr.focus();setSel(a,b)};
 function clean(h){var d=new DOMParser().parseFromString('<body>'+h,'text/html').body;(function f(n){Array.from(n.childNodes).forEach(function(c){if(c.nodeType===1){if(!/^(B|I|U|S|STRIKE|STRONG|EM|SPAN|BR|FONT|MARK|DIV|P)$/.test(c.nodeName)){c.remove();return}Array.from(c.attributes).forEach(function(a){if(a.name==='style'){if(/url\(|expression|@|\\/i.test(a.value)||!/^[\w\s:;#.,%()\-]*$/.test(a.value))c.removeAttribute('style')}else if(!(c.nodeName==='FONT'&&a.name==='color'))c.removeAttribute(a.name)});f(c)}else if(c.nodeType!==3)c.remove()})})(d);return d.innerHTML}
 function setLyr(s){var x=s.lyrics||'';lyr.innerHTML=s.rich?clean(s.rich):esc(x).replace(/\n/g,'<br>')+(/\n$/.test(x)?'<br>':'');if(getText()==='')lyr.innerHTML=''}
 function hdr(){if(!cur)return;$('#cr-fold').textContent=cur.folder||'Unfiled';$('#cr-song').textContent=cur.title||'Untitled';var cv=$('#cov');cv.style.backgroundImage=cur.art?'url('+cur.art+')':'';cv.innerHTML=cur.art?'':cover(cur);var ar=$('#artist');ar.textContent=cur.artist||'';ar.style.display=cur.artist?'':'none';$('#sub').textContent=[cur.status,cur.key,cur.bpm?cur.bpm+' BPM':''].filter(Boolean).join(' · ');$('#rmart').style.display=cur.art?'':'none';renderCollabHint()}
+/* keeping the line you're on centred is for typing. While you drag out a selection with the mouse the page
+   stays still, and with several lines selected it only scrolls if the end of the selection goes off-screen */
+var selDrag=false;
+lyr.addEventListener('mousedown',function(e){if(e.button===0)selDrag=true});
+window.addEventListener('mouseup',function(){selDrag=false},true);
+window.addEventListener('blur',function(){selDrag=false});
 function reveal(center){
   var sc=$('#sc'),s=getSelection();if(!s.rangeCount||!lyr.contains(s.anchorNode))return;
+  if(selDrag)return;if(!s.isCollapsed)center=false;
   var r=s.getRangeAt(0).cloneRange();r.collapse(false);var rc=r.getClientRects()[0];
   if(!rc||!rc.height){
     if(getSel().e!==getText().length)return;
