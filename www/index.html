@@ -17859,7 +17859,8 @@ function shOgImage(song,bg,a){var ink='hsl('+bg.k+')';
   var lg=x.createLinearGradient(0,0,W,H);lg.addColorStop(0,bg.top);lg.addColorStop(1,bg.bot);x.fillStyle=lg;x.fillRect(0,0,W,H);
   var rg=x.createRadialGradient(W*.88,0,0,W*.88,0,W*.9);rg.addColorStop(0,bg.glow);rg.addColorStop(1,bg.glow0);x.fillStyle=rg;x.fillRect(0,0,W,H);
   var S=a?2.85:3.3,ch=shCardH(a)*S,cwp=a?1040:1000,cw=cwp/S;x.save();x.translate((W-cwp)/2,(H-ch)/2);x.scale(S,S);shCardDraw(x,cw,song,a,r[0],ink,bg.k,[r[1],r[2]]);x.restore();
-  return new Promise(function(res){c.toBlob(res,'image/png')})})}
+  /* a JPEG keeps it well under the ~300 KB that WhatsApp and Messenger will show; bigger pictures get dropped */
+  return new Promise(function(res){c.toBlob(res,'image/jpeg',.86)})})}
 function shImage(song,bg,a){var ink='hsl('+bg.k+')';
   return Promise.all([shLoadImg(shCoverSrc(song)),a?shSvgImg(($('#np-back')||{}).innerHTML,ink):null,a?shSvgImg(($('#np-fwd')||{}).innerHTML,ink):null]).then(function(r){var art=r[0],sk=[r[1],r[2]];
   var W=1080,P=84,S=2.55,c=document.createElement('canvas'),x=c.getContext('2d'),maxW=W-P*2,blocks=shBlocks(song),ops=[],y=P;
@@ -18020,7 +18021,7 @@ function shLinkMake(song,bg,withAudio,id){var c=sbClient(),uid=AUTH_USER.id;id=i
   return shArtBlob(song).then(function(b){return up('art-'+v+(b.type==='image/png'?'.png':'.jpg'),b)}).then(function(art){
     return(a?shAudioBlob(a).then(function(b){return up('audio-'+v+'.'+(/mpeg/.test(b.type)?'mp3':sfExt(a.name||a.path||'',b.type||a.mime)),b)}):Promise.resolve(null)).then(function(au){
       var d=shSnap(song,bg,a,au,art);
-      return shOgImage(song,bg,a).then(function(b){return up('og-'+v+'.png',b)}).then(function(og){d.og=og;return c.from('shares').upsert({id:id,owner:uid,song_id:song.id,data:d,updated_at:new Date().toISOString()}).then(function(r){if(r.error)throw r.error;
+      return shOgImage(song,bg,a).then(function(b){return up('og-'+v+(b.type==='image/png'?'.png':'.jpg'),b)}).then(function(og){d.og=og;return c.from('shares').upsert({id:id,owner:uid,song_id:song.id,data:d,updated_at:new Date().toISOString()}).then(function(r){if(r.error)throw r.error;
         st.list(uid+'/'+id).then(function(l){var old=((l&&l.data)||[]).map(function(f){return f.name}).filter(function(n){return keep.indexOf(n)<0});if(old.length)st.remove(old.map(function(n){return dir+n}))}).catch(function(){});
         song.share={id:id,at:Date.now(),audio:!!au};sfTouch(song);return id})})})})}
 function shLinkStop(song){var c=sbClient(),id=song.share&&song.share.id;if(!id)return Promise.resolve();var uid=AUTH_USER.id,st=c.storage.from(SHARE_BUCKET);

@@ -52,7 +52,7 @@ module.exports = async (req, res) => {
       '<meta property="og:description" content="' + esc(desc) + '">',
       '<meta property="og:image" content="' + esc(img) + '">',
       '<meta property="og:image:secure_url" content="' + esc(img) + '">',
-      og ? '<meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">' : '',
+      og ? '<meta property="og:image:type" content="image/' + (/\.png$/.test(og) ? 'png' : 'jpeg') + '"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">' : '',
       '<meta property="og:site_name" content="*[demo]">',
       '<meta property="og:image:alt" content="' + esc(heading) + '">',
       '<meta name="twitter:card" content="' + (og ? 'summary_large_image' : 'summary') + '">',
