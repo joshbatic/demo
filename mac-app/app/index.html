@@ -14748,7 +14748,7 @@ function openIdeas(){sheet(false);show('vIdeas');ifilterTag='';$('#iq').value=''
 function ensureStorageForMode(){var k=currentKey();if(k!==ACTIVE_KEY){ACTIVE_KEY=k;cur=null;load();if(typeof show==='function')show('vList');renderList();renderSide()}}
 var st,lastSaveShow=0,showThisSave=false;
 function save(){
-  libTyping=Date.now();if(!LIVE.applying)liveQueue();
+  libTyping=Date.now();if(!LIVE.applying){if(cur&&cur.shared&&AUTH_USER&&(!LIVE.ch||LIVE.id!==cur.id))liveEnsure();liveQueue()}
   /* save() fires on basically every keystroke, debounced down to one real write per pause - but
      showing the "Saving…/Saved" indicator on every single one of those writes made it pop in and out
      constantly while actively typing, which read as noisy rather than reassuring. It still saves in
@@ -16308,16 +16308,20 @@ function livePatch(t,P){var A=P.a||'',C=P.c||'',D=P.d||'';
   if(best<0&&!C&&!A)best=Math.min(P.f,t.length);
   if(best<0)return null;return{t:t.slice(0,best)+P.i+t.slice(best+D.length),at:best}}
 function liveSnap(s){if(s&&LIVE.id===s.id){LIVE.snap={};LIVE_F.forEach(function(k){LIVE.snap[k]=liveVal(s,k)});LIVE.snap._rich=liveVal(s,'rich')}}
-function liveJoin(s){if(!s||!s.shared||!AUTH_USER){liveLeave();return}if(LIVE.id===s.id&&LIVE.ch)return;liveLeave();
+function liveEnsure(){if(!cur||!cur.shared||!AUTH_USER){if(LIVE.ch&&(!cur||cur.id!==LIVE.id||!cur.shared))liveLeave();return}
+  var st=LIVE.ch&&LIVE.ch.state;if(LIVE.ch&&LIVE.id===cur.id&&LIVE.ok!==false&&st!=='closed'&&st!=='errored')return;LIVE.ch&&liveLeave();liveJoin(cur)}
+function liveJoin(s){if(!s||!s.shared||!AUTH_USER){liveLeave();return}if(LIVE.id===s.id&&LIVE.ch&&LIVE.ok!==false)return;liveLeave();
   var c=sbClient();if(!c||!c.channel)return;LIVE.id=s.id;liveSnap(s);
   try{var ch=c.channel('song:'+s.id,{config:{broadcast:{self:false}}});
-    ch.on('broadcast',{event:'p'},function(m){liveRecv(m&&m.payload)})
-      .on('broadcast',{event:'need'},function(m){var x=m&&m.payload;if(x&&x.id===LIVE.id&&cur&&cur.id===x.id&&(!x.u||(cur.updated||0)>=x.u))liveSendFull()})
-      .on('broadcast',{event:'full'},function(m){liveFull(m&&m.payload)})
-      .on('broadcast',{event:'fmt'},function(m){if(LIVE.comp)return;liveFmt(m&&m.payload)})
-      .subscribe(function(st){if(st==='SUBSCRIBED'&&cur&&cur.id===s.id)try{ch.send({type:'broadcast',event:'need',payload:{id:s.id,dev:LIB_DEV,u:cur.updated||0}})}catch(e){}});
+    ch.on('broadcast',{event:'p'},function(m){if(LIVE.ch===ch)liveRecv(m&&m.payload)})
+      .on('broadcast',{event:'need'},function(m){if(LIVE.ch!==ch)return;var x=m&&m.payload;if(x&&x.id===LIVE.id&&cur&&cur.id===x.id&&(!x.u||(cur.updated||0)>=x.u))liveSendFull()})
+      .on('broadcast',{event:'full'},function(m){if(LIVE.ch===ch)liveFull(m&&m.payload)})
+      .on('broadcast',{event:'fmt'},function(m){if(LIVE.ch!==ch||LIVE.comp)return;liveFmt(m&&m.payload)})
+      .subscribe(function(st){if(LIVE.ch!==ch)return;
+        if(st==='SUBSCRIBED'){LIVE.ok=true;if(cur&&cur.id===s.id){liveSend();try{ch.send({type:'broadcast',event:'need',payload:{id:s.id,dev:LIB_DEV,u:cur.updated||0}})}catch(e){}}}
+        else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){LIVE.ok=false;setTimeout(liveEnsure,2000)}});
     LIVE.ch=ch}catch(e){LIVE.ch=null}}
-function liveLeave(){if(LIVE.ch){liveFlushNow();try{sbClient().removeChannel(LIVE.ch)}catch(e){}}clearTimeout(LIVE.t);LIVE.ch=null;LIVE.id=null;LIVE.snap=null;LIVE.pend=[];liveHere(null)}
+function liveLeave(){LIVE.ok=null;if(LIVE.ch){liveFlushNow();try{sbClient().removeChannel(LIVE.ch)}catch(e){}}clearTimeout(LIVE.t);LIVE.ch=null;LIVE.id=null;LIVE.snap=null;LIVE.pend=[];liveHere(null)}
 /* called on every edit: send at most one message per 150 ms, carrying everything changed since the last one */
 function liveQueue(){if(!LIVE.ch||!cur||cur.id!==LIVE.id)return;if(LIVE.t)return;var w=Math.max(0,150-(Date.now()-LIVE.last));LIVE.t=setTimeout(liveSend,w)}
 function liveSend(){LIVE.t=0;var s=cur;if(!LIVE.ch||!s||s.id!==LIVE.id)return;if(!LIVE.snap)return liveSnap(s);
@@ -16331,13 +16335,14 @@ function liveFmt(x){if(!x||x.id!==LIVE.id||x.dev===LIB_DEV||typeof x.h!=='string
   cur.rich=lyr.innerHTML;if(LIVE.snap)LIVE.snap._rich=cur.rich;cur.updated=Math.max(cur.updated||0,x.u||0);cur._pushed=Math.max(cur._pushed||0,cur.updated);refreshViews();LIVE.applying=true;try{save()}finally{LIVE.applying=false}}
 function liveSendFull(){var s=cur;if(!LIVE.ch||!s||s.id!==LIVE.id||Date.now()-LIVE.full<800)return;LIVE.full=Date.now();var f={};LIVE_F.forEach(function(k){f[k]=liveVal(s,k)});f.rich=liveVal(s,'rich');
   try{LIVE.ch.send({type:'broadcast',event:'full',payload:{id:s.id,dev:LIB_DEV,who:myName()||'',u:s.updated||Date.now(),f:f}})}catch(e){}}
+function liveSong(id){return cur&&cur.id===id?cur:songs.filter(function(z){return z.id===id})[0]}
 function liveRecv(x){if(!x||x.id!==LIVE.id||x.dev===LIB_DEV||!x.ch)return;if(LIVE.comp){LIVE.pend.push(x);return}
-  var s=songs.filter(function(z){return z.id===x.id})[0];if(!s)return;var nv={},shift=null,bad=false;
+  var s=liveSong(x.id);if(!s)return;var nv={},shift=null,bad=false;
   Object.keys(x.ch).forEach(function(k){if(LIVE_F.indexOf(k)<0)return;var r=livePatch(liveVal(s,k),x.ch[k]);if(!r){bad=true;return}nv[k]=r.t;if(k==='lyrics')shift={at:r.at,d:x.ch[k].d.length,i:x.ch[k].i.length};
     if(LIVE.snap){var rs=livePatch(LIVE.snap[k],x.ch[k]);LIVE.snap[k]=rs?rs.t:r.t}});
   if(bad){try{LIVE.ch.send({type:'broadcast',event:'need',payload:{id:x.id,dev:LIB_DEV}})}catch(e){}}
   if(Object.keys(nv).length)liveApply(s,nv,x,shift)}
-function liveFull(x){if(!x||x.id!==LIVE.id||x.dev===LIB_DEV||!x.f)return;var s=songs.filter(function(z){return z.id===x.id})[0];if(!s)return;
+function liveFull(x){if(!x||x.id!==LIVE.id||x.dev===LIB_DEV||!x.f)return;var s=liveSong(x.id);if(!s)return;
   if(LIVE.snap&&LIVE_F.some(function(k){return liveVal(s,k)!==LIVE.snap[k]})){liveSend();setTimeout(function(){try{LIVE.ch.send({type:'broadcast',event:'need',payload:{id:x.id,dev:LIB_DEV}})}catch(e){}},400);return}
   if((s.updated||0)>(x.u||0)&&LIVE_F.every(function(k){return liveVal(s,k)===String(x.f[k]==null?'':x.f[k])}))return;
   var nv={};LIVE_F.concat(['rich']).forEach(function(k){if(x.f[k]!=null)nv[k]=String(x.f[k])});nv._whole=1;liveApply(s,nv,x,null)}
@@ -16360,10 +16365,12 @@ function liveHere(who){var h=$('#here');if(!h)return;clearTimeout(liveHereT);
   if(!who){h.classList.remove('live');if(typeof renderCollabHint==='function')renderCollabHint();return}
   h.hidden=false;h.classList.add('live');h.style.cursor='';h.onclick=null;h.innerHTML='<i></i><span></span>';h.lastChild.textContent=who.split(/\s+/)[0]+' is writing…';
   liveHereT=setTimeout(function(){h.classList.remove('live');if(cur)SEEN[cur.id]=cur.lyrics||'';h.hidden=true},2500)}
-function liveFlushNow(){var s=songs.filter(function(z){return z.id===LIVE.id})[0];if(s&&(s.updated||0)>(s._pushed||0))pushShared(s)}
+function liveFlushNow(){var s=LIVE.id&&liveSong(LIVE.id);if(s&&(s.updated||0)>(s._pushed||0))pushShared(s)}
 lyr.addEventListener('compositionstart',function(){LIVE.comp=true});
 lyr.addEventListener('compositionend',function(){LIVE.comp=false;var q=LIVE.pend;LIVE.pend=[];q.forEach(liveRecv)});
-document.addEventListener('visibilitychange',function(){if(document.hidden)liveFlushNow()});
+document.addEventListener('visibilitychange',function(){if(document.hidden)liveFlushNow();else liveEnsure()});
+window.addEventListener('focus',function(){liveEnsure()});window.addEventListener('online',function(){LIVE.ok=false;liveEnsure()});
+setInterval(function(){if(!document.hidden)liveEnsure()},10000);
 window.addEventListener('pagehide',liveFlushNow);
 function shareSong(){if(!AUTH_USER){toast('Sign in with Google to share songs');return}if(!cur)return;
   var s=cur;
@@ -16804,6 +16811,7 @@ function onAuthUser(){
   var ag=$('#authgate');if(ag)ag.style.display=(AUTH_USER||DEV_MODE)?'none':'flex';
   ensureStorageForMode();
   if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling()}
+  if(AUTH_USER)setTimeout(function(){if(cur&&cur.shared)pullShared(cur);liveEnsure()},0);
   if(!AUTH_USER){stopInvitePolling();libStop()}
   refreshAccount();
   paintAcctIcons();
