@@ -17535,16 +17535,13 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
   sw.onclick=function(e){e.stopPropagation();flipBeta()};trow.onclick=flipBeta;
   trow.appendChild(sw);box.appendChild(trow);
   var n=document.createElement('div');n.className='note';n.style.paddingTop='8px';n.textContent='This is a testing switch for the beta-tester tier that’s rolling out soon — not a real plan.';o.appendChild(n);
-  var lt=document.createElement('div');lt.className='lab';lt.textContent=pro?'What’s included':'Unlocks when Beta is on';o.appendChild(lt);
+  if(!pro){var lt=document.createElement('div');lt.className='lab';lt.textContent='Unlocks when Beta is on';o.appendChild(lt);
   var fbox=document.createElement('div');fbox.className='gf';o.appendChild(fbox);
   ['Unlimited songs','Lines: rhyming lines in your voice','Rate: honest notes on your song','Whole-song context for every suggestion','Writing voice & Perform mode','Muse: more cards, and sharing songs','Audio versions, synced lyrics, credits & release details'].forEach(function(t){
     var r2=document.createElement('div');r2.className='row';
     r2.innerHTML='<span class="pfrow"><i class="pfi"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></i><span class="pft"></span></span>';
     r2.querySelector('.pft').textContent=t;fbox.appendChild(r2)
-  });
-  var g2=accSection(o,'Your songs');
-  g2.appendChild(accCell({tile:ACC_ICO.down,label:'Import Songs',chev:true,onclick:function(){sheet(false);$('#impin').click()}}));
-  g2.appendChild(accCell({tile:ACC_ICO.up,label:'Export All Songs',chev:true,onclick:function(){sheet(false);$('#expb').click()}}));
+  });}
   if(AUTH_USER){
     /* Credits: a small discography of finished songs you wrote or co-wrote */
     var credited=songs.filter(function(s){return s.title&&s.status==='Finished'&&(s.owner===AUTH_USER.id||(s.members||[]).indexOf(AUTH_USER.id)>=0||(!s.shared&&!s.owner))}).sort(function(a,b){return b.updated-a.updated});
@@ -17562,6 +17559,9 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
         r.appendChild(mid);var ch=document.createElement('span');ch.className='chev';ch.innerHTML=ACC_ICO.chev;r.appendChild(ch);
         r.onclick=function(){sheet(false);openSong(s.id)};g4.appendChild(r)})}
   }
+  var g2=accSection(o,'Your songs');
+  g2.appendChild(accCell({tile:ACC_ICO.down,label:'Import Songs',chev:true,onclick:function(){sheet(false);$('#impin').click()}}));
+  g2.appendChild(accCell({tile:ACC_ICO.up,label:'Export All Songs',chev:true,onclick:function(){sheet(false);$('#expb').click()}}));
   var g3=accSection(o,'Rate');
   g3.appendChild(accCell({tile:ACC_ICO.spark,label:'Forget What Rate Learned About My Style',onclick:function(){try{localStorage.removeItem('songpad:writer')}catch(e){}toast('Rate will learn your style fresh')}}));
   /* developer tools (Dev Mode only), then the account actions last, where Settings keeps Sign Out */
