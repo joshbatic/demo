@@ -46,7 +46,11 @@ var PRE=null;/*PRELOAD*/
     if(a&&url(a.src))out.audio={src:url(a.src),name:str(a.name,160),dur:+a.dur||0,peaks:(Array.isArray(a.peaks)?a.peaks.slice(0,2000):[]).map(Number).filter(isFinite)};
     return out}
   function show(d){if(!d||typeof d!=='object')return msg('This song isn’t shared any more','Ask whoever sent it for a new link.');
-    var html=shRender(clean(d),{skB:SKB,skF:SKF});document.open();document.write(html);document.close()}
+    var html=shRender(clean(d),{skB:SKB,skF:SKF});
+    /* replace the whole loading page. While the page is still loading, document.open() is ignored and the song
+       would be added underneath the loading dots, so wait for the page to finish loading first */
+    var swap=function(){document.open();document.write(html);document.close()};
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(swap,0)});else swap()}
   if(PRE&&PRE.id===id)return show(PRE.data);
   fetch(SB_URL+'/rest/v1/rpc/get_share',{method:'POST',headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({sid:id})})
     .then(function(r){if(!r.ok)throw new Error(r.status);return r.json()})
