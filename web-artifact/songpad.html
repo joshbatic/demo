@@ -550,6 +550,16 @@ body.ios .song{padding:13px 24px}
 .proname{font-size:26px;font-weight:700;line-height:1.2;letter-spacing:-.4px}
 .prosub{display:flex;flex-direction:column;gap:3px;margin-top:6px;font-size:15px;color:var(--mute)}
 .prosub .dim{font-size:13.5px}
+:is(#acc) .crstat{display:grid;grid-template-columns:repeat(3,1fr);padding:16px 8px 14px;border-bottom:.5px solid var(--sep)}
+:is(#acc) .crstat div{display:flex;flex-direction:column;align-items:center;gap:1px}
+:is(#acc) .crstat b{font-size:24px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+:is(#acc) .crstat span{font-size:12.5px;color:var(--mute)}
+:is(#acc) .crstat div+div{border-left:.5px solid var(--sep)}
+:is(#acc) .cell.crrow{gap:12px;min-height:64px}
+:is(#acc) .cell.crrow+.cell.crrow::before{left:68px}
+:is(#acc) .crth{width:40px;height:40px;border-radius:9px;flex:none;overflow:hidden;background:var(--cv1) center/cover;box-shadow:0 0 0 .5px var(--ring);display:block}
+:is(#acc) .crempty{padding:18px 18px 20px;display:flex;flex-direction:column;gap:3px}
+:is(#acc) .crempty b{font-size:15.5px}:is(#acc) .crempty span{font-size:13.5px;color:var(--mute);line-height:1.4}
 :is(#acc,#p-aud,#p-rel) .labrow{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;min-height:22px}
 :is(#acc,#p-aud,#p-rel) .labact{display:flex;gap:2px;margin:-8px -10px -5px 0}
 :is(#acc,#p-aud,#p-rel) .labact button{font-size:15px;font-weight:600;color:var(--ink);background:none;padding:6px 10px;border-radius:99px}
@@ -17503,14 +17513,21 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
   g2.appendChild(accCell({tile:ACC_ICO.down,label:'Import Songs',chev:true,onclick:function(){sheet(false);$('#impin').click()}}));
   g2.appendChild(accCell({tile:ACC_ICO.up,label:'Export All Songs',chev:true,onclick:function(){sheet(false);$('#expb').click()}}));
   if(AUTH_USER){
-    var l4=document.createElement('div');l4.className='lab';l4.textContent='Credits';o.appendChild(l4);var g4=document.createElement('div');g4.className='gf';o.appendChild(g4);
-    var credited=songs.filter(function(s){return s.title&&s.status==='Finished'&&(s.owner===AUTH_USER.id||(s.members||[]).indexOf(AUTH_USER.id)>=0)}).sort(function(a,b){return b.updated-a.updated});
-    if(!credited.length){var cn=document.createElement('div');cn.className='row';cn.innerHTML='<span style="color:var(--mute)">Songs you finish, write or co-write, will show up here.</span>';g4.appendChild(cn)}
-    else credited.forEach(function(s){var r=document.createElement('button');r.className='row';r.style.justifyContent='flex-start';r.style.gap='10px';r.style.width='100%';r.style.textAlign='left';r.style.color='var(--ink)';
-      var sp=document.createElement('span');sp.style.display='flex';sp.style.flexDirection='column';sp.style.lineHeight='1.3';sp.style.minWidth='0';
-      var tt=document.createElement('b');tt.style.fontSize='15px';tt.style.overflow='hidden';tt.style.textOverflow='ellipsis';tt.style.whiteSpace='nowrap';tt.textContent=s.title;sp.appendChild(tt);
-      var sub=document.createElement('span');sub.style.color='var(--mute)';sub.style.fontSize='12.5px';sub.textContent=(s.owner===AUTH_USER.id?'Written':'Co-written')+(s.artist?' · '+s.artist:'');sp.appendChild(sub);
-      r.appendChild(sp);r.onclick=function(){sheet(false);openSong(s.id)};g4.appendChild(r)})
+    /* Credits: a small discography of finished songs you wrote or co-wrote */
+    var credited=songs.filter(function(s){return s.title&&s.status==='Finished'&&(s.owner===AUTH_USER.id||(s.members||[]).indexOf(AUTH_USER.id)>=0||(!s.shared&&!s.owner))}).sort(function(a,b){return b.updated-a.updated});
+    var g4=accSection(o,'Credits'),me=(myName()||'').toLowerCase();
+    if(!credited.length){var ce=document.createElement('div');ce.className='crempty';ce.innerHTML='<b>No credits yet</b><span>Mark a song Finished in Details and it shows up here, with your role and split.</span>';g4.appendChild(ce)}
+    else{var isMe=function(c){return c&&c.name&&me&&String(c.name).toLowerCase()===me},coOf=function(s){return(s.shared&&s.owner!==AUTH_USER.id)||(s.credits||[]).some(function(c){return c&&c.name&&!isMe(c)})};
+      var nW=credited.filter(function(s){return!coOf(s)}).length;
+      var st=document.createElement('div');st.className='crstat';[[credited.length,credited.length===1?'Song':'Songs'],[nW,'Written'],[credited.length-nW,'Co-written']].forEach(function(x){var d=document.createElement('div');d.innerHTML='<b></b><span></span>';d.firstChild.textContent=x[0];d.lastChild.textContent=x[1];st.appendChild(d)});g4.appendChild(st);
+      credited.forEach(function(s){var r=document.createElement('button');r.className='cell crrow';
+        var th=document.createElement('i');th.className='crth';if(s.art)th.style.backgroundImage='url('+s.art+')';else th.innerHTML=cover(s);r.appendChild(th);
+        var mid=document.createElement('span');mid.className='c2';mid.innerHTML='<b></b><span></span>';mid.firstChild.textContent=s.title;
+        var mine=(s.credits||[]).filter(function(c){return c&&c.name&&me&&String(c.name).toLowerCase()===me})[0],others=(s.credits||[]).filter(function(c){return c&&c.name&&c!==mine}).map(function(c){return String(c.name).split(/\s+/)[0]});
+        var co=coOf(s),rel=s.release&&s.release.date?new Date(s.release.date):null;
+        mid.lastChild.textContent=[co?'Co-written'+(others.length?' with '+(others.length>2?others.slice(0,2).join(', ')+' +'+(others.length-2):others.join(' & ')):''):'Written',mine&&mine.split?(+mine.split)+'%':'',rel&&!isNaN(rel)?rel.toLocaleDateString(undefined,{month:'short',year:'numeric'}):''].filter(Boolean).join(' · ');
+        r.appendChild(mid);var ch=document.createElement('span');ch.className='chev';ch.innerHTML=ACC_ICO.chev;r.appendChild(ch);
+        r.onclick=function(){sheet(false);openSong(s.id)};g4.appendChild(r)})}
   }
   var g3=accSection(o,'Rate');
   g3.appendChild(accCell({tile:ACC_ICO.spark,label:'Forget What Rate Learned About My Style',onclick:function(){try{localStorage.removeItem('songpad:writer')}catch(e){}toast('Rate will learn your style fresh')}}));
