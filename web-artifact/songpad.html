@@ -85,7 +85,7 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 .rhyhandle i{width:34px;height:4px;border-radius:99px;background:var(--sep);transition:background-color .15s,transform .15s}
 .rhyhandle:active i{background:var(--mute);transform:scaleX(1.08)}
 .r1{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;position:relative;z-index:1}
-#rs{font-size:14px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:8px;min-width:0}
+#rs{font-size:14px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:8px;min-width:56px;flex:1 1 0}
 .r1g{display:flex;gap:6px;min-width:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .r1g,#rc,.sch,#wm,#fmt,.dictwm{--mfL:0px;--mfR:0px;-webkit-mask-image:linear-gradient(to right,transparent 0,#000 var(--mfL),#000 calc(100% - var(--mfR)),transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 var(--mfL),#000 calc(100% - var(--mfR)),transparent 100%)}
 #rs b{color:var(--ink);font-weight:600;font-size:16px}
@@ -15248,6 +15248,8 @@ function ins(ta,t){ta.focus();if(ta.id==='lyr'){t.split('\n').forEach(function(p
 var lyr=$('#lyr'),lastSel={s:0,e:0},NOTE='<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>';
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function walk(n){if(n.nodeType===3)return n.data;if(n.nodeName==='BR')return'\n';var s='';for(var c=n.firstChild;c;c=c.nextSibling)s+=walk(c);return s}
+/* the start of a selected phrase, for the toolbar: a few words, never the whole verse */
+function shortSel(t){t=String(t||'').replace(/\[[^\]\n]*\]/g,' ').replace(/\s+/g,' ').trim();if(t.length<=22)return t;var c=t.slice(0,22).replace(/\s+\S*$/,'');return(c||t.slice(0,22))+'…'}
 function getText(){var s=walk(lyr);return s.slice(-1)==='\n'?s.slice(0,-1):s}
 function off(node,o){var r=document.createRange();r.selectNodeContents(lyr);r.setEnd(node,o);return walk(r.cloneContents()).length}
 function getSel(){var s=getSelection();if(s.rangeCount&&lyr.contains(s.anchorNode)){var r=s.getRangeAt(0);lastSel={s:off(r.startContainer,r.startOffset),e:off(r.endContainer,r.endOffset)}}return lastSel}
@@ -15715,8 +15717,8 @@ function rhyme(){
   var c=ctx(),rc=$('#rc'),rs=$('#rs'),L=lines&&aiAvailable();rc.innerHTML='';var tk=(lines?'L':'W'+wmode)+c.word+'|'+c.p+(LSK||'');var chg=tk!==lastTk;lastTk=tk;rc.className=(L?'lines':'')+(chg?' in':'');
   var selPhrase=c.sel.trim(),selWords=selPhrase?selPhrase.split(/\s+/).length:0;
   var mlx=melAt(c.ls),cs=c.cur.trim()?lsyl(c.cur):0,rf=mlx?mlx.n:lsyl(c.ref),left=cs&&rf>cs?rf-cs:0;rs.textContent='';
-  if(lines)rs.textContent=c.sel.trim()?'Selection · '+lsyl(c.sel)+' syl · ends “'+lastW(c.sel)+'”':'Line '+(c.p+1)+' · '+(c.ti>=0?'rhymes with line '+(c.ti+1):'new rhyme')+(rf?' · '+rf+' syl'+(mlx?' (melody)':''):'');
-  else if(selWords>1){var b=document.createElement('b');b.textContent=selPhrase;rs.appendChild(b);rs.appendChild(document.createTextNode(' · '+lsyl(selPhrase)+' syl · ends “'+lastW(selPhrase)+'”'))}
+  if(lines)rs.textContent=c.sel.trim()?(/\n/.test(c.sel.trim())?c.sel.trim().split(/\n+/).length+' lines':'Selection')+' · '+lsyl(c.sel)+' syl · ends “'+lastW(c.sel)+'”':'Line '+(c.p+1)+' · '+(c.ti>=0?'rhymes with line '+(c.ti+1):'new rhyme')+(rf?' · '+rf+' syl'+(mlx?' (melody)':''):'');
+  else if(selWords>1){var b=document.createElement('b');b.textContent=shortSel(selPhrase);rs.appendChild(b);rs.appendChild(document.createTextNode(' · '+lsyl(selPhrase)+' syl · ends “'+lastW(selPhrase)+'”'))}
   else if(c.word){var b=document.createElement('b');b.textContent=c.word;rs.appendChild(b);rs.appendChild(document.createTextNode(' · '+syl(c.word)+' syl'+(c.via?' · '+c.via:'')+(left?' · '+left+' to match':'')))}
   else rs.textContent='Tap any word for rhymes';
   $('#lm').setAttribute('aria-pressed',lines);
@@ -18030,19 +18032,19 @@ function shLinkStop(song){var c=sbClient(),id=song.share&&song.share.id;if(!id)r
   .then(function(){delete song.share;sfTouch(song)})}
 function shLinkGo(){var song=SHR.song;if(!song||SHR.linkBusy)return;if(!sfCloud())return toast(DEV_MODE?'Share links need a signed-in account.':'Sign in to make share links.');
   var had=!!song.share,id=(song.share&&song.share.id)||shId();SHR.linkBusy=had?'Updating the link…':'Making the link…';renderShare();
-  var job=shLinkMake(song,shBg(SHR.pal,SHR.ci),SHR.aud&&!!audCur(song),id),copied=shCopyLater(job.then(function(){return SHARE_BASE+id}));
-  job.then(function(){SHR.linkBusy=null;haptic('success');renderShare();
+  /* copy now, while it's still the tap: iPhone and the Mac app only allow the clipboard then, and the address is
+     decided before anything uploads. If making the link then fails, the message says the copied link won't work. */
+  var copied=shCopyNow(SHARE_BASE+id);
+  shLinkMake(song,shBg(SHR.pal,SHR.ci),SHR.aud&&!!audCur(song),id).then(function(){SHR.linkBusy=null;haptic('success');renderShare();
       copied.then(function(ok){toast((had?'Link updated':'Link ready')+(ok?' and copied':'. Tap Share Link to send it.'))})},
-    function(e){SHR.linkBusy=null;renderShare();toast('Couldn’t make the link: '+shLinkErr(e))})}
-/* copy text that's still on its way. Safari only allows clipboard writes during the tap itself, so the write is
-   started now with a promise for the text (ClipboardItem); elsewhere it's written once the text arrives */
-function shCopyLater(p){var plain=function(){return p.then(function(t){return navigator.clipboard.writeText(t)}).then(function(){return true},function(){return false})};
-  try{if(window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write&&!window.desktop){
-    return navigator.clipboard.write([new ClipboardItem({'text/plain':p.then(function(t){return new Blob([t],{type:'text/plain'})})})]).then(function(){return true},function(){return p.then(plain,function(){return false})})}}catch(e){}
-  try{return plain()}catch(e){return Promise.resolve(false)}}
+    function(e){SHR.linkBusy=null;renderShare();copied.then(function(ok){toast('Couldn’t make the link: '+shLinkErr(e)+(ok&&!had?' (the copied link won’t work)':''))})})}
+/* copy text right now, during the tap; falls back to the old select-and-copy where the clipboard API is missing */
+function shCopyNow(t){var old=function(){try{var ta=document.createElement('textarea');ta.value=t;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;top:0;left:0;opacity:0;font-size:16px';document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,t.length);var ok=document.execCommand('copy');ta.remove();return ok}catch(e){return false}};
+  try{if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(t).then(function(){return true},function(){return old()})}catch(e){}
+  return Promise.resolve(old())}
 function shLinkSend(){var song=SHR.song,u=song&&song.share&&SHARE_BASE+song.share.id;if(!u)return;
   if(navigator.share&&!window.desktop){navigator.share({title:song.title||'A song',url:u}).catch(function(){});return}
-  try{navigator.clipboard.writeText(u).then(function(){toast('Link copied')},function(){toast(u)})}catch(e){toast(u)}}
+  shCopyNow(u).then(function(ok){toast(ok?'Link copied':u)})}
 function shAgo(t){var s=Math.round((Date.now()-t)/1000);if(s<60)return'just now';if(s<3600)return Math.round(s/60)+' min ago';if(s<86400)return Math.round(s/3600)+' h ago';return new Date(t).toLocaleDateString()}
 $('#shareb').onclick=openShare;$('#done8').onclick=function(){sheet(false)};
 
