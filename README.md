@@ -67,8 +67,10 @@ project (`cygfgurzvmbtcegkpnss`):
    [`supabase/song-files.sql`](supabase/song-files.sql) → Run. This creates the private
    `song-files` bucket where each account can only reach its own folder.
 2. **Upload size.** Dashboard → Storage → Settings → *Upload file size limit*. The free plan caps
-   uploads at 50 MB per file, which fits MP3/AAC/M4A mixes; full-length WAV masters need a higher
-   limit (Pro plan).
+   uploads at 50 MB per file. WAV, AIFF and FLAC uploads are converted to 256 kbps MP3 on the device
+   first (about 80% smaller, so a typical song is a few MB), unless "Convert WAV to MP3" is turned off
+   in a song's Audio tab to keep lossless masters, which can then need a higher limit (Pro plan).
+   The MP3 encoder is lamejs 1.2.1 (LGPL-3.0), embedded unmodified in the page.
 3. **Lyric sync function.** With the Supabase CLI, from this repo:
    `supabase functions deploy lyric-sync --project-ref cygfgurzvmbtcegkpnss`.
    It uses an `OPENAI_API_KEY` secret; if ai-proxy already has one it's shared, otherwise
