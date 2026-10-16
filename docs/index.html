@@ -3,89 +3,184 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>*[demo] — TestFlight Beta</title>
-<meta name="description" content="A songwriting companion for iPhone: rhymes, line suggestions that read your song's tone, a rhyme map, melody fit and collaboration. Join the private beta on TestFlight.">
+<title>*[demo] — write it, sync it, send it</title>
+<meta name="description" content="A songwriting app for iPhone and Mac: rhymes that read your song, a muse for when you're stuck, your demos synced line by line to your lyrics, and links anyone can open. Join the private beta on TestFlight.">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
-<meta property="og:title" content="*[demo] — TestFlight Beta">
-<meta property="og:description" content="A songwriting companion for iPhone. Join the private beta.">
-<meta property="og:image" content="icon-512.png">
+<meta property="og:title" content="*[demo] — write it, sync it, send it">
+<meta property="og:description" content="Rhymes that read your song, a muse for when you're stuck, demos synced to your lyrics, and links anyone can open.">
+<meta property="og:image" content="https://hellodemo.app/icon-512.png">
 <meta property="og:type" content="website">
 <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="home">
 
 <div class="nav">
   <a class="brand" href="index.html"><img src="icon-192.png" alt=""><b>*[demo]</b></a>
-  <div class="navlinks"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div>
+  <div class="navlinks"><a href="#write">Write</a><a href="#listen">Listen</a><a href="#share">Share</a><a class="navgo" href="#join">Join the beta</a></div>
 </div>
 
-<div class="wrap">
+<main>
   <section class="hero">
-    <span class="badge">Private Beta</span>
-    <h1>Write lyrics that actually land.</h1>
-    <p class="sub">A songwriting companion that reads your song back before it suggests anything — rhymes, next lines, even near-rhymes you'd never think to check.</p>
+    <span class="badge">Private beta · iPhone &amp; Mac</span>
+    <h1>From first line<br>to finished song.</h1>
+    <p class="sub">Rhymes that read your song. A muse for when you're stuck. Your demos synced line by line to your lyrics, and a link anyone can open.</p>
     <div class="cta">
       <!-- TODO: swap in your real TestFlight public link from App Store Connect -->
       <a class="go" href="https://testflight.apple.com/join/REPLACE_ME">Join the TestFlight beta</a>
-      <span class="fine">iPhone · Free while in beta</span>
+      <span class="fine">Free while in beta</span>
     </div>
 
-    <div class="mock" aria-hidden="true">
-      <div class="mockhd">
-        <div class="mockcov"></div>
-        <div>
-          <div class="mocktitle">Untitled</div>
-          <div class="mocksub">Idea · 1 syl</div>
+    <!-- the one moving thing on the page: a shared song playing, lines lighting up in time -->
+    <div class="stage" aria-label="A shared song playing, with its lyrics lighting up in time">
+      <div class="np">
+        <div class="nptop">
+          <div class="art" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <div class="meta"><b>Come Home</b><span>Josh Batic · Key of G · 84 BPM</span></div>
+          <span class="pp" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg></span>
+        </div>
+        <div class="wave" id="wave" aria-hidden="true"></div>
+        <div class="npbot" aria-hidden="true"><span id="at">0:41</span><span>-2:37</span></div>
+      </div>
+      <div class="ly" id="ly">
+        <small>Verse 1</small>
+        <p>I left the porch light on for you</p>
+        <p class="on">The radio was playing something blue</p>
+        <p>I kept your jacket on the chair</p>
+        <p>Like you were only out somewhere</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="write">
+    <div class="copy">
+      <h2>Rhymes that read your song</h2>
+      <p class="lead">Tap any word and the rhymes are already there: perfect, near and sounds-like, with every suggestion weighed against your song's tone, not just the last word.</p>
+      <dl class="list">
+        <dt>Lines that read the room</dt><dd>Next-line ideas that match your section's imagery, voice and length.</dd>
+        <dt>Rhyme map</dt><dd>Every rhyme family coloured across the whole lyric, near ones included.</dd>
+        <dt>Syllables &amp; melody fit</dt><dd>Counts as you type, checked against the melody you hummed.</dd>
+        <dt>Writing voice</dt><dd>Tell it how you write, and suggestions stay in your lane.</dd>
+      </dl>
+    </div>
+    <div class="vis">
+      <div class="ed">
+        <div class="edhd"><div class="cov c1"></div><div><b>Gold</b><span>Draft · 2 lines</span></div></div>
+        <div class="edtx">she walked in wearing <mark class="r1">gold</mark><br>a story <mark class="r2">yet</mark> un<mark class="r1">told</mark></div>
+        <div class="edrs"><b>gold</b> · 1 syl</div>
+        <div class="chips"><span class="on">Rhymes</span><span>cold</span><span>bold</span><span>hold</span><span>unrolled</span><span>soul</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band flip" id="muse">
+    <div class="copy">
+      <h2>Stuck? Call the muse.</h2>
+      <p class="lead">One tap opens a handful of ways out of a blank page. It reads what you've written so far and tells you where it stalls, scores it honestly when you want notes, or just throws three random words at you.</p>
+    </div>
+    <div class="vis">
+      <div class="muse">
+        <div class="musehd"><span class="spark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5l1.6 4.4c.3.8.9 1.4 1.7 1.7l4.4 1.6-4.4 1.6c-.8.3-1.4.9-1.7 1.7L10 18.9l-1.6-4.4c-.3-.8-.9-1.4-1.7-1.7L2.3 11.2l4.4-1.6c.8-.3 1.4-.9 1.7-1.7z"/></svg></span><b>Muse</b></div>
+        <div class="cards">
+          <div class="mc big"><b>Read my song</b><span>What it's really about, where it stalls, and a few doors out</span></div>
+          <div class="mc"><b>Rate my song</b><span>Scores and notes, marked right in your lyrics</span></div>
+          <div class="mc"><b>Four doors</b><span>Four next lines, four directions</span></div>
+          <div class="mc"><b>Word collision</b><span>Three random words. Jam them in.</span></div>
+          <div class="mc"><b>Pen never stops</b><span>Five minutes. No deleting.</span></div>
         </div>
       </div>
-      <div class="mocklines">
-        she walked in wearing <span class="hl">gold</span><br>
-        a story <span class="hl">yet</span> untold
-      </div>
-      <div class="mockchips">
-        <span>Near</span><span>cold</span><span>bold</span><span>told</span><span>unrolled</span>
+    </div>
+  </section>
+
+  <section class="band" id="listen">
+    <div class="copy">
+      <h2>Your demos live with your lyrics</h2>
+      <p class="lead">Drop in a voice memo, a demo or the final master. It plays right inside the song, and your lyrics sync to it on their own, so every line lights up as it's sung.</p>
+      <dl class="list">
+        <dt>Every version, one song</dt><dd>Keep the memo, the demo and the mix side by side and pick which one is current.</dd>
+        <dt>Automatic lyric sync</dt><dd>No tapping along. It listens to the track and times every line for you.</dd>
+        <dt>A waveform you can scrub</dt><dd>Skip, scrub and magnify right in the note, with a little haptic tick on iPhone.</dd>
+        <dt>Small, synced files</dt><dd>WAVs become high-quality MP3s on your device before they upload, and everything syncs to your other devices.</dd>
+        <dt>Stems &amp; session files</dt><dd>Attach stems, artwork and session files to the song they belong to.</dd>
+      </dl>
+    </div>
+    <div class="vis">
+      <div class="vers">
+        <div class="vrow"><span class="tick on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div><b>Come Home mix</b><span>Mix · 3:18 · MP3 from WAV</span></div></div>
+        <div class="vrow"><span class="tick"></span><div><b>Come Home demo</b><span>Demo · 3:02</span></div></div>
+        <div class="vrow"><span class="tick"></span><div><b>Porch light idea</b><span>Voice memo · 0:48</span></div></div>
+        <div class="syncd"><b>Synced</b> to “Come Home mix”: 28 of 28 lines heard.</div>
       </div>
     </div>
   </section>
 
-  <section class="features">
-    <div class="feat">
-      <h3>Rhymes, perfect and near</h3>
-      <p>Not just exact matches — slant and sounds-like rhymes too, grouped so you can feel the difference.</p>
+  <section class="band flip" id="share">
+    <div class="copy">
+      <h2>Send it like it's already out</h2>
+      <p class="lead">Share a link and anyone can listen and read along in their browser, no app or account needed. It arrives as a proper preview in Messages, WhatsApp and Instagram, coloured from your artwork.</p>
+      <dl class="list">
+        <dt>Links, not attachments</dt><dd>Update the link as the song changes, or stop sharing and it's gone.</dd>
+        <dt>Lyric cards</dt><dd>A clean image of the song for socials and group chats.</dd>
+        <dt>Credits &amp; release details</dt><dd>Writers and splits, ISRC and UPC, and synced .lrc lyrics ready for distribution.</dd>
+      </dl>
     </div>
-    <div class="feat">
-      <h3>Lines that read the room</h3>
-      <p>Suggestions look at your section's tone, imagery and voice before offering a next line, not just the last one you wrote.</p>
-    </div>
-    <div class="feat">
-      <h3>Rhyme map</h3>
-      <p>See every rhyme family highlighted across the whole lyric at a glance, including the near ones.</p>
-    </div>
-    <div class="feat">
-      <h3>Melody &amp; syllable fit</h3>
-      <p>Check a line's syllable count against your melody as you write, not after you try to sing it.</p>
-    </div>
-    <div class="feat">
-      <h3>Versions, never lost</h3>
-      <p>Every meaningful change is kept as a version you can look back at and restore.</p>
-    </div>
-    <div class="feat">
-      <h3>Write together</h3>
-      <p>Invite a collaborator to a song and pick up where they left off, with an invite the moment they're asked.</p>
+    <div class="vis">
+      <div class="chat">
+        <div class="bub out">heard back from the mix engineer 👀</div>
+        <div class="bub out card">
+          <div class="og">
+            <div class="ognp"><div class="art sm" aria-hidden="true"><i></i><i></i><i></i></div><div><b>Come Home</b><span>Josh Batic</span></div><span class="pp sm" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg></span></div>
+            <div class="wave sm" aria-hidden="true"></div>
+          </div>
+          <div class="ogtx"><b>Come Home – Josh Batic</b><span>listen.hellodemo.app</span></div>
+        </div>
+        <div class="bub in">this is so good. the second verse!!</div>
+      </div>
     </div>
   </section>
 
-  <footer>
-    <span>© 2026 *[demo]</span>
-    <div class="links">
-      <a href="privacy.html">Privacy</a>
-      <a href="terms.html">Terms</a>
-      <a href="mailto:joshuadbatic@gmail.com">Contact</a>
+  <section class="more">
+    <h2>Everywhere you write</h2>
+    <div class="grid">
+      <div><b>iPhone &amp; Mac</b><span>The same app on both, with a sidebar on the big screen.</span></div>
+      <div><b>Live sync</b><span>Edit on your phone, watch it change on your Mac.</span></div>
+      <div><b>Write together</b><span>Invite a co-writer to a song and pick up where they left off.</span></div>
+      <div><b>Versions</b><span>Every meaningful change kept, ready to restore.</span></div>
+      <div><b>Perform mode</b><span>Big, scrolling lyrics for the stage or the booth.</span></div>
+      <div><b>Works offline</b><span>Write anywhere. Everything but the AI and syncing works without a connection.</span></div>
     </div>
-  </footer>
-</div>
+  </section>
 
+  <section class="join" id="join">
+    <h2>Come write with us</h2>
+    <p>*[demo] is in private beta on TestFlight. It's free while we build it with the people using it.</p>
+    <a class="go" href="https://testflight.apple.com/join/REPLACE_ME">Join the TestFlight beta</a>
+  </section>
+</main>
+
+<footer>
+  <span>© 2026 *[demo]</span>
+  <div class="links">
+    <a href="privacy.html">Privacy</a>
+    <a href="terms.html">Terms</a>
+    <a href="mailto:joshuadbatic@gmail.com">Contact</a>
+  </div>
+</footer>
+
+<script>
+/* waveforms: rounded bars from a fixed, song-like shape (quiet intro, louder chorus) */
+(function(){
+  function bars(el,n,played){var h='';for(var i=0;i<n;i++){var x=i/n,v=.22+.2*Math.abs(Math.sin(i*1.7))+.14*Math.abs(Math.sin(i*.37))+(x>.3&&x<.62?.32:0)+(x>.78?.12:0);
+    h+='<i style="height:'+Math.round(Math.min(1,v)*100)+'%"'+(x<played?' class="p"':'')+'></i>'}el.innerHTML=h}
+  var w=document.getElementById('wave');bars(w,64,.2);
+  [].forEach.call(document.querySelectorAll('.wave.sm'),function(e){bars(e,40,0)});
+  /* the hero song "plays": the waveform fills and each line lights up in turn */
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var lines=[].slice.call(document.querySelectorAll('#ly p')),bs=[].slice.call(w.children),at=document.getElementById('at'),i=1,t0=41;
+  setInterval(function(){i=(i+1)%lines.length;lines.forEach(function(p,k){p.classList.toggle('on',k===i);p.classList.toggle('past',k<i)});
+    var f=.2+i*.11;bs.forEach(function(b,k){b.classList.toggle('p',k/bs.length<f)});var s=t0+i*4;at.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')},2400);
+})();
+</script>
 </body>
 </html>

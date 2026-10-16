@@ -17,16 +17,23 @@
 
 <div class="wrap doc">
   <h1>Privacy Policy</h1>
-  <div class="updated">Last updated October 14, 2026</div>
+  <div class="updated">Last updated October 16, 2026</div>
 
   <div class="note">*[demo] is currently in private beta, distributed through TestFlight. This policy describes how the app handles your information today and may change as the app develops — see "Changes to this policy" below.</div>
 
   <h2>What this app is</h2>
-  <p>*[demo] is a songwriting app for drafting lyrics, with tools like rhyme suggestions, line suggestions, a rhyme map, syllable/melody checks, versions and optional collaboration with other people.</p>
+  <p>*[demo] is a songwriting app for iPhone and Mac, with tools like rhyme suggestions, line suggestions, a rhyme map, syllable/melody checks, versions, audio versions synced to your lyrics, share links and optional collaboration with other people.</p>
 
   <h2>What's stored, and where</h2>
   <p>By default, your songs — lyrics, titles, chords, notes and the rest — are stored only on your device. You don't need an account to use the app this way.</p>
   <p>If you sign in with Google, your songs sync to a cloud account so they're backed up and available on your other devices. Signing in also creates a profile (a username, display name and optionally a photo and social links) that other people you collaborate with can see.</p>
+
+  <h2>Audio and files</h2>
+  <p>If you add audio (voice memos, demos, mixes, masters), stems or other files to a song while signed in, they're stored in your account's private cloud storage so they sync to your other devices. Only you can read them; the app plays them through short-lived private links. WAV, AIFF and FLAC files can be converted to MP3 on your device before upload (you can turn this off). Deleting a file or the song removes the stored copy.</p>
+  <p>Automatic lyric sync sends a small, speech-quality copy of the current version (mono, low sample rate), plus the song's lyrics as a hint, to OpenAI's speech-to-text service to work out when each line is sung. As with the other AI features, it's used only to answer that request.</p>
+
+  <h2>Share links</h2>
+  <p>When you create a share link, a copy of that song (title, artist, lyrics, line timings, colours, artwork and, if you choose, the current audio version) is stored so that <strong>anyone with the link can open it</strong> in a browser without an account. Links use a random address that can't be guessed or listed, but anyone you send it to can pass it on. The copy changes only when you tap Update, and Stop Sharing deletes it and its files so the link stops working. Messaging apps that show link previews will fetch the song's title and preview picture when a link is sent.</p>
 
   <h2>AI features</h2>
   <p>Tools like Lines, Rhymes, Muse and Writing Voice work by sending the relevant text from your song — the lines you're working on, not your whole library — to an AI service (OpenAI's API, or, on the web version, Claude) to generate suggestions. That text is used to generate the response to that one request. We don't use it to train our own models, and as of this policy's last update OpenAI's API terms exclude API data from being used to train their models by default — but you should assume any text you send through these features leaves your device.</p>
@@ -44,7 +51,8 @@
 
   <h2>Your choices</h2>
   <ul>
-    <li>Delete any song at any time from within the app.</li>
+    <li>Delete any song, audio file or attachment at any time from within the app.</li>
+    <li>Stop sharing any share link from the song's Share sheet.</li>
     <li>Sign out to stop syncing — your local copy stays on that device.</li>
     <li>To request full deletion of your cloud account and data, email us (below) and we'll action it.</li>
   </ul>
