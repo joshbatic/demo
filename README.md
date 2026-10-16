@@ -56,3 +56,25 @@ the page. After committing app changes, run `scripts/stamp-version.sh` before sy
 it writes the current short commit hash into every copy and commits that one-line change as
 `Stamp version <hash>`. The hash it shows is the commit just before the stamp — identical code
 apart from the stamp line itself. Unstamped builds show `Version dev`.
+
+## Audio, lyric sync & song files (Pro) — one-time Supabase setup
+
+Audio versions, stems and attachments are stored in a private Supabase Storage bucket, and
+automatic lyric sync runs through an Edge Function. Both need setting up once on the Supabase
+project (`cygfgurzvmbtcegkpnss`):
+
+1. **Storage bucket + access rules.** Dashboard → SQL Editor → New query → paste
+   [`supabase/song-files.sql`](supabase/song-files.sql) → Run. This creates the private
+   `song-files` bucket where each account can only reach its own folder.
+2. **Upload size.** Dashboard → Storage → Settings → *Upload file size limit*. The free plan caps
+   uploads at 50 MB per file, which fits MP3/AAC/M4A mixes; full-length WAV masters need a higher
+   limit (Pro plan).
+3. **Lyric sync function.** With the Supabase CLI, from this repo:
+   `supabase functions deploy lyric-sync --project-ref cygfgurzvmbtcegkpnss`.
+   It uses an `OPENAI_API_KEY` secret; if ai-proxy already has one it's shared, otherwise
+   `supabase secrets set OPENAI_API_KEY=sk-... --project-ref cygfgurzvmbtcegkpnss`.
+
+Until step 1 is done, uploads fail with a clear message; until step 3, "Sync Lyrics" does.
+In Dev Mode (no account) audio is kept on the device instead, and lyric sync is unavailable.
+Files are visible to their uploader only; collaborators on a shared song see the list but can't
+play another person's files yet.
