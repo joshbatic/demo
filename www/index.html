@@ -15803,7 +15803,9 @@ function rhyme(){
   var tgt=c.word;if(!tgt)return;
   renderWM();
   function hint(x,busy){var h=document.createElement('div');h.className='hint';if(busy){h.appendChild(aidotsEl());h.appendChild(document.createTextNode(' '+x))}else h.appendChild(document.createTextNode(x));rc.appendChild(h)}
-  if(selWords>1&&(wmode==='rhy'||wmode==='per'||wmode==='near'))return phrRhyme();
+  /* a whole verse isn't a phrase to rhyme: say so briefly rather than quoting it back or asking the AI */
+  if(selWords>8||/\n/.test(selPhrase)){if(wmode==='rhy'||wmode==='per'||wmode==='near')return hint('Select a word or a short phrase to see rhymes. Big selections are for formatting, moving or rating.')}
+  else if(selWords>1&&(wmode==='rhy'||wmode==='per'||wmode==='near'))return phrRhyme();
   function phrRhyme(){
     var endw=lastW(selPhrase),n=lsyl(selPhrase),k='PHR#'+nw(selPhrase)+'#'+n+pfk(),v=MC[k];
     function addP(x){chip(x,n&&lsyl(x)===n?'f':'',lsyl(x),function(){var ta=$('#lyr'),v=ta.value,out=x;
@@ -15813,8 +15815,8 @@ function rhyme(){
       flash(out.length)})}
     if(!aiAvailable())return hint('Matching a multi-word selection needs a connection. Select just the last word for offline rhymes.');
     if(!isPro())return hint('Phrase rhymes for a multi-word selection are a Beta feature.');
-    if(v&&!v.then){if(!v.length)return hint('No phrase rhymes found for “'+selPhrase+'”.');v.forEach(addP);return}
-    hint('Finding phrases that rhyme with “'+selPhrase+'”',true);
+    if(v&&!v.then){if(!v.length)return hint('No phrase rhymes found for “'+shortSel(selPhrase)+'”.');v.forEach(addP);return}
+    hint('Finding phrases that rhyme with “'+shortSel(selPhrase)+'”',true);
     if(v)return;
     var pr=aiJson('Songwriting helper.'+pfx()+'\n\n'+songCtx({at:c.ls})+'\n\nThe writer selected this phrase from the line: "'+selPhrase+'" ('+n+' syllables, ending in a word that rhymes with "'+endw+'"). Suggest 16 short alternative phrases of about the same length ('+n+' syllables, give or take one) that end in a word rhyming with "'+endw+'" — match the ending sound closely, syllable by syllable — and fit the song\'s voice and context above, so swapping the phrase in keeps the line\'s rhythm and meaning going in the same direction. Avoid using the exact same end word on more than two or three of the sixteen — spread them across different words that share that rhyme, mixing perfect rhymes with slant/near rhymes (same vowel sound or final consonant, not identical) so the options feel varied, not repetitive. Return ONLY a JSON array of strings, each a short phrase, no explanations or numbering.',{cache:true}).then(function(r){
       return(Array.isArray(r)?r:[]).filter(function(x){return typeof x==='string'&&x.trim()}).map(function(x){return x.trim()}).filter(function(x){return nw(x)!==nw(selPhrase)})
