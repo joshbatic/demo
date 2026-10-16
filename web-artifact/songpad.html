@@ -108,9 +108,9 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 /* sheet */
 #scrim{position:fixed;inset:0;background:rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .25s;z-index:4}
 #scrim.on{opacity:1;pointer-events:auto}
-#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7{position:fixed;left:0;right:0;bottom:0;height:88%;max-width:720px;margin:0 auto;background:var(--sheet);-webkit-backdrop-filter:blur(40px) saturate(190%);backdrop-filter:blur(40px) saturate(190%);box-shadow:none;border-radius:38px 38px 0 0;transform:translateY(105%);transition:transform .38s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;z-index:5;padding-bottom:env(safe-area-inset-bottom,0px)}
-#sheet.on,#sheet2.on,#sheet3.on,#sheet4.on,#sheet5.on,#sheet6.on,#sheet7.on{transform:none;box-shadow:0 0 0 .5px var(--ring),0 -4px 24px var(--sh2),inset 0 1px 0 var(--hl)}
-#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7{height:auto;max-height:84%;overflow-y:auto;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8{position:fixed;left:0;right:0;bottom:0;height:88%;max-width:720px;margin:0 auto;background:var(--sheet);-webkit-backdrop-filter:blur(40px) saturate(190%);backdrop-filter:blur(40px) saturate(190%);box-shadow:none;border-radius:38px 38px 0 0;transform:translateY(105%);transition:transform .38s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;z-index:5;padding-bottom:env(safe-area-inset-bottom,0px)}
+#sheet.on,#sheet2.on,#sheet3.on,#sheet4.on,#sheet5.on,#sheet6.on,#sheet7.on,#sheet8.on{transform:none;box-shadow:0 0 0 .5px var(--ring),0 -4px 24px var(--sh2),inset 0 1px 0 var(--hl)}
+#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8{height:auto;max-height:84%;overflow-y:auto;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 /* Account scrolls differently from the other auto-height sheets above: the whole sheet (including
    its .sh title/Done header) was the scroll container, so the header scrolled away with the content
    instead of staying put like it does in Details (#sheet), where only the inner pane scrolls and the
@@ -609,6 +609,17 @@ body.ios .song{padding:13px 24px}
 .relrow .pct{color:var(--mute);font-size:14.5px;margin-left:-6px}
 .relrow .rx{width:28px;height:28px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;color:var(--mute);background:none}
 .relrow .rx svg{width:13px;height:13px}
+.shcard{margin:4px 20px 14px;border-radius:26px;padding:26px 24px 0;color:#fff;max-height:min(48vh,440px);overflow:hidden;position:relative;box-shadow:0 0 0 .5px var(--ring),0 10px 30px var(--sh2);-webkit-mask-image:linear-gradient(#000 78%,transparent);mask-image:linear-gradient(#000 78%,transparent);transition:background .35s}
+.shcard img{width:96px;height:96px;border-radius:14px;object-fit:cover;display:block;box-shadow:0 8px 22px rgba(0,0,0,.35)}
+.shcard>b{display:block;font-size:26px;line-height:1.08;letter-spacing:-.02em;font-weight:750;margin-top:16px}
+.shcard>span{display:block;font-size:15px;color:rgba(255,255,255,.62);font-weight:500;margin-top:4px}
+.shly{margin-top:22px}.shly p{margin:0 0 5px;font-size:19px;line-height:1.24;font-weight:700;letter-spacing:-.01em;color:rgba(255,255,255,.95)}.shly p.g{height:8px}.shly h4{margin:14px 0 5px;font-size:12.5px;font-weight:600;color:rgba(255,255,255,.5)}.shly h4:first-child{margin-top:0}
+.shsw{display:flex;gap:12px;justify-content:center;padding:2px 20px 16px}
+.shsw button{width:30px;height:30px;border-radius:50%;padding:0;box-shadow:0 0 0 .5px var(--ring);transition:transform .15s,box-shadow .15s}
+.shsw button.on{box-shadow:0 0 0 2.5px var(--bg),0 0 0 4.5px var(--ink)}.shsw button:active{transform:scale(.9)}
+.shg .row{border-bottom:0;min-height:58px}.shg .row>span{display:flex;flex-direction:column;gap:2px}.shg small{font-size:13px;color:var(--mute);line-height:1.3}
+.shg:not(:has(.row)){display:none}
+.shacts{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px}.shacts .go2{flex:1 1 auto;height:44px;font-size:15.5px;min-width:120px}
 .relnote{padding:8px 20px 0;font-size:13px;color:var(--mute);line-height:1.4}
 .relnote.warn{color:var(--red)}
 #p-rel .cell.form .fl{width:112px}
@@ -747,7 +758,7 @@ body.sprinting #rhy{display:none}
   <div id="sc"><div id="gut" aria-hidden="true"></div><div id="pres" aria-hidden="true"></div><div class="hd"><span class="covwrap"><button class="cov" id="cov" aria-label="Cover art"></button></span><div><input id="title" placeholder="Untitled" aria-label="Title" autocorrect="on"><div id="artist"></div><div id="sub"></div><div id="savestate" class="savestate" hidden></div><div id="here" hidden></div></div></div><div id="np" hidden role="group" aria-label="Song audio"><div class="np-top"><button class="np-pp" id="np-pp" aria-label="Play"></button><div class="np-meta"><b id="np-name"></b><span id="np-sub"></span></div><span id="np-t"></span><button class="np-full" id="np-full" aria-label="Play with lyrics" title="Play with lyrics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button></div><div class="np-more"><div class="np-in"><canvas class="np-wave" id="np-wave" tabindex="0" role="slider" aria-label="Position in the song" aria-valuemin="0"></canvas><div class="np-bot"><span id="np-at">0:00</span><div class="np-skip"><button id="np-back" aria-label="Back 15 seconds"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 11.5A9.5 9.5 0 1 1 4.5 15"/><path d="M4.6 6.2v5.4H10"/><text x="14.6" y="17.8" text-anchor="middle" font-size="7.4" font-weight="700" fill="currentColor" stroke="none" font-family="-apple-system,system-ui,sans-serif">15</text></svg></button><button id="np-fwd" aria-label="Forward 15 seconds"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.8 11.5A9.5 9.5 0 1 0 23.5 15"/><path d="M23.4 6.2v5.4H18"/><text x="13.4" y="17.8" text-anchor="middle" font-size="7.4" font-weight="700" fill="currentColor" stroke="none" font-family="-apple-system,system-ui,sans-serif">15</text></svg></button></div><span id="np-left">-0:00</span></div></div></div><i class="np-prog" aria-hidden="true"></i></div><div id="lyr" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="false" autocapitalize="sentences" autocorrect="on" data-ph="Start with a line…"></div></div>
   <div class="abs fadeT"></div>
   <div class="abs fadeB"></div>
-  <div class="abs bar"><div class="bl gl grp2 lgrp"><button class="ib" id="back" aria-label="Songs"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="ib" id="sbt" aria-label="Show sidebar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M9.5 4v16"/></svg></button></div><nav id="crumb" aria-label="Location"><button id="cr-app">*[d]</button><i>/</i><button id="cr-fold"></button><i>/</i><span id="cr-song"></span></nav><div class="bl"><div class="gl grp2"><button class="ib tgl" id="vmap" aria-label="Rhyme map" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h9M4 12h6M4 17h9"/><circle cx="18" cy="7" r="2.2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2.2"/><circle cx="18" cy="17" r="2.2" fill="currentColor" stroke="none"/></svg></button><button class="ib tgl" id="vsyl" aria-label="Syllable counts" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 17V11M10 17V7M15 17v-4M20 17V9"/></svg></button><button class="ib tgl" id="rateb" aria-pressed="false" aria-label="Rate song" title="Rate song"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></button></div><button class="gl ib" id="det" aria-label="Details"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button></div></div>
+  <div class="abs bar"><div class="bl gl grp2 lgrp"><button class="ib" id="back" aria-label="Songs"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="ib" id="sbt" aria-label="Show sidebar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M9.5 4v16"/></svg></button></div><nav id="crumb" aria-label="Location"><button id="cr-app">*[d]</button><i>/</i><button id="cr-fold"></button><i>/</i><span id="cr-song"></span></nav><div class="bl"><div class="gl grp2"><button class="ib tgl" id="vmap" aria-label="Rhyme map" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h9M4 12h6M4 17h9"/><circle cx="18" cy="7" r="2.2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2.2"/><circle cx="18" cy="17" r="2.2" fill="currentColor" stroke="none"/></svg></button><button class="ib tgl" id="vsyl" aria-label="Syllable counts" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 17V11M10 17V7M15 17v-4M20 17V9"/></svg></button><button class="ib" id="shareb" aria-label="Share" title="Share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M8 10.5H6.5a1.5 1.5 0 0 0-1.5 1.5v7.5A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V12a1.5 1.5 0 0 0-1.5-1.5H16"/></svg></button><button class="ib tgl" id="rateb" aria-pressed="false" aria-label="Rate song" title="Rate song"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></button></div><button class="gl ib" id="det" aria-label="Details"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button></div></div>
   <div id="rhy" class="gl">
     <button class="rhyhandle" id="rhyExpand" aria-label="Open dictionary" title="Open dictionary"><i></i></button>
     <div class="r1"><div id="rs"></div><div class="r1g"><button class="tg ic" id="stuckb" aria-label="Muse" title="Call the muse"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5l1.6 4.4c.3.8.9 1.4 1.7 1.7l4.4 1.6-4.4 1.6c-.8.3-1.4.9-1.7 1.7L10 18.9l-1.6-4.4c-.3-.8-.9-1.4-1.7-1.7L2.3 11.2l4.4-1.6c.8-.3 1.4-.9 1.7-1.7z"/><path d="M18.5 2.5l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6zM18.5 16.5l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6z" fill="currentColor"/></svg></button><button class="tg ic" id="aa" aria-label="Text formatting" aria-pressed="false"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.4 2.6a2 2 0 0 1 2.9 2.9L12 14.8 9.2 12z"/><path d="M9.2 12c-2.2 0-4 1.6-4 3.8 0 1.6-.9 2.9-2.2 3.4 1 1.2 2.6 1.8 4.3 1.8 3 0 4.7-2.3 4.7-4.6"/></svg></button><button class="tg ic" id="ctxb" aria-label="Listen to the whole song" aria-pressed="true" title="Listening to the whole song: suggestions fit your song"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9a5 5 0 0 1 10 0c0 3-2.5 3.6-3.4 5.6-.7 1.6-.9 3.9-3.1 3.9A2.6 2.6 0 0 1 8 16"/><path d="M10 9.4a2 2 0 0 1 4 0c0 1.2-1.1 1.6-1.6 2.4"/></svg></button><button class="tg ic" id="gear" aria-label="Writing voice"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/></svg></button><button class="tg" id="lm" aria-pressed="false">Lines</button></div></div>
@@ -797,6 +808,7 @@ body.sprinting #rhy{display:none}
 <div id="sheet4" role="dialog" aria-label="Rate song"><div class="sh"><b>Rate</b><button id="done4">Done</button></div><div id="rt-head"></div><div id="rt-out"></div></div>
 <div id="sheet5" role="dialog" aria-label="Clean up"><div class="sh"><b>Clean up</b><button id="done5">Done</button></div><div id="cu"></div></div>
 <div id="sheet6" role="dialog" aria-label="Account"><div class="sh"><b>Account</b><button id="done6">Done</button></div><div id="acc"></div></div>
+<div id="sheet8" role="dialog" aria-label="Share song"><div class="sh"><b>Share</b><button id="done8">Done</button></div><div id="shr"></div></div>
 <div id="sheet7" role="dialog" aria-label="Idea"><div class="sh"><b>Idea</b><button id="idel" hidden style="color:var(--red)">Delete</button></div><div style="padding:0 20px 12px"><textarea id="itext" rows="4" placeholder="A hook, a title, a stray line, a concept…" style="width:100%;border:0;background:var(--fill);border-radius:14px;padding:12px 14px;font-size:16px;line-height:1.35;color:var(--ink);resize:vertical;outline:0"></textarea></div><div style="padding:0 20px 6px;font-size:12.5px;color:var(--mute)">Tags — mood, theme, project, status, whatever helps you find it later</div><div style="padding:0 20px 18px"><input id="itags" placeholder="e.g. wistful, breakup, album 3, unused" style="width:100%;border:0;background:var(--fill);border-radius:12px;padding:10px 14px;font-size:15px;color:var(--ink);outline:0"></div><div style="display:flex;gap:10px;padding:0 20px 20px"><button class="go" id="isave" style="flex:1;justify-content:center">Save</button><button class="go2 ghost" id="icancel">Cancel</button></div></div>
 <div id="dictSheet" role="dialog" aria-label="Dictionary">
   <div class="sh"><b>Dictionary</b><button id="dictdone">Done</button></div>
@@ -15207,7 +15219,7 @@ $('#logo').onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefau
 var delArm=0;$('#del').onclick=function(){var b=this;if(Date.now()-delArm>3000){delArm=Date.now();b.textContent='Tap Again to Delete';setTimeout(function(){b.textContent='Delete Song'},3000);return}delArm=0;b.textContent='Delete Song';removeSong(cur)};
 function sheet(on,w){if(on&&!wideMQ.matches&&document.body.classList.contains('side'))sideOn(false);
   if(on){var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'||ae.id==='q'))ae.blur()}
-  if(!on){$('#sheet').classList.remove('on');$('#sheet2').classList.remove('on');$('#sheet3').classList.remove('on');$('#sheet4').classList.remove('on');$('#sheet5').classList.remove('on');$('#sheet6').classList.remove('on');$('#sheet7').classList.remove('on')}else $('#'+(w||'sheet')).classList.add('on');$('#scrim').classList.toggle('on',on)}
+  if(!on){$('#sheet').classList.remove('on');$('#sheet2').classList.remove('on');$('#sheet3').classList.remove('on');$('#sheet4').classList.remove('on');$('#sheet5').classList.remove('on');$('#sheet6').classList.remove('on');$('#sheet7').classList.remove('on');$('#sheet8').classList.remove('on')}else $('#'+(w||'sheet')).classList.add('on');$('#scrim').classList.toggle('on',on)}
 $('#det').onclick=function(){dtab('inf');renderVers();renderCollab();sheet(true)};$('#done').onclick=function(){sheet(false)};$('#scrim').onclick=function(){sheet(false);closeDict()};
 function dtab(t){if(t==='mel'&&!isPro()){upsell('melody');t='inf'}if((t==='aud'||t==='rel')&&!isPro()){upsell('audio');t='inf'}document.querySelectorAll('#dseg button').forEach(function(x){x.classList.toggle('on',x.dataset.t===t)});['chd','inf','mel','aud','rel'].forEach(function(p){$('#p-'+p).classList.toggle('on',p===t)});if(t==='mel')renderMel();if(t==='aud')renderAud();if(t==='rel')renderRel()}
 document.querySelectorAll('#dseg button').forEach(function(b){b.onclick=function(){dtab(b.dataset.t)}});
@@ -16188,10 +16200,14 @@ function cover(s){var rows=[],gap=false;(s&&s.lyrics||'').split('\n').forEach(fu
    a pastel pair washed diagonally, plus a glow of a third colour somewhere in the square */
 var COV_PAL=[['#FFC9B0','#FF8FA3'],['#D7C4FF','#9CC8FF'],['#BFF0D4','#7FCCDB'],['#FFE9A8','#FFAA7F'],['#FFC2DA','#B9A6FF'],['#B6E8D8','#9AAEF2'],['#F5D7BA','#EE8F82'],['#B8DEFF','#B5EDC6'],['#F7AFC2','#F9CD86'],['#AFBBFF','#EFAED6'],['#C9E6A6','#86CFB4'],['#FFD6A5','#E7A6E0']];
 var COV_N=0; /* each drawing gets its own gradient ids: a duplicate id inside a hidden list would blank the visible one */
-function covGrad(id){var h=2166136261;for(var i=0;i<id.length;i++){h^=id.charCodeAt(i);h=Math.imul(h,16777619)>>>0}
+function covPick(id){var h=2166136261;for(var i=0;i<id.length;i++){h^=id.charCodeAt(i);h=Math.imul(h,16777619)>>>0}
   var r=function(){h^=h<<13;h>>>=0;h^=h>>>17;h^=h<<5;h>>>=0;return h/4294967296};r();
-  var p=COV_PAL[Math.floor(r()*COV_PAL.length)],q=COV_PAL[Math.floor(r()*COV_PAL.length)],g='cg'+(++COV_N),a=r()*360,
-    x1=(50+50*Math.cos(a*Math.PI/180)).toFixed(0),y1=(50+50*Math.sin(a*Math.PI/180)).toFixed(0),cx=(15+r()*70).toFixed(0),cy=(15+r()*70).toFixed(0),c=q[r()<.5?0:1];
+  var p=COV_PAL[Math.floor(r()*COV_PAL.length)],q=COV_PAL[Math.floor(r()*COV_PAL.length)],a=r()*360,cx=(15+r()*70).toFixed(0),cy=(15+r()*70).toFixed(0),c=q[r()<.5?0:1];
+  return{p:p,a:a,cx:cx,cy:cy,c:c}}
+/* the song's cover colours, strongest first (the share card's fallback background) */
+function covHex(id){var k=covPick(id);return[k.p[1],k.c,k.p[0]]}
+function covGrad(id){var k=covPick(id),p=k.p,a=k.a,cx=k.cx,cy=k.cy,c=k.c,g='cg'+(++COV_N),
+    x1=(50+50*Math.cos(a*Math.PI/180)).toFixed(0),y1=(50+50*Math.sin(a*Math.PI/180)).toFixed(0);
   return '<defs><linearGradient id="'+g+'l" x1="'+x1+'%" y1="'+y1+'%" x2="'+(100-x1)+'%" y2="'+(100-y1)+'%"><stop offset="0" stop-color="'+p[0]+'"/><stop offset="1" stop-color="'+p[1]+'"/></linearGradient>'+
     '<radialGradient id="'+g+'r" cx="'+cx+'%" cy="'+cy+'%" r="60%"><stop offset="0" stop-color="'+c+'" stop-opacity=".85"/><stop offset="1" stop-color="'+c+'" stop-opacity="0"/></radialGradient></defs>'+
     '<rect width="40" height="40" fill="url(#'+g+'l)"/><rect width="40" height="40" fill="url(#'+g+'r)"/><rect class="cvdim" width="40" height="40"/>'}
@@ -17770,6 +17786,134 @@ function saveTextFile(name,text,type){
   if(!NATIVE_IOS){try{var u=URL.createObjectURL(new Blob([text],{type:type||'text/plain'})),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000);toast('Saved '+name);return}catch(e){}}
   try{navigator.clipboard.writeText(text).then(function(){toast('Copied the synced lyrics. Paste them into a .lrc file.')},function(){toast('Saving files isn’t available here')})}catch(e){toast('Saving files isn’t available here')}}
 function exportLrc(){var song=cur;if(!song||!song.sync)return toast('Sync the lyrics first');saveTextFile((song.title||'Untitled').replace(/[\\\/:*?"<>|]+/g,'')+'.lrc',lrcText(song),'text/plain')}
+/* ---------- share: a lyric card (image), a standalone page (with the audio inside it) or plain text ----------
+   The background colour comes from the cover art (or the song's own gradient when it has none).
+   Files are made as soon as the sheet opens or an option changes, so tapping Share can hand them to the
+   share sheet straight away: iOS only allows that during the tap itself, not after a long wait. */
+var SHR={song:null,pal:[],ci:0,aud:true,img:null,page:null,busy:0};
+var SH_FONT="-apple-system,'SF Pro Display',system-ui,'Helvetica Neue',Arial,sans-serif";
+function rgbHsl(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,h=0,s=0,d=mx-mn;
+  if(d){s=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;h*=60}return[h,s,l]}
+function hexHsl(x){var n=parseInt(x.slice(1),16);return rgbHsl(n>>16&255,n>>8&255,n&255)}
+function hsl(c,l,a,ds){var s=Math.max(0,Math.min(.62,c[1]*(ds||1)));return'hsla('+Math.round(c[0])+','+Math.round(s*100)+'%,'+Math.round(l*100)+'%,'+(a==null?1:a)+')'}
+/* the cover's main colours: pixels grouped by hue, ranked by how much of the image they cover and how vivid they are */
+function artPalette(src){return new Promise(function(res){var im=new Image();im.onload=function(){try{var n=40,c=document.createElement('canvas');c.width=c.height=n;var x=c.getContext('2d');x.drawImage(im,0,0,n,n);
+    var d=x.getImageData(0,0,n,n).data,bins={};
+    for(var i=0;i<d.length;i+=4){if(d[i+3]<128)continue;var h=rgbHsl(d[i],d[i+1],d[i+2]),k=h[1]<.14||h[2]<.07||h[2]>.96?'g'+Math.round(h[2]*4):'h'+Math.round(h[0]/15)%24;
+      var b=bins[k]||(bins[k]={n:0,r:0,g:0,b:0,w:0});b.n++;b.r+=d[i];b.g+=d[i+1];b.b+=d[i+2];b.w+=(k[0]==='g'?.35:.6+h[1])*(h[2]<.12||h[2]>.92?.5:1)}
+    var out=[];Object.keys(bins).map(function(k){var b=bins[k];return{w:b.w,c:rgbHsl(b.r/b.n,b.g/b.n,b.b/b.n)}}).sort(function(a,b){return b.w-a.w}).forEach(function(o){
+      if(out.length<5&&!out.some(function(p){return(p[1]<.14&&o.c[1]<.14)||(p[1]>=.14&&o.c[1]>=.14&&Math.min(Math.abs(p[0]-o.c[0]),360-Math.abs(p[0]-o.c[0]))<28)}))out.push(o.c)});
+    res(out)}catch(e){res([])}};im.onerror=function(){res([])};im.src=src})}
+function songPalette(s){var fall=covHex(s.id||'').map(hexHsl);return s.art?artPalette(s.art).then(function(p){return p.length?p:fall}):Promise.resolve(fall)}
+/* the background: the colour, deep at the top and near-black at the foot, with a glow of the next colour */
+function shBg(pal,i){var a=pal[i]||[220,.1,.3],g=pal[(i+1)%pal.length]||a;return{top:hsl(a,.33),bot:hsl(a,.11,1,.9),glow:hsl(g,.42,.55),css:'radial-gradient(110% 60% at 85% 0%,'+hsl(g,.42,.55)+',transparent 70%),linear-gradient(172deg,'+hsl(a,.33)+','+hsl(a,.11,1,.9)+' 92%)'}}
+/* lyrics as sections, lines and gaps, with each line's time when it's synced to the audio being shared */
+function shBlocks(song,audioId){var sy=song.sync,tl=sy&&sy.lines&&(!audioId||sy.audioId===audioId)?sy.lines:null,k=0,out=[];
+  (song.lyrics||'').split('\n').forEach(function(l){var t=l.trim();if(!t){if(out.length&&out[out.length-1].gap!==true)out.push({gap:true});return}
+    var m=/^\[([^\]]*)\]$/.exec(t);if(m){out.push({sec:m[1]});return}
+    var at=null;if(tl&&tl[k]&&String(tl[k].text||'').trim()===t)at=tl[k].t;k++;out.push({line:t,t:at})});
+  while(out.length&&out[out.length-1].gap)out.pop();return out}
+function shCoverSrc(song){if(song.art)return song.art;return'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(cover(song).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" ').replace(/<rect class="cvdim"[^>]*><\/rect>|<rect class="cvdim"[^>]*\/>/,''))}
+function shName(song){return(song.title||'Untitled').replace(/[\\\/:*?"<>|]+/g,'').trim()||'Untitled'}
+/* ---- the image ---- */
+function shImage(song,bg){return new Promise(function(res){var im=new Image();im.onload=function(){res(im)};im.onerror=function(){res(null)};im.src=shCoverSrc(song)}).then(function(art){
+  var W=1080,P=96,c=document.createElement('canvas'),x=c.getContext('2d'),maxW=W-P*2,blocks=shBlocks(song),ops=[],y=P;
+  var wrap=function(t,font){x.font=font;var words=t.split(/\s+/),lines=[],cur='';words.forEach(function(w){var tr=cur?cur+' '+w:w;if(x.measureText(tr).width>maxW&&cur){lines.push(cur);cur=w}else cur=tr});if(cur)lines.push(cur);return lines};
+  var AS=264;ops.push({art:true,y:y});y+=AS+56;
+  var tf='700 66px '+SH_FONT,af='500 38px '+SH_FONT,lf='700 50px '+SH_FONT,sf='600 30px '+SH_FONT;
+  wrap(song.title||'Untitled',tf).forEach(function(l){ops.push({t:l,f:tf,y:y+56,a:1});y+=76});
+  if(song.artist){y+=4;ops.push({t:song.artist,f:af,y:y+36,a:.62});y+=50}
+  y+=52;
+  blocks.forEach(function(b,i){if(b.gap){y+=34;return}if(b.sec){if(i)y+=14;ops.push({t:b.sec,f:sf,y:y+30,a:.5});y+=50;return}
+    wrap(b.line,lf).forEach(function(l){ops.push({t:l,f:lf,y:y+50,a:.96});y+=64})});
+  if(!blocks.length){ops.push({t:'No lyrics yet',f:lf,y:y+50,a:.5});y+=64}
+  y+=72;ops.push({t:'Written in *[demo]',f:'600 28px '+SH_FONT,y:y+28,a:.42});y+=28+P;
+  var H=Math.max(1350,Math.min(y,16000));c.width=W;c.height=H;
+  var lg=x.createLinearGradient(0,0,W*.18,H);lg.addColorStop(0,bg.top);lg.addColorStop(.92,bg.bot);lg.addColorStop(1,bg.bot);x.fillStyle=lg;x.fillRect(0,0,W,H);
+  var rg=x.createRadialGradient(W*.85,0,0,W*.85,0,W*1.05);rg.addColorStop(0,bg.glow);rg.addColorStop(1,'rgba(0,0,0,0)');x.globalAlpha=.85;x.fillStyle=rg;x.fillRect(0,0,W,Math.min(H,1500));x.globalAlpha=1;
+  ops.forEach(function(o){if(o.art){if(!art)return;x.save();x.shadowColor='rgba(0,0,0,.35)';x.shadowBlur=48;x.shadowOffsetY=18;rr(x,P,o.y,AS,AS,30);x.fillStyle='#000';x.fill();x.restore();
+      x.save();rr(x,P,o.y,AS,AS,30);x.clip();x.drawImage(art,P,o.y,AS,AS);x.restore();return}
+    if(o.y>H-20)return;x.font=o.f;x.fillStyle='rgba(255,255,255,'+o.a+')';x.textBaseline='alphabetic';x.fillText(o.t,P,o.y)});
+  return new Promise(function(res){c.toBlob(function(b){res(b)},'image/png')})})}
+function rr(x,X,Y,w,h,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath()}
+/* ---- the page: one .html file that opens in any browser, artwork and audio included ---- */
+function blobUrl64(b){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(r.result)};r.onerror=function(){rej(r.error)};r.readAsDataURL(b)})}
+function shAudio(a){return sfBlob(a).then(function(b){
+  if(b.size>12e6&&mp3Able({name:a.path||a.name,mime:b.type||a.mime}))return decodeBlob(b).then(function(buf){return mp3FromBuf(buf)}).catch(function(){return b});return b})
+  .then(function(b){if(b.size>40e6)throw new Error('That audio is too large to put in a page.');return blobUrl64(b)})}
+function shPage(song,bg,withAudio){var a=withAudio?audCur(song):null;
+  return(a?shAudio(a):Promise.resolve(null)).then(function(au){
+  var blocks=shBlocks(song,a&&a.id),synced=!!(au&&blocks.some(function(b){return b.t!=null})),q=function(s){return esc(String(s)).replace(/"/g,'&quot;')};
+  var body=blocks.map(function(b){if(b.gap)return'<div class="g"></div>';if(b.sec)return'<h3>'+esc(b.sec)+'</h3>';return'<p'+(b.t!=null&&synced?' data-t="'+b.t.toFixed(2)+'"':'')+'>'+esc(b.line)+'</p>'}).join('')||'<p class="none">No lyrics yet</p>';
+  var title=song.title||'Untitled',meta=[song.artist,song.key?'Key of '+song.key:'',song.bpm?song.bpm+' BPM':''].filter(Boolean).join('  ·  ');
+  return'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'+
+  '<title>'+esc(title)+(song.artist?' – '+esc(song.artist):'')+'</title><meta name="theme-color" content="'+q(bg.top)+'"><meta property="og:title" content="'+q(title)+'">'+
+  '<style>*{box-sizing:border-box}html{background:'+bg.bot+'}body{margin:0;min-height:100vh;color:#fff;font:18px/1.4 '+SH_FONT+';-webkit-font-smoothing:antialiased;background:'+bg.css+';background-attachment:fixed}'+
+  'main{max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 56px) 28px '+(au?'150px':'72px')+'}'+
+  '.art{width:min(46vw,232px);aspect-ratio:1;border-radius:22px;display:block;object-fit:cover;box-shadow:0 18px 50px rgba(0,0,0,.4),0 0 0 .5px rgba(255,255,255,.12)}'+
+  'h1{font-size:clamp(34px,8vw,48px);line-height:1.05;letter-spacing:-.02em;margin:34px 0 8px;font-weight:750}.meta{color:rgba(255,255,255,.62);font-size:18px;font-weight:500;margin:0 0 48px}'+
+  'h3{font-size:15px;font-weight:600;color:rgba(255,255,255,.5);margin:34px 0 10px;letter-spacing:.01em}h3:first-child{margin-top:0}'+
+  'p{font-size:clamp(25px,5.6vw,33px);line-height:1.22;font-weight:700;letter-spacing:-.012em;margin:0 0 12px;color:rgba(255,255,255,.95);transition:color .35s,transform .35s;transform-origin:left center}.g{height:26px}.none{opacity:.5}'+
+  (synced?'.sync p{color:rgba(255,255,255,.34);cursor:pointer}.sync p.on{color:#fff;transform:scale(1.025)}.sync p.past{color:rgba(255,255,255,.5)}@media (hover:hover){.sync p:hover{color:rgba(255,255,255,.7)}}':'')+
+  'footer{margin-top:72px;color:rgba(255,255,255,.4);font-size:14px;font-weight:600}'+
+  '.bar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));width:min(600px,calc(100% - 24px));display:flex;align-items:center;gap:14px;padding:10px 18px 10px 10px;border-radius:24px;background:rgba(16,16,18,.62);-webkit-backdrop-filter:blur(30px) saturate(170%);backdrop-filter:blur(30px) saturate(170%);box-shadow:0 0 0 .5px rgba(255,255,255,.14),0 12px 36px rgba(0,0,0,.3)}'+
+  '.pp{width:46px;height:46px;border-radius:50%;border:0;background:#fff;color:#000;display:flex;align-items:center;justify-content:center;flex:none;cursor:pointer}.pp svg{width:18px;height:18px}'+
+  '.tr{flex:1;min-width:0}.tr b{display:block;font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ln{position:relative;height:18px;margin-top:2px;cursor:pointer;touch-action:none}.ln i,.ln u{position:absolute;left:0;top:7px;height:4px;border-radius:2px}.ln i{right:0;background:rgba(255,255,255,.22)}.ln u{width:0;background:#fff}'+
+  '.tm{display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,.6);font-variant-numeric:tabular-nums}'+
+  '@media (prefers-reduced-motion:reduce){p{transition:none}}</style></head><body><main'+(synced?' class="sync"':'')+'>'+
+  '<img class="art" alt="" src="'+q(shCoverSrc(song))+'"><h1>'+esc(title)+'</h1>'+(meta?'<div class="meta">'+esc(meta)+'</div>':'<div class="meta"></div>')+
+  '<div id="ly">'+body+'</div><footer>Written in *[demo]</footer></main>'+
+  (au?'<div class="bar"><button class="pp" id="pp" aria-label="Play"></button><div class="tr"><b>'+esc(a.name||title)+'</b><div class="ln" id="ln" role="slider" aria-label="Position" tabindex="0"><i></i><u id="pg"></u></div><div class="tm"><span id="at">0:00</span><span id="du">'+(a.dur?sfTime(a.dur):'')+'</span></div></div></div>'+
+  '<audio id="au" preload="auto" src="'+au+'"></audio><script>(function(){var A=document.getElementById("au"),pp=document.getElementById("pp"),ln=document.getElementById("ln"),pg=document.getElementById("pg"),at=document.getElementById("at"),du=document.getElementById("du");'+
+  'var P=\'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>\',S=\'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>\';'+
+  'var L=[].slice.call(document.querySelectorAll("#ly p[data-t]")),cur=-1,user=0;function f(s){s=Math.max(0,s||0);var m=Math.floor(s/60),x=Math.floor(s%60);return m+":"+(x<10?"0":"")+x}'+
+  'function ic(){pp.innerHTML=A.paused?P:S;pp.setAttribute("aria-label",A.paused?"Play":"Pause")}ic();'+
+  'function tick(){var d=A.duration||0,t=A.currentTime;pg.style.width=(d?t/d*100:0)+"%";at.textContent=f(t);if(d)du.textContent=f(d);'+
+  'if(L.length){var i=-1;for(var k=0;k<L.length;k++){if(+L[k].dataset.t<=t+.15)i=k;else break}if(i!==cur){cur=i;L.forEach(function(p,k){p.classList.toggle("on",k===i);p.classList.toggle("past",k<i)});'+
+  'if(i>=0&&!A.paused&&Date.now()-user>3000)L[i].scrollIntoView({block:"center",behavior:"smooth"})}}if(!A.paused)requestAnimationFrame(tick)}'+
+  'pp.onclick=function(){if(A.paused)A.play();else A.pause()};A.onplay=function(){ic();tick()};A.onpause=A.onended=function(){ic();tick()};A.onloadedmetadata=tick;'+
+  'L.forEach(function(p){p.onclick=function(){A.currentTime=+p.dataset.t;A.play()}});'+
+  'addEventListener("wheel",function(){user=Date.now()},{passive:true});addEventListener("touchmove",function(){user=Date.now()},{passive:true});'+
+  'function seek(e){var r=ln.getBoundingClientRect(),d=A.duration||0;if(d)A.currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*d;tick()}'+
+  'ln.onpointerdown=function(e){ln.setPointerCapture(e.pointerId);seek(e);ln.onpointermove=seek};ln.onpointerup=ln.onpointercancel=function(){ln.onpointermove=null};'+
+  'ln.onkeydown=function(e){if(e.key==="ArrowRight")A.currentTime+=5;else if(e.key==="ArrowLeft")A.currentTime-=5;tick()};'+
+  'addEventListener("keydown",function(e){if(e.key===" "&&e.target===document.body){e.preventDefault();pp.click()}})})()<\/script>':'')+
+  '</body></html>'})}
+/* ---- handing a file over: the share sheet where there is one, otherwise a download ---- */
+function shCanFile(f){try{return!!(navigator.canShare&&navigator.canShare({files:[f]}))}catch(e){return false}}
+function shSend(file){if(!file)return;if(shCanFile(file)){navigator.share({files:[file],title:file.name}).catch(function(){});return}
+  try{var u=URL.createObjectURL(file),a=document.createElement('a');a.href=u;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},8000);toast('Saved '+file.name)}catch(e){toast('Sharing files isn’t available here')}}
+/* ---- the sheet ---- */
+function openShare(){var song=cur;if(!song)return;SHR.song=song;SHR.img=SHR.page=null;SHR.pal=[];SHR.ci=0;SHR.aud=!!audCur(song);
+  songPalette(song).then(function(p){if(SHR.song!==song)return;SHR.pal=p.length?p:[[220,.1,.3]];sheet(true,'sheet8');renderShare();shMake()})}
+function shMake(){var song=SHR.song;if(!song||!SHR.pal.length)return;var n=++SHR.busy,bg=shBg(SHR.pal,SHR.ci),nm=shName(song);SHR.img=SHR.page=null;paintShareBtns();
+  shImage(song,bg).then(function(b){if(n!==SHR.busy||!b)return;SHR.img=new File([b],nm+'.png',{type:'image/png'});paintShareBtns()}).catch(function(){});
+  var wa=SHR.aud&&!!audCur(song);SHR.pageMsg=wa?'Adding the audio…':'';paintShareBtns();
+  shPage(song,bg,wa).then(function(h){if(n!==SHR.busy)return;SHR.page=new File([h],nm+'.html',{type:'text/html'});SHR.pageMsg='';paintShareBtns()},
+    function(e){if(n!==SHR.busy)return;SHR.pageMsg='';toast('Couldn’t add the audio: '+sfErr(e)+'. Sharing the lyrics only.');SHR.aud=false;renderShare();shMake()})}
+function paintShareBtns(){var i=$('#shr-img'),p=$('#shr-page');if(!i)return;i.disabled=!SHR.img;p.disabled=!SHR.page;i.textContent=SHR.img?'Share Image':'Preparing…';p.textContent=SHR.page?'Share Page':(SHR.pageMsg||'Preparing…')}
+function renderShare(){var o=$('#shr'),song=SHR.song;if(!o||!song)return;var bg=SHR.pal.length?shBg(SHR.pal,SHR.ci):{css:'var(--fill)'},blocks=shBlocks(song);
+  o.innerHTML='';var cd=document.createElement('div');cd.className='shcard';cd.style.background=bg.css;
+  var im=document.createElement('img');im.src=shCoverSrc(song);im.alt='';cd.appendChild(im);
+  var h=document.createElement('b');h.textContent=song.title||'Untitled';cd.appendChild(h);if(song.artist){var ar=document.createElement('span');ar.textContent=song.artist;cd.appendChild(ar)}
+  var ly=document.createElement('div');ly.className='shly';blocks.slice(0,40).forEach(function(b){var e=document.createElement(b.sec?'h4':'p');if(b.gap)e.className='g';else e.textContent=b.sec||b.line;ly.appendChild(e)});
+  if(!blocks.length){var e=document.createElement('p');e.textContent='No lyrics yet';e.style.opacity='.5';ly.appendChild(e)}cd.appendChild(ly);o.appendChild(cd);
+  if(SHR.pal.length>1){var sw=document.createElement('div');sw.className='shsw';sw.setAttribute('role','radiogroup');sw.setAttribute('aria-label','Background colour');
+    SHR.pal.forEach(function(c,i){var b=document.createElement('button');b.style.background=shBg(SHR.pal,i).css;b.className=i===SHR.ci?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',i===SHR.ci?'true':'false');b.setAttribute('aria-label','Colour '+(i+1));
+      b.onclick=function(){if(SHR.ci===i)return;SHR.ci=i;haptic('select');renderShare();shMake()};sw.appendChild(b)});o.appendChild(sw)}
+  var g=document.createElement('div');g.className='gf shg';
+  if(audCur(song)){var r=document.createElement('div');r.className='row';r.innerHTML='<span>Include audio<small></small></span>';r.querySelector('small').textContent=SHR.aud?'“'+audCur(song).name+'” plays in the page'+(song.sync&&song.sync.audioId===audCur(song).id?', with the lyrics lit in time':''):'Lyrics only';
+    var s=document.createElement('button');s.className='swtch'+(SHR.aud?' on':'');s.setAttribute('role','switch');s.setAttribute('aria-checked',SHR.aud?'true':'false');s.setAttribute('aria-label','Include audio');s.innerHTML='<i></i>';
+    s.onclick=function(){SHR.aud=!SHR.aud;renderShare();shMake()};r.appendChild(s);g.appendChild(r)}
+  o.appendChild(g);
+  var acts=document.createElement('div');acts.className='shacts';
+  var bi=document.createElement('button');bi.id='shr-img';bi.className='go2';bi.onclick=function(){shSend(SHR.img)};
+  var bp=document.createElement('button');bp.id='shr-page';bp.className='go2';bp.onclick=function(){shSend(SHR.page)};
+  var bt=document.createElement('button');bt.className='go2 ghost';bt.textContent='Copy Lyrics';bt.onclick=function(){var t=(song.title?song.title+(song.artist?' – '+song.artist:'')+'\n\n':'')+(song.lyrics||'');try{navigator.clipboard.writeText(t).then(function(){toast('Copied')},function(){toast('Copy blocked by browser')})}catch(e){toast('Copy not available')}};
+  acts.appendChild(bi);acts.appendChild(bp);acts.appendChild(bt);o.appendChild(acts);
+  o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:'The image is a lyric card for messages and socials. The page is a single file that opens in any browser'+(audCur(song)?', with the song playing right in it':'')+'.'}));
+  paintShareBtns()}
+$('#shareb').onclick=openShare;$('#done8').onclick=function(){sheet(false)};
 
 /* ---------- credits & splits, release details ---------- */
 var CREDIT_ROLES=['Writer','Composer','Lyricist','Producer','Performer','Featured artist','Mix engineer','Mastering engineer','Other'],SPLIT_ROLES={Writer:1,Composer:1,Lyricist:1};
