@@ -178,6 +178,18 @@ body.ios #dictSheet{top:16%;padding-top:0}
 #toast{position:fixed;left:50%;bottom:110px;transform:translate(-50%,6px);padding:10px 18px;border-radius:99px;font-size:14px;line-height:1.35;opacity:0;pointer-events:none;transition:opacity .22s,transform .22s cubic-bezier(.32,.72,0,1);z-index:60;width:max-content;max-width:calc(100% - 48px);text-align:center}
 /* Liquid Glass notification-style banner — a single tappable row (icon badge, text, chevron),
    the way iOS's own system banners read, rather than a boxed card with two stacked buttons */
+#invbanner{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);max-width:420px;margin:0 auto;z-index:221;border-radius:24px;padding:14px 16px 14px;transform:translateY(140%) scale(.96);opacity:0;transition:transform .38s cubic-bezier(.32,.72,0,1),opacity .2s;pointer-events:none}
+#invbanner.on{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+#invbanner .ib-row{display:flex;align-items:center;gap:12px}
+#invbanner .ib-av{width:42px;height:42px;border-radius:50%;flex:none;overflow:hidden;display:grid;place-items:center;font-weight:700;font-size:16px;color:#3B2E5A;background:linear-gradient(135deg,#FFD3BE,#E3CCFF 52%,#BFDDFF);box-shadow:0 0 0 2px var(--bg),0 2px 8px rgba(0,0,0,.14)}
+#invbanner .ib-av img{width:100%;height:100%;object-fit:cover}
+#invbanner b{font-size:15px;display:block;margin-bottom:1px;font-weight:600}
+#invbanner p{font-size:13px;color:var(--mute);line-height:1.3;margin:0;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+#invbanner .ib-acts{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+#invbanner .ib-acts .go2{height:34px;padding:0 16px;font-size:14px}
+#ib-x{position:absolute;top:-9px;right:-9px;color:var(--mute);width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;background:var(--bg);box-shadow:0 0 0 .5px var(--ring),0 1px 4px rgba(0,0,0,.2);z-index:1}
+#here.live{color:var(--ink)}#here.live i{width:7px;height:7px;border-radius:50%;background:#34C759;flex:none;animation:livep 1.2s ease-in-out infinite}
+@keyframes livep{50%{opacity:.35}}@media (prefers-reduced-motion:reduce){#here.live i{animation:none}}
 #probanner{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);max-width:420px;margin:0 auto;z-index:220;border-radius:22px;transform:translateY(140%) scale(.96);opacity:0;transition:transform .34s cubic-bezier(.32,.72,0,1),opacity .2s;pointer-events:none}
 #probanner.on{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
 #probanner .pb-row{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -1154,6 +1166,11 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
 <div id="perf" hidden><b id="pf-title"></b><div id="pf-txt"></div><div class="pbar gl"><button id="pf-x">Done</button><button id="pf-sm" aria-label="Smaller text">A−</button><button id="pf-lg" aria-label="Larger text">A+</button><button id="pf-sl" aria-label="Slower">−</button><span id="pf-sp">1×</span><button id="pf-fa" aria-label="Faster">+</button><button id="pf-play">Play</button></div></div>
 <div id="authgate"><div class="ag-card"><h1>*[demo]</h1><p>Sign in to use *[demo]. Your songs sync to your account and stay backed up.</p><button class="go" id="ag-google"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg><span>Sign in with Google</span></button><button class="go ag-apple" id="ag-apple"><svg width="17" height="17" viewBox="0 0 170 170" aria-hidden="true" fill="currentColor"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.197-2.12-9.973-3.17-14.34-3.17-4.58 0-9.492 1.05-14.746 3.17-5.262 2.13-9.501 3.24-12.742 3.35-4.929.21-9.842-1.96-14.746-6.52-3.13-2.73-7.045-7.41-11.735-14.04-5.032-7.08-9.169-15.29-12.41-24.65-3.471-10.11-5.211-19.9-5.211-29.378 0-10.857 2.345-20.221 7.045-28.068 3.693-6.303 8.606-11.275 14.755-14.925 6.149-3.65 12.792-5.51 19.946-5.629 3.915 0 9.045 1.211 15.42 3.591 6.356 2.388 10.44 3.599 12.238 3.599 1.342 0 5.877-1.416 13.57-4.239 7.275-2.618 13.415-3.702 18.445-3.275 13.63 1.1 23.87 6.473 30.68 16.153-12.19 7.386-18.22 17.731-18.1 31.002.11 10.337 3.86 18.939 11.23 25.769 3.34 3.17 7.07 5.62 11.22 7.36-.9 2.61-1.85 5.11-2.86 7.51zM119.11 7.24c0 8.102-2.96 15.667-8.86 22.669-7.12 8.324-15.732 13.134-25.071 12.375a25.21 25.21 0 0 1-.188-3.07c0-7.772 3.384-16.089 9.399-22.877 3.002-3.43 6.82-6.282 11.45-8.56 4.62-2.245 8.99-3.486 13.1-3.685.12 1.056.17 2.111.17 3.148z"/></svg><span>Sign in with Apple</span></button><div class="ag-or"><span>or</span></div><div class="ag-email"><input type="email" id="ag-email" placeholder="Email" autocomplete="email" autocapitalize="off" spellcheck="false"><input type="password" id="ag-pw" placeholder="Password" autocomplete="current-password"><button class="go" id="ag-email-go">Sign in</button><p class="ag-switch">New here? <a href="#" id="ag-toggle">Create an account</a></p></div><p class="note" id="ag-note"></p><button class="devlink" id="ag-devlink">Dev Mode</button><div class="devrow" id="ag-devrow"><input type="password" id="ag-devpw" placeholder="Dev password" autocomplete="off"><button id="ag-devgo">Enter</button></div></div></div>
 <div id="toast" class="gl"></div>
+<div id="invbanner" class="gl" role="alertdialog" aria-label="Song invitation" aria-live="polite">
+  <button id="ib-x" aria-label="Not now">×</button>
+  <div class="ib-row"><div class="ib-av" id="ib-av"></div><div class="pb-txt"><b id="ib-t"></b><p id="ib-d"></p></div></div>
+  <div class="ib-acts"><button class="go2 ghost" id="ib-no">Not now</button><button class="go2" id="ib-ok">Accept</button></div>
+</div>
 <div id="probanner" class="gl" role="dialog" aria-label="Beta feature">
   <button id="pb-x" aria-label="Dismiss">×</button>
   <div class="pb-row" id="pb-row">
@@ -14721,7 +14738,7 @@ function openIdeas(){sheet(false);show('vIdeas');ifilterTag='';$('#iq').value=''
 function ensureStorageForMode(){var k=currentKey();if(k!==ACTIVE_KEY){ACTIVE_KEY=k;cur=null;load();if(typeof show==='function')show('vList');renderList();renderSide()}}
 var st,lastSaveShow=0,showThisSave=false;
 function save(){
-  libTyping=Date.now();
+  libTyping=Date.now();if(!LIVE.applying)liveQueue();
   /* save() fires on basically every keystroke, debounced down to one real write per pause - but
      showing the "Saving…/Saved" indicator on every single one of those writes made it pop in and out
      constantly while actively typing, which read as noisy rather than reassuring. It still saves in
@@ -15219,7 +15236,7 @@ function openSong(id){
   cur=songs.filter(function(s){return s.id===id})[0];if(!cur)return;sheet(false);LSK=null;scheme=cur.scheme||'auto';if(typeof setRateMode==='function'&&rateMode)setRateMode(false);PF=mkPF(cur.pf||pgGet());MC={};gearDot();
   Object.keys(map).forEach(function(sel){$(sel).value=cur[map[sel]]||''});setLyr(cur);hdr();
   $('#fl').innerHTML=Array.from(new Set(songs.map(function(s){return s.folder}).filter(Boolean))).map(function(f){return'<option value="'+f.replace(/"/g,'&quot;')+'">'}).join('');
-  chordChips();show('vEdit');rhyme();renderSide();if(cur.shared)pullShared(cur);
+  chordChips();show('vEdit');rhyme();renderSide();if(cur.shared)pullShared(cur);liveJoin(cur);
   var l=$('#lyr'),blank=!cur.lyrics&&!cur.title,mob=innerWidth<=820&&matchMedia('(pointer:coarse)').matches;
   if(blank||!mob){l.focus();l.setSelectionRange(l.value.length,l.value.length)}else lastSel={s:l.value.length,e:l.value.length};
   $('#sc').scrollTop=0;setTimeout(reveal,60);if(blank){setTimeout(function(){$('#sc').scrollTop=0},80)}autoSnap();refreshViews();sendPres();sfStopPreview();AUD_OPEN=null;if(lpAu&&lpAu._song!==cur.id)npStop();paintPlayB();
@@ -16230,7 +16247,12 @@ function covGrad(id){var k=covPick(id),p=k.p,a=k.a,cx=k.cx,cy=k.cy,c=k.c,g='cg'+
 var PENDING_INVITES=[];
 function ser(s){var o={};Object.keys(s).forEach(function(k){if(k[0]!=='_'&&k!=='shared')o[k]=s[k]});if(o.versions)o.versions=o.versions.slice(-8);return JSON.parse(JSON.stringify(o))}
 function isOwnerOf(s){return!!(s&&AUTH_USER&&s.owner===AUTH_USER.id)}
-function syncShared(){if(!AUTH_USER)return;songs.forEach(function(s){if(s.shared&&(isOwnerOf(s)||(s.members||[]).indexOf(AUTH_USER.id)>=0)&&(s.updated||0)>(s._pushed||0))pushShared(s)})}
+var shT=null,shLast=0;
+function syncShared(){if(!AUTH_USER)return;var live=LIVE.ch&&LIVE.id;
+  songs.forEach(function(s){if(!(s.shared&&(isOwnerOf(s)||(s.members||[]).indexOf(AUTH_USER.id)>=0)&&(s.updated||0)>(s._pushed||0)))return;
+    /* the open song's changes already reached co-writers live, so its full copy is saved at most every 4 s */
+    if(live&&s.id===LIVE.id){if(!shT){var w=Math.max(0,4000-(Date.now()-shLast));shT=setTimeout(function(){shT=null;shLast=Date.now();if((s.updated||0)>(s._pushed||0))pushShared(s)},w)}return}
+    pushShared(s)})}
 function pushShared(s){if(!AUTH_USER)return;var c=sbClient();if(!c)return;s.lastEditBy=AUTH_USER.email;s.lastEditAt=Date.now();var body=ser(s),u=body.updated;
   c.from('shared_songs').upsert({id:s.id,owner_id:s.owner||AUTH_USER.id,owner_email:s.ownerEmail||AUTH_USER.email,data:body,updated_at:new Date().toISOString()}).then(function(r){
     if(r&&r.error){console.warn('shared_songs sync failed',r.error);toast(r.error.code==='42501'?'You can’t edit this shared song. Ask the owner for access.':'Couldn’t sync this song (kept on this device): '+(r.error.message||r.error.code||'unknown error'));return}
@@ -16242,12 +16264,97 @@ function pullShared(s){var c=sbClient();if(!c||!AUTH_USER||!s||!s.shared)return;
     if(!r||r.error||!r.data)return;var d=r.data.data||{};
     if((d.updated||0)>(s.updated||0)){
       var mine=s===cur,sel=mine?getSel():null,focused=mine&&document.activeElement===lyr;
-      Object.keys(d).forEach(function(k){s[k]=d[k]});s.owner=r.data.owner_id;s.ownerEmail=r.data.owner_email;s._pushed=d.updated;
+      Object.keys(d).forEach(function(k){s[k]=d[k]});s.owner=r.data.owner_id;s.ownerEmail=r.data.owner_email;s._pushed=d.updated;liveSnap(s);
       if(mine){Object.keys(map).forEach(function(sel2){var el=$(sel2);if(document.activeElement!==el)el.value=s[map[sel2]]||''});setLyr(s);if(focused){var L=getText().length;setSel(Math.min(sel.s,L),Math.min(sel.e,L))}PF=mkPF(s.pf||pgGet());hdr();LSK=null;rhyme();refreshViews()}
       renderList();renderSide()
     }
   })
 }
+/* ---------- live co-writing: shared songs update on everyone's screen as they're typed ----------
+   Each open shared song has a Realtime broadcast channel (song:<id>). Instead of re-uploading the whole song,
+   every ~150 ms of typing sends only what changed in each field: where, what was removed and what was added,
+   with a few characters of context so it still lands in the right place if the other person was typing too.
+   That's tens of bytes per message. The full song still goes to the database, but only every few seconds,
+   as the backup and for anyone who opens the song later. If a change can't be placed, the app asks the
+   other device for the whole text once. */
+var LIVE={ch:null,id:null,snap:null,t:0,last:0,pend:[],comp:false,who:{},full:0};
+var LIVE_F=['lyrics','title','artist','chords','notes','key','bpm','tuning','status'];
+/* formatting (bold, italics…) isn't patched character by character: iPhone and Mac write the same formatting
+   differently. It's sent whole, only when it changes without the words changing. */
+function liveVal(s,k){var v=s[k];return v==null?'':String(v)}
+function liveDiff(a,b){if(a===b)return null;var n=Math.min(a.length,b.length),p=0;while(p<n&&a.charCodeAt(p)===b.charCodeAt(p))p++;
+  var q=0;while(q<n-p&&a.charCodeAt(a.length-1-q)===b.charCodeAt(b.length-1-q))q++;
+  return{f:p,d:a.slice(p,a.length-q),i:b.slice(p,b.length-q),c:a.slice(Math.max(0,p-16),p),a:a.slice(a.length-q,a.length-q+16)}}
+/* find where a change from the other device belongs in my copy, even if I've typed nearby since: the exact
+   spot if the text around it still matches, otherwise the nearest place where the text just before it (or
+   just after it) still matches, trying shorter and shorter overlaps */
+function livePatch(t,P){var A=P.a||'',C=P.c||'',D=P.d||'';
+  var fits=function(q){return q>=0&&q<=t.length&&t.substr(q,D.length)===D};
+  if(fits(P.f)&&t.slice(Math.max(0,P.f-C.length),P.f)===C&&t.substr(P.f+D.length,A.length)===A)return{t:t.slice(0,P.f)+P.i+t.slice(P.f+D.length),at:P.f};
+  var best=-1,bd=1e9,cand=function(q){if(fits(q)){var dd=Math.abs(q-P.f);if(dd<bd){bd=dd;best=q}}};
+  var scan=function(key,toPos){if(!key)return;var k=t.indexOf(key);while(k>=0){cand(toPos(k));k=t.indexOf(key,k+1)}};
+  for(var n=C.length;n>=3&&best<0;n=n>8?8:n-2)scan(C.slice(C.length-n)+D,function(k){return k+n});
+  for(var m=A.length;m>=3&&best<0;m=m>8?8:m-2)scan(D+A.slice(0,m),function(k){return k});
+  if(best<0&&!C&&!A)best=Math.min(P.f,t.length);
+  if(best<0)return null;return{t:t.slice(0,best)+P.i+t.slice(best+D.length),at:best}}
+function liveSnap(s){if(s&&LIVE.id===s.id){LIVE.snap={};LIVE_F.forEach(function(k){LIVE.snap[k]=liveVal(s,k)});LIVE.snap._rich=liveVal(s,'rich')}}
+function liveJoin(s){if(!s||!s.shared||!AUTH_USER){liveLeave();return}if(LIVE.id===s.id&&LIVE.ch)return;liveLeave();
+  var c=sbClient();if(!c||!c.channel)return;LIVE.id=s.id;liveSnap(s);
+  try{var ch=c.channel('song:'+s.id,{config:{broadcast:{self:false}}});
+    ch.on('broadcast',{event:'p'},function(m){liveRecv(m&&m.payload)})
+      .on('broadcast',{event:'need'},function(m){var x=m&&m.payload;if(x&&x.id===LIVE.id&&cur&&cur.id===x.id&&(!x.u||(cur.updated||0)>=x.u))liveSendFull()})
+      .on('broadcast',{event:'full'},function(m){liveFull(m&&m.payload)})
+      .on('broadcast',{event:'fmt'},function(m){if(LIVE.comp)return;liveFmt(m&&m.payload)})
+      .subscribe(function(st){if(st==='SUBSCRIBED'&&cur&&cur.id===s.id)try{ch.send({type:'broadcast',event:'need',payload:{id:s.id,dev:LIB_DEV,u:cur.updated||0}})}catch(e){}});
+    LIVE.ch=ch}catch(e){LIVE.ch=null}}
+function liveLeave(){if(LIVE.ch){liveFlushNow();try{sbClient().removeChannel(LIVE.ch)}catch(e){}}clearTimeout(LIVE.t);LIVE.ch=null;LIVE.id=null;LIVE.snap=null;LIVE.pend=[];liveHere(null)}
+/* called on every edit: send at most one message per 150 ms, carrying everything changed since the last one */
+function liveQueue(){if(!LIVE.ch||!cur||cur.id!==LIVE.id)return;if(LIVE.t)return;var w=Math.max(0,150-(Date.now()-LIVE.last));LIVE.t=setTimeout(liveSend,w)}
+function liveSend(){LIVE.t=0;var s=cur;if(!LIVE.ch||!s||s.id!==LIVE.id)return;if(!LIVE.snap)return liveSnap(s);
+  var ch={},any=false;LIVE_F.forEach(function(k){var v=liveVal(s,k),d=liveDiff(LIVE.snap[k],v);if(d){ch[k]=d;LIVE.snap[k]=v;any=true}});
+  var rich=liveVal(s,'rich'),fmt=!ch.lyrics&&rich!==LIVE.snap._rich&&!!rich;LIVE.snap._rich=rich;
+  if(fmt){LIVE.last=Date.now();try{LIVE.ch.send({type:'broadcast',event:'fmt',payload:{id:s.id,dev:LIB_DEV,u:s.updated||Date.now(),txt:liveVal(s,'lyrics'),h:rich}})}catch(e){}}
+  if(!any)return;
+  LIVE.last=Date.now();try{LIVE.ch.send({type:'broadcast',event:'p',payload:{id:s.id,dev:LIB_DEV,who:myName()||'',u:s.updated||Date.now(),ch:ch}})}catch(e){}}
+function liveFmt(x){if(!x||x.id!==LIVE.id||x.dev===LIB_DEV||typeof x.h!=='string'||!cur||cur.id!==x.id)return;if(liveVal(cur,'lyrics')!==x.txt)return;
+  var focused=document.activeElement===lyr,sel=focused?getSel():null;cur.rich=x.h;setLyr(cur);if(sel)setSel(Math.min(sel.s,getText().length),Math.min(sel.e,getText().length));
+  cur.rich=lyr.innerHTML;if(LIVE.snap)LIVE.snap._rich=cur.rich;cur.updated=Math.max(cur.updated||0,x.u||0);cur._pushed=Math.max(cur._pushed||0,cur.updated);refreshViews();LIVE.applying=true;try{save()}finally{LIVE.applying=false}}
+function liveSendFull(){var s=cur;if(!LIVE.ch||!s||s.id!==LIVE.id||Date.now()-LIVE.full<800)return;LIVE.full=Date.now();var f={};LIVE_F.forEach(function(k){f[k]=liveVal(s,k)});f.rich=liveVal(s,'rich');
+  try{LIVE.ch.send({type:'broadcast',event:'full',payload:{id:s.id,dev:LIB_DEV,who:myName()||'',u:s.updated||Date.now(),f:f}})}catch(e){}}
+function liveRecv(x){if(!x||x.id!==LIVE.id||x.dev===LIB_DEV||!x.ch)return;if(LIVE.comp){LIVE.pend.push(x);return}
+  var s=songs.filter(function(z){return z.id===x.id})[0];if(!s)return;var nv={},shift=null,bad=false;
+  Object.keys(x.ch).forEach(function(k){if(LIVE_F.indexOf(k)<0)return;var r=livePatch(liveVal(s,k),x.ch[k]);if(!r){bad=true;return}nv[k]=r.t;if(k==='lyrics')shift={at:r.at,d:x.ch[k].d.length,i:x.ch[k].i.length};
+    if(LIVE.snap){var rs=livePatch(LIVE.snap[k],x.ch[k]);LIVE.snap[k]=rs?rs.t:r.t}});
+  if(bad){try{LIVE.ch.send({type:'broadcast',event:'need',payload:{id:x.id,dev:LIB_DEV}})}catch(e){}}
+  if(Object.keys(nv).length)liveApply(s,nv,x,shift)}
+function liveFull(x){if(!x||x.id!==LIVE.id||x.dev===LIB_DEV||!x.f)return;var s=songs.filter(function(z){return z.id===x.id})[0];if(!s)return;
+  if(LIVE.snap&&LIVE_F.some(function(k){return liveVal(s,k)!==LIVE.snap[k]})){liveSend();setTimeout(function(){try{LIVE.ch.send({type:'broadcast',event:'need',payload:{id:x.id,dev:LIB_DEV}})}catch(e){}},400);return}
+  if((s.updated||0)>(x.u||0)&&LIVE_F.every(function(k){return liveVal(s,k)===String(x.f[k]==null?'':x.f[k])}))return;
+  var nv={};LIVE_F.concat(['rich']).forEach(function(k){if(x.f[k]!=null)nv[k]=String(x.f[k])});nv._whole=1;liveApply(s,nv,x,null)}
+function liveDom(at,dl,ins){var a=locate(at),b=locate(at+dl),r=document.createRange();r.setStart(a[0],a[1]);r.setEnd(b[0],b[1]);r.deleteContents();
+  var fr=document.createDocumentFragment();ins.split('\n').forEach(function(t,i){if(i)fr.appendChild(document.createElement('br'));if(t)fr.appendChild(document.createTextNode(t))});r.insertNode(fr);lyr.normalize()}
+function liveApply(s,nv,x,shift){var mine=s===cur,whole=!!nv._whole;delete nv._whole;var focused=mine&&document.activeElement===lyr,sel=focused?getSel():null,txt=('lyrics' in nv)||('rich' in nv);
+  if(mine&&!whole&&('lyrics' in nv)&&shift){var want=nv.lyrics;try{liveDom(shift.at,shift.d,want.slice(shift.at,shift.at+shift.i))}catch(e){}
+    if(getText()===want){delete nv.lyrics;s.lyrics=want;s.rich=lyr.innerHTML;txt=false}}
+  Object.keys(nv).forEach(function(k){s[k]=k==='bpm'&&nv[k]!==''&&!isNaN(+nv[k])?+nv[k]:nv[k]});
+  if(mine&&txt&&('lyrics' in nv)&&!('rich' in nv))s.rich='';
+  s.updated=Math.max(s.updated||0,x.u||0);s._pushed=Math.max(s._pushed||0,s.updated);s.lastEditBy=x.who||s.lastEditBy;
+  if(LIVE.snap&&whole){Object.keys(nv).forEach(function(k){LIVE.snap[k]=liveVal(s,k)});LIVE.snap._rich=liveVal(s,'rich')}
+  if(mine){if(txt){setLyr(s);if(sel){var L=getText().length,mv=function(p){if(shift){if(p>=shift.at+shift.d)p+=shift.i-shift.d;else if(p>shift.at)p=shift.at+shift.i}return Math.max(0,Math.min(p,L))};setSel(mv(sel.s),mv(sel.e))}}
+    Object.keys(map).forEach(function(q){var el=$(q);if(el&&document.activeElement!==el&&map[q] in nv)el.value=s[map[q]]||''});
+    hdr();LSK=null;rhyme();refreshViews();liveHere(x.who)}
+  LIVE.applying=true;try{save()}finally{LIVE.applying=false}renderList()}
+/* "Sam is writing…" under the title while their changes are coming in */
+var liveHereT=null;
+function liveHere(who){var h=$('#here');if(!h)return;clearTimeout(liveHereT);
+  if(!who){h.classList.remove('live');if(typeof renderCollabHint==='function')renderCollabHint();return}
+  h.hidden=false;h.classList.add('live');h.style.cursor='';h.onclick=null;h.innerHTML='<i></i><span></span>';h.lastChild.textContent=who.split(/\s+/)[0]+' is writing…';
+  liveHereT=setTimeout(function(){h.classList.remove('live');if(cur)SEEN[cur.id]=cur.lyrics||'';h.hidden=true},2500)}
+function liveFlushNow(){var s=songs.filter(function(z){return z.id===LIVE.id})[0];if(s&&(s.updated||0)>(s._pushed||0))pushShared(s)}
+lyr.addEventListener('compositionstart',function(){LIVE.comp=true});
+lyr.addEventListener('compositionend',function(){LIVE.comp=false;var q=LIVE.pend;LIVE.pend=[];q.forEach(liveRecv)});
+document.addEventListener('visibilitychange',function(){if(document.hidden)liveFlushNow()});
+window.addEventListener('pagehide',liveFlushNow);
 function shareSong(){if(!AUTH_USER){toast('Sign in with Google to share songs');return}if(!cur)return;
   var s=cur;
   if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s.id)){
@@ -16273,7 +16380,7 @@ function inviteCollaborator(target){if(!cur||!AUTH_USER)return;
     var c=sbClient();if(!c)return toast('Sign-in isn’t available right now.');
     c.from('collab_invites').insert({song_id:cur.id,song_title:cur.title||'Untitled',owner_id:AUTH_USER.id,owner_email:AUTH_USER.email,owner_name:myName()||null,invitee_user_id:uid,invitee_username:uname}).then(function(r){
       if(r&&r.error)return toast('Couldn’t send the invite: '+r.error.message);
-      toast('Invited @'+uname);renderCollab()
+      toast('Invited @'+uname);renderCollab();pingUser(uid,'invite')
     })
   }
   if(target&&typeof target==='object')return send(target.user_id,target.username);
@@ -16312,7 +16419,7 @@ function acceptInvite(inv){var c=sbClient();if(!c||!AUTH_USER)return;
         }
         save();renderList();renderSide();
         PENDING_INVITES=PENDING_INVITES.filter(function(x){return x.id!==inv.id});renderInvites();
-        toast('Joined “'+(inv.song_title||'that song')+'”');
+        toast('Joined “'+(inv.song_title||'that song')+'”');if(INV_OPEN===inv.song_id){INV_OPEN=null;if(songs.some(function(x){return x.id===inv.song_id}))openSong(inv.song_id)}
         var joined=songs.filter(function(x){return x.id===inv.song_id})[0];
         if(joined)c.from('collab_members').select('user_id').eq('song_id',inv.song_id).then(function(rm){
           var ids=[joined.owner].concat(((rm&&rm.data)||[]).map(function(x){return x.user_id}));applyCredits(joined,ids)
@@ -16724,10 +16831,24 @@ function ensureNotifPermission(){
   if(Notification.permission==='granted'){notifPerm=true;return}
   if(Notification.permission!=='denied')Notification.requestPermission().then(function(p){notifPerm=p==='granted'});
 }
+/* invitation banner: who invited you, to which song, Accept / Not now. Invites stay in Account either way. */
+var INV_Q=[],INV_CUR=null,invT=null;
+function showInviteBanner(inv,owner){if(INV_CUR&&INV_CUR.inv.id===inv.id)return;if(INV_CUR){if(!INV_Q.some(function(x){return x.inv.id===inv.id}))INV_Q.push({inv:inv,owner:owner});return}
+  INV_CUR={inv:inv,owner:owner};var from=(owner&&(owner.display_name||owner.username))||inv.owner_name||(inv.owner_email||'').split('@')[0]||'Someone';
+  var av=$('#ib-av');av.innerHTML='';if(owner&&owner.avatar_url){var im=document.createElement('img');im.src=owner.avatar_url;im.alt='';im.referrerPolicy='no-referrer';av.appendChild(im)}else av.textContent=(from.trim()[0]||'?').toUpperCase();
+  $('#ib-t').textContent=from+' invited you';$('#ib-d').textContent='to write “'+(inv.song_title||'a song')+'” together';
+  var b=$('#invbanner'),rhy=$('#rhy'),r=rhy&&rhy.offsetParent&&rhy.getBoundingClientRect();
+  if(r&&r.width&&r.height&&r.top>200){var bh=b.getBoundingClientRect().height||120;b.style.bottom='auto';b.style.top=(r.top-bh-14)+'px'}else{b.style.top='';b.style.bottom=''}
+  var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'||ae.id==='q'))ae.blur();
+  b.classList.add('on');haptic('success');clearTimeout(invT);invT=setTimeout(hideInviteBanner,20000)}
+function hideInviteBanner(){$('#invbanner').classList.remove('on');clearTimeout(invT);INV_CUR=null;var n=INV_Q.shift();if(n)setTimeout(function(){showInviteBanner(n.inv,n.owner)},450)}
+$('#ib-ok').onclick=function(){var x=INV_CUR;hideInviteBanner();if(x){INV_OPEN=x.inv.song_id;acceptInvite(x.inv)}};
+$('#ib-no').onclick=$('#ib-x').onclick=function(){hideInviteBanner()};
+var INV_OPEN=null;
 function notifyInvite(inv,owner){
   var from=(owner&&(owner.display_name||owner.username))||inv.owner_name||inv.owner_email||'a collaborator';
   var title=inv.song_title||'a song';
-  toast(from+' invited you to “'+title+'”');
+  showInviteBanner(inv,owner);
   try{
     if(notifPerm&&typeof Notification!=='undefined'&&(document.hidden||!document.hasFocus())){
       var n=new Notification('*[demo] invite',{body:from+' invited you to "'+title+'"'});
@@ -17026,12 +17147,16 @@ function libListen(){
   libStop();
   if(c.channel){try{
     var ch=c.channel('library:'+AUTH_USER.id,{config:{broadcast:{self:false}}});ch._uid=AUTH_USER.id;
+    ch.on('broadcast',{event:'invite'},function(){pullInvites()});
     ch.on('broadcast',{event:'changed'},function(m){if(m&&m.payload&&m.payload.dev===LIB_DEV)return;clearTimeout(libT);libT=setTimeout(function(){cloudSync()},250)}).subscribe();
     libChan=ch;
   }catch(e){libChan=null}}
   libPollT=setInterval(libPoll,20000);
 }
 function libStop(){if(libChan){try{sbClient().removeChannel(libChan)}catch(e){}libChan=null}if(libPollT){clearInterval(libPollT);libPollT=null}libSeenAt=null}
+/* tell another account's open devices something happened (an invite), over their library channel */
+function pingUser(uid,ev){var c=sbClient();if(!c||!c.channel||!uid)return;try{var ch=c.channel('library:'+uid);var done=false,end=function(){if(done)return;done=true;try{c.removeChannel(ch)}catch(e){}};
+  ch.subscribe(function(st){if(st==='SUBSCRIBED'){var p=ch.send({type:'broadcast',event:ev,payload:{}});if(p&&p.then)p.then(end,end);else setTimeout(end,500)}});setTimeout(end,8000)}catch(e){}}
 function libPing(){if(libChan)try{libChan.send({type:'broadcast',event:'changed',payload:{dev:LIB_DEV}})}catch(e){}}
 function libPoll(){if(!libReady()||document.hidden||libBusy)return;
   sbClient().from('cloud_library').select('updated_at').eq('user_id',AUTH_USER.id).maybeSingle().then(function(r){if(r&&!r.error&&r.data&&r.data.updated_at!==libSeenAt)cloudSync()},function(){})}
@@ -17120,7 +17245,7 @@ function signInOAuth(provider,forceChooser,label){
 }
 function signInGoogle(forceChooser){signInOAuth('google',forceChooser,'Google')}
 function signInApple(forceChooser){signInOAuth('apple',forceChooser,'Apple')}
-function signOutGoogle(){libStop();var c=sbClient();if(c)c.auth.signOut();AUTH_USER=null;cloudDidPull=false;DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}stopInvitePolling();PENDING_INVITES=[];ensureStorageForMode();renderAccount();paintAcctIcons();sheet(false);var ag=$('#authgate');if(ag)ag.style.display='flex'}
+function signOutGoogle(){libStop();liveLeave();var c=sbClient();if(c)c.auth.signOut();AUTH_USER=null;cloudDidPull=false;DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}stopInvitePolling();PENDING_INVITES=[];ensureStorageForMode();renderAccount();paintAcctIcons();sheet(false);var ag=$('#authgate');if(ag)ag.style.display='flex'}
 $('#ag-google').onclick=function(){$('#ag-note').textContent='';signInGoogle(true)};
 $('#ag-apple').onclick=function(){$('#ag-note').textContent='';signInApple(true)};
 /* ---------- account sign-in (email/password): a self-contained fallback that doesn't depend on
