@@ -319,7 +319,7 @@ body.side #side{transform:none}
 .np-meta span{font-size:13px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .np-full{width:34px;height:34px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;color:var(--mute);background:none}
 .np-full svg{width:16px;height:16px}
-.np-wave{display:block;width:100%;height:48px;margin:12px 0 2px;touch-action:pan-y;cursor:pointer;outline:0;border-radius:6px}
+.np-wave{display:block;width:100%;height:58px;margin:8px 0 0;touch-action:pan-y;cursor:pointer;outline:0;border-radius:6px}
 .np-wave:focus-visible{box-shadow:0 0 0 2px var(--tint)}
 .np-bot{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;color:var(--mute);font-variant-numeric:tabular-nums;min-height:38px}
 .np-bot>span{min-width:44px}.np-bot>span:last-child{text-align:right}
@@ -17647,11 +17647,26 @@ function npDraw(){var cv=$('#np-wave');if(!cv||$('#np').hidden)return;var dpr=wi
   var cs=getComputedStyle(document.documentElement),ink=cs.getPropertyValue('--ink').trim()||'#000',mute=cs.getPropertyValue('--mute').trim()||'#888';
   var P=(npItem&&npItem.peaks)||null,bw=2.4,gap=2.1,n=Math.max(1,Math.floor((w+gap)/(bw+gap))),off=(w-(n*(bw+gap)-gap))/2;
   var d=npDur(),f=d?(npScrub!=null?npScrub:npPos()/d):0;
+  /* Dock-style magnification around the finger/cursor: each bar grows taller and wider with a smooth
+     (gaussian) falloff by distance, and the row re-flows so its neighbours ease aside, then the whole
+     row is fitted back into the width. npMag (0..1) eases in and out; npMagX follows the pointer. */
+  var A=npMag,SIG=20,ws=new Array(n),ms=new Array(n),sum=0;
+  for(var i0=0;i0<n;i0++){var cx0=off+i0*(bw+gap)+bw/2,dd=npMagX<0?1e9:cx0-npMagX,g=A>0?A*Math.exp(-dd*dd/(2*SIG*SIG)):0;ms[i0]=g;ws[i0]=bw*(1+1.1*g);sum+=ws[i0]}
+  var gp=n>1?Math.max(.8,Math.min(gap,(w-2-sum)/(n-1))):0,tot=sum+gp*(n-1),xx=(w-tot)/2,base=h*.6;
   for(var i=0;i<n;i++){var v;if(P&&P.length){var a=Math.floor(i*P.length/n),b=Math.max(a+1,Math.floor((i+1)*P.length/n)),m=0;for(var k=a;k<b&&k<P.length;k++)if(P[k]>m)m=P[k];v=m/100}else v=.12+.06*Math.sin(i*.9);
-    var bh=Math.max(2.5,v*(h-4)),bx=off+i*(bw+gap),by=(h-bh)/2,played=(i+.5)/n<=f;
-    x.fillStyle=played?ink:mute;x.globalAlpha=played?1:.42;
-    if(x.roundRect){x.beginPath();x.roundRect(bx,by,bw,bh,bw/2);x.fill()}else x.fillRect(bx,by,bw,bh)}
+    var mg=ms[i],bwi=ws[i],bh=Math.min(h-1,Math.max(2.5*(1+mg),v*base*(1+.62*mg)+mg*6)),bx=xx,by=(h-bh)/2,played=(i+.5)/n<=f;xx+=bwi+gp;
+    x.fillStyle=played?ink:mute;x.globalAlpha=played?1:(.42+.3*mg);
+    if(x.roundRect){x.beginPath();x.roundRect(bx,by,bwi,bh,bwi/2);x.fill()}else x.fillRect(bx,by,bwi,bh)}
   x.globalAlpha=1}
+var npMag=0,npMagT=0,npMagX=-1,npMagXT=-1,npMagRaf=0;
+/* ease the magnification in/out and let its centre glide after the pointer (snaps under reduced motion) */
+function npMagLoop(){cancelAnimationFrame(npMagRaf);var calm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  (function f(){var busy=false;
+    if(calm){npMag=npMagT;npMagX=npMagXT}
+    else{npMag+=(npMagT-npMag)*.2;if(Math.abs(npMagT-npMag)>.003)busy=true;else npMag=npMagT;
+      if(npMagXT>=0){if(npMagX<0)npMagX=npMagXT;npMagX+=(npMagXT-npMagX)*.38;if(Math.abs(npMagXT-npMagX)>.25)busy=true;else npMagX=npMagXT}}
+    if(npMag===0&&npMagT===0)npMagX=-1;
+    npDraw();if(busy)npMagRaf=requestAnimationFrame(f)})()}
 function npLoop(){cancelAnimationFrame(npRaf);(function f(){if(!lpAu||lpAu.paused||$('#np').hidden){npPaint();return}npPaint();npRaf=requestAnimationFrame(f)})()}
 /* a waveform outline for a version: 180 loudness peaks, worked out once and saved on the version so
    every device can draw it without downloading the audio again */
@@ -17670,15 +17685,27 @@ function paintPlayer(){var box=$('#np');if(!box)return;var song=cur,a=song&&isPr
   npPaint();if(was&&typeof refreshViews==='function')refreshViews()}
 (function(){var cv=$('#np-wave');
   function fracAt(e){var r=cv.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))}
-  cv.addEventListener('pointerdown',function(e){if(!npItem)return;try{cv.setPointerCapture(e.pointerId)}catch(_){}npScrub=fracAt(e);npPaint()});
-  cv.addEventListener('pointermove',function(e){if(npScrub==null)return;npScrub=fracAt(e);npPaint()});
-  cv.addEventListener('pointerup',function(){if(npScrub==null)return;var f=npScrub;npScrub=null;npSeek(f*npDur())});
-  cv.addEventListener('pointercancel',function(){npScrub=null;npPaint()});
+  function xAt(e){return e.clientX-cv.getBoundingClientRect().left}
+  /* haptics while scrubbing (iPhone): a tap on grab, a tick every 5 seconds of song, a firmer bump at
+     either end, a tap on release */
+  var tickB=-1,tickAt=0,edge=0;
+  function scrubHaptics(f){var d=npDur(),now=Date.now();if(!d)return;
+    var e2=f<=0?1:f>=1?2:0;if(e2&&e2!==edge){haptic('medium');tickAt=now}edge=e2;
+    var bk=Math.floor(f*d/5);if(bk!==tickB){if(tickB>=0&&!e2&&now-tickAt>45){haptic('select');tickAt=now}tickB=bk}}
+  cv.addEventListener('pointerdown',function(e){if(!npItem)return;try{cv.setPointerCapture(e.pointerId)}catch(_){}
+    npScrub=fracAt(e);tickB=Math.floor(npScrub*npDur()/5);edge=0;haptic('light');npMagT=1;npMagXT=xAt(e);npMagLoop();npPaint()});
+  cv.addEventListener('pointermove',function(e){
+    if(npScrub==null){if(e.pointerType==='mouse'&&npItem){npMagT=.75;npMagXT=xAt(e);npMagLoop()}return}
+    npScrub=fracAt(e);npMagXT=xAt(e);scrubHaptics(npScrub);npMagLoop();npPaint()});
+  cv.addEventListener('pointerup',function(e){if(npScrub==null)return;var f=npScrub;npScrub=null;haptic('light');npSeek(f*npDur());
+    npMagT=e.pointerType==='mouse'?.75:0;npMagLoop()});
+  cv.addEventListener('pointerleave',function(){if(npScrub!=null)return;npMagT=0;npMagLoop()});
+  cv.addEventListener('pointercancel',function(){npScrub=null;npMagT=0;npMagLoop();npPaint()});
   cv.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();npSeek(npPos()+(e.key==='ArrowRight'?5:-5))}else if(e.key===' '||e.key==='Enter'){e.preventDefault();$('#np-pp').click()}});
   try{new ResizeObserver(function(){npDraw()}).observe(cv)}catch(_){}
   try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){npDraw()})}catch(_){}
-  $('#np-pp').onclick=function(){if(!npItem)return;var au=songAu();if(npLoaded(npItem)&&!au.paused){au.pause();return}npPlay(npItem,npSong)};
-  $('#np-back').onclick=function(){npSeek(npPos()-15)};$('#np-fwd').onclick=function(){npSeek(npPos()+15)};
+  $('#np-pp').onclick=function(){if(!npItem)return;haptic('light');var au=songAu();if(npLoaded(npItem)&&!au.paused){au.pause();return}npPlay(npItem,npSong)};
+  $('#np-back').onclick=function(){haptic('light');npSeek(npPos()-15)};$('#np-fwd').onclick=function(){haptic('light');npSeek(npPos()+15)};
   $('#np-full').onclick=function(){openPlay()};
   $('#np').addEventListener('click',function(e){if(matchMedia('(hover: hover)').matches)return;if((e.composedPath?e.composedPath():[e.target]).some(function(n){return n&&(n.tagName==='BUTTON'||n.tagName==='CANVAS')}))return;
     var box=$('#np');box.classList.toggle('open');NP_OPEN=box.classList.contains('open');setTimeout(npDraw,40)});
