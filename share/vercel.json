@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    { "source": "/:id([A-Za-z0-9]{10})", "destination": "/api/s?id=:id" }
+  ],
+  "redirects": [
+    { "source": "/", "destination": "https://hellodemo.app/", "permanent": false }
+  ]
+}

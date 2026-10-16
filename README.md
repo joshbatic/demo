@@ -82,7 +82,7 @@ Files are visible to their uploader only; collaborators on a shared song see the
 play another person's files yet.
 
 
-## Share links (hellodemo.app/s/?…)
+## Share links (listen.hellodemo.app/…)
 
 Share → **Create Link** saves a copy of the song (lyrics, sync timings, colours, waveform, artwork and audio)
 that anyone can open in a browser with no account. **Update** refreshes it at the same address; **Stop Sharing**
@@ -98,3 +98,17 @@ The viewer is `docs/s/index.html`, served by GitHub Pages with the rest of `docs
 rebuilds it; run the script yourself if you change the renderer without stamping. It only ever loads the
 public anon key, and it treats every share's data as untrusted: text is escaped, colours must be plain
 `hsl()` values and artwork/audio must come from the project's `shares` bucket.
+
+### Link previews (listen.hellodemo.app on Vercel)
+
+New links are `listen.hellodemo.app/<id>`. That subdomain is the Vercel project in `share/`: a small function
+that fills in each song's preview tags (title, opening lines and a 1200×630 picture the app uploads when you
+create or update the link) so Messages, WhatsApp and Messenger show a proper preview, then returns the same
+viewer with the song inside. Links made before this still open at `hellodemo.app/s/?<id>`, just without the preview.
+
+One-time setup:
+1. vercel.com → Add New → Project → import `joshbatic/demo` → set **Root Directory** to `share` → Deploy.
+2. In the project: Settings → Domains → add `listen.hellodemo.app`. Vercel shows a CNAME value.
+3. Namecheap → Domain List → hellodemo.app → Manage → Advanced DNS → Add New Record:
+   type **CNAME**, host **listen**, value = the one Vercel showed, TTL Automatic.
+Pushing to `main` redeploys it.

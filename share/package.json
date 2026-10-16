@@ -1,0 +1,5 @@
+{
+  "name": "demo-share-links",
+  "private": true,
+  "description": "listen.hellodemo.app: opens *[demo] share links with a rich preview in Messages, WhatsApp and Messenger."
+}

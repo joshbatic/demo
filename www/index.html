@@ -17852,6 +17852,17 @@ function shCardDraw(x,cw,song,a,art,ink,k,sk){var H=shCardH(a);
   shWaveDraw(x,a.peaks||[],14,80,cw-30,58,0,ink,0,-1);
   x.font='400 12.5px '+SH_FONT;x.globalAlpha=.6;x.fillStyle=ink;x.fillText('0:00',16,160);var dt='-'+sfTime(a.dur||0);x.fillText(dt,cw-16-x.measureText(dt).width,160);x.globalAlpha=1;
   if(sk[0])x.drawImage(sk[0],cw/2-26-11,145,22,22);if(sk[1])x.drawImage(sk[1],cw/2+26-11,145,22,22)}
+/* the link preview picture (1200×630) that Messages, WhatsApp and Messenger show: the player card and the opening lines */
+function shOgImage(song,bg,a){var ink='hsl('+bg.k+')';
+  return Promise.all([shLoadImg(shCoverSrc(song)),a?shSvgImg(($('#np-back')||{}).innerHTML,ink):null,a?shSvgImg(($('#np-fwd')||{}).innerHTML,ink):null]).then(function(r){
+  var W=1200,H=630,P=64,c=document.createElement('canvas'),x=c.getContext('2d');c.width=W;c.height=H;
+  var lg=x.createLinearGradient(0,0,W,H);lg.addColorStop(0,bg.top);lg.addColorStop(1,bg.bot);x.fillStyle=lg;x.fillRect(0,0,W,H);
+  var rg=x.createRadialGradient(W*.88,0,0,W*.88,0,W*.9);rg.addColorStop(0,bg.glow);rg.addColorStop(1,bg.glow0);x.fillStyle=rg;x.fillRect(0,0,W,H);
+  var S=a?1.86:2.2,cw=(W-P*2)/S;x.save();x.translate(P,P-6);x.scale(S,S);shCardDraw(x,cw,song,a,r[0],ink,bg.k,[r[1],r[2]]);x.restore();
+  var y=P-6+shCardH(a)*S+(a?62:72),f='700 '+(a?40:46)+'px '+SH_FONT,lh=a?50:58,maxW=W-P*2;x.font=f;x.fillStyle=ink;
+  var lines=shBlocks(song).filter(function(b){return b.line}).map(function(b){return b.line});if(!lines.length)lines=['No lyrics yet'];
+  for(var i=0;i<lines.length&&y<=H-34;i++){var t=lines[i];while(t.length>1&&x.measureText(t).width>maxW)t=t.slice(0,-1);if(t!==lines[i])t=t.replace(/\s*\S*$/,'')+'…';x.globalAlpha=i?.55:.95;x.fillText(t,P,y);y+=lh}
+  x.globalAlpha=1;return new Promise(function(res){c.toBlob(res,'image/png')})})}
 function shImage(song,bg,a){var ink='hsl('+bg.k+')';
   return Promise.all([shLoadImg(shCoverSrc(song)),a?shSvgImg(($('#np-back')||{}).innerHTML,ink):null,a?shSvgImg(($('#np-fwd')||{}).innerHTML,ink):null]).then(function(r){var art=r[0],sk=[r[1],r[2]];
   var W=1080,P=84,S=2.55,c=document.createElement('canvas'),x=c.getContext('2d'),maxW=W-P*2,blocks=shBlocks(song),ops=[],y=P;
@@ -18001,10 +18012,10 @@ function renderShare(){var o=$('#shr'),song=SHR.song;if(!o||!song)return;var bg=
   acts.appendChild(bi);acts.appendChild(bp);acts.appendChild(bt);o.appendChild(acts);
   o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:(sh?'The link shows the song as it was when you last updated it. ':'')+'The image is a lyric card for messages and socials. The page is a single file that opens in any browser'+(audCur(song)?', with the song playing right in it':'')+'.'}));
   paintShareBtns()}
-/* ---- share links: a copy of the song anyone can open at hellodemo.app/s/?<id>, no account needed ----
+/* ---- share links: a copy of the song anyone can open at listen.hellodemo.app/<id>, no account needed ----
    The snapshot (lyrics, timings, colours, waveform) goes in the 'shares' table; the artwork and audio go in the
    public 'shares' bucket under <user>/<id>/. Making the link again for the same song keeps the same address. */
-var SHARE_BASE='https://hellodemo.app/s/?',SHARE_BUCKET='shares';
+var SHARE_BASE='https://listen.hellodemo.app/',SHARE_BUCKET='shares';
 function shId(){var c='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789',r=new Uint8Array(10),o='';try{crypto.getRandomValues(r)}catch(e){for(var j=0;j<10;j++)r[j]=Math.random()*256}for(var i=0;i<10;i++)o+=c[r[i]%c.length];return o}
 function shLinkErr(e){var m=(e&&(e.message||e.error||e.code))||String(e||'');
   if(/relation .*shares|could not find the table|schema cache|42P01|PGRST20/i.test(m)||/bucket not found/i.test(m))return'share links aren’t set up on Supabase yet (run supabase/shares.sql).';return sfErr(e)}
@@ -18015,9 +18026,9 @@ function shLinkMake(song,bg,withAudio){var c=sbClient(),uid=AUTH_USER.id,id=(son
   return shArtBlob(song).then(function(b){return up('art-'+v+(b.type==='image/png'?'.png':'.jpg'),b)}).then(function(art){
     return(a?shAudioBlob(a).then(function(b){return up('audio-'+v+'.'+(/mpeg/.test(b.type)?'mp3':sfExt(a.name||a.path||'',b.type||a.mime)),b)}):Promise.resolve(null)).then(function(au){
       var d=shSnap(song,bg,a,au,art);
-      return c.from('shares').upsert({id:id,owner:uid,song_id:song.id,data:d,updated_at:new Date().toISOString()}).then(function(r){if(r.error)throw r.error;
+      return shOgImage(song,bg,a).then(function(b){return up('og-'+v+'.png',b)}).then(function(og){d.og=og;return c.from('shares').upsert({id:id,owner:uid,song_id:song.id,data:d,updated_at:new Date().toISOString()}).then(function(r){if(r.error)throw r.error;
         st.list(uid+'/'+id).then(function(l){var old=((l&&l.data)||[]).map(function(f){return f.name}).filter(function(n){return keep.indexOf(n)<0});if(old.length)st.remove(old.map(function(n){return dir+n}))}).catch(function(){});
-        song.share={id:id,at:Date.now(),audio:!!au};sfTouch(song);return id})})})}
+        song.share={id:id,at:Date.now(),audio:!!au};sfTouch(song);return id})})})})}
 function shLinkStop(song){var c=sbClient(),id=song.share&&song.share.id;if(!id)return Promise.resolve();var uid=AUTH_USER.id,st=c.storage.from(SHARE_BUCKET);
   return c.from('shares').delete().eq('id',id).then(function(r){if(r.error)throw r.error;
     return st.list(uid+'/'+id).then(function(l){var n=((l&&l.data)||[]).map(function(f){return uid+'/'+id+'/'+f.name});return n.length?st.remove(n):null}).catch(function(){})})
