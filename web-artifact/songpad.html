@@ -285,6 +285,21 @@ body.side #side{transform:none}
 #authgate .devrow input{flex:1;padding:10px 12px;border-radius:10px;border:.5px solid var(--sep);background:var(--row);color:var(--ink);font-size:16px}
 #authgate .devrow button{padding:0 16px;border-radius:10px;background:var(--fill);font-size:14px}
 .view.on{animation:vin .3s cubic-bezier(.32,.72,0,1)}
+/* push / pop between the song list and a song, like iOS navigation: the song slides in from the right
+   over the list (which drifts a little to the left beneath it), and back the other way. Both screens
+   are on display for the length of the slide; .vout keeps the departing one visible until it ends. */
+.view.vout{display:block;pointer-events:none}
+/* once a slide finishes, don't let the default fade-up replay on the screen that just slid in */
+.view.on.navdone{animation:none}
+.view.on.nav-in-r,.view.on.nav-in-l,.view.nav-out-l,.view.nav-out-r{background:var(--bg);will-change:transform}
+.view.on.nav-in-r{animation:navInR .44s cubic-bezier(.32,.72,0,1) both;z-index:2;box-shadow:-14px 0 34px rgba(0,0,0,.12)}
+.view.nav-out-l{animation:navOutL .44s cubic-bezier(.32,.72,0,1) both;z-index:1}
+.view.on.nav-in-l{animation:navInL .44s cubic-bezier(.32,.72,0,1) both;z-index:1}
+.view.nav-out-r{animation:navOutR .44s cubic-bezier(.32,.72,0,1) both;z-index:2;box-shadow:-14px 0 34px rgba(0,0,0,.12)}
+@keyframes navInR{from{transform:translateX(100%)}to{transform:none}}
+@keyframes navOutL{from{transform:none}to{transform:translateX(-30%)}}
+@keyframes navInL{from{transform:translateX(-30%)}to{transform:none}}
+@keyframes navOutR{from{transform:none}to{transform:translateX(100%)}}
 .pane.on{animation:pop .22s ease-out}
 #rc.in .r,#rc.in .ln,#rc.in .go{animation:pop .2s ease-out both}
 .r,.ln,.go,.tg,.fb,.sw,.ib,.ib2,.cbtn,.cc,.si,.song,.sh button{transition:transform .14s cubic-bezier(.32,.72,0,1),background-color .18s,filter .18s,opacity .18s}
@@ -14297,7 +14312,17 @@ function haptic(kind){
     else if(H.impact)H.impact({style:kind==='medium'?'MEDIUM':'LIGHT'})
   }catch(e){}
 }
-function show(id){document.querySelectorAll('.view').forEach(function(v){v.classList.toggle('on',v.id===id)});document.body.classList.toggle('listv',id==='vList');if(typeof syncSideVisibility==='function')syncSideVisibility()}
+/* screens by depth: going deeper pushes (slides in from the right), going back pops; same depth just fades */
+var NAV_DEPTH={vList:0,vIdeas:1,vEdit:1},navT=0;
+function navCalm(){try{return matchMedia('(prefers-reduced-motion: reduce)').matches||(document.body.classList.contains('side')&&matchMedia('(min-width:980px)').matches)}catch(e){return false}}
+function show(id){
+  var from=document.querySelector('.view.on'),fromId=from&&from.id,to=document.getElementById(id);
+  clearTimeout(navT);document.querySelectorAll('.view').forEach(function(v){v.classList.remove('vout','nav-in-r','nav-out-l','nav-in-l','nav-out-r','navdone')});
+  document.querySelectorAll('.view').forEach(function(v){v.classList.toggle('on',v.id===id)});document.body.classList.toggle('listv',id==='vList');if(typeof syncSideVisibility==='function')syncSideVisibility();
+  var dir=(from&&to&&fromId!==id&&(id in NAV_DEPTH)&&(fromId in NAV_DEPTH))?NAV_DEPTH[id]-NAV_DEPTH[fromId]:0;
+  if(!dir||navCalm())return;
+  from.classList.add('vout',dir>0?'nav-out-l':'nav-out-r');to.classList.add(dir>0?'nav-in-r':'nav-in-l');
+  navT=setTimeout(function(){from.classList.remove('vout','nav-out-l','nav-out-r');to.classList.add('navdone');to.classList.remove('nav-in-r','nav-in-l')},460)}
 function fd(t){var d=new Date(t);return d.toDateString()===new Date().toDateString()?d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):d.toLocaleDateString([],{month:'short',day:'numeric'})}
 var NATIVE_IOS=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
 var kbEst=false,kbT,kbSeen=false,lastH=-1,lastT=-1,kbWasOpen=false;
