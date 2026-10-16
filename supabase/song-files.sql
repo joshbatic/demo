@@ -6,9 +6,10 @@
 -- delete files inside their own folder. Nothing in it is public: the app plays files through
 -- short-lived signed links.
 
-insert into storage.buckets (id, name, public, file_size_limit)
-values ('song-files', 'song-files', false, 524288000)  -- 500 MB per file (capped by your plan's limit)
-on conflict (id) do update set public = false, file_size_limit = excluded.file_size_limit;
+-- No per-bucket size limit: uploads follow the project's own limit (Storage -> Settings).
+insert into storage.buckets (id, name, public)
+values ('song-files', 'song-files', false)
+on conflict (id) do update set public = false;
 
 drop policy if exists "song-files: read own" on storage.objects;
 drop policy if exists "song-files: add own" on storage.objects;
