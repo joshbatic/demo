@@ -8,7 +8,7 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--Launch Screen: the *[d] mark centred on the system background (white in light mode, black in dark),
+        <!--Launch Screen: the app icon (clear vinyl in light mode, black vinyl in dark) centred on the system background (white in light mode, black in dark),
             the same background the app itself opens on, so the hand-off into the app has no flash.-->
         <scene sceneID="EHf-IW-A2E">
             <objects>
@@ -18,11 +18,11 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Splash" translatesAutoresizingMaskIntoConstraints="NO" id="snD-IY-ifK">
-                                <rect key="frame" x="132" y="404" width="150" height="88"/>
+                                <rect key="frame" x="147" y="388" width="120" height="120"/>
                                 <accessibility key="accessibilityConfiguration" label="demo"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="150" id="Wd1-sp-150"/>
-                                    <constraint firstAttribute="height" constant="88" id="Ht1-sp-088"/>
+                                    <constraint firstAttribute="width" constant="120" id="Wd1-sp-150"/>
+                                    <constraint firstAttribute="height" constant="120" id="Ht1-sp-088"/>
                                 </constraints>
                             </imageView>
                         </subviews>
@@ -39,7 +39,7 @@
         </scene>
     </scenes>
     <resources>
-        <image name="Splash" width="150" height="88"/>
+        <image name="Splash" width="120" height="120"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
