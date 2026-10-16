@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+"""Builds docs/s/index.html, the page that opens *[demo] share links (hellodemo.app/s/?<id>).
+
+It copies the page renderer (between /*SHARE-RENDER:BEGIN and /*SHARE-RENDER:END*/ in www/index.html),
+the public Supabase URL and anon key, and the skip-button icons into scripts/share-viewer.template.html,
+so a shared link always looks exactly like a page shared as a file. Run it after changing any of those;
+scripts/stamp-version.sh runs it too.
+"""
+import json, os, re, sys
+
+root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+app = open(os.path.join(root, 'www', 'index.html'), encoding='utf-8').read()
+tpl = open(os.path.join(root, 'scripts', 'share-viewer.template.html'), encoding='utf-8').read()
+
+a = app.index('/*SHARE-RENDER:BEGIN')
+b = app.index('/*SHARE-RENDER:END*/') + len('/*SHARE-RENDER:END*/')
+render = app[a:b]
+
+m = re.search(r"var SB_URL='([^']+)',SB_KEY='([^']+)'", app)
+if not m:
+    sys.exit('Could not find SB_URL / SB_KEY in www/index.html')
+sb_url, sb_key = m.group(1), m.group(2)
+if json.loads(__import__('base64').urlsafe_b64decode(sb_key.split('.')[1] + '==')).get('role') != 'anon':
+    sys.exit('SB_KEY is not the public anon key; refusing to publish it')
+
+def icon(bid):
+    mm = re.search(r'<button id="%s"[^>]*>(.*?)</button>' % bid, app, re.S)
+    return mm.group(1).replace("'", '"').replace('\n', '') if mm else ''
+
+out = (tpl.replace('@@SB_URL@@', sb_url).replace('@@SB_KEY@@', sb_key)
+          .replace('@@SKB@@', icon('np-back')).replace('@@SKF@@', icon('np-fwd'))
+          .replace('@@RENDER@@', render))
+dst = os.path.join(root, 'docs', 's', 'index.html')
+os.makedirs(os.path.dirname(dst), exist_ok=True)
+open(dst, 'w', encoding='utf-8').write(out)
+print('Built docs/s/index.html (%d KB)' % (len(out) // 1024))

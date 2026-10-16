@@ -619,6 +619,10 @@ body.ios .song{padding:13px 24px}
 .shsw button.on{box-shadow:0 0 0 2.5px var(--bg),0 0 0 4.5px var(--ink)}.shsw button:active{transform:scale(.9)}
 .shg .row{border-bottom:0;min-height:58px}.shg .row>span{display:flex;flex-direction:column;gap:2px}.shg small{font-size:13px;color:var(--mute);line-height:1.3}
 .shg:not(:has(.row)){display:none}
+.shlink .go2{height:32px;font-size:14px;flex:none}.shlink>span{min-width:0}.shlink small{overflow-wrap:anywhere}
+.shg .row+.row{border-top:.5px solid var(--sep)}
+.shla{margin-bottom:8px}.go2.ghost.red{color:var(--red)}
+.shspin{width:18px;height:18px;border-radius:50%;border:2px solid var(--sep);border-top-color:var(--ink);flex:none;animation:shspin .8s linear infinite}@keyframes shspin{to{transform:rotate(360deg)}}
 .shacts{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px}.shacts .go2{flex:1 1 auto;height:44px;font-size:15.5px;min-width:120px}
 .relnote{padding:8px 20px 0;font-size:13px;color:var(--mute);line-height:1.4}
 .relnote.warn{color:var(--red)}
@@ -17801,7 +17805,6 @@ function exportLrc(){var song=cur;if(!song||!song.sync)return toast('Sync the ly
    Files are made as soon as the sheet opens or an option changes, so tapping Share can hand them to the
    share sheet straight away: iOS only allows that during the tap itself, not after a long wait. */
 var SHR={song:null,pal:[],ci:0,aud:true,img:null,page:null,busy:0};
-var SH_FONT="-apple-system,'SF Pro Display',system-ui,'Helvetica Neue',Arial,sans-serif";
 function rgbHsl(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,h=0,s=0,d=mx-mn;
   if(d){s=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;h*=60}return[h,s,l]}
 function hexHsl(x){var n=parseInt(x.slice(1),16);return rgbHsl(n>>16&255,n>>8&255,n&255)}
@@ -17868,9 +17871,15 @@ function shImage(song,bg,a){var ink='hsl('+bg.k+')';
 function rr(x,X,Y,w,h,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath()}
 /* ---- the page: one .html file that opens in any browser, artwork and audio included ---- */
 function blobUrl64(b){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(r.result)};r.onerror=function(){rej(r.error)};r.readAsDataURL(b)})}
-function shAudio(a){return sfBlob(a).then(function(b){
+function shAudioBlob(a){return sfBlob(a).then(function(b){
   if(b.size>12e6&&mp3Able({name:a.path||a.name,mime:b.type||a.mime}))return decodeBlob(b).then(function(buf){return mp3FromBuf(buf)}).catch(function(){return b});return b})
-  .then(function(b){if(b.size>40e6)throw new Error('That audio is too large to put in a page.');return blobUrl64(b)})}
+  .then(function(b){if(b.size>40e6)throw new Error('That audio is too large to share.');return b})}
+/*SHARE-RENDER:BEGIN  everything between these markers is also copied into the share-link viewer
+  (docs/s/index.html) by scripts/build-share-viewer.py, so a shared link looks exactly like a shared file.
+  Keep it self-contained: plain functions, no app state. */
+var SH_FONT="-apple-system,'SF Pro Display',system-ui,'Helvetica Neue',Arial,sans-serif";
+function shEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function shBgCss(b){var g0=String(b.glow).replace('hsl(','hsla(').replace(')',',0)');return'radial-gradient(90% 60% at 88% 4%,'+b.glow+','+g0+' 72%),linear-gradient(155deg,'+b.top+','+b.bot+')'}
 /* the waveform, drawn the same way as the in-note player: rounded bars from the saved peaks, played part
    solid, the rest faint, with Dock-style magnification around magX while scrubbing. Used for the share
    image and preview, and copied as-is into the shared page so it looks identical there. */
@@ -17909,18 +17918,19 @@ function shPlayerJS(){var A=document.getElementById('au'),pp=document.getElement
   cv.onkeydown=function(e){if(e.key==='ArrowRight')A.currentTime+=5;else if(e.key==='ArrowLeft')A.currentTime-=5;tick()};
   addEventListener('keydown',function(e){if(e.key===' '&&e.target===document.body){e.preventDefault();pp.click()}});
   addEventListener('resize',draw);ic();tick()}
-function shPage(song,bg,withAudio){var a=withAudio?audCur(song):null;
-  return(a?shAudio(a):Promise.resolve(null)).then(function(au){
-  var blocks=shBlocks(song,a&&a.id),synced=!!(au&&blocks.some(function(b){return b.t!=null})),q=function(s){return esc(String(s)).replace(/"/g,'&quot;')};
-  var body=blocks.map(function(b){if(b.gap)return'<div class="g"></div>';if(b.sec)return'<h3>'+esc(b.sec)+'</h3>';return'<p'+(b.t!=null&&synced?' data-t="'+b.t.toFixed(2)+'"':'')+'>'+esc(b.line)+'</p>'}).join('')||'<p class="none">No lyrics yet</p>';
-  var title=song.title||'Untitled',sub=[song.artist,song.key?'Key of '+song.key:'',song.bpm?song.bpm+' BPM':''].filter(Boolean).join(' · ');
-  var skB=($('#np-back')||{}).innerHTML||'−15',skF=($('#np-fwd')||{}).innerHTML||'+15';
+/* the page itself, from a plain snapshot:
+   d = {title, artist, key, bpm, blocks:[{sec}|{gap}|{line,t}], bg:{top,bot,glow,k}, art, audio:{src,name,dur,peaks}|null}
+   o = {skB, skF}: the skip-button icons */
+function shRender(d,o){o=o||{};var A=d.audio&&d.audio.src?d.audio:null,blocks=d.blocks||[],q=shEsc;
+  var synced=!!(A&&blocks.some(function(b){return b&&b.t!=null}));
+  var body=blocks.map(function(b){if(!b)return'';if(b.gap)return'<div class="g"></div>';if(b.sec!=null)return'<h3>'+shEsc(b.sec)+'</h3>';return'<p'+(b.t!=null&&synced&&isFinite(+b.t)?' data-t="'+(+b.t).toFixed(2)+'"':'')+'>'+shEsc(b.line)+'</p>'}).join('')||'<p class="none">No lyrics yet</p>';
+  var title=d.title||'Untitled',sub=[d.artist,d.key?'Key of '+d.key:'',d.bpm?d.bpm+' BPM':''].filter(Boolean).join(' · ');
   return'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'+
-  '<title>'+esc(title)+(song.artist?' – '+esc(song.artist):'')+'</title><meta name="theme-color" content="'+q(bg.top)+'"><meta property="og:title" content="'+q(title)+'">'+
-  '<style>*{box-sizing:border-box}html{background:'+bg.bot+'}:root{--k:'+bg.k+'}body{margin:0;min-height:100vh;color:hsl(var(--k));font:18px/1.4 '+SH_FONT+';-webkit-font-smoothing:antialiased;background:'+bg.css+'}'+
+  '<title>'+shEsc(title)+(d.artist?' – '+shEsc(d.artist):'')+'</title><meta name="theme-color" content="'+q(d.bg.top)+'"><meta property="og:title" content="'+q(title)+'">'+
+  '<style>*{box-sizing:border-box}html{background:'+d.bg.bot+'}:root{--k:'+d.bg.k+'}body{margin:0;min-height:100vh;color:hsl(var(--k));font:18px/1.4 '+SH_FONT+';-webkit-font-smoothing:antialiased;background:'+shBgCss(d.bg)+'}'+
   'main{max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 28px) 22px 80px}'+
   'button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}'+
-  '#np{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);z-index:2;margin:0 0 44px;padding:12px 14px '+(au?'6px':'12px')+' 12px;border-radius:24px;background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);box-shadow:0 0 0 .5px hsla(var(--k),.1),0 1px 1px hsla(var(--k),.06),0 10px 30px hsla(var(--k),.14),inset 0 1px 0 rgba(255,255,255,.6);-webkit-user-select:none;user-select:none}'+
+  '#np{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);z-index:2;margin:0 0 44px;padding:12px 14px '+(A?'6px':'12px')+' 12px;border-radius:24px;background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);box-shadow:0 0 0 .5px hsla(var(--k),.1),0 1px 1px hsla(var(--k),.06),0 10px 30px hsla(var(--k),.14),inset 0 1px 0 rgba(255,255,255,.6);-webkit-user-select:none;user-select:none}'+
   '.top{display:flex;align-items:center;gap:12px}.art{width:58px;height:58px;border-radius:12px;flex:none;object-fit:cover;display:block;box-shadow:0 0 0 .5px hsla(var(--k),.12),0 4px 12px hsla(var(--k),.18)}'+
   '.meta{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.meta b{font-size:17px;font-weight:650;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta span{font-size:13.5px;color:hsla(var(--k),.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'+
   '.pp{width:40px;height:40px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:hsl(var(--k));color:#fff;transition:transform .12s}.pp:active{transform:scale(.92)}.pp svg{width:17px;height:17px}'+
@@ -17932,11 +17942,19 @@ function shPage(song,bg,withAudio){var a=withAudio?audCur(song):null;
   (synced?'.sync p{color:hsla(var(--k),.34);cursor:pointer}.sync p.on{color:hsl(var(--k));transform:scale(1.025)}.sync p.past{color:hsla(var(--k),.5)}@media (hover:hover){.sync p:hover{color:hsla(var(--k),.7)}}':'')+
   'footer{margin-top:72px;color:hsla(var(--k),.4);font-size:14px;font-weight:600}'+
   '@media (prefers-reduced-motion:reduce){p{transition:none}}</style></head><body><main'+(synced?' class="sync"':'')+'>'+
-  '<div id="np"><div class="top"><img class="art" alt="" src="'+q(shCoverSrc(song))+'"><div class="meta"><b>'+esc(title)+'</b>'+(sub?'<span>'+esc(sub)+'</span>':'')+'</div>'+(au?'<button class="pp" id="pp" aria-label="Play"></button>':'')+'</div>'+
-  (au?'<canvas id="wv" tabindex="0" role="slider" aria-label="Position in the song" data-d="'+(a.dur||0)+'" data-p="'+q(JSON.stringify(a.peaks||[]))+'"></canvas><div class="bot"><span id="at">0:00</span><div class="sk"><button id="bk" aria-label="Back 15 seconds">'+skB+'</button><button id="fw" aria-label="Forward 15 seconds">'+skF+'</button></div><span id="du"></span></div>':'')+'</div>'+
+  '<div id="np"><div class="top"><img class="art" alt="" src="'+q(d.art||'')+'"><div class="meta"><b>'+shEsc(title)+'</b>'+(sub?'<span>'+shEsc(sub)+'</span>':'')+'</div>'+(A?'<button class="pp" id="pp" aria-label="Play"></button>':'')+'</div>'+
+  (A?'<canvas id="wv" tabindex="0" role="slider" aria-label="Position in the song" data-d="'+(+A.dur||0)+'" data-p="'+q(JSON.stringify((A.peaks||[]).map(Number).filter(isFinite)))+'"></canvas><div class="bot"><span id="at">0:00</span><div class="sk"><button id="bk" aria-label="Back 15 seconds">'+(o.skB||'−15')+'</button><button id="fw" aria-label="Forward 15 seconds">'+(o.skF||'+15')+'</button></div><span id="du"></span></div>':'')+'</div>'+
   '<div id="ly">'+body+'</div><footer>Written in *[demo]</footer></main>'+
-  (au?'<audio id="au" preload="auto" src="'+au+'"></audio><script>'+shWaveDraw.toString()+'('+shPlayerJS.toString()+')()<\/script>':'')+
-  '</body></html>'})}
+  (A?'<audio id="au" preload="auto" src="'+q(A.src)+'"></audio><script>'+shWaveDraw.toString()+'('+shPlayerJS.toString()+')()<\/script>':'')+
+  '</body></html>'}
+/*SHARE-RENDER:END*/
+function shPage(song,bg,withAudio){var a=withAudio?audCur(song):null;
+  return(a?shAudioBlob(a).then(blobUrl64):Promise.resolve(null)).then(function(au){
+    return shRender(shSnap(song,bg,a,au,shCoverSrc(song)),shSkips())})}
+function shSkips(){return{skB:($('#np-back')||{}).innerHTML,skF:($('#np-fwd')||{}).innerHTML}}
+/* the snapshot a page (file or link) is drawn from */
+function shSnap(song,bg,a,src,art){return{v:1,title:song.title||'',artist:song.artist||'',key:song.key||'',bpm:song.bpm||'',blocks:shBlocks(song,a&&a.id),
+  bg:{top:bg.top,bot:bg.bot,glow:bg.glow,k:bg.k},art:art,audio:a&&src?{src:src,name:a.name||'',dur:a.dur||0,peaks:a.peaks||[]}:null}}
 /* ---- handing a file over: the share sheet where there is one, otherwise a download ---- */
 function shCanFile(f){try{return!!(navigator.canShare&&navigator.canShare({files:[f]}))}catch(e){return false}}
 function shSend(file){if(!file)return;if(shCanFile(file)){navigator.share({files:[file],title:file.name}).catch(function(){});return}
@@ -17961,7 +17979,12 @@ function renderShare(){var o=$('#shr'),song=SHR.song;if(!o||!song)return;var bg=
   if(SHR.pal.length>1){var sw=document.createElement('div');sw.className='shsw';sw.setAttribute('role','radiogroup');sw.setAttribute('aria-label','Background colour');
     SHR.pal.forEach(function(c,i){var b=document.createElement('button');b.style.background=shBg(SHR.pal,i).css;b.className=i===SHR.ci?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',i===SHR.ci?'true':'false');b.setAttribute('aria-label','Colour '+(i+1));
       b.onclick=function(){if(SHR.ci===i)return;SHR.ci=i;haptic('select');renderShare();shMake()};sw.appendChild(b)});o.appendChild(sw)}
-  var g=document.createElement('div');g.className='gf shg';
+  var g=document.createElement('div');g.className='gf shg';var sh=song.share;
+  var lr=document.createElement('div');lr.className='row shlink';lr.innerHTML='<span>Link<small></small></span>';
+  lr.querySelector('small').textContent=SHR.linkBusy?SHR.linkBusy:!sfCloud()?'Sign in to make a link anyone can open':sh?(SHARE_BASE.replace(/^https:\/\//,'')+sh.id+' · updated '+shAgo(sh.at)):'Anyone with it can read'+(audCur(song)&&SHR.aud?' and play':'')+' the song, no account needed';
+  if(SHR.linkBusy){var sp=document.createElement('i');sp.className='shspin';lr.appendChild(sp)}
+  else if(sfCloud()){var lb=document.createElement('button');lb.className='go2'+(sh?' ghost':'');lb.textContent=sh?'Update':'Create Link';lb.onclick=shLinkGo;lr.appendChild(lb)}
+  g.appendChild(lr);
   if(audCur(song)){var r=document.createElement('div');r.className='row';r.innerHTML='<span>Include audio<small></small></span>';r.querySelector('small').textContent=SHR.aud?'“'+audCur(song).name+'” plays in the page'+(song.sync&&song.sync.audioId===audCur(song).id?', with the lyrics lit in time':''):'Lyrics only';
     var s=document.createElement('button');s.className='swtch'+(SHR.aud?' on':'');s.setAttribute('role','switch');s.setAttribute('aria-checked',SHR.aud?'true':'false');s.setAttribute('aria-label','Include audio');s.innerHTML='<i></i>';
     s.onclick=function(){SHR.aud=!SHR.aud;renderShare();shMake()};r.appendChild(s);g.appendChild(r)}
@@ -17970,9 +17993,43 @@ function renderShare(){var o=$('#shr'),song=SHR.song;if(!o||!song)return;var bg=
   var bi=document.createElement('button');bi.id='shr-img';bi.className='go2';bi.onclick=function(){shSend(SHR.img)};
   var bp=document.createElement('button');bp.id='shr-page';bp.className='go2';bp.onclick=function(){shSend(SHR.page)};
   var bt=document.createElement('button');bt.className='go2 ghost';bt.textContent='Copy Lyrics';bt.onclick=function(){var t=(song.title?song.title+(song.artist?' – '+song.artist:'')+'\n\n':'')+(song.lyrics||'');try{navigator.clipboard.writeText(t).then(function(){toast('Copied')},function(){toast('Copy blocked by browser')})}catch(e){toast('Copy not available')}};
+  if(sh&&!SHR.linkBusy){var la=document.createElement('div');la.className='shacts shla';var ls=document.createElement('button');ls.className='go2';ls.textContent='Share Link';ls.onclick=shLinkSend;
+    var lx=document.createElement('button');lx.className='go2 ghost red';lx.textContent='Stop Sharing';var arm=0;lx.onclick=function(){if(Date.now()-arm>3000){arm=Date.now();lx.textContent='Tap Again to Stop';setTimeout(function(){lx.textContent='Stop Sharing'},3000);return}
+      SHR.linkBusy='Stopping…';renderShare();shLinkStop(song).then(function(){SHR.linkBusy=null;toast('The link no longer works');renderShare()},function(e){SHR.linkBusy=null;renderShare();toast('Couldn’t stop sharing: '+shLinkErr(e))})};
+    la.appendChild(ls);la.appendChild(lx);o.appendChild(la)}
+  if(sh){bi.classList.add('ghost');bp.classList.add('ghost')}
   acts.appendChild(bi);acts.appendChild(bp);acts.appendChild(bt);o.appendChild(acts);
-  o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:'The image is a lyric card for messages and socials. The page is a single file that opens in any browser'+(audCur(song)?', with the song playing right in it':'')+'.'}));
+  o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:(sh?'The link shows the song as it was when you last updated it. ':'')+'The image is a lyric card for messages and socials. The page is a single file that opens in any browser'+(audCur(song)?', with the song playing right in it':'')+'.'}));
   paintShareBtns()}
+/* ---- share links: a copy of the song anyone can open at hellodemo.app/s/?<id>, no account needed ----
+   The snapshot (lyrics, timings, colours, waveform) goes in the 'shares' table; the artwork and audio go in the
+   public 'shares' bucket under <user>/<id>/. Making the link again for the same song keeps the same address. */
+var SHARE_BASE='https://hellodemo.app/s/?',SHARE_BUCKET='shares';
+function shId(){var c='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789',r=new Uint8Array(10),o='';try{crypto.getRandomValues(r)}catch(e){for(var j=0;j<10;j++)r[j]=Math.random()*256}for(var i=0;i<10;i++)o+=c[r[i]%c.length];return o}
+function shLinkErr(e){var m=(e&&(e.message||e.error||e.code))||String(e||'');
+  if(/relation .*shares|could not find the table|schema cache|42P01|PGRST20/i.test(m)||/bucket not found/i.test(m))return'share links aren’t set up on Supabase yet (run supabase/shares.sql).';return sfErr(e)}
+function shArtBlob(song){if(song.art)return fetch(song.art).then(function(r){return r.blob()});
+  return shLoadImg(shCoverSrc(song)).then(function(im){var c=document.createElement('canvas');c.width=c.height=480;if(im)c.getContext('2d').drawImage(im,0,0,480,480);return new Promise(function(res){c.toBlob(res,'image/png')})})}
+function shLinkMake(song,bg,withAudio){var c=sbClient(),uid=AUTH_USER.id,id=(song.share&&song.share.id)||shId(),dir=uid+'/'+id+'/',v=Date.now().toString(36),st=c.storage.from(SHARE_BUCKET),a=withAudio?audCur(song):null,keep=[];
+  var up=function(name,blob){keep.push(name);return st.upload(dir+name,blob,{upsert:true,contentType:blob.type||'application/octet-stream',cacheControl:'31536000'}).then(function(r){if(r.error)throw r.error;return st.getPublicUrl(dir+name).data.publicUrl})};
+  return shArtBlob(song).then(function(b){return up('art-'+v+(b.type==='image/png'?'.png':'.jpg'),b)}).then(function(art){
+    return(a?shAudioBlob(a).then(function(b){return up('audio-'+v+'.'+(/mpeg/.test(b.type)?'mp3':sfExt(a.name||a.path||'',b.type||a.mime)),b)}):Promise.resolve(null)).then(function(au){
+      var d=shSnap(song,bg,a,au,art);
+      return c.from('shares').upsert({id:id,owner:uid,song_id:song.id,data:d,updated_at:new Date().toISOString()}).then(function(r){if(r.error)throw r.error;
+        st.list(uid+'/'+id).then(function(l){var old=((l&&l.data)||[]).map(function(f){return f.name}).filter(function(n){return keep.indexOf(n)<0});if(old.length)st.remove(old.map(function(n){return dir+n}))}).catch(function(){});
+        song.share={id:id,at:Date.now(),audio:!!au};sfTouch(song);return id})})})}
+function shLinkStop(song){var c=sbClient(),id=song.share&&song.share.id;if(!id)return Promise.resolve();var uid=AUTH_USER.id,st=c.storage.from(SHARE_BUCKET);
+  return c.from('shares').delete().eq('id',id).then(function(r){if(r.error)throw r.error;
+    return st.list(uid+'/'+id).then(function(l){var n=((l&&l.data)||[]).map(function(f){return uid+'/'+id+'/'+f.name});return n.length?st.remove(n):null}).catch(function(){})})
+  .then(function(){delete song.share;sfTouch(song)})}
+function shLinkGo(){var song=SHR.song;if(!song||SHR.linkBusy)return;if(!sfCloud())return toast(DEV_MODE?'Share links need a signed-in account.':'Sign in to make share links.');
+  var had=!!song.share;SHR.linkBusy=had?'Updating the link…':'Making the link…';renderShare();
+  shLinkMake(song,shBg(SHR.pal,SHR.ci),SHR.aud&&!!audCur(song)).then(function(){SHR.linkBusy=null;haptic('success');toast(had?'Link updated':'Link ready. Tap Share Link to send it.');renderShare()},
+    function(e){SHR.linkBusy=null;renderShare();toast('Couldn’t make the link: '+shLinkErr(e))})}
+function shLinkSend(){var song=SHR.song,u=song&&song.share&&SHARE_BASE+song.share.id;if(!u)return;
+  if(navigator.share&&!window.desktop){navigator.share({title:song.title||'A song',url:u}).catch(function(){});return}
+  try{navigator.clipboard.writeText(u).then(function(){toast('Link copied')},function(){toast(u)})}catch(e){toast(u)}}
+function shAgo(t){var s=Math.round((Date.now()-t)/1000);if(s<60)return'just now';if(s<3600)return Math.round(s/60)+' min ago';if(s<86400)return Math.round(s/3600)+' h ago';return new Date(t).toLocaleDateString()}
 $('#shareb').onclick=openShare;$('#done8').onclick=function(){sheet(false)};
 
 /* ---------- credits & splits, release details ---------- */
