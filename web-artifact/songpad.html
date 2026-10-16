@@ -17605,6 +17605,7 @@ function sfBase(name){return(name||'').replace(/\.[a-z0-9]{1,6}$/i,'').trim()||'
 function audCur(song){var a=(song&&song.audio)||[];return a.filter(function(x){return x.cur})[0]||a[a.length-1]||null}
 function sfErr(e){var m=(e&&(e.message||e.error||e.statusText))||String(e||'');
   if(/bucket not found/i.test(m))return'audio storage isn’t set up yet.';
+  if(/object not found|not_found|404/i.test(m))return'that file isn’t in storage any more. It may have been replaced or deleted on another device, or it was shared by someone whose files you can’t open yet.';
   if(/payload too large|maximum allowed size|exceeded the maximum|too large/i.test(m))return'it’s bigger than the upload limit.';
   if(/row-level security|unauthori[sz]ed|not allowed|permission/i.test(m))return'you don’t have access to that file.';
   if(/failed to fetch|network|load failed/i.test(m))return'check your connection and try again.';
@@ -17618,7 +17619,18 @@ function sfPut(song,file,id){
 /* playable/openable link for a stored file; cached so a later tap can start playback straight away
    (iOS only lets audio start from a tap, not after waiting on the network) */
 function sfUrlNow(item){var c=item&&SF_URLS[item.path];return c&&c.exp>Date.now()+60000?c.u:null}
-function sfUrl(item){var now=sfUrlNow(item);if(now)return Promise.resolve(now);
+function sfSongOf(id){return songs.filter(function(s){return(s.audio||[]).concat(s.files||[]).some(function(x){return x&&x.id===id})})[0]}
+function sfFind(song,id){return song&&(song.audio||[]).concat(song.files||[]).filter(function(x){return x&&x.id===id})[0]}
+/* if a file isn't where this device thinks it is, it was probably converted or replaced on another device that
+   hasn't synced here yet: pull the latest copy of the song and try the file's new address once */
+function sfUrl(item,retried){return sfUrl1(item).catch(function(e){var m=(e&&(e.message||e.error||e.statusText))||String(e||'');
+  if(retried||!/object not found|not_found|404/i.test(m)||!sfCloud())throw e;
+  var song=sfSongOf(item.id)||cur,oid=item.id,oname=item.name;delete SF_URLS[item.path];
+  if(song&&song.shared)pullShared(song);else cloudSync();
+  return new Promise(function(r){setTimeout(r,1800)}).then(function(){var s2=(song&&songs.filter(function(x){return x.id===song.id})[0])||song;
+    var fresh=sfFind(s2,oid)||((s2&&s2.audio)||[]).filter(function(x){return x.orig&&x.orig.name&&x.name===oname})[0];
+    if(fresh&&fresh.path&&fresh.path!==item.path){if(fresh!==item){item.path=fresh.path;item.id=fresh.id;item.mime=fresh.mime;item.size=fresh.size}return sfUrl(fresh,true)}throw e})})}
+function sfUrl1(item){var now=sfUrlNow(item);if(now)return Promise.resolve(now);
   if(/^local:/.test(item.path))return audGet('f:'+item.id).then(function(b){if(!b)throw new Error('That file isn’t on this device.');var u=URL.createObjectURL(b);SF_URLS[item.path]={u:u,exp:Infinity};return u});
   if(!sfCloud())return Promise.reject(new Error('Sign in to open files stored in your account.'));
   return sbClient().storage.from(SF_BUCKET).createSignedUrl(item.path,3600).then(function(r){if(r.error)throw r.error;SF_URLS[item.path]={u:r.data.signedUrl,exp:Date.now()+3600e3};return r.data.signedUrl})}
@@ -17715,7 +17727,7 @@ function audToggle(id,row,make){
 function paintAudLive(){document.querySelectorAll('#aud-body .audplay[data-id]').forEach(function(b){var on=SF_PLAY===b.dataset.id;if(b._on===on)return;b._on=on;b.classList.toggle('on',on);b.innerHTML=on?SVG_PAUSE:SVG_PLAY;b.setAttribute('aria-label',on?'Pause':'Play')})}
 function renderAud(){var o=$('#aud-body');if(!o||!cur)return;var song=cur,keepTop=$('#p-aud')?$('#p-aud').scrollTop:0;o.innerHTML='';
   var auds=song.audio||[],files=song.files||[],cu=audCur(song);
-  auds.concat(files).forEach(function(x){if(!sfUrlNow(x))sfUrl(x).catch(function(){})});
+  auds.concat(files).forEach(function(x){if(!sfUrlNow(x))sfUrl(x,true).catch(function(){})});
   /* versions */
   var vg=accSection(o,'Versions',[['Add',function(){$('#audin').click()}]]);
   SF_BUSY.filter(function(b){return b.audio}).forEach(function(b){var r=document.createElement('div');r.className='audbusy';r.innerHTML='<i></i><span></span>';r.lastChild.dataset.busy=b.id;r.lastChild.textContent=b.label||('Uploading “'+b.name+'”…');vg.appendChild(r)});
@@ -17904,7 +17916,7 @@ function paintPlayer(){var box=$('#np');if(!box)return;var song=cur,a=song&&isPr
   if(!a){if(!box.hidden){box.hidden=true;npItem=null;if(typeof refreshViews==='function')refreshViews()}return}
   var was=box.hidden;npItem=a;npSong=song;box.hidden=false;box.classList.toggle('open',NP_OPEN);
   $('#np-name').textContent=a.name;$('#np-sub').textContent=[a.kind,(song.sync&&song.sync.audioId===a.id)?'Lyrics synced':''].filter(Boolean).join(' · ');
-  if(!sfUrlNow(a))sfUrl(a).catch(function(){});ensurePeaks(a,song);
+  if(!sfUrlNow(a))sfUrl(a,true).catch(function(){});ensurePeaks(a,song);
   npPaint();if(was&&typeof refreshViews==='function')refreshViews()}
 (function(){var cv=$('#np-wave');
   function fracAt(e){var r=cv.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))}

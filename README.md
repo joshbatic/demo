@@ -112,3 +112,9 @@ One-time setup:
 3. Namecheap → Domain List → hellodemo.app → Manage → Advanced DNS → Add New Record:
    type **CNAME**, host **listen**, value = the one Vercel showed, TTL Automatic.
 Pushing to `main` redeploys it.
+
+### Audio on shared songs
+
+Run `supabase/song-files-shared.sql` once (after `song-files.sql`). Files are stored in each uploader's own
+folder, and without this rule a co-writer can't play audio the owner added (or the other way round): Supabase
+answers "Object not found". It adds read-only access for files belonging to a song you own or have joined.
