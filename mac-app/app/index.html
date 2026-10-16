@@ -258,7 +258,11 @@ body.side #side{transform:none}
    this overlay keeps centering its card against the FULL, pre-keyboard viewport once the Dev
    Mode password field is focused, leaving that field sitting under the keyboard instead of above it */
 #authgate{position:fixed;top:var(--vvt,0px);left:0;right:0;height:var(--vvh,100%);z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;transition:height .22s cubic-bezier(.32,.72,0,1),top .22s cubic-bezier(.32,.72,0,1)}
-#authgate .ag-card{max-width:360px;width:100%;text-align:center}
+#authgate .ag-card{max-width:360px;width:100%;text-align:center;margin:auto}
+/* the card centres itself with auto margins rather than align/justify-center, so when the keyboard leaves
+   less room than the card needs it scrolls from the top instead of overflowing off both edges */
+#authgate{align-items:flex-start;justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#acc.kbpad{padding-bottom:50vh}
 #authgate h1{font-size:28px;margin:0 0 6px}
 #authgate p{color:var(--mute);margin:0 0 22px;font-size:15px;line-height:1.4}
 /* was a hardcoded black pill, so it stayed black-on-black-ish and barely readable against the
@@ -14297,7 +14301,17 @@ function show(id){document.querySelectorAll('.view').forEach(function(v){v.class
 function fd(t){var d=new Date(t);return d.toDateString()===new Date().toDateString()?d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):d.toLocaleDateString([],{month:'short',day:'numeric'})}
 var NATIVE_IOS=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
 var kbEst=false,kbT,kbSeen=false,lastH=-1,lastT=-1,kbWasOpen=false;
+/* A text field the app doesn't manage itself: anything typed into on the sign-in screen or in a sheet
+   (Account, Details, Ideas…), as opposed to the lyric editor, title and search, whose keyboard handling
+   is all custom (fit/reveal). These need the field brought above the keyboard by scrolling their own
+   pane, and must never trigger the page snap-back below. */
+function isTextField(el){return!!(el&&(el.tagName==='TEXTAREA'||(el.tagName==='INPUT'&&!/^(button|checkbox|radio|range|file|submit|color|reset|image)$/i.test(el.type||''))||el.isContentEditable))}
+function inFormPane(el){return isTextField(el)&&el.id!=='lyr'&&el.id!=='title'&&el.id!=='q'&&!!(el.closest&&el.closest('#authgate,#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7'))}
 function fit(){var d=document,r=d.documentElement,vv=window.visualViewport,ih=window.innerHeight,h=vv?vv.height:ih,t=vv?vv.offsetTop:0,kb=Math.max(0,ih-h-t),ae=d.activeElement,foc=ae&&(ae.id==='lyr'||ae.id==='title'||ae.id==='q'||ae.id==='ag-devpw'||ae.id==='ag-email'||ae.id==='ag-pw');
+  /* Typing in a sheet: sheets aren't sized off --vvh/--vvt, so there's nothing here to adjust - and
+     feeding iOS's jittery mid-keyboard viewport readings into the layout behind the (see-through)
+     sheet was making it jump on every keystroke. Leave everything where it is until focus leaves. */
+  if(ae&&inFormPane(ae)&&!ae.closest('#authgate'))return;
   if(foc&&innerWidth<=820&&matchMedia('(pointer:coarse)').matches){
     // Inside the native WKWebView, window.visualViewport's resize/offsetTop reporting is unreliable while the
     // keyboard is up (it sometimes briefly reports near-zero remaining height, other times the full screen),
@@ -14343,6 +14357,14 @@ function revealInSheet(el,pane){
   try{pane.scrollTo({top:pane.scrollTop+(rmid-mid),behavior:'smooth'})}catch(e){pane.scrollTop+=rmid-mid}
 }
 document.addEventListener('focusin',function(){kbEst=false;kbSeen=false;clearTimeout(kbT);[60,250,600].forEach(function(ms){setTimeout(fit,ms)});kbT=setTimeout(function(){kbEst=true;fit()},700)});
+/* Sign-in and sheet fields: scroll whichever pane holds the field so it sits above the keyboard
+   (the same centring revealInSheet already does for Details). Account's pane gets temporary room at
+   the bottom so fields near the end can still be lifted clear of the keyboard. */
+function formPaneOf(el){var n=el.parentElement;while(n&&n!==document.body){var cs=getComputedStyle(n);if(/(auto|scroll)/.test(cs.overflowY)&&n.scrollHeight>n.clientHeight+1)return n;if(n.id==='authgate'||/^sheet\d?$/.test(n.id))return n;n=n.parentElement}return null}
+document.addEventListener('focusin',function(e){var el=e.target;if(!inFormPane(el))return;
+  var acc=el.closest('#acc');if(acc)acc.classList.add('kbpad');
+  setTimeout(function(){if(document.activeElement!==el)return;var pane=formPaneOf(el);if(pane)revealInSheet(el,pane)},330)});
+document.addEventListener('focusout',function(){setTimeout(function(){var ae=document.activeElement,acc=$('#acc');if(acc&&!(ae&&acc.contains(ae)&&isTextField(ae)))acc.classList.remove('kbpad')},60)});
 document.addEventListener('focusout',function(){kbEst=false;kbSeen=false;clearTimeout(kbT);setTimeout(fit,60);setTimeout(fit,350)});
 setInterval(fit,500);fit();
 /* dismisses the keyboard once you scroll the lyrics past a threshold, like Apple Notes does —
@@ -14373,7 +14395,12 @@ if(NATIVE_IOS){
   // sizing (--vvh/--vvt) and the caret-into-view logic in reveal(), causing the toolbar/content to
   // jump around. Snap it straight back to (0,0) whenever that happens so only our own logic is ever
   // moving anything.
-  window.addEventListener('scroll',function(){if(window.scrollX||window.scrollY)window.scrollTo(0,0)},{passive:true});
+  /* ...except while typing in a sign-in or sheet field: there the field is brought into view by
+     scrolling its own pane (see the focusin handler below), and if iOS still nudges the page to show
+     it, snapping back would start a tug-of-war on every keystroke - the screen flickers and the field
+     can lose focus. Let iOS have that one, and put the page back once the field is done with. */
+  window.addEventListener('scroll',function(){if(!(window.scrollX||window.scrollY))return;if(inFormPane(document.activeElement))return;window.scrollTo(0,0)},{passive:true});
+  document.addEventListener('focusout',function(){setTimeout(function(){if(!inFormPane(document.activeElement)&&(window.scrollX||window.scrollY))window.scrollTo(0,0)},350)});
 }
 /* Edge fade on horizontally-scrollable chip/tab rows: only fade a side when there's actually more
    content hidden that way, and keep the fade thin — a flat always-on fade was clipping into the last
@@ -16164,7 +16191,7 @@ function onAuthUser(){
   ensureStorageForMode();
   if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling()}
   if(!AUTH_USER){stopInvitePolling();libStop()}
-  if($('#sheet6').classList.contains('on'))renderAccount();
+  refreshAccount();
   paintAcctIcons();
 }
 /* ---------- profile: username, display name & avatar, public so collaborators can find and credit you ---------- */
@@ -16242,21 +16269,21 @@ function saveLinks(fields){var c=sbClient();if(!c||!AUTH_USER)return Promise.rej
    profile exists" and wipe out a username/photo you already saved */
 function loadProfile(){var c=sbClient();if(!c||!AUTH_USER)return;var uid=AUTH_USER.id;
   var cached=profCacheGet(uid);
-  if(cached&&!MY_PROFILE){MY_PROFILE=cached;if($('#sheet6').classList.contains('on'))renderAccount();paintAcctIcons()}
+  if(cached&&!MY_PROFILE){MY_PROFILE=cached;refreshAccount();paintAcctIcons()}
   function fetchOnce(){return c.from('profiles').select('username,display_name,avatar_url,link_spotify,link_instagram,link_tiktok').eq('user_id',uid).order('updated_at',{ascending:false,nullsFirst:false}).limit(1)}
   fetchOnce().then(function(r){
     if(r&&r.error)return;
     var row=r&&r.data&&r.data[0];
     if(row){MY_PROFILE=row;profCacheSet(uid,row);
       if(!row.display_name){var wn=(AUTH_USER.user_metadata||{});wn=wn.full_name||wn.name||'';if(wn){c.from('profiles').update({display_name:wn,updated_at:new Date().toISOString()}).eq('user_id',uid).then(function(){});MY_PROFILE.display_name=wn;profCacheSet(uid,MY_PROFILE)}}
-      if($('#sheet6').classList.contains('on'))renderAccount();paintAcctIcons();return}
+      refreshAccount();paintAcctIcons();return}
     if(cached){
       /* server came back empty but we have a known-good local copy — retry
          once rather than trusting a possibly-too-early read, and never
          overwrite the cloud with Google defaults while that's in doubt */
       setTimeout(function(){fetchOnce().then(function(r2){
         var row2=r2&&r2.data&&r2.data[0];
-        if(row2){MY_PROFILE=row2;profCacheSet(uid,row2);if($('#sheet6').classList.contains('on'))renderAccount();paintAcctIcons()}
+        if(row2){MY_PROFILE=row2;profCacheSet(uid,row2);refreshAccount();paintAcctIcons()}
       })},1500);
       return;
     }
@@ -16265,7 +16292,7 @@ function loadProfile(){var c=sbClient();if(!c||!AUTH_USER)return;var uid=AUTH_US
     var body={user_id:uid,avatar_url:wantAvatar,display_name:wantName,updated_at:new Date().toISOString()};
     c.from('profiles').upsert(body,{onConflict:'user_id'}).then(function(){});
     MY_PROFILE={avatar_url:wantAvatar,display_name:wantName};profCacheSet(uid,MY_PROFILE);
-    if($('#sheet6').classList.contains('on'))renderAccount();paintAcctIcons();
+    refreshAccount();paintAcctIcons();
   })
 }
 function saveAvatar(durl){var c=sbClient();if(!c||!AUTH_USER)return Promise.reject(new Error('Sign-in isn’t available right now.'));
@@ -16527,7 +16554,7 @@ function cloudPullPlan(){
     if(row&&row.pro&&!isPro()){
       PLAN={tier:'pro',since:row.pro_since?new Date(row.pro_since).getTime():Date.now()};
       try{localStorage.setItem('songpad:plan',JSON.stringify(PLAN))}catch(e){}
-      applyPlan();if($('#sheet6').classList.contains('on'))renderAccount();toast('Beta access restored from your account');
+      applyPlan();refreshAccount();toast('Beta access restored from your account');
     }else if(isPro()&&(!row||!row.pro)){cloudPushPlan()}
   })
 }
@@ -16707,8 +16734,14 @@ function socialShown(k,u){if(!u)return'';if((k==='instagram'||k==='tiktok')&&!/[
 function initialsOf(n){n=(n||'').replace(/^@/,'').trim();if(!n)return'';var w=n.split(/\s+/);return((w[0][0]||'')+(w.length>1?w[w.length-1][0]:'')).toUpperCase()}
 /* which part of the sheet is being edited, and what's been typed so far, kept outside renderAccount so
    a re-render (sign-in state, profile load) doesn't throw away a half-finished edit */
-var ACC_EDIT=null,ACC_DRAFT={};
-function renderAccount(){var o=$('#acc'),pro=isPro();o.innerHTML='';
+var ACC_EDIT=null,ACC_DRAFT={},ACC_AUTOFOCUS=null,ACC_PENDING=false;
+/* background updates (sign-in state, profile load, plan sync) redraw the sheet only when you're not
+   mid-edit in it; otherwise they wait until focus leaves the sheet */
+function refreshAccount(){if(!$('#sheet6').classList.contains('on'))return;var ae=document.activeElement;if(ae&&isTextField(ae)&&$('#acc').contains(ae)){ACC_PENDING=true;return}ACC_PENDING=false;renderAccount()}
+document.addEventListener('focusout',function(){if(!ACC_PENDING)return;setTimeout(function(){var ae=document.activeElement;if(!(ae&&isTextField(ae)&&$('#acc').contains(ae)))refreshAccount()},80)});
+function renderAccount(){var o=$('#acc'),pro=isPro();
+  var fae=document.activeElement,keepF=(fae&&fae.dataset&&fae.dataset.dk&&o.contains(fae))?{dk:fae.dataset.dk,s:fae.selectionStart,e:fae.selectionEnd}:null;
+  o.innerHTML='';
   /* Dev Mode has no real Supabase session, so devFake fills the profile with a fake, clearly-labeled
      local-only one (dp, backed by localStorage, never touching Supabase) so the full layout can be
      seen and exercised without a real sign-in. */
@@ -16741,23 +16774,23 @@ function renderAccount(){var o=$('#acc'),pro=isPro();o.innerHTML='';
       ui.autocapitalize='off';ui.autocomplete='off';ui.spellcheck=false;
       var up=document.createElement('span');up.className='atpre';up.textContent='@';ui.parentNode.insertBefore(up,ui);
       ui.addEventListener('input',function(){var v=ui.value.replace(/@/g,'').replace(/\s+/g,'');if(v!==ui.value)ui.value=v;ACC_DRAFT.user=v});
-      setTimeout(function(){try{di.focus()}catch(e){}},50);
+      if(ACC_AUTOFOCUS==='profile'){ACC_AUTOFOCUS=null;try{di.focus({preventScroll:true})}catch(e){}}
       function saveProfile(e){var btn=e&&e.target;if(btn)btn.disabled=true;
         var oldName=devFake?(dp.display_name||dp.username||''):myName(),rawUser=ui.value.replace(/^@+/,'').trim(),dn=di.value.trim();
         if(devFake){dp.username=rawUser;dp.display_name=dn;devProfileSet(dp);renameMyArtistCredit(oldName,dn||rawUser);ACC_EDIT=null;ACC_DRAFT={};toast('Saved (dev only)');renderAccount()}
         else saveUsername(rawUser,dn).then(function(){renameMyArtistCredit(oldName,myName());ACC_EDIT=null;ACC_DRAFT={};toast('Saved');renderAccount()},function(err){if(btn)btn.disabled=false;toast(err.message)})}
     }else{
       var pg2=accSection(o,'');
-      pg2.appendChild(accCell({tile:ACC_ICO.person,label:'Name & Username',value:handle?'@'+handle:'Not set',valueCls:handle?'':'add',chev:true,onclick:function(){ACC_EDIT='profile';ACC_DRAFT={};renderAccount()}}));
+      pg2.appendChild(accCell({tile:ACC_ICO.person,label:'Name & Username',value:handle?'@'+handle:'Not set',valueCls:handle?'':'add',chev:true,onclick:function(){ACC_EDIT='profile';ACC_DRAFT={};ACC_AUTOFOCUS='profile';renderAccount()}}));
     }
     /* ---- links: one row per network with its own icon, showing the handle, like contact details ---- */
     var linking=ACC_EDIT==='links';
-    var lg=accSection(o,'Links',linking?[['Cancel',function(){ACC_EDIT=null;ACC_DRAFT={};renderAccount()},'ghost'],['Save',saveLinksNow,'strong']]:[['Edit',function(){ACC_EDIT='links';ACC_DRAFT={};renderAccount()}]]);
+    var lg=accSection(o,'Links',linking?[['Cancel',function(){ACC_EDIT=null;ACC_DRAFT={};renderAccount()},'ghost'],['Save',saveLinksNow,'strong']]:[['Edit',function(){ACC_EDIT='links';ACC_DRAFT={};ACC_AUTOFOCUS='links';renderAccount()}]]);
     var linkInputs={};
     SOCIALS.forEach(function(sx,ix){
       var k=sx[0],v=prof('link_'+k);
-      if(linking){var hm=(k==='instagram'||k==='tiktok')&&/(?:instagram|tiktok)\.com\/@?([^\/?#]+)/i.exec(v||'');var ip=formCell(lg,sx[1],k==='spotify'?'Paste your artist link':'@username','l_'+k,hm?'@'+hm[1]:v,sx[3],'soc-'+k);ip.autocapitalize='off';ip.autocomplete='off';ip.spellcheck=false;ip.inputMode='url';linkInputs[k]=ip;if(!ix)setTimeout(function(){try{ip.focus()}catch(e){}},50)}
-      else lg.appendChild(accCell({tile:sx[3],tileCls:'soc-'+k,label:sx[1],value:v?socialShown(k,v):'Add',valueCls:v?'':'add',chev:v?'ext':true,onclick:function(){if(v)openLink(v);else{ACC_EDIT='links';ACC_DRAFT={};renderAccount()}}}));
+      if(linking){var hm=(k==='instagram'||k==='tiktok')&&/(?:instagram|tiktok)\.com\/@?([^\/?#]+)/i.exec(v||'');var ip=formCell(lg,sx[1],k==='spotify'?'Paste your artist link':'@username','l_'+k,hm?'@'+hm[1]:v,sx[3],'soc-'+k);ip.autocapitalize='off';ip.autocomplete='off';ip.spellcheck=false;ip.inputMode='url';linkInputs[k]=ip;if(!ix&&ACC_AUTOFOCUS==='links'){ACC_AUTOFOCUS=null;try{ip.focus({preventScroll:true})}catch(e){}}}
+      else lg.appendChild(accCell({tile:sx[3],tileCls:'soc-'+k,label:sx[1],value:v?socialShown(k,v):'Add',valueCls:v?'':'add',chev:v?'ext':true,onclick:function(){if(v)openLink(v);else{ACC_EDIT='links';ACC_DRAFT={};ACC_AUTOFOCUS='links';renderAccount()}}}));
     });
     function saveLinksNow(e){var btn=e&&e.target;if(btn)btn.disabled=true;
       var fields={};SOCIALS.forEach(function(sx){fields['link_'+sx[0]]=normalizeLink(sx[0],linkInputs[sx[0]].value)});
@@ -16768,7 +16801,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();o.innerHTML='';
       var r=document.createElement('label');r.className='cell form'+(tile?'':' notile');
       if(tile){var t=document.createElement('span');t.className='tile'+(tileCls?' '+tileCls:'');t.innerHTML=tile;r.appendChild(t)}
       var l=document.createElement('span');l.className='ct fl';l.textContent=label;r.appendChild(l);
-      var ip=document.createElement('input');ip.placeholder=ph;ip.value=dk in ACC_DRAFT?ACC_DRAFT[dk]:(val||'');
+      var ip=document.createElement('input');ip.placeholder=ph;ip.dataset.dk=dk;ip.value=dk in ACC_DRAFT?ACC_DRAFT[dk]:(val||'');
       ip.addEventListener('input',function(){ACC_DRAFT[dk]=ip.value});
       ip.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();var sb=o.querySelector('.labact .strong');if(sb)sb.click()}else if(ev.key==='Escape'){ACC_EDIT=null;ACC_DRAFT={};renderAccount()}});
       r.appendChild(ip);g.appendChild(r);return ip}
@@ -16868,6 +16901,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();o.innerHTML='';
     og.appendChild(accCell({label:devFake?'Exit Dev Mode':'Sign Out',cls:'danger',onclick:devFake?function(){setDevMode(false)}:signOutGoogle}));
   }
   var ver=document.createElement('div');ver.className='note';ver.style.cssText='text-align:center;padding:18px 0 6px;font-variant-numeric:tabular-nums;-webkit-user-select:text;user-select:text';ver.textContent='Version '+APP_COMMIT;o.appendChild(ver);
+  if(keepF){var kf=o.querySelector('input[data-dk="'+keepF.dk+'"]');if(kf){try{kf.focus({preventScroll:true});kf.setSelectionRange(keepF.s,keepF.e)}catch(e){}}}
 }
 $('#acctb').onclick=function(){openAccount('')};$('#sacct').onclick=function(){openAccount('')};$('#done6').onclick=function(){sheet(false)};
 /* ---------- versions ---------- */
