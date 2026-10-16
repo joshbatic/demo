@@ -46,12 +46,14 @@ module.exports = async (req, res) => {
     const meta = [
       '<title>' + esc(heading) + '</title>',
       '<meta name="description" content="' + esc(desc) + '">',
-      '<meta property="og:type" content="music.song">',
+      '<meta property="og:type" content="website">', // (Facebook rejects music.song without extra music:* details)
       '<meta property="og:url" content="' + SITE + id + '">',
       '<meta property="og:title" content="' + esc(heading) + '">',
       '<meta property="og:description" content="' + esc(desc) + '">',
       '<meta property="og:image" content="' + esc(img) + '">',
-      og ? '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">' : '',
+      '<meta property="og:image:secure_url" content="' + esc(img) + '">',
+      og ? '<meta property="og:image:type" content="image/png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">' : '',
+      '<meta property="og:site_name" content="*[demo]">',
       '<meta property="og:image:alt" content="' + esc(heading) + '">',
       '<meta name="twitter:card" content="' + (og ? 'summary_large_image' : 'summary') + '">',
       '<meta name="twitter:title" content="' + esc(heading) + '">',
@@ -59,7 +61,8 @@ module.exports = async (req, res) => {
       '<meta name="twitter:image" content="' + esc(img) + '">',
       '<link rel="canonical" href="' + SITE + id + '">',
     ].join('\n');
-    html = html.replace(/<!--META-->[\s\S]*?<!--\/META-->/, () => meta)
+    html = html.replace(/<meta name="robots" content="noindex">\n?/, '').replace(/<meta property="og:site_name" content="\*\[demo\]">\n?/, '')
+               .replace(/<!--META-->[\s\S]*?<!--\/META-->/, () => meta)
                .replace('var PRE=null;/*PRELOAD*/', () => 'var PRE=' + json({ id: id, data: data }) + ';');
   } else if (data === null) {
     res.statusCode = 404;
