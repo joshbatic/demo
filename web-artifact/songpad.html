@@ -16077,7 +16077,6 @@ function buildStuck(){
   [['big','Read my song','What this is really about, where it stalls, and a few doors out',readSong,1],
    ['rate'+(rateMode?' on':''),rateMode?'Rate mode is on':'Rate my song',rateMode?'Notes are marked in your lyrics. Tap to turn them off.':'Scores and notes on what’s landing and what isn’t',function(){if(rateMode){setRateMode(false);toast('Rate mode off');buildStuck();return}if(!isPro())return upsell('rate');sheet(false);setTimeout(openRate,isPro()?60:0)},1],
    ['','Four doors','Four completely different next lines. Walk through one.',fourWays,1],
-   ['','Flip it','Your last line, turned inside out',flipIt,1],
    ['','Stare at a thing','90 seconds on one object. Every sense. No rhyming.',zoomIn],
    ['','Word collision','Three random words. Jam them in somehow.',collide],
    ['','Wild card','One odd instruction. Just do it.',card],
@@ -17943,7 +17942,7 @@ function shCanFile(f){try{return!!(navigator.canShare&&navigator.canShare({files
 function shSend(file){if(!file)return;if(shCanFile(file)){navigator.share({files:[file],title:file.name}).catch(function(){});return}
   try{var u=URL.createObjectURL(file),a=document.createElement('a');a.href=u;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},8000);toast('Saved '+file.name)}catch(e){toast('Sharing files isn’t available here')}}
 /* ---- the sheet ---- */
-function openShare(){var song=cur;if(!song)return;SHR.song=song;SHR.img=SHR.page=null;SHR.pal=[];SHR.ci=0;SHR.aud=!!audCur(song);
+function openShare(){var song=cur;if(!song)return;if(document.body.classList.contains('side'))sideOn(false);SHR.song=song;SHR.img=SHR.page=null;SHR.pal=[];SHR.ci=0;SHR.aud=!!audCur(song);
   songPalette(song).then(function(p){if(SHR.song!==song)return;SHR.pal=p.length?p:[[220,.1,.3]];sheet(true,'sheet8');renderShare();shMake()})}
 function shMake(){var song=SHR.song;if(!song||!SHR.pal.length)return;var n=++SHR.busy,bg=shBg(SHR.pal,SHR.ci),nm=shName(song);SHR.img=SHR.page=null;paintShareBtns();
   shImage(song,bg,SHR.aud?audCur(song):null).then(function(b){if(n!==SHR.busy||!b)return;SHR.img=new File([b],nm+'.png',{type:'image/png'});paintShareBtns()}).catch(function(){});
