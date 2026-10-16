@@ -297,10 +297,22 @@ body.side #side{transform:none}
 .view.on.nav-in-l{animation:navInL .44s cubic-bezier(.32,.72,0,1) both;z-index:1}
 .view.nav-out-r{animation:navOutR .44s cubic-bezier(.32,.72,0,1) both;z-index:2;box-shadow:-14px 0 34px rgba(0,0,0,.12)}
 /* in-song player: a voice-memo card between the title and the lyrics */
-#np{margin:-4px 0 24px;padding:14px 16px 8px;border-radius:22px;background:var(--gl);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);box-shadow:0 0 0 .5px var(--ring),0 1px 1px var(--sh2),0 8px 22px var(--sh2),inset 0 1px 0 var(--hl2);-webkit-user-select:none;user-select:none}
+#np{position:relative;overflow:hidden;margin:-4px 0 24px;padding:10px 12px 10px 10px;cursor:default;border-radius:22px;background:var(--gl);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);box-shadow:0 0 0 .5px var(--ring),0 1px 1px var(--sh2),0 8px 22px var(--sh2),inset 0 1px 0 var(--hl2);-webkit-user-select:none;user-select:none}
 #np[hidden]{display:none}
+/* compact by default; the waveform and skip controls fold out on hover (Mac/desktop) or a tap (iPhone) */
+.np-more{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .32s cubic-bezier(.32,.72,0,1),opacity .22s}
+.np-in{overflow:hidden;min-height:0;padding:0 4px 0 2px}
+#np.open .np-more{grid-template-rows:1fr;opacity:1}
+#np.open{padding-bottom:6px}
+#np-t{flex:none;font-size:13px;color:var(--mute);font-variant-numeric:tabular-nums;transition:opacity .2s}
+#np.open #np-t{opacity:0;width:0;overflow:hidden}
+.np-prog{position:absolute;left:0;right:0;bottom:0;height:2.5px;background:var(--sep);transition:opacity .2s}
+.np-prog::after{content:'';position:absolute;left:0;top:0;bottom:0;width:var(--p,0%);background:var(--ink);border-radius:0 2px 2px 0}
+#np.open .np-prog{opacity:0}
+@media (hover:hover){#np:hover .np-more{grid-template-rows:1fr;opacity:1}#np:hover{padding-bottom:6px}#np:hover #np-t{opacity:0;width:0;overflow:hidden}#np:hover .np-prog{opacity:0}}
+@media (prefers-reduced-motion:reduce){.np-more{transition:none}}
 .np-top{display:flex;align-items:center;gap:12px}
-.np-pp{width:40px;height:40px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:var(--tint);color:var(--ontint)}
+.np-pp{width:36px;height:36px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:var(--tint);color:var(--ontint)}
 .np-pp svg{width:16px;height:16px}
 .np-meta{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
 .np-meta b{font-size:15.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -725,7 +737,7 @@ body.sprinting #rhy{display:none}
 </div>
 
 <div class="view" id="vEdit">
-  <div id="sc"><div id="gut" aria-hidden="true"></div><div id="pres" aria-hidden="true"></div><div class="hd"><span class="covwrap"><button class="cov" id="cov" aria-label="Cover art"></button></span><div><input id="title" placeholder="Untitled" aria-label="Title" autocorrect="on"><div id="artist"></div><div id="sub"></div><div id="savestate" class="savestate" hidden></div><div id="here" hidden></div></div></div><div id="np" hidden role="group" aria-label="Song audio"><div class="np-top"><button class="np-pp" id="np-pp" aria-label="Play"></button><div class="np-meta"><b id="np-name"></b><span id="np-sub"></span></div><button class="np-full" id="np-full" aria-label="Play with lyrics" title="Play with lyrics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button></div><canvas class="np-wave" id="np-wave" tabindex="0" role="slider" aria-label="Position in the song" aria-valuemin="0"></canvas><div class="np-bot"><span id="np-at">0:00</span><div class="np-skip"><button id="np-back" aria-label="Back 15 seconds"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 11.5A9.5 9.5 0 1 1 4.5 15"/><path d="M4.6 6.2v5.4H10"/><text x="14.6" y="17.8" text-anchor="middle" font-size="7.4" font-weight="700" fill="currentColor" stroke="none" font-family="-apple-system,system-ui,sans-serif">15</text></svg></button><button id="np-fwd" aria-label="Forward 15 seconds"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.8 11.5A9.5 9.5 0 1 0 23.5 15"/><path d="M23.4 6.2v5.4H18"/><text x="13.4" y="17.8" text-anchor="middle" font-size="7.4" font-weight="700" fill="currentColor" stroke="none" font-family="-apple-system,system-ui,sans-serif">15</text></svg></button></div><span id="np-left">-0:00</span></div></div><div id="lyr" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="false" autocapitalize="sentences" autocorrect="on" data-ph="Start with a line…"></div></div>
+  <div id="sc"><div id="gut" aria-hidden="true"></div><div id="pres" aria-hidden="true"></div><div class="hd"><span class="covwrap"><button class="cov" id="cov" aria-label="Cover art"></button></span><div><input id="title" placeholder="Untitled" aria-label="Title" autocorrect="on"><div id="artist"></div><div id="sub"></div><div id="savestate" class="savestate" hidden></div><div id="here" hidden></div></div></div><div id="np" hidden role="group" aria-label="Song audio"><div class="np-top"><button class="np-pp" id="np-pp" aria-label="Play"></button><div class="np-meta"><b id="np-name"></b><span id="np-sub"></span></div><span id="np-t"></span><button class="np-full" id="np-full" aria-label="Play with lyrics" title="Play with lyrics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button></div><div class="np-more"><div class="np-in"><canvas class="np-wave" id="np-wave" tabindex="0" role="slider" aria-label="Position in the song" aria-valuemin="0"></canvas><div class="np-bot"><span id="np-at">0:00</span><div class="np-skip"><button id="np-back" aria-label="Back 15 seconds"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 11.5A9.5 9.5 0 1 1 4.5 15"/><path d="M4.6 6.2v5.4H10"/><text x="14.6" y="17.8" text-anchor="middle" font-size="7.4" font-weight="700" fill="currentColor" stroke="none" font-family="-apple-system,system-ui,sans-serif">15</text></svg></button><button id="np-fwd" aria-label="Forward 15 seconds"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.8 11.5A9.5 9.5 0 1 0 23.5 15"/><path d="M23.4 6.2v5.4H18"/><text x="13.4" y="17.8" text-anchor="middle" font-size="7.4" font-weight="700" fill="currentColor" stroke="none" font-family="-apple-system,system-ui,sans-serif">15</text></svg></button></div><span id="np-left">-0:00</span></div></div></div><i class="np-prog" aria-hidden="true"></i></div><div id="lyr" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="false" autocapitalize="sentences" autocorrect="on" data-ph="Start with a line…"></div></div>
   <div class="abs fadeT"></div>
   <div class="abs fadeB"></div>
   <div class="abs bar"><div class="bl gl grp2 lgrp"><button class="ib" id="back" aria-label="Songs"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="ib" id="sbt" aria-label="Show sidebar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M9.5 4v16"/></svg></button></div><nav id="crumb" aria-label="Location"><button id="cr-app">*[d]</button><i>/</i><button id="cr-fold"></button><i>/</i><span id="cr-song"></span></nav><div class="bl"><div class="gl grp2"><button class="ib tgl" id="vmap" aria-label="Rhyme map" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h9M4 12h6M4 17h9"/><circle cx="18" cy="7" r="2.2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2.2"/><circle cx="18" cy="17" r="2.2" fill="currentColor" stroke="none"/></svg></button><button class="ib tgl" id="vsyl" aria-label="Syllable counts" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 17V11M10 17V7M15 17v-4M20 17V9"/></svg></button><button class="ib" id="playb" aria-label="Play with lyrics" title="Play with lyrics" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg></button><button class="ib tgl" id="rateb" aria-pressed="false" aria-label="Rate song" title="Rate song"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></button></div><button class="gl ib" id="det" aria-label="Details"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button></div></div>
@@ -17237,7 +17249,7 @@ function runSync(){var song=cur,a=audCur(song);if(!song||!a)return;
 var lpAu=null,lpRaf=0,lpLines=[],lpEls=[],lpIdx=-1,lpSeeking=false,lpUserScroll=0;
 function paintPlayB(){var b=$('#playb');if(b)b.hidden=!(cur&&isPro()&&audCur(cur));paintPlayer()}
 /* ---------- in-song player: play/pause, ±15s, and a waveform to tap or drag through the song ---------- */
-var npItem=null,npSong=null,npScrub=null,npRaf=0,NP_PEAKS={};
+var npItem=null,npSong=null,npScrub=null,npRaf=0,NP_PEAKS={},NP_OPEN=false;
 function songAu(){if(!lpAu){lpAu=new Audio();lpAu.preload='metadata';
   ['play','pause','ended'].forEach(function(ev){lpAu.addEventListener(ev,function(){lpPaint();npPaint();if(ev==='play')npLoop()})});
   lpAu.addEventListener('loadedmetadata',function(){if(lpAu._seek!=null){try{lpAu.currentTime=lpAu._seek}catch(e){}lpAu._seek=null}lpTick(true);npPaint()});
@@ -17257,8 +17269,9 @@ function npPos(){var au=lpAu,it=npItem;if(!it)return 0;if(au&&au._id===it.id){if
 function npDur(){var au=lpAu,it=npItem;if(au&&it&&au._id===it.id&&isFinite(au.duration)&&au.duration)return au.duration;return(it&&it.dur)||0}
 function npStop(){if(lpAu&&!lpAu.paused)try{lpAu.pause()}catch(e){}}
 function npPaint(){var box=$('#np');if(!box||box.hidden||!npItem)return;
-  var playing=lpAu&&lpAu._id===npItem.id&&!lpAu.paused,pp=$('#np-pp');pp.innerHTML=playing?SVG_PAUSE:SVG_PLAY;pp.setAttribute('aria-label',playing?'Pause':'Play');
+  var playing=lpAu&&lpAu._id===npItem.id&&!lpAu.paused,pp=$('#np-pp');if(pp._on!==playing){pp._on=playing;pp.innerHTML=playing?SVG_PAUSE:SVG_PLAY;pp.setAttribute('aria-label',playing?'Pause':'Play')}
   var d=npDur(),t=npScrub!=null?npScrub*d:npPos();$('#np-at').textContent=sfTime(t);$('#np-left').textContent='-'+sfTime(Math.max(0,d-t));
+  $('#np-t').textContent=(playing||t>0.05)?'-'+sfTime(Math.max(0,d-t)):sfTime(d);box.style.setProperty('--p',(d?Math.min(100,t/d*100):0)+'%');
   var cv=$('#np-wave');cv.setAttribute('aria-valuemax',Math.round(d));cv.setAttribute('aria-valuenow',Math.round(t));cv.setAttribute('aria-valuetext',sfTime(t)+' of '+sfTime(d));
   npDraw()}
 function npDraw(){var cv=$('#np-wave');if(!cv||$('#np').hidden)return;var dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;
@@ -17283,7 +17296,7 @@ function ensurePeaks(item,song,blob){if(item.peaks||NP_PEAKS[item.id])return;NP_
   (blob?Promise.resolve(blob):sfBlob(item)).then(peaksOf).then(function(r){item.peaks=r.peaks;if(!item.dur&&r.dur)item.dur=Math.round(r.dur*10)/10;sfTouch(song);if(npItem===item)npPaint()},function(){}).then(function(){delete NP_PEAKS[item.id]})}
 function paintPlayer(){var box=$('#np');if(!box)return;var song=cur,a=song&&isPro()?audCur(song):null;
   if(!a){if(!box.hidden){box.hidden=true;npItem=null;if(typeof refreshViews==='function')refreshViews()}return}
-  var was=box.hidden;npItem=a;npSong=song;box.hidden=false;
+  var was=box.hidden;npItem=a;npSong=song;box.hidden=false;box.classList.toggle('open',NP_OPEN);
   $('#np-name').textContent=a.name;$('#np-sub').textContent=[a.kind,(song.sync&&song.sync.audioId===a.id)?'Lyrics synced':''].filter(Boolean).join(' · ');
   if(!sfUrlNow(a))sfUrl(a).catch(function(){});ensurePeaks(a,song);
   npPaint();if(was&&typeof refreshViews==='function')refreshViews()}
@@ -17299,6 +17312,8 @@ function paintPlayer(){var box=$('#np');if(!box)return;var song=cur,a=song&&isPr
   $('#np-pp').onclick=function(){if(!npItem)return;var au=songAu();if(npLoaded(npItem)&&!au.paused){au.pause();return}npPlay(npItem,npSong)};
   $('#np-back').onclick=function(){npSeek(npPos()-15)};$('#np-fwd').onclick=function(){npSeek(npPos()+15)};
   $('#np-full').onclick=function(){openPlay()};
+  $('#np').addEventListener('click',function(e){if(matchMedia('(hover: hover)').matches)return;if((e.composedPath?e.composedPath():[e.target]).some(function(n){return n&&(n.tagName==='BUTTON'||n.tagName==='CANVAS')}))return;
+    var box=$('#np');box.classList.toggle('open');NP_OPEN=box.classList.contains('open');setTimeout(npDraw,40)});
   ['np-pp','np-back','np-fwd','np-full'].forEach(function(id){$('#'+id).onmousedown=prevent})})();
 function lpPaint(){var pp=$('#lp-pp'),on=lpAu&&!lpAu.paused;pp.innerHTML=on?SVG_PAUSE:SVG_PLAY;pp.setAttribute('aria-label',on?'Pause':'Play')}
 function lpTick(jump){if(!lpAu)return;var t=lpAu.currentTime||0,d=lpAu.duration||0,sk=$('#lp-seek');
