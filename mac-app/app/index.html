@@ -578,7 +578,12 @@ body.ios .song{padding:13px 24px}
 .audplay{width:34px;height:34px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:var(--fill);color:var(--ink)}
 .audplay svg{width:14px;height:14px}
 .audplay.on{background:var(--tint);color:var(--ontint)}
+.audxw{overflow:hidden;transition:height .3s cubic-bezier(.32,.72,0,1),opacity .24s ease}
 .audx{padding:2px 16px 14px 53px;display:flex;flex-direction:column;gap:10px}
+.audx>*:last-child{margin-bottom:0}
+.audplay,.audcur{transition:background-color .18s,color .18s,transform .12s}
+.audplay:active,.audcur:active{transform:scale(.9)}
+@media (prefers-reduced-motion:reduce){.audxw{transition:none}}
 .audx .chips{display:flex;flex-wrap:wrap;gap:6px}
 .audx .chips button{height:30px;padding:0 12px;border-radius:99px;background:var(--fill);font-size:13.5px;font-weight:500;color:var(--ink)}
 .audx .chips button.on{background:var(--tint);color:var(--ontint)}
@@ -608,7 +613,6 @@ body.ios .song{padding:13px 24px}
 .relnote.warn{color:var(--red)}
 #p-rel .cell.form .fl{width:112px}
 #p-rel .cell.form input[type=date]{min-height:22px;-webkit-appearance:none;appearance:none;text-align:left}
-#dseg button{padding:6px 4px}
 /* Play with Lyrics: the song plays and its lines light up in time, Apple Music style; tap a line to jump there */
 #lplay{position:fixed;inset:0;z-index:31;background:var(--bg);display:flex;flex-direction:column}
 #lplay[hidden]{display:none}
@@ -760,7 +764,7 @@ body.sprinting #rhy{display:none}
 <div id="scrim"></div>
 <div id="sheet" role="dialog" aria-label="Song details">
   <div class="sh"><b>Details</b><button id="done">Done</button></div>
-  <div class="seg" id="dseg"><button data-t="inf" class="on">Info</button><button data-t="chd">Chords</button><button data-t="mel">Melody</button><button data-t="aud">Audio</button><button data-t="rel">Credits</button></div>
+  <div class="seg" id="dseg"><button data-t="inf" class="on">Info</button><button data-t="aud">Audio</button><button data-t="chd">Chords</button><button data-t="rel">Credits</button></div>
   <div class="pane" id="p-chd"><textarea id="chd" placeholder="Am   F   C   G&#10;Chords, tabs, strumming…" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea><div id="cq"></div></div>
   <div class="pane" id="p-mel">
     <div class="gf mbox"><div class="mrow"><button class="go" id="mel-imp">Import Recording</button><button class="go alt" id="mel-rec">Record</button></div>
@@ -14276,7 +14280,7 @@ function load(){ACTIVE_KEY=currentKey();try{songs=JSON.parse(localStorage.getIte
    old stamp means anything newer arriving through sync wins - the writer's own edits to it, or a
    delete made on another device. Delete it and it stays deleted. To revise the text, bump GUIDE_V
    and GUIDE_AT: libraries where it's still untouched get the new version, edited ones keep theirs. */
-var GUIDE_V=2,GUIDE_ID='5f1d0c2e-6a8b-4c3d-9e7f-0a1b2c3d4e5f',GUIDE_AT=Date.UTC(2026,9,16);
+var GUIDE_V=3,GUIDE_ID='5f1d0c2e-6a8b-4c3d-9e7f-0a1b2c3d4e5f',GUIDE_AT=Date.UTC(2026,9,16,7);
 function guideSong(){
   var L=[
     '[Start here]',
@@ -14305,7 +14309,6 @@ function guideSong(){
     '',
     '[Music]',
     'In Details, add chords, key, tempo, tuning and a status.',
-    'Melody: hum or sing “da da da”, one phrase per line, or import a voice memo.',
     'Perform turns the song into a scrolling teleprompter, with speed and text size.',
     '',
     '[Audio & release]',
@@ -17011,7 +17014,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
   var n=document.createElement('div');n.className='note';n.style.paddingTop='8px';n.textContent='This is a testing switch for the beta-tester tier that’s rolling out soon — not a real plan.';o.appendChild(n);
   var lt=document.createElement('div');lt.className='lab';lt.textContent=pro?'What’s included':'Unlocks when Beta is on';o.appendChild(lt);
   var fbox=document.createElement('div');fbox.className='gf';o.appendChild(fbox);
-  ['Unlimited songs','Lines: rhyming lines in your voice','Rate: honest notes on your song','Whole-song context for every suggestion','Writing voice, Melody & Perform mode','Muse: more cards, and sharing songs','Audio versions, synced lyrics, credits & release details'].forEach(function(t){
+  ['Unlimited songs','Lines: rhyming lines in your voice','Rate: honest notes on your song','Whole-song context for every suggestion','Writing voice & Perform mode','Muse: more cards, and sharing songs','Audio versions, synced lyrics, credits & release details'].forEach(function(t){
     var r2=document.createElement('div');r2.className='row';
     r2.innerHTML='<span class="pfrow"><i class="pfi"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></i><span class="pft"></span></span>';
     r2.querySelector('.pft').textContent=t;fbox.appendChild(r2)
@@ -17113,14 +17116,14 @@ $('#filein').onchange=function(){var f=[].slice.call(this.files||[]);this.value=
 /* quick listen to one version, right from its row */
 function sfStopPreview(){if(sfAu)try{sfAu.pause()}catch(e){}SF_PLAY=null}
 function sfPreview(item){
-  if(!sfAu){sfAu=new Audio();sfAu.onended=function(){SF_PLAY=null;renderAud()}}
-  if(SF_PLAY===item.id){sfStopPreview();renderAud();return}
+  if(!sfAu){sfAu=new Audio();sfAu.onended=function(){SF_PLAY=null;paintAudLive()}}
+  if(SF_PLAY===item.id){sfStopPreview();paintAudLive();return}
   if(lpAu)try{lpAu.pause()}catch(e){}
-  var go=function(u){if(sfAu.src!==u)sfAu.src=u;var p=sfAu.play();SF_PLAY=item.id;renderAud();if(p&&p.catch)p.catch(function(){SF_PLAY=null;renderAud();toast('Tap play again to listen')})};
+  var go=function(u){if(sfAu.src!==u)sfAu.src=u;var p=sfAu.play();SF_PLAY=item.id;paintAudLive();if(p&&p.catch)p.catch(function(){SF_PLAY=null;paintAudLive();toast('Tap play again to listen')})};
   var now=sfUrlNow(item);if(now)go(now);else sfUrl(item).then(go,function(e){toast('Couldn’t play it: '+sfErr(e))})}
 function sfOpen(item){var now=sfUrlNow(item);if(now)return openLink(now);sfUrl(item).then(openLink,function(e){toast('Couldn’t open it: '+sfErr(e))})}
 /* expanded row: kind, rename, delete (tap twice) */
-function sfEditor(it,kinds,onDel){var x=document.createElement('div');x.className='audx';
+function sfEditor(it,kinds,onDel){var w=document.createElement('div');w.className='audxw';w.dataset.id=it.id;var x=document.createElement('div');x.className='audx';w.appendChild(x);
   var ch=document.createElement('div');ch.className='chips';kinds.forEach(function(k){var b=document.createElement('button');b.textContent=k;if(it.kind===k)b.className='on';b.onclick=function(){it.kind=k;sfTouch();renderAud()};ch.appendChild(b)});x.appendChild(ch);
   var nm=document.createElement('input');nm.value=it.name;nm.placeholder='Name';nm.setAttribute('aria-label','Name');
   nm.onchange=function(){var v=nm.value.trim();if(v&&v!==it.name){it.name=v;sfTouch();renderAud();paintPlayB()}};nm.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();nm.blur()}};x.appendChild(nm);
@@ -17129,7 +17132,19 @@ function sfEditor(it,kinds,onDel){var x=document.createElement('div');x.classNam
   var del=document.createElement('button');del.className='go2 red';del.textContent='Delete';var armT=0;
   del.onclick=function(){if(!del.classList.contains('arm')){del.classList.add('arm');del.textContent='Tap Again to Delete';clearTimeout(armT);armT=setTimeout(function(){del.classList.remove('arm');del.textContent='Delete'},3000);return}
     if(SF_PLAY===it.id)sfStopPreview();onDel();sfRemove(it);AUD_OPEN=null;sfTouch();renderAud();paintPlayB();toast('Deleted “'+it.name+'”')};
-  acts.appendChild(del);x.appendChild(acts);return x}
+  acts.appendChild(del);x.appendChild(acts);return w}
+/* slide a row's edit panel open or closed by animating its real height (smooth both ways, in Safari too) */
+function audToggle(id,row,make){
+  var calm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var open=document.querySelector('#aud-body .audxw:not(.closing)');
+  var shut=function(w){if(!w)return;w.classList.add('closing');if(calm){w.remove();return}w.style.height=w.scrollHeight+'px';void w.offsetHeight;w.style.height='0px';w.style.opacity='0';setTimeout(function(){if(w.parentNode)w.remove()},330)};
+  if(AUD_OPEN===id){AUD_OPEN=null;shut(open);return}
+  shut(open);AUD_OPEN=id;var w=make();
+  if(calm){row.after(w);return}
+  w.style.height='0px';w.style.opacity='0';row.after(w);var target=w.scrollHeight;void w.offsetHeight;
+  w.style.height=target+'px';w.style.opacity='1';
+  setTimeout(function(){if(!w.classList.contains('closing'))w.style.height=''},330)}
+function paintAudLive(){document.querySelectorAll('#aud-body .audplay[data-id]').forEach(function(b){var on=SF_PLAY===b.dataset.id;if(b._on===on)return;b._on=on;b.classList.toggle('on',on);b.innerHTML=on?SVG_PAUSE:SVG_PLAY;b.setAttribute('aria-label',on?'Pause':'Play')})}
 function renderAud(){var o=$('#aud-body');if(!o||!cur)return;var song=cur,keepTop=$('#p-aud')?$('#p-aud').scrollTop:0;o.innerHTML='';
   var auds=song.audio||[],files=song.files||[],cu=audCur(song);
   auds.concat(files).forEach(function(x){if(!sfUrlNow(x))sfUrl(x).catch(function(){})});
@@ -17141,10 +17156,11 @@ function renderAud(){var o=$('#aud-body');if(!o||!cur)return;var song=cur,keepTo
     var cb=document.createElement('button');cb.className='audcur'+(a===cu?' on':'');cb.setAttribute('aria-label',a===cu?'Current version':'Make this the current version');cb.innerHTML=a===cu?SVG_CHECK:'';
     cb.onclick=function(){if(a===cu)return;auds.forEach(function(x){x.cur=x===a});sfTouch();renderAud();paintPlayB();toast('“'+a.name+'” is now the current version')};r.appendChild(cb);
     var mid=document.createElement('button');mid.className='c2';mid.innerHTML='<b></b><span></span>';mid.firstChild.textContent=a.name;mid.lastChild.textContent=[a.kind,a.dur?sfTime(a.dur):'',sfSize(a.size)].filter(Boolean).join(' · ');
-    mid.onclick=function(){AUD_OPEN=AUD_OPEN===a.id?null:a.id;renderAud()};r.appendChild(mid);
-    var pb=document.createElement('button');pb.className='audplay'+(SF_PLAY===a.id?' on':'');pb.setAttribute('aria-label',SF_PLAY===a.id?'Pause':'Play '+a.name);pb.innerHTML=SF_PLAY===a.id?SVG_PAUSE:SVG_PLAY;pb.onclick=function(){sfPreview(a)};r.appendChild(pb);
+    mid.onclick=function(){audToggle(a.id,r,function(){return sfEditor(a,AUD_KINDS,delA)})};r.appendChild(mid);
+    var delA=function(){song.audio=auds.filter(function(x){return x!==a});if(a===cu&&song.audio.length)song.audio[song.audio.length-1].cur=true;if(song.sync&&song.sync.audioId===a.id)delete song.sync};
+    var pb=document.createElement('button');pb.dataset.id=a.id;pb._on=SF_PLAY===a.id;pb.className='audplay'+(SF_PLAY===a.id?' on':'');pb.setAttribute('aria-label',SF_PLAY===a.id?'Pause':'Play '+a.name);pb.innerHTML=SF_PLAY===a.id?SVG_PAUSE:SVG_PLAY;pb.onclick=function(){sfPreview(a)};r.appendChild(pb);
     vg.appendChild(r);
-    if(AUD_OPEN===a.id)vg.appendChild(sfEditor(a,AUD_KINDS,function(){song.audio=auds.filter(function(x){return x!==a});if(a===cu&&song.audio.length)song.audio[song.audio.length-1].cur=true;if(song.sync&&song.sync.audioId===a.id)delete song.sync}))});
+    if(AUD_OPEN===a.id)vg.appendChild(sfEditor(a,AUD_KINDS,delA))});
   if(auds.length)o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:'The ticked version is the current one: it’s what plays with your lyrics and what they’re synced to.'}));
   /* lyric sync */
   if(cu){var sg=accSection(o,'Lyric sync'),bx=document.createElement('div');bx.className='syncbox';sg.appendChild(bx);
@@ -17165,10 +17181,11 @@ function renderAud(){var o=$('#aud-body');if(!o||!cur)return;var song=cur,keepTo
   files.forEach(function(f){var r=document.createElement('div');r.className='cell';
     var t=document.createElement('span');t.className='tile';t.innerHTML=FILE_ICO[f.kind]||FILE_ICO.Other;r.appendChild(t);
     var mid=document.createElement('button');mid.className='c2';mid.innerHTML='<b></b><span></span>';mid.firstChild.textContent=f.name;mid.lastChild.textContent=[f.kind,sfSize(f.size)].filter(Boolean).join(' · ');
-    mid.onclick=function(){AUD_OPEN=AUD_OPEN===f.id?null:f.id;renderAud()};r.appendChild(mid);
+    var delF=function(){song.files=files.filter(function(x){return x!==f})};
+    mid.onclick=function(){audToggle(f.id,r,function(){return sfEditor(f,FILE_KINDS,delF)})};r.appendChild(mid);
     var ob=document.createElement('button');ob.className='audplay';ob.setAttribute('aria-label','Open '+f.name);ob.innerHTML=SVG_OPEN;ob.onclick=function(){sfOpen(f)};r.appendChild(ob);
     fg.appendChild(r);
-    if(AUD_OPEN===f.id)fg.appendChild(sfEditor(f,FILE_KINDS,function(){song.files=files.filter(function(x){return x!==f})}))});
+    if(AUD_OPEN===f.id)fg.appendChild(sfEditor(f,FILE_KINDS,delF))});
   if(!sfCloud())o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:'Dev Mode: files stay on this device. Sign in to store them in your account and sync them.'}));
   var pa=$('#p-aud');if(pa)pa.scrollTop=keepTop}
 
