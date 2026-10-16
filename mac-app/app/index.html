@@ -296,6 +296,26 @@ body.side #side{transform:none}
 .view.nav-out-l{animation:navOutL .44s cubic-bezier(.32,.72,0,1) both;z-index:1}
 .view.on.nav-in-l{animation:navInL .44s cubic-bezier(.32,.72,0,1) both;z-index:1}
 .view.nav-out-r{animation:navOutR .44s cubic-bezier(.32,.72,0,1) both;z-index:2;box-shadow:-14px 0 34px rgba(0,0,0,.12)}
+/* in-song player: a voice-memo card between the title and the lyrics */
+#np{margin:-4px 0 24px;padding:14px 16px 8px;border-radius:22px;background:var(--gl);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);box-shadow:0 0 0 .5px var(--ring),0 1px 1px var(--sh2),0 8px 22px var(--sh2),inset 0 1px 0 var(--hl2);-webkit-user-select:none;user-select:none}
+#np[hidden]{display:none}
+.np-top{display:flex;align-items:center;gap:12px}
+.np-pp{width:40px;height:40px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:var(--tint);color:var(--ontint)}
+.np-pp svg{width:16px;height:16px}
+.np-meta{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.np-meta b{font-size:15.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np-meta span{font-size:13px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.np-full{width:34px;height:34px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;color:var(--mute);background:none}
+.np-full svg{width:16px;height:16px}
+.np-wave{display:block;width:100%;height:48px;margin:12px 0 2px;touch-action:pan-y;cursor:pointer;outline:0;border-radius:6px}
+.np-wave:focus-visible{box-shadow:0 0 0 2px var(--tint)}
+.np-bot{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;color:var(--mute);font-variant-numeric:tabular-nums;min-height:38px}
+.np-bot>span{min-width:44px}.np-bot>span:last-child{text-align:right}
+.np-skip{display:flex;gap:22px}
+.np-skip button{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--ink);background:none}
+.np-skip svg{width:26px;height:26px}
+@media (hover:hover){.np-skip button:hover,.np-full:hover{background:var(--fill)}.np-pp:hover{filter:brightness(1.12)}}
+.np-pp:active,.np-skip button:active{transform:scale(.92)}
 @keyframes navInR{from{transform:translateX(100%)}to{transform:none}}
 @keyframes navOutL{from{transform:none}to{transform:translateX(-30%)}}
 @keyframes navInL{from{transform:translateX(-30%)}to{transform:none}}
@@ -705,7 +725,7 @@ body.sprinting #rhy{display:none}
 </div>
 
 <div class="view" id="vEdit">
-  <div id="sc"><div id="gut" aria-hidden="true"></div><div id="pres" aria-hidden="true"></div><div class="hd"><span class="covwrap"><button class="cov" id="cov" aria-label="Cover art"></button></span><div><input id="title" placeholder="Untitled" aria-label="Title" autocorrect="on"><div id="artist"></div><div id="sub"></div><div id="savestate" class="savestate" hidden></div><div id="here" hidden></div></div></div><div id="lyr" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="false" autocapitalize="sentences" autocorrect="on" data-ph="Start with a line…"></div></div>
+  <div id="sc"><div id="gut" aria-hidden="true"></div><div id="pres" aria-hidden="true"></div><div class="hd"><span class="covwrap"><button class="cov" id="cov" aria-label="Cover art"></button></span><div><input id="title" placeholder="Untitled" aria-label="Title" autocorrect="on"><div id="artist"></div><div id="sub"></div><div id="savestate" class="savestate" hidden></div><div id="here" hidden></div></div></div><div id="np" hidden role="group" aria-label="Song audio"><div class="np-top"><button class="np-pp" id="np-pp" aria-label="Play"></button><div class="np-meta"><b id="np-name"></b><span id="np-sub"></span></div><button class="np-full" id="np-full" aria-label="Play with lyrics" title="Play with lyrics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button></div><canvas class="np-wave" id="np-wave" tabindex="0" role="slider" aria-label="Position in the song" aria-valuemin="0"></canvas><div class="np-bot"><span id="np-at">0:00</span><div class="np-skip"><button id="np-back" aria-label="Back 15 seconds"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 11.5A9.5 9.5 0 1 1 4.5 15"/><path d="M4.6 6.2v5.4H10"/><text x="14.6" y="17.8" text-anchor="middle" font-size="7.4" font-weight="700" fill="currentColor" stroke="none" font-family="-apple-system,system-ui,sans-serif">15</text></svg></button><button id="np-fwd" aria-label="Forward 15 seconds"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.8 11.5A9.5 9.5 0 1 0 23.5 15"/><path d="M23.4 6.2v5.4H18"/><text x="13.4" y="17.8" text-anchor="middle" font-size="7.4" font-weight="700" fill="currentColor" stroke="none" font-family="-apple-system,system-ui,sans-serif">15</text></svg></button></div><span id="np-left">-0:00</span></div></div><div id="lyr" contenteditable="true" role="textbox" aria-multiline="true" spellcheck="false" autocapitalize="sentences" autocorrect="on" data-ph="Start with a line…"></div></div>
   <div class="abs fadeT"></div>
   <div class="abs fadeB"></div>
   <div class="abs bar"><div class="bl gl grp2 lgrp"><button class="ib" id="back" aria-label="Songs"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="ib" id="sbt" aria-label="Show sidebar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M9.5 4v16"/></svg></button></div><nav id="crumb" aria-label="Location"><button id="cr-app">*[d]</button><i>/</i><button id="cr-fold"></button><i>/</i><span id="cr-song"></span></nav><div class="bl"><div class="gl grp2"><button class="ib tgl" id="vmap" aria-label="Rhyme map" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h9M4 12h6M4 17h9"/><circle cx="18" cy="7" r="2.2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2.2"/><circle cx="18" cy="17" r="2.2" fill="currentColor" stroke="none"/></svg></button><button class="ib tgl" id="vsyl" aria-label="Syllable counts" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 17V11M10 17V7M15 17v-4M20 17V9"/></svg></button><button class="ib" id="playb" aria-label="Play with lyrics" title="Play with lyrics" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg></button><button class="ib tgl" id="rateb" aria-pressed="false" aria-label="Rate song" title="Rate song"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></button></div><button class="gl ib" id="det" aria-label="Details"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button></div></div>
@@ -14850,9 +14870,9 @@ function openSong(id){
   chordChips();show('vEdit');rhyme();renderSide();if(cur.shared)pullShared(cur);
   var l=$('#lyr'),blank=!cur.lyrics&&!cur.title,mob=innerWidth<=820&&matchMedia('(pointer:coarse)').matches;
   if(blank||!mob){l.focus();l.setSelectionRange(l.value.length,l.value.length)}else lastSel={s:l.value.length,e:l.value.length};
-  $('#sc').scrollTop=0;setTimeout(reveal,60);if(blank){setTimeout(function(){$('#sc').scrollTop=0},80)}autoSnap();refreshViews();sendPres();sfStopPreview();AUD_OPEN=null;paintPlayB();
+  $('#sc').scrollTop=0;setTimeout(reveal,60);if(blank){setTimeout(function(){$('#sc').scrollTop=0},80)}autoSnap();refreshViews();sendPres();sfStopPreview();AUD_OPEN=null;if(lpAu&&lpAu._song!==cur.id)npStop();paintPlayB();
 }
-function toList(){sheet(false);cur=null;renderList();show('vList')}
+function toList(){if(typeof npStop==='function')npStop();sheet(false);cur=null;renderList();show('vList')}
 function goBack(){if(cur&&!cur.title&&!cur.lyrics&&!cur.chords&&!cur.notes)songs=songs.filter(function(s){return s!==cur});save();toList()}
 $('#back').onclick=goBack;
 $('#logo').onclick=function(){var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'||ae.id==='q'))ae.blur();goBack()};
@@ -17071,7 +17091,7 @@ function sfAdd(files,isAudio){var song=cur;if(!song||!files.length)return;
     (isAudio?sfMediaDur(f):Promise.resolve(0)).then(function(d){return sfPut(song,f,id).then(function(path){
       var item={id:id,name:sfBase(f.name),path:path,size:f.size,mime:f.type||'',added:Date.now()};
       if(isAudio){item.kind=/voice|memo|recording/i.test(f.name)?'Voice memo':/master/i.test(f.name)?'Master':/mix/i.test(f.name)?'Mix':'Demo';item.dur=Math.round(d*10)/10;
-        song.audio=song.audio||[];song.audio.forEach(function(x){x.cur=false});item.cur=true;song.audio.push(item)}
+        song.audio=song.audio||[];song.audio.forEach(function(x){x.cur=false});item.cur=true;song.audio.push(item);ensurePeaks(item,song,f)}
       else{item.kind=/stem|vox|vocal|drum|bass|guitar|keys|synth|perc/i.test(f.name)?'Stem':/^image\//.test(f.type)?'Artwork':/\.(logicx|als|flp|ptx|rpp|band|cpr|song|zip)$/i.test(f.name)?'Session':'Other';song.files=song.files||[];song.files.push(item)}
       sfTouch(song);toast((isAudio?'Added “':'Attached “')+item.name+'”')})})
     .catch(function(e){toast('Couldn’t upload “'+sfBase(f.name)+'”: '+sfErr(e))})
@@ -17215,7 +17235,71 @@ function runSync(){var song=cur,a=audCur(song);if(!song||!a)return;
 
 /* ---------- Play with Lyrics: the current version plays and its lines light up in time ---------- */
 var lpAu=null,lpRaf=0,lpLines=[],lpEls=[],lpIdx=-1,lpSeeking=false,lpUserScroll=0;
-function paintPlayB(){var b=$('#playb');if(b)b.hidden=!(cur&&isPro()&&audCur(cur))}
+function paintPlayB(){var b=$('#playb');if(b)b.hidden=!(cur&&isPro()&&audCur(cur));paintPlayer()}
+/* ---------- in-song player: play/pause, ±15s, and a waveform to tap or drag through the song ---------- */
+var npItem=null,npSong=null,npScrub=null,npRaf=0,NP_PEAKS={};
+function songAu(){if(!lpAu){lpAu=new Audio();lpAu.preload='metadata';
+  ['play','pause','ended'].forEach(function(ev){lpAu.addEventListener(ev,function(){lpPaint();npPaint();if(ev==='play')npLoop()})});
+  lpAu.addEventListener('loadedmetadata',function(){if(lpAu._seek!=null){try{lpAu.currentTime=lpAu._seek}catch(e){}lpAu._seek=null}lpTick(true);npPaint()});
+  lpAu.addEventListener('timeupdate',function(){if(lpAu.paused)npPaint()})}return lpAu}
+function npLoaded(item){var au=songAu();return au._id===item.id&&!!au.src}
+/* start (or resume) a version. iOS only lets audio start straight from a tap, so the link is fetched
+   ahead of time (paintPlayer) and used synchronously here whenever it's ready. */
+function npPlay(item,song,fromTop){var au=songAu();
+  if(lpAu&&sfAu)sfStopPreview();
+  var go=function(u){if(au._id!==item.id||!au.src){au.src=u;au._id=item.id;au._song=song.id;if(fromTop)au._seek=null}var p=au.play();if(p&&p.catch)p.catch(function(){npPaint();lpPaint()});npPaint();lpPaint()};
+  if(npLoaded(item))return go(au.src);var now=sfUrlNow(item);if(now)go(now);else sfUrl(item).then(go,function(e){toast('Couldn’t play it: '+sfErr(e))})}
+function npSeek(sec){var it=npItem,au=songAu();if(!it)return;var d=au.duration||it.dur||0;sec=Math.max(0,d?Math.min(d-.05,sec):sec);
+  if(npLoaded(it)&&isFinite(au.duration)){au.currentTime=sec}
+  else{au._seek=sec;var now=sfUrlNow(it);var load=function(u){au.src=u;au._id=it.id;au._song=npSong&&npSong.id;try{au.load()}catch(e){}};if(now)load(now);else sfUrl(it).then(load,function(){})}
+  npPaint();lpTick(true)}
+function npPos(){var au=lpAu,it=npItem;if(!it)return 0;if(au&&au._id===it.id){if(au._seek!=null)return au._seek;return au.currentTime||0}return 0}
+function npDur(){var au=lpAu,it=npItem;if(au&&it&&au._id===it.id&&isFinite(au.duration)&&au.duration)return au.duration;return(it&&it.dur)||0}
+function npStop(){if(lpAu&&!lpAu.paused)try{lpAu.pause()}catch(e){}}
+function npPaint(){var box=$('#np');if(!box||box.hidden||!npItem)return;
+  var playing=lpAu&&lpAu._id===npItem.id&&!lpAu.paused,pp=$('#np-pp');pp.innerHTML=playing?SVG_PAUSE:SVG_PLAY;pp.setAttribute('aria-label',playing?'Pause':'Play');
+  var d=npDur(),t=npScrub!=null?npScrub*d:npPos();$('#np-at').textContent=sfTime(t);$('#np-left').textContent='-'+sfTime(Math.max(0,d-t));
+  var cv=$('#np-wave');cv.setAttribute('aria-valuemax',Math.round(d));cv.setAttribute('aria-valuenow',Math.round(t));cv.setAttribute('aria-valuetext',sfTime(t)+' of '+sfTime(d));
+  npDraw()}
+function npDraw(){var cv=$('#np-wave');if(!cv||$('#np').hidden)return;var dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;
+  if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
+  var x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);
+  var cs=getComputedStyle(document.documentElement),ink=cs.getPropertyValue('--ink').trim()||'#000',mute=cs.getPropertyValue('--mute').trim()||'#888';
+  var P=(npItem&&npItem.peaks)||null,bw=2.4,gap=2.1,n=Math.max(1,Math.floor((w+gap)/(bw+gap))),off=(w-(n*(bw+gap)-gap))/2;
+  var d=npDur(),f=d?(npScrub!=null?npScrub:npPos()/d):0;
+  for(var i=0;i<n;i++){var v;if(P&&P.length){var a=Math.floor(i*P.length/n),b=Math.max(a+1,Math.floor((i+1)*P.length/n)),m=0;for(var k=a;k<b&&k<P.length;k++)if(P[k]>m)m=P[k];v=m/100}else v=.12+.06*Math.sin(i*.9);
+    var bh=Math.max(2.5,v*(h-4)),bx=off+i*(bw+gap),by=(h-bh)/2,played=(i+.5)/n<=f;
+    x.fillStyle=played?ink:mute;x.globalAlpha=played?1:.42;
+    if(x.roundRect){x.beginPath();x.roundRect(bx,by,bw,bh,bw/2);x.fill()}else x.fillRect(bx,by,bw,bh)}
+  x.globalAlpha=1}
+function npLoop(){cancelAnimationFrame(npRaf);(function f(){if(!lpAu||lpAu.paused||$('#np').hidden){npPaint();return}npPaint();npRaf=requestAnimationFrame(f)})()}
+/* a waveform outline for a version: 180 loudness peaks, worked out once and saved on the version so
+   every device can draw it without downloading the audio again */
+function peaksOf(blob){return decodeBlob(blob).then(function(buf){var P=180,len=buf.length,chs=[],out=[],step=Math.max(1,Math.floor(len/P)),stride=Math.max(1,Math.floor(step/500));
+  for(var c=0;c<buf.numberOfChannels;c++)chs.push(buf.getChannelData(c));
+  for(var i=0;i<P;i++){var s=i*step,e=Math.min(len,s+step),m=0;for(var j=s;j<e;j+=stride)for(var c2=0;c2<chs.length;c2++){var v=chs[c2][j];if(v<0)v=-v;if(v>m)m=v}out.push(m)}
+  var mx=0;out.forEach(function(v){if(v>mx)mx=v});mx=mx||1;return{peaks:out.map(function(v){return Math.round(Math.pow(v/mx,.7)*100)}),dur:buf.duration}})}
+function ensurePeaks(item,song,blob){if(item.peaks||NP_PEAKS[item.id])return;NP_PEAKS[item.id]=1;
+  (blob?Promise.resolve(blob):sfBlob(item)).then(peaksOf).then(function(r){item.peaks=r.peaks;if(!item.dur&&r.dur)item.dur=Math.round(r.dur*10)/10;sfTouch(song);if(npItem===item)npPaint()},function(){}).then(function(){delete NP_PEAKS[item.id]})}
+function paintPlayer(){var box=$('#np');if(!box)return;var song=cur,a=song&&isPro()?audCur(song):null;
+  if(!a){if(!box.hidden){box.hidden=true;npItem=null;if(typeof refreshViews==='function')refreshViews()}return}
+  var was=box.hidden;npItem=a;npSong=song;box.hidden=false;
+  $('#np-name').textContent=a.name;$('#np-sub').textContent=[a.kind,(song.sync&&song.sync.audioId===a.id)?'Lyrics synced':''].filter(Boolean).join(' · ');
+  if(!sfUrlNow(a))sfUrl(a).catch(function(){});ensurePeaks(a,song);
+  npPaint();if(was&&typeof refreshViews==='function')refreshViews()}
+(function(){var cv=$('#np-wave');
+  function fracAt(e){var r=cv.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))}
+  cv.addEventListener('pointerdown',function(e){if(!npItem)return;try{cv.setPointerCapture(e.pointerId)}catch(_){}npScrub=fracAt(e);npPaint()});
+  cv.addEventListener('pointermove',function(e){if(npScrub==null)return;npScrub=fracAt(e);npPaint()});
+  cv.addEventListener('pointerup',function(){if(npScrub==null)return;var f=npScrub;npScrub=null;npSeek(f*npDur())});
+  cv.addEventListener('pointercancel',function(){npScrub=null;npPaint()});
+  cv.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();npSeek(npPos()+(e.key==='ArrowRight'?5:-5))}else if(e.key===' '||e.key==='Enter'){e.preventDefault();$('#np-pp').click()}});
+  try{new ResizeObserver(function(){npDraw()}).observe(cv)}catch(_){}
+  try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){npDraw()})}catch(_){}
+  $('#np-pp').onclick=function(){if(!npItem)return;var au=songAu();if(npLoaded(npItem)&&!au.paused){au.pause();return}npPlay(npItem,npSong)};
+  $('#np-back').onclick=function(){npSeek(npPos()-15)};$('#np-fwd').onclick=function(){npSeek(npPos()+15)};
+  $('#np-full').onclick=function(){openPlay()};
+  ['np-pp','np-back','np-fwd','np-full'].forEach(function(id){$('#'+id).onmousedown=prevent})})();
 function lpPaint(){var pp=$('#lp-pp'),on=lpAu&&!lpAu.paused;pp.innerHTML=on?SVG_PAUSE:SVG_PLAY;pp.setAttribute('aria-label',on?'Pause':'Play')}
 function lpTick(jump){if(!lpAu)return;var t=lpAu.currentTime||0,d=lpAu.duration||0,sk=$('#lp-seek');
   if(!lpSeeking){sk.max=d||100;sk.value=t}$('#lp-at').textContent=sfTime(t);if(d)$('#lp-len').textContent=sfTime(d);
@@ -17225,8 +17309,7 @@ function lpTick(jump){if(!lpAu)return;var t=lpAu.currentTime||0,d=lpAu.duration|
       try{box.scrollTo({top:top,behavior:jump||calm?'auto':'smooth'})}catch(e){box.scrollTop=top}}}}
 function lpLoop(){cancelAnimationFrame(lpRaf);(function f(){if($('#lplay').hidden)return;lpTick();lpRaf=requestAnimationFrame(f)})()}
 function openPlay(){var song=cur,a=audCur(song);if(!song)return;if(!isPro())return upsell('audio');if(!a)return toast('Add audio in Details › Audio first');
-  sfStopPreview();
-  if(!lpAu){lpAu=new Audio();lpAu.preload='auto';['play','pause','ended'].forEach(function(ev){lpAu.addEventListener(ev,lpPaint)});lpAu.addEventListener('loadedmetadata',function(){lpTick(true)})}
+  sfStopPreview();songAu();
   var sy=song.sync&&song.sync.audioId===a.id?song.sync:null;
   $('#lp-title').textContent=song.title||'Untitled';$('#lp-sub').textContent=[song.artist,a.name+(a.kind?' ('+a.kind+')':'')].filter(Boolean).join(' · ');
   var box=$('#lp-lines');box.innerHTML='';lpIdx=-1;lpEls=[];
@@ -17235,10 +17318,11 @@ function openPlay(){var song=cur,a=audCur(song);if(!song)return;if(!isPro())retu
   else if(sy.sig!==lyricSig(song)){var n2=document.createElement('p');n2.className='lpnote';n2.textContent='The lyrics have changed since they were synced, so this follows the synced version.';box.appendChild(n2)}
   lpLines.forEach(function(l){var p=document.createElement('p');p.textContent=l.text;if(l.t!=null)p.onclick=function(){lpAu.currentTime=l.t;if(lpAu.paused)lpAu.play().catch(function(){});lpTick(true)};box.appendChild(p);lpEls.push(p)});
   $('#lplay').hidden=false;box.scrollTop=0;$('#lp-at').textContent='0:00';$('#lp-len').textContent=a.dur?sfTime(a.dur):'0:00';
-  var start=function(u){if(lpAu.src!==u)lpAu.src=u;try{lpAu.currentTime=0}catch(e){}var p=lpAu.play();if(p&&p.catch)p.catch(function(){lpPaint()});lpPaint()};
-  var now=sfUrlNow(a);if(now)start(now);else sfUrl(a).then(start,function(e){toast('Couldn’t play it: '+sfErr(e))});
+  /* carries on from wherever the in-song player is; starts from the top if this version isn't loaded yet */
+  npPlay(a,song,true);lpTick(true);
   lpLoop()}
-function closePlay(){if(lpAu)try{lpAu.pause()}catch(e){}cancelAnimationFrame(lpRaf);$('#lplay').hidden=true}
+/* closing keeps the song playing in the in-song player, like leaving Apple Music's lyrics view */
+function closePlay(){cancelAnimationFrame(lpRaf);$('#lplay').hidden=true;npPaint()}
 $('#lp-x').onclick=closePlay;
 $('#lp-pp').onclick=function(){if(!lpAu)return;if(lpAu.paused)lpAu.play().catch(function(){});else lpAu.pause()};
 $('#lp-back').onclick=function(){if(lpAu){lpAu.currentTime=Math.max(0,lpAu.currentTime-10);lpTick(true)}};
