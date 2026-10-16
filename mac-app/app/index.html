@@ -581,12 +581,6 @@ body.ios .song{padding:13px 24px}
 .audxw{overflow:hidden;transition:height .3s cubic-bezier(.32,.72,0,1),opacity .24s ease}
 .audx{padding:2px 16px 14px 53px;display:flex;flex-direction:column;gap:10px}
 .audx>*:last-child{margin-bottom:0}
-.audmin{width:22px;height:22px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:var(--red);padding:0;animation:audin .22s cubic-bezier(.32,.72,0,1)}
-.audmin i{width:10px;height:2px;border-radius:1px;background:#fff;transition:transform .2s}
-.audmin.on i{transform:rotate(-90deg)}
-.auddel{flex:none;align-self:stretch;margin:6px -8px 6px 0;padding:0 16px;border-radius:10px;background:var(--red);color:#fff;font-size:15px;font-weight:600;animation:audin .2s cubic-bezier(.32,.72,0,1)}
-@keyframes audin{from{opacity:0;transform:scale(.6)}}
-:is(#p-aud) .cell.editing+.cell::before,:is(#p-aud) .cell+.cell.editing::before{left:51px}
 .audplay,.audcur{transition:background-color .18s,color .18s,transform .12s}
 .audplay:active,.audcur:active{transform:scale(.9)}
 @media (prefers-reduced-motion:reduce){.audxw{transition:none}}
@@ -643,6 +637,9 @@ body.ios .song{padding:13px 24px}
 #pres i{position:absolute;left:0;width:4px;border-radius:2px}
 .shd{display:inline-block;width:14px;height:14px;vertical-align:-2px;margin-right:4px;color:var(--mute)}
 .cvs{width:100%!important;height:100%!important;display:block;color:var(--ink)}
+.cvs .cvdim{fill:#000;opacity:0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cvs .cvdim{opacity:.22}}
+:root[data-theme="dark"] .cvs .cvdim{opacity:.22}
 .cov,.th{overflow:hidden}
 #p-mel{overflow-y:auto}
 .mbox{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
@@ -15200,7 +15197,7 @@ function openSong(id){
   chordChips();show('vEdit');rhyme();renderSide();if(cur.shared)pullShared(cur);
   var l=$('#lyr'),blank=!cur.lyrics&&!cur.title,mob=innerWidth<=820&&matchMedia('(pointer:coarse)').matches;
   if(blank||!mob){l.focus();l.setSelectionRange(l.value.length,l.value.length)}else lastSel={s:l.value.length,e:l.value.length};
-  $('#sc').scrollTop=0;setTimeout(reveal,60);if(blank){setTimeout(function(){$('#sc').scrollTop=0},80)}autoSnap();refreshViews();sendPres();sfStopPreview();AUD_OPEN=null;AUD_EDIT=false;AUD_ARM=null;if(lpAu&&lpAu._song!==cur.id)npStop();paintPlayB();
+  $('#sc').scrollTop=0;setTimeout(reveal,60);if(blank){setTimeout(function(){$('#sc').scrollTop=0},80)}autoSnap();refreshViews();sendPres();sfStopPreview();AUD_OPEN=null;if(lpAu&&lpAu._song!==cur.id)npStop();paintPlayB();
 }
 function toList(){if(typeof npStop==='function')npStop();sheet(false);cur=null;renderList();show('vList')}
 function goBack(){if(cur&&!cur.title&&!cur.lyrics&&!cur.chords&&!cur.notes)songs=songs.filter(function(s){return s!==cur});save();toList()}
@@ -16184,9 +16181,20 @@ function duo(id){var P=['#E5566F','#D4881C','#4E9A5B','#2C8DBF','#5D6BE0','#A35F
   return[P[a],tint(P[b],.62)]}
 function cover(s){var rows=[],gap=false;(s&&s.lyrics||'').split('\n').forEach(function(l){var tr=l.trim();if(!tr||tr[0]==='['){if(rows.length&&!gap){rows.push(0);gap=true}return}gap=false;rows.push(Math.max(.18,Math.min(1,lsyl(l)/12)))});
   while(rows.length&&rows[rows.length-1]===0)rows.pop();var empty=!rows.length;if(empty)rows=[.72,.5,.62];rows=rows.slice(0,9);
-  var dt=duo(s&&s.id||''),h='<svg class="cvs" viewBox="0 0 40 40" aria-hidden="true">',y=9,sp=rows.length>6?2.9:3.6;
-  rows.forEach(function(r){if(r===0){y+=sp*.55;return}h+='<rect x="8" y="'+y.toFixed(1)+'" width="'+(24*r).toFixed(1)+'" height="1.8" rx=".9" fill="'+(empty?dt[0]:'var(--cvln)')+'" opacity="'+(empty?.85:1)+'"/>';y+=sp});
+  var h='<svg class="cvs" viewBox="0 0 40 40" aria-hidden="true">'+covGrad(s&&s.id||''),y=9,sp=rows.length>6?2.9:3.6;
+  rows.forEach(function(r){if(r===0){y+=sp*.55;return}h+='<rect x="8" y="'+y.toFixed(1)+'" width="'+(24*r).toFixed(1)+'" height="1.8" rx=".9" fill="#fff" opacity="'+(empty?.6:.82)+'"/>';y+=sp});
   return h+'</svg>'}
+/* every song without artwork gets its own soft gradient, picked from its id so it never changes:
+   a pastel pair washed diagonally, plus a glow of a third colour somewhere in the square */
+var COV_PAL=[['#FFC9B0','#FF8FA3'],['#D7C4FF','#9CC8FF'],['#BFF0D4','#7FCCDB'],['#FFE9A8','#FFAA7F'],['#FFC2DA','#B9A6FF'],['#B6E8D8','#9AAEF2'],['#F5D7BA','#EE8F82'],['#B8DEFF','#B5EDC6'],['#F7AFC2','#F9CD86'],['#AFBBFF','#EFAED6'],['#C9E6A6','#86CFB4'],['#FFD6A5','#E7A6E0']];
+var COV_N=0; /* each drawing gets its own gradient ids: a duplicate id inside a hidden list would blank the visible one */
+function covGrad(id){var h=2166136261;for(var i=0;i<id.length;i++){h^=id.charCodeAt(i);h=Math.imul(h,16777619)>>>0}
+  var r=function(){h^=h<<13;h>>>=0;h^=h>>>17;h^=h<<5;h>>>=0;return h/4294967296};r();
+  var p=COV_PAL[Math.floor(r()*COV_PAL.length)],q=COV_PAL[Math.floor(r()*COV_PAL.length)],g='cg'+(++COV_N),a=r()*360,
+    x1=(50+50*Math.cos(a*Math.PI/180)).toFixed(0),y1=(50+50*Math.sin(a*Math.PI/180)).toFixed(0),cx=(15+r()*70).toFixed(0),cy=(15+r()*70).toFixed(0),c=q[r()<.5?0:1];
+  return '<defs><linearGradient id="'+g+'l" x1="'+x1+'%" y1="'+y1+'%" x2="'+(100-x1)+'%" y2="'+(100-y1)+'%"><stop offset="0" stop-color="'+p[0]+'"/><stop offset="1" stop-color="'+p[1]+'"/></linearGradient>'+
+    '<radialGradient id="'+g+'r" cx="'+cx+'%" cy="'+cy+'%" r="60%"><stop offset="0" stop-color="'+c+'" stop-opacity=".85"/><stop offset="1" stop-color="'+c+'" stop-opacity="0"/></radialGradient></defs>'+
+    '<rect width="40" height="40" fill="url(#'+g+'l)"/><rect width="40" height="40" fill="url(#'+g+'r)"/><rect class="cvdim" width="40" height="40"/>'}
 /* ---------- collaboration: invite a collaborator by email, synced through your Google account ---------- */
 var PENDING_INVITES=[];
 function ser(s){var o={};Object.keys(s).forEach(function(k){if(k[0]!=='_'&&k!=='shared')o[k]=s[k]});if(o.versions)o.versions=o.versions.slice(-8);return JSON.parse(JSON.stringify(o))}
@@ -17473,15 +17481,7 @@ function sfPreview(item){
   var now=sfUrlNow(item);if(now)go(now);else sfUrl(item).then(go,function(e){toast('Couldn’t play it: '+sfErr(e))})}
 function sfOpen(item){var now=sfUrlNow(item);if(now)return openLink(now);sfUrl(item).then(openLink,function(e){toast('Couldn’t open it: '+sfErr(e))})}
 /* remove a version or file: from the song, then from storage */
-var AUD_EDIT=false,AUD_ARM=null;
-function sfDelete(it,onDel){if(SF_PLAY===it.id)sfStopPreview();if(lpAu&&lpAu._id===it.id)npStop();onDel();sfRemove(it);AUD_OPEN=null;AUD_ARM=null;sfTouch();
-  if(cur&&!(cur.audio||[]).length&&!(cur.files||[]).length)AUD_EDIT=false;haptic('medium');renderAud();paintPlayB();toast('Deleted “'+it.name+'”')}
-/* Edit mode: red minus on the left; tapping it reveals a Delete button on the right (as in iOS lists) */
-function sfEditRow(r,it,onDel){r.classList.add('editing');
-  var mn=document.createElement('button');mn.className='audmin'+(AUD_ARM===it.id?' on':'');mn.setAttribute('aria-label','Delete '+it.name);mn.innerHTML='<i></i>';
-  mn.onclick=function(){AUD_ARM=AUD_ARM===it.id?null:it.id;haptic('light');renderAud()};r.insertBefore(mn,r.firstChild);
-  if(AUD_ARM===it.id){var d=document.createElement('button');d.className='auddel';d.textContent='Delete';d.onclick=function(){sfDelete(it,onDel)};r.appendChild(d)}}
-function sfEditBtn(){return[AUD_EDIT?'Done':'Edit',function(){AUD_EDIT=!AUD_EDIT;AUD_ARM=null;AUD_OPEN=null;renderAud()},AUD_EDIT?'':'ghost']}
+function sfDelete(it,onDel){if(SF_PLAY===it.id)sfStopPreview();if(lpAu&&lpAu._id===it.id)npStop();onDel();sfRemove(it);AUD_OPEN=null;sfTouch();haptic('medium');renderAud();paintPlayB();toast('Deleted “'+it.name+'”')}
 /* expanded row: kind, rename, delete (tap twice) */
 function sfEditor(it,kinds,onDel){var w=document.createElement('div');w.className='audxw';w.dataset.id=it.id;var x=document.createElement('div');x.className='audx';w.appendChild(x);
   var ch=document.createElement('div');ch.className='chips';kinds.forEach(function(k){var b=document.createElement('button');b.textContent=k;if(it.kind===k)b.className='on';b.onclick=function(){it.kind=k;sfTouch();renderAud()};ch.appendChild(b)});x.appendChild(ch);
@@ -17510,17 +17510,15 @@ function renderAud(){var o=$('#aud-body');if(!o||!cur)return;var song=cur,keepTo
   var auds=song.audio||[],files=song.files||[],cu=audCur(song);
   auds.concat(files).forEach(function(x){if(!sfUrlNow(x))sfUrl(x).catch(function(){})});
   /* versions */
-  if(!auds.length&&!files.length)AUD_EDIT=false;
-  var vg=accSection(o,'Versions',AUD_EDIT?[sfEditBtn()]:auds.length?[sfEditBtn(),['Add',function(){$('#audin').click()}]]:[['Add',function(){$('#audin').click()}]]);
+  var vg=accSection(o,'Versions',[['Add',function(){$('#audin').click()}]]);
   SF_BUSY.filter(function(b){return b.audio}).forEach(function(b){var r=document.createElement('div');r.className='audbusy';r.innerHTML='<i></i><span></span>';r.lastChild.dataset.busy=b.id;r.lastChild.textContent=b.label||('Uploading “'+b.name+'”…');vg.appendChild(r)});
   if(!auds.length&&!SF_BUSY.some(function(b){return b.audio}))vg.appendChild(accCell({label:'Add a voice memo, demo, mix or master',value:'',chev:true,onclick:function(){$('#audin').click()}}));
   auds.slice().reverse().forEach(function(a){var r=document.createElement('div');r.className='cell';
     var cb=document.createElement('button');cb.className='audcur'+(a===cu?' on':'');cb.setAttribute('aria-label',a===cu?'Current version':'Make this the current version');cb.innerHTML=a===cu?SVG_CHECK:'';
     cb.onclick=function(){if(a===cu)return;auds.forEach(function(x){x.cur=x===a});sfTouch();renderAud();paintPlayB();toast('“'+a.name+'” is now the current version')};r.appendChild(cb);
     var mid=document.createElement('button');mid.className='c2';mid.innerHTML='<b></b><span></span>';mid.firstChild.textContent=a.name;mid.lastChild.textContent=a._conv?'Converting to MP3…':[a.kind,a.dur?sfTime(a.dur):'',sfSize(a.size),a.orig&&/mpeg/.test(a.mime||'')?'MP3 from '+sfExt(a.orig.name,a.orig.mime).toUpperCase():''].filter(Boolean).join(' · ');if(a._conv)mid.lastChild.dataset.conv=a.id;
-    mid.onclick=function(){if(AUD_EDIT){AUD_ARM=null;renderAud();return}audToggle(a.id,r,function(){return sfEditor(a,AUD_KINDS,delA)})};r.appendChild(mid);
+    mid.onclick=function(){audToggle(a.id,r,function(){return sfEditor(a,AUD_KINDS,delA)})};r.appendChild(mid);
     var delA=function(){song.audio=auds.filter(function(x){return x!==a});if(a===cu&&song.audio.length)song.audio[song.audio.length-1].cur=true;if(song.sync&&song.sync.audioId===a.id)delete song.sync};
-    if(AUD_EDIT){r.removeChild(cb);sfEditRow(r,a,delA);vg.appendChild(r);return}
     var pb=document.createElement('button');pb.dataset.id=a.id;pb._on=SF_PLAY===a.id;pb.className='audplay'+(SF_PLAY===a.id?' on':'');pb.setAttribute('aria-label',SF_PLAY===a.id?'Pause':'Play '+a.name);pb.innerHTML=SF_PLAY===a.id?SVG_PAUSE:SVG_PLAY;pb.onclick=function(){sfPreview(a)};r.appendChild(pb);
     vg.appendChild(r);
     if(AUD_OPEN===a.id)vg.appendChild(sfEditor(a,AUD_KINDS,delA))});
@@ -17542,15 +17540,14 @@ function renderAud(){var o=$('#aud-body');if(!o||!cur)return;var song=cur,keepTo
     if(ok){var ex=document.createElement('button');ex.className='go2 ghost';ex.textContent='Export .lrc';ex.onclick=exportLrc;acts.appendChild(ex)}
     bx.appendChild(acts)}
   /* stems & files */
-  var fg=accSection(o,'Stems & files',AUD_EDIT?[sfEditBtn()]:files.length?[sfEditBtn(),['Add',function(){$('#filein').click()}]]:[['Add',function(){$('#filein').click()}]]);
+  var fg=accSection(o,'Stems & files',[['Add',function(){$('#filein').click()}]]);
   SF_BUSY.filter(function(b){return!b.audio}).forEach(function(b){var r=document.createElement('div');r.className='audbusy';r.innerHTML='<i></i><span></span>';r.lastChild.textContent='Uploading “'+b.name+'”…';fg.appendChild(r)});
   if(!files.length&&!SF_BUSY.some(function(b){return!b.audio}))fg.appendChild(accCell({label:'Attach stems, artwork or session files',chev:true,onclick:function(){$('#filein').click()}}));
   files.forEach(function(f){var r=document.createElement('div');r.className='cell';
     var t=document.createElement('span');t.className='tile';t.innerHTML=FILE_ICO[f.kind]||FILE_ICO.Other;r.appendChild(t);
     var mid=document.createElement('button');mid.className='c2';mid.innerHTML='<b></b><span></span>';mid.firstChild.textContent=f.name;mid.lastChild.textContent=[f.kind,sfSize(f.size)].filter(Boolean).join(' · ');
     var delF=function(){song.files=files.filter(function(x){return x!==f})};
-    mid.onclick=function(){if(AUD_EDIT){AUD_ARM=null;renderAud();return}audToggle(f.id,r,function(){return sfEditor(f,FILE_KINDS,delF)})};r.appendChild(mid);
-    if(AUD_EDIT){r.removeChild(t);sfEditRow(r,f,delF);fg.appendChild(r);return}
+    mid.onclick=function(){audToggle(f.id,r,function(){return sfEditor(f,FILE_KINDS,delF)})};r.appendChild(mid);
     var ob=document.createElement('button');ob.className='audplay';ob.setAttribute('aria-label','Open '+f.name);ob.innerHTML=SVG_OPEN;ob.onclick=function(){sfOpen(f)};r.appendChild(ob);
     fg.appendChild(r);
     if(AUD_OPEN===f.id)fg.appendChild(sfEditor(f,FILE_KINDS,delF))});
