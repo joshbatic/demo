@@ -16542,6 +16542,25 @@ function covGrad(id){var k=covPick(id),p=k.p,a=k.a,cx=k.cx,cy=k.cy,c=k.c,g='cg'+
 /* ---------- collaboration: invite a collaborator by email, synced through your Google account ---------- */
 var PENDING_INVITES=[];
 function ser(s){var o={};Object.keys(s).forEach(function(k){if(k[0]!=='_'&&k!=='shared')o[k]=s[k]});if(o.versions)o.versions=o.versions.slice(-8);return JSON.parse(JSON.stringify(o))}
+/* ---------- when the owner deletes a shared song (or stops sharing it), it leaves co-writers' libraries ----------
+   The owner's app looks up who's on the song, nudges each of them over their library channel (and anyone with
+   it open over the song channel), then deletes the shared copy. A nudged app doesn't take the nudge's word for
+   it: it asks Supabase which of its shared songs it can still see and drops the rest. The same check runs at
+   sign-in and when a save is refused, so someone who was offline catches up too. */
+function sharedEnd(s){var c=sbClient();if(!c)return;var id=s.id;
+  if(LIVE.ch&&LIVE.id===id)try{LIVE.ch.send({type:'broadcast',event:'gone',payload:{id:id,dev:LIB_DEV}})}catch(e){}
+  var del=function(){c.from('shared_songs').delete().eq('id',id).then(function(){},function(){})};
+  c.from('collab_members').select('user_id').eq('song_id',id).then(function(r){var me=AUTH_USER&&AUTH_USER.id;
+    ((r&&r.data)||[]).forEach(function(m){if(m.user_id&&m.user_id!==me)pingUser(m.user_id,'gone')});setTimeout(del,600)},del)}
+var GONE_BUSY=false;
+function sharedGoneCheck(cb){var c=sbClient(),me=AUTH_USER&&AUTH_USER.id;if(!c||!me||GONE_BUSY)return;
+  var theirs=songs.filter(function(x){return x.shared&&x.owner&&x.owner!==me});if(!theirs.length)return;GONE_BUSY=true;
+  c.from('shared_songs').select('id').in('id',theirs.map(function(x){return x.id})).then(function(r){GONE_BUSY=false;if(!r||r.error)return;
+    var have={};(r.data||[]).forEach(function(x){have[String(x.id)]=1});if(cb)cb(have);
+    var gone=theirs.filter(function(x){return!have[String(x.id)]});if(!gone.length)return;
+    gone.forEach(function(x){if(cur===x){liveLeave();cur=null;sheet(false);show('vList')}if(PINS[x.id]){delete PINS[x.id]}try{audDel(x.id)}catch(e){}});
+    songs=songs.filter(function(x){return gone.indexOf(x)<0});save();renderList();renderSide();
+    toast(gone.length===1?'“'+(gone[0].title||'Untitled')+'” was removed by its owner':gone.length+' shared songs were removed by their owners')},function(){GONE_BUSY=false})}
 function isOwnerOf(s){return!!(s&&AUTH_USER&&s.owner===AUTH_USER.id)}
 var shT=null,shLast=0;
 function syncShared(){if(!AUTH_USER)return;var live=LIVE.ch&&LIVE.id;
@@ -16555,7 +16574,7 @@ function pushShared(s){if(!AUTH_USER)return;var c=sbClient();if(!c)return;s.last
   var mineOwn=!s.owner||s.owner===AUTH_USER.id;
   (mineOwn?c.from('shared_songs').upsert({id:s.id,owner_id:s.owner||AUTH_USER.id,owner_email:s.ownerEmail||AUTH_USER.email,data:body,updated_at:new Date().toISOString()})
     :c.from('shared_songs').update({data:body,updated_at:new Date().toISOString()}).eq('id',s.id).select('id').then(function(r){if(r&&!r.error&&(!r.data||!r.data.length))r.error={code:'42501',message:'not a member'};return r})).then(function(r){
-    if(r&&r.error){console.warn('shared_songs sync failed',r.error);toast(r.error.code==='42501'?'You can’t edit this shared song. Ask the owner for access.':'Couldn’t sync this song (kept on this device): '+(r.error.message||r.error.code||'unknown error'));return}
+    if(r&&r.error){console.warn('shared_songs sync failed',r.error);if(r.error.code==='42501'){sharedGoneCheck(function(have){if(have[String(s.id)]&&!s._warned){s._warned=1;toast('Couldn’t save your changes to “'+(s.title||'Untitled')+'”. Ask the owner to invite you again.')}});return}toast('Couldn’t sync this song (kept on this device): '+(r.error.message||r.error.code||'unknown error'));return}
     s._pushed=Math.max(s._pushed||0,u)
   })
 }
@@ -16614,6 +16633,7 @@ function liveJoin(s){if(!s||!s.shared||!AUTH_USER){liveLeave();return}if(LIVE.id
       .on('broadcast',{event:'full'},function(m){if(LIVE.ch===ch)liveFull(m&&m.payload)})
       .on('broadcast',{event:'fmt'},function(m){if(LIVE.ch!==ch||LIVE.comp)return;liveFmt(m&&m.payload)})
       .on('broadcast',{event:'files'},function(m){if(LIVE.ch===ch)liveFilesRecv(m&&m.payload)})
+      .on('broadcast',{event:'gone'},function(){if(LIVE.ch===ch)setTimeout(sharedGoneCheck,1500)})
       .subscribe(function(st){if(LIVE.ch!==ch)return;
         if(st==='SUBSCRIBED'){LIVE.ok=true;LIVE.everOk=true;if(cur&&cur.id===s.id){liveSend();try{ch.send({type:'broadcast',event:'need',payload:{id:s.id,dev:LIB_DEV,u:cur.updated||0}})}catch(e){}}}
         else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){LIVE.ok=false;if(priv&&st==='CHANNEL_ERROR'&&!LIVE.everOk)RT_PRIV=false;setTimeout(liveEnsure,2000)}});
@@ -16683,10 +16703,10 @@ function shareSong(){if(!AUTH_USER){toast('Sign in with Google to share songs');
   s.shared=true;s.owner=AUTH_USER.id;s.ownerEmail=AUTH_USER.email;s.members=[AUTH_USER.id];s.updated=Date.now();
   pushShared(s);save();renderCollab();renderList();renderSide();toast('Shared. Invite a collaborator by username below.')}
 function leaveOrDelete(s){var c=sbClient();
-  if(isOwnerOf(s)){if(c)c.from('shared_songs').delete().eq('id',s.id).then(function(){},function(){});try{audDel(s.id)}catch(e){}}
+  if(isOwnerOf(s)){if(c)sharedEnd(s);try{audDel(s.id)}catch(e){}}
   else if(c&&AUTH_USER){c.from('collab_members').delete().eq('song_id',s.id).eq('user_id',AUTH_USER.id).then(function(){},function(){})}
   songs=songs.filter(function(x){return x!==s});if(cur===s)cur=null;save();sheet(false);renderList();renderSide();show('vList');toast(isOwnerOf(s)?'Deleted for everyone':'You left the song')}
-function stopSharing(){var s=cur;if(!isOwnerOf(s))return;var c=sbClient();if(c)c.from('shared_songs').delete().eq('id',s.id).then(function(){},function(){});
+function stopSharing(){var s=cur;if(!isOwnerOf(s))return;var c=sbClient();if(c)sharedEnd(s);
   delete s.owner;delete s.ownerEmail;delete s.members;s.shared=false;s.updated=Date.now();save();renderCollab();renderList();renderSide();toast('Sharing stopped. The song is back on this device only.')}
 function inviteCollaborator(target){if(!cur||!AUTH_USER)return;
   function send(uid,uname){
@@ -17026,7 +17046,7 @@ function isPinned(s){return!!PINS[s.id]}
 function setPin(s,on){if(on)PINS[s.id]=Date.now();else delete PINS[s.id];try{localStorage.setItem('songpad:pins',JSON.stringify(PINS))}catch(e){}renderList();renderSide();toast(on?'Pinned “'+(s.title||'Song')+'”':'Unpinned')}
 function removeSong(s){haptic('warning');((s.audio||[]).concat(s.files||[])).forEach(function(f){sfRemove(f)});var name=s.title||'Song',uid=AUTH_USER&&AUTH_USER.id;
   if(s.shared){var c=sbClient();
-    if(s.owner===uid){if(c)c.from('shared_songs').delete().eq('id',s.id).then(function(){},function(){})}
+    if(s.owner===uid){if(c)sharedEnd(s)}
     else if(c&&uid){c.from('collab_members').delete().eq('song_id',s.id).eq('user_id',uid).then(function(){},function(){})}
   }
   if(PINS[s.id]){delete PINS[s.id];try{localStorage.setItem('songpad:pins',JSON.stringify(PINS))}catch(e){}}try{audDel(s.id)}catch(e){}songs=songs.filter(function(x){return x!==s});
@@ -17126,7 +17146,7 @@ function onAuthUser(){
   if(uid!==lastAuthUid){lastAuthUid=uid;cloudDidPull=false;PENDING_INVITES=[];MY_PROFILE=null;mzLoad()}
   var ag=$('#authgate');if(ag)ag.style.display=(AUTH_USER||DEV_MODE)?'none':'flex';
   ensureStorageForMode();
-  if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling();MZ.noTable=false;setTimeout(mzPull,1500)}
+  if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling();MZ.noTable=false;setTimeout(mzPull,1500);setTimeout(sharedGoneCheck,5000)}
   if(AUTH_USER)setTimeout(function(){if(cur&&cur.shared)pullShared(cur);liveEnsure()},0);
   if(!AUTH_USER){stopInvitePolling();libStop()}
   refreshAccount();
@@ -17487,6 +17507,7 @@ function libListen(){
   if(c.channel){try{
     var lpriv=RT_PRIV,ch=c.channel('library:'+AUTH_USER.id,{config:{broadcast:{self:false},private:lpriv}});ch._uid=AUTH_USER.id;
     ch.on('broadcast',{event:'invite'},function(){pullInvites()});
+    ch.on('broadcast',{event:'gone'},function(){setTimeout(sharedGoneCheck,800)});
     ch.on('broadcast',{event:'changed'},function(m){if(m&&m.payload&&m.payload.dev===LIB_DEV)return;clearTimeout(libT);libT=setTimeout(function(){cloudSync()},250)}).subscribe(function(st){if(lpriv&&st==='CHANNEL_ERROR'&&libChan===ch){RT_PRIV=false;setTimeout(function(){if(libChan===ch&&AUTH_USER){libStop();libListen()}},1500)}});
     libChan=ch;
   }catch(e){libChan=null}}
