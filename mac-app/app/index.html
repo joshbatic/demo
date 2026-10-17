@@ -18592,11 +18592,11 @@ function shRender(d,o){o=o||{};var A=d.audio&&d.audio.src?d.audio:null,blocks=d.
   'h3{font-size:15px;font-weight:600;color:hsla(var(--k),.5);margin:34px 0 10px;letter-spacing:.01em}h3:first-child{margin-top:0}'+
   'p{font-size:clamp(25px,5.6vw,33px);line-height:1.22;font-weight:700;letter-spacing:-.012em;margin:0 0 12px;color:hsla(var(--k),.95);transition:color .35s,transform .35s;transform-origin:left center}.g{height:26px}.none{opacity:.5}'+
   (synced?'.sync p{color:hsla(var(--k),.34);cursor:pointer}.sync p.on{color:hsl(var(--k));transform:scale(1.025)}.sync p.past{color:hsla(var(--k),.5)}@media (hover:hover){.sync p:hover{color:hsla(var(--k),.7)}}':'')+
-  'footer{margin-top:72px;color:hsla(var(--k),.4);font-size:14px;font-weight:600}'+
+  'footer{margin-top:72px;color:hsla(var(--k),.4);font-size:14px;font-weight:600}footer a{color:inherit;text-decoration:none;border-radius:6px;transition:color .15s}footer a:hover,footer a:focus-visible{color:hsla(var(--k),.7)}footer a:focus-visible{outline:2px solid hsla(var(--k),.4);outline-offset:3px}'+
   '@media (prefers-reduced-motion:reduce){p{transition:none}}</style></head><body><main'+(synced?' class="sync"':'')+'>'+
   '<div id="np"><div class="top"><img class="art" alt="" src="'+q(d.art||'')+'"><div class="meta"><b>'+shEsc(title)+'</b>'+(sub?'<span>'+shEsc(sub)+'</span>':'')+'</div>'+(A?'<button class="pp" id="pp" aria-label="Play"></button>':'')+'</div>'+
   (A?'<canvas id="wv" tabindex="0" role="slider" aria-label="Position in the song" data-d="'+(+A.dur||0)+'" data-p="'+q(JSON.stringify((A.peaks||[]).map(Number).filter(isFinite)))+'"></canvas><div class="bot"><span id="at">0:00</span><div class="sk"><button id="bk" aria-label="Back 15 seconds">'+(o.skB||'−15')+'</button><button id="fw" aria-label="Forward 15 seconds">'+(o.skF||'+15')+'</button></div><span id="du"></span></div>':'')+'</div>'+
-  '<div id="ly">'+body+'</div><footer>Written in *[demo]</footer></main>'+
+  '<div id="ly">'+body+'</div><footer><a href="https://hellodemo.app/" target="_blank" rel="noopener">Written in *[demo]</a></footer></main>'+
   (A?'<audio id="au" preload="auto" src="'+q(A.src)+'" data-title="'+q(title)+'" data-artist="'+q(d.artist||'')+'"></audio><script>'+shWaveDraw.toString()+'('+shPlayerJS.toString()+')()<\/script>':'')+
   '</body></html>'}
 /*SHARE-RENDER:END*/
