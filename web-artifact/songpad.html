@@ -510,6 +510,9 @@ body.ios .song{padding:13px 24px}
 #rt-head .rtgo{display:flex;align-items:center;justify-content:center;gap:8px;width:calc(100% - 40px);margin:8px 20px 0;height:48px;border-radius:99px;background:var(--tint);color:var(--ontint);font-size:16px;font-weight:600;transition:opacity .15s,transform .12s}
 #rt-head .rtgo:active{transform:scale(.98)}#rt-head .rtgo:disabled{opacity:.55}
 #rt-head .relnote{padding:8px 20px 4px;text-align:center}
+.go2{height:38px;padding:0 16px;border-radius:99px;font-size:14.5px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;background:var(--tint);color:var(--ontint)}
+.go2.ghost{background:none;color:var(--ink);box-shadow:inset 0 0 0 1px var(--sep)}
+.go2[disabled]{opacity:.5}
 #rt-out:empty{display:none}
 #rt-out{padding:10px 0 22px;animation:pop .22s ease-out}
 #rt-out .gf{margin-bottom:6px}#rt-out .relnote{padding:2px 20px 12px}
@@ -17906,7 +17909,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
   /* No payments or real beta-tester tiers exist yet — everyone ships fully unlocked, badged
      "Beta". This switch exists purely to preview and test the restricted experience real beta
      testers will eventually get, ahead of that rollout. */
-  var trow=document.createElement('div');trow.className='rtrow';trow.style.cssText='justify-content:space-between;cursor:pointer';
+  var trow=document.createElement('div');trow.className='row';trow.style.cssText='justify-content:space-between;cursor:pointer';
   var ltx=document.createElement('span');ltx.style.cssText='display:flex;flex-direction:column;gap:2px;text-align:left;min-width:0';
   var lt1=document.createElement('b');lt1.style.fontSize='15px';lt1.textContent='All features unlocked';ltx.appendChild(lt1);
   var lt2=document.createElement('span');lt2.style.cssText='color:var(--mute);font-size:12.5px';lt2.textContent=pro?'On for everyone during the beta.':'Off — previewing the restricted tier.';ltx.appendChild(lt2);
