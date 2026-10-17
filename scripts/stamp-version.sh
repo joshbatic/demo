@@ -25,7 +25,7 @@ for f in "${files[@]}"; do
 done
 
 # the share-link viewer carries a copy of the page renderer; rebuild it so it never drifts from the app
-if command -v python3 >/dev/null; then python3 scripts/build-share-viewer.py >/dev/null && files+=(docs/s/index.html); fi
+if command -v python3 >/dev/null; then python3 scripts/build-share-viewer.py >/dev/null && files+=(docs/s/index.html share/api/_viewer.js); fi
 
 git add "${files[@]}"
 git commit -q -m "Stamp version $hash"
