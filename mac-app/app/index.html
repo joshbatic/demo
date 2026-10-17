@@ -15860,8 +15860,8 @@ function ctx(){
   var sel=b>a?v.slice(a,b):'',word,via='';
   if(sel)word=lastW(sel);
   else if(cl.trim()){var end=ls+cl.replace(/\s+$/,'').length;if(a>=end&&tl){word=lastW(tl);via='line '+(ti+1)}else word=wordAt(cl,a-ls)}
-  else if(tl){word=lastW(tl);via='line '+(ti+1)}
-  else{word=lastW(st[p-1]||'');via=word?'above':''}
+  /* a fresh, empty line starts clean: no rhymes carried over from the line before until you type or tap a word
+     (Lines still knows which line it should rhyme with, from tl/ti) */
   return{cur:cl,raw:c,ls:ls,le:le,sel:sel,word:word||'',st:st,p:p,sch:sch,ti:ti,tl:tl,via:via,ref:tl||st[p-1]||''};
 }
 function rhyme(){
