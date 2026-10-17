@@ -14784,7 +14784,9 @@ function ideasCard(){var last=ideas.slice().sort(function(a,c){return c.updated-
   b.onclick=function(e){if(e.target.closest('.ijb'))return;openIdeas()};b.onkeydown=function(e){if((e.key==='Enter'||e.key===' ')&&e.target===b){e.preventDefault();openIdeas()}};
   b.querySelector('.ijb').onclick=function(e){e.stopPropagation();openIdeas(true)};return b}
 function ijotSave(){var ta=$('#ijot'),t=ta.value.trim();if(!t)return;
-  ideas.unshift({id:uuid4(),text:t,kind:ijotKind,tags:[],created:Date.now(),updated:Date.now()});saveIdeas();ta.value='';ijotFit();haptic('light');renderIdeas();ta.focus()}
+  ideas.unshift({id:uuid4(),text:t,kind:ijotKind,tags:[],created:Date.now(),updated:Date.now()});saveIdeas();ta.value='';ijotFit();haptic('light');renderIdeas();
+  /* on iPhone the keyboard goes away once it's saved, like Done; on the Mac the box stays ready for the next one */
+  if(document.body.classList.contains('ios')||matchMedia('(pointer:coarse)').matches)ta.blur();else ta.focus()}
 function ijotFit(){var ta=$('#ijot');if(!ta)return;ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,180)+'px'}
 function ideaToSong(i){if(!i)return;if(!isPro()&&songs.filter(function(x){return!x.shared}).length>=FREE_SONGS)return upsell('songs');
   var k=i.kind||'idea',nm=myName(),t=i.text.trim(),first=t.split('\n')[0];
@@ -15351,7 +15353,7 @@ $('#logo').onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefau
 var delArm=0;$('#del').onclick=function(){var b=this;if(Date.now()-delArm>3000){delArm=Date.now();b.textContent='Tap Again to Delete';setTimeout(function(){b.textContent='Delete Song'},3000);return}delArm=0;b.textContent='Delete Song';removeSong(cur)};
 function sheet(on,w){if(on&&!wideMQ.matches&&document.body.classList.contains('side'))sideOn(false);
   if(on){var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'||ae.id==='q'))ae.blur()}
-  if(!on){$('#sheet').classList.remove('on');$('#sheet2').classList.remove('on');$('#sheet3').classList.remove('on');$('#sheet4').classList.remove('on');$('#sheet5').classList.remove('on');$('#sheet6').classList.remove('on');$('#sheet7').classList.remove('on');$('#sheet8').classList.remove('on')}else $('#'+(w||'sheet')).classList.add('on');$('#scrim').classList.toggle('on',on)}
+  if(!on){var fa=document.activeElement;if(fa&&fa.blur&&fa.closest&&fa.closest('[role=dialog]'))fa.blur();$('#sheet').classList.remove('on');$('#sheet2').classList.remove('on');$('#sheet3').classList.remove('on');$('#sheet4').classList.remove('on');$('#sheet5').classList.remove('on');$('#sheet6').classList.remove('on');$('#sheet7').classList.remove('on');$('#sheet8').classList.remove('on')}else $('#'+(w||'sheet')).classList.add('on');$('#scrim').classList.toggle('on',on)}
 $('#det').onclick=function(){dtab('inf');renderVers();renderCollab();sheet(true)};$('#done').onclick=function(){sheet(false)};$('#scrim').onclick=function(){sheet(false);closeDict()};
 function dtab(t){if(t==='mel'&&!isPro()){upsell('melody');t='inf'}if((t==='aud'||t==='rel')&&!isPro()){upsell('audio');t='inf'}document.querySelectorAll('#dseg button').forEach(function(x){x.classList.toggle('on',x.dataset.t===t)});['chd','inf','mel','aud','rel'].forEach(function(p){$('#p-'+p).classList.toggle('on',p===t)});if(t==='mel')renderMel();if(t==='aud')renderAud();if(t==='rel')renderRel()}
 document.querySelectorAll('#dseg button').forEach(function(b){b.onclick=function(){dtab(b.dataset.t)}});
