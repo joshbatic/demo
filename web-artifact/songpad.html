@@ -663,9 +663,9 @@ body.ios .song{padding:13px 24px}
 .shsw{display:flex;gap:12px;justify-content:center;padding:2px 20px 16px}
 .shsw button{width:30px;height:30px;border-radius:50%;padding:0;box-shadow:0 0 0 .5px var(--ring);transition:transform .15s,box-shadow .15s}
 .shsw button.on{box-shadow:0 0 0 2.5px var(--bg),0 0 0 4.5px var(--ink)}.shsw button:active{transform:scale(.9)}
-.shg .row{border-bottom:0;min-height:58px}.shg .row>span{display:flex;flex-direction:column;gap:2px}.shg small{font-size:13px;color:var(--mute);line-height:1.3}
+.shg .row{border-bottom:0;min-height:58px}.shg .row>span{display:flex;flex-direction:column;gap:2px}.shg small{font-size:13px;color:var(--mute);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.shg .row>span{flex:1;min-width:0}.shg .row>button,.shg .row>.shspin{flex:none}.shg .row{padding-top:10px;padding-bottom:10px}.shlink.has small:first-of-type{direction:rtl;text-align:left}
 .shg:not(:has(.row)){display:none}
-.shlink .go2{height:32px;font-size:14px;flex:none}.shlink>span{min-width:0}.shlink small{overflow-wrap:anywhere}
+.shlink .go2{height:32px;font-size:14px;flex:none}.shlink>span{min-width:0}
 .shg .row+.row{border-top:.5px solid var(--sep)}
 .shla{margin-bottom:8px}.go2.ghost.red{color:var(--red)}
 .shspin{width:18px;height:18px;border-radius:50%;border:2px solid var(--sep);border-top-color:var(--ink);flex:none;animation:shspin .8s linear infinite}@keyframes shspin{to{transform:rotate(360deg)}}
@@ -18185,12 +18185,14 @@ function renderShare(){var o=$('#shr'),song=SHR.song;if(!o||!song)return;var bg=
     SHR.pal.forEach(function(c,i){var b=document.createElement('button');b.style.background=shBg(SHR.pal,i).css;b.className=i===SHR.ci?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',i===SHR.ci?'true':'false');b.setAttribute('aria-label','Colour '+(i+1));
       b.onclick=function(){if(SHR.ci===i)return;SHR.ci=i;haptic('select');renderShare();shMake()};sw.appendChild(b)});o.appendChild(sw)}
   var g=document.createElement('div');g.className='gf shg';var sh=song.share;
-  var lr=document.createElement('div');lr.className='row shlink';lr.innerHTML='<span>Link<small></small></span>';
-  lr.querySelector('small').textContent=SHR.linkBusy?SHR.linkBusy:!sfCloud()?'Sign in to make a link anyone can open':sh?(SHARE_BASE.replace(/^https:\/\//,'')+sh.id+' · updated '+shAgo(sh.at)):'Anyone with it can read'+(audCur(song)&&SHR.aud?' and play':'')+' the song, no account needed';
+  var lr=document.createElement('div');lr.className='row shlink'+(sh&&!SHR.linkBusy&&sfCloud()?' has':'');lr.innerHTML='<span>Link<small></small></span>';
+  /* one short fact per line, each cut off with … rather than wrapping, so the rows stay tidy at any width */
+  var sub=function(row,lines){var sp=row.querySelector('span'),sm=sp.querySelector('small');sm.textContent=lines[0];for(var k=1;k<lines.length;k++){var m=document.createElement('small');m.textContent=lines[k];sp.appendChild(m)}};
+  sub(lr,SHR.linkBusy?[SHR.linkBusy]:!sfCloud()?['Sign in to make a link']:sh?['\u200e'+SHARE_BASE.replace(/^https:\/\//,'')+sh.id+'\u200e','Updated '+shAgo(sh.at)]:['Anyone can open it, no account needed']);
   if(SHR.linkBusy){var sp=document.createElement('i');sp.className='shspin';lr.appendChild(sp)}
   else if(sfCloud()){var lb=document.createElement('button');lb.className='go2'+(sh?' ghost':'');lb.textContent=sh?'Update':'Create Link';lb.onclick=shLinkGo;lr.appendChild(lb)}
   g.appendChild(lr);
-  if(audCur(song)){var r=document.createElement('div');r.className='row';r.innerHTML='<span>Include audio<small></small></span>';r.querySelector('small').textContent=SHR.aud?'“'+audCur(song).name+'” plays from the link'+(song.sync&&song.sync.audioId===audCur(song).id?', with the lyrics lit in time':''):'Lyrics only';
+  if(audCur(song)){var r=document.createElement('div');r.className='row';r.innerHTML='<span>Include audio<small></small></span>';sub(r,SHR.aud?[audCur(song).name,song.sync&&song.sync.audioId===audCur(song).id?'Plays with the lyrics lit in time':'Plays from the link']:['Lyrics only']);
     var s=document.createElement('button');s.className='swtch'+(SHR.aud?' on':'');s.setAttribute('role','switch');s.setAttribute('aria-checked',SHR.aud?'true':'false');s.setAttribute('aria-label','Include audio');s.innerHTML='<i></i>';
     s.onclick=function(){SHR.aud=!SHR.aud;renderShare();shMake()};r.appendChild(s);g.appendChild(r)}
   o.appendChild(g);
