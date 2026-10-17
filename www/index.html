@@ -64,7 +64,8 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 .ikind{margin:0 20px 12px;width:max-content}
 .ikd{font-size:12px;font-weight:600;color:var(--mute);flex:none}
 .idea p.iline{font-style:italic}
-.idea{display:block;width:100%;text-align:left;padding:12px 24px;position:relative}
+.idea{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 24px;position:relative;cursor:pointer}
+.idea .ibody{flex:1;min-width:0}
 .idea+.idea::before{content:'';position:absolute;top:0;left:24px;right:0;border-top:.5px solid var(--sep)}
 .idea:active{background:var(--fill)}
 .idea p{margin:0 0 7px;font-size:16px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
@@ -439,7 +440,7 @@ body.dnd .newzone{display:block}
 .rpin.on svg{fill:currentColor}
 @media (hover:hover){.song:hover .rpin,.si:hover .rpin,.rpin:focus-visible{opacity:1;scale:1;pointer-events:auto}.rpin:hover{filter:brightness(.95)}}
 .held .rpin{opacity:1;scale:1;pointer-events:auto}
-@media (hover:hover){.song:hover .rdel,.si:hover .rdel,.rdel:focus-visible{opacity:1;scale:1;pointer-events:auto}.rdel:hover{background:rgba(255,59,48,.22)}}
+@media (hover:hover){.song:hover .rdel,.si:hover .rdel,.idea:hover .rdel,.rdel:focus-visible{opacity:1;scale:1;pointer-events:auto}.rdel:hover{background:rgba(255,59,48,.22)}}
 .held .rdel,.rdel.arm{opacity:1;scale:1;pointer-events:auto}
 .rdel.arm{background:var(--red);color:#fff;font-size:13px;font-weight:600;padding:0 12px}
 .swdel .rdel{background:var(--red);color:#fff;scale:1.1}
@@ -448,7 +449,7 @@ body.dnd .newzone{display:block}
    keep their springy transitions so crossing the reveal/arm thresholds mid-drag still pops nicely.
    Releasing removes this class, so the pull offset's own transition re-activates and eases/bounces
    back to rest instead of snapping instantly. */
-.song.swiping .rdel,.song.swiping .rpin,.si.swiping .rdel,.si.swiping .rpin{transition:opacity .18s,scale .32s cubic-bezier(.34,1.56,.64,1),translate 0s,background-color .15s,color .15s}
+.song.swiping .rdel,.song.swiping .rpin,.idea.swiping .rdel,.si.swiping .rdel,.si.swiping .rpin{transition:opacity .18s,scale .32s cubic-bezier(.34,1.56,.64,1),translate 0s,background-color .15s,color .15s}
 .gh{display:flex;align-items:center;gap:8px}.gh b{font:inherit}.gh .fren{width:28px;height:28px;border-radius:8px}
 @media (hover:hover){.gh:hover .fren{opacity:1}}
 .gh .frin{font-size:20px;font-weight:700;padding:2px 8px;max-width:420px}
@@ -14812,12 +14813,12 @@ function renderIdeas(){
   }).sort(function(a,b){return b.updated-a.updated});
   if(!rows.length){var e=document.createElement('div');e.className='empty';e.textContent=ideas.length?'No ideas match.':'Nothing here yet. Type above and press Return: a line you heard in your head, a title, what a song could be about.';L.appendChild(e);return}
   rows.forEach(function(i){
-    var b=document.createElement('button');b.className='idea';
-    var p=document.createElement('p');p.textContent=i.text;b.appendChild(p);if((i.kind||'idea')==='line')p.className='iline';
+    var b=document.createElement('div');b.className='idea';b.setAttribute('role','button');b.tabIndex=0;var bx=document.createElement('div');bx.className='ibody';
+    var p=document.createElement('p');p.textContent=i.text;bx.appendChild(p);if((i.kind||'idea')==='line')p.className='iline';
     var row=document.createElement('div');row.className='irow';var kd=document.createElement('span');kd.className='ikd';kd.textContent=IKL[i.kind||'idea']+(i.used?' · in a song':'');row.appendChild(kd);
     var tg=document.createElement('div');tg.className='itags';(i.tags||[]).forEach(function(t){var s=document.createElement('span');s.textContent=t;tg.appendChild(s)});row.appendChild(tg);
     var dt=document.createElement('span');dt.className='idt';dt.textContent=fd(i.updated);row.appendChild(dt);
-    b.appendChild(row);b.onclick=function(){editIdea(i)};L.appendChild(b)
+    bx.appendChild(row);b.appendChild(bx);swipeDelete(b,'idea',function(){deleteIdea(i)});b.onclick=function(){editIdea(i)};b.onkeydown=function(e){if((e.key==='Enter'||e.key===' ')&&e.target===b){e.preventDefault();editIdea(i)}};L.appendChild(b)
   });
 }
 function editIdea(i){curIdea=i||null;$('#itext').value=i?i.text:'';ikindPaint(i?(i.kind||'idea'):ijotKind);$('#ito').hidden=!i;$('#itags').value=i&&i.tags?i.tags.join(', '):'';$('#idel').hidden=!i;sheet(true,'sheet7');setTimeout(function(){$('#itext').focus()},350)}
@@ -16948,6 +16949,19 @@ function setHeld(row){if(HELDROW&&HELDROW!==row)unholdRow(HELDROW);HELDROW=row;r
 function clearHeld(){if(HELDROW){unholdRow(HELDROW);HELDROW=null}}
 document.addEventListener('touchstart',function(e){if(HELDROW&&!(e.target.closest&&e.target.closest('.held')))clearHeld()},{capture:true,passive:true});
 document.addEventListener('scroll',function(){if(HELDROW)clearHeld()},{capture:true,passive:true});
+/* swipe left (or hover, on a Mac) to show a delete button; one tap arms it, a second deletes. Same feel as songs */
+function deleteIdea(i){ideas=ideas.filter(function(x){return x!==i&&x.id!==i.id});saveIdeas();haptic('medium');toast('Idea deleted');renderIdeas();paintVault()}
+function swipeDelete(b,what,onDel){var d=document.createElement('button');d.className='rdel';d.setAttribute('aria-label','Delete '+what);d.title='Delete '+what;d.innerHTML=TRASH;
+  function arm(){document.querySelectorAll('.rdel.arm').forEach(function(x){x.classList.remove('arm');x.innerHTML=TRASH});d.classList.add('arm');d.textContent='Delete';clearTimeout(d._t);d._t=setTimeout(function(){d.classList.remove('arm');d.innerHTML=TRASH},3000)}
+  d.onclick=function(e){e.stopPropagation();if(!d.classList.contains('arm')){arm();return}onDel()};
+  var lp=0,sx=0,sy=0,on=false,dx0=0,raf=0;
+  function pull(){raf=0;var dx=Math.min(0,dx0),pl=dx<-56?-56+(dx+56)*.22:dx;b.style.setProperty('--pull',pl.toFixed(1)+'px');if(dx<-24){if(HELDROW!==b)setHeld(b);b.classList.add('swiping');b.classList.toggle('swdel',dx<-120)}else b.classList.remove('swdel')}
+  b.addEventListener('touchstart',function(e){clearTimeout(lp);on=false;lp=setTimeout(function(){setHeld(b);b._held=Date.now()},500);var t=e.touches[0];sx=t.clientX;sy=t.clientY},{passive:true});
+  b.addEventListener('touchmove',function(e){clearTimeout(lp);var t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(!on){if(Math.abs(dx)>14&&Math.abs(dx)>Math.abs(dy)*1.5)on=true;else return}dx0=dx;if(!raf)raf=requestAnimationFrame(pull)},{passive:true});
+  var end=function(){clearTimeout(lp);if(raf){cancelAnimationFrame(raf);raf=0}var armIt=on&&b.classList.contains('swdel');b.classList.remove('swiping','swdel');b.style.removeProperty('--pull');if(armIt)arm();if(on)b._held=Date.now();on=false;dx0=0};
+  b.addEventListener('touchend',end,{passive:true});b.addEventListener('touchcancel',end,{passive:true});
+  b.appendChild(d);var go=null;Object.defineProperty(b,'onclick',{set:function(fn){go=fn},get:function(){return go}});
+  b.addEventListener('click',function(e){if(e.target.closest('.rdel'))return;if(b._held&&Date.now()-b._held<700)return;go&&go()});return b}
 function rowEl(cls,s){var b=document.createElement('div');b.className=cls;b.setAttribute('role','button');b.tabIndex=0;b.dataset.folder=s.folder||'';dragSrc(b,s);b.onkeydown=function(e){if((e.key==='Enter'||e.key===' ')&&e.target===b){e.preventDefault();b.onclick()}};
   var d=document.createElement('button');d.className='rdel';d.setAttribute('aria-label','Delete '+(s.title||'song'));d.title=s.shared&&s.owner!==(AUTH_USER&&AUTH_USER.id)?'Leave shared song':'Delete song';d.innerHTML=TRASH;
   /* Arming is the one confirm step before an irreversible delete — tapping the glyph once arms
