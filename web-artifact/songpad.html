@@ -506,36 +506,49 @@ body.ios .si .tx>b{font-size:17px}
 body.ios .si .tx>span{font-size:14px}
 
 body.ios .song{padding:13px 24px}
-#rt-head{padding:0 20px 4px}#rt-head .opts{padding:0}#rt-head .lab{padding:6px 8px 6px}
-#rt-head .acts{display:flex;align-items:center;gap:10px;padding:10px 0 4px}#rt-head .acts span{font-size:13px;color:var(--mute)}
+#rt-head .lab{padding-top:4px}#rt-head .seg{margin:0 20px 10px}
+#rt-head .rtgo{display:flex;align-items:center;justify-content:center;gap:8px;width:calc(100% - 40px);margin:8px 20px 0;height:48px;border-radius:99px;background:var(--tint);color:var(--ontint);font-size:16px;font-weight:600;transition:opacity .15s,transform .12s}
+#rt-head .rtgo:active{transform:scale(.98)}#rt-head .rtgo:disabled{opacity:.55}
+#rt-head .relnote{padding:8px 20px 4px;text-align:center}
 #rt-out:empty{display:none}
-#rt-out{margin:8px 20px 16px;display:flex;flex-direction:column;gap:12px;animation:pop .22s ease-out}
-.rcard{background:var(--gl);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);box-shadow:0 0 0 .5px var(--ring),0 1px 1px var(--sh2),0 10px 24px var(--sh2),inset 0 1px 0 var(--hl2);border-radius:24px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
-.rtop{display:flex;align-items:baseline;gap:12px}
-.rbig{font:700 46px/1 -apple-system,'SF Pro Display',system-ui,sans-serif;letter-spacing:-1px;font-variant-numeric:tabular-nums}
-.rbig small{font-size:18px;font-weight:600;color:var(--mute);letter-spacing:0}
-.rdel{font-size:13px;font-weight:600;color:var(--mute)}.rdel.up{color:#4E9A5B}.rdel.dn{color:#E5566F}
-.rverd{font-size:17px;line-height:1.4}
-.rread b{color:var(--ink);font-weight:600}
-.rpot{display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:14px;background:var(--fill)}.rpot b{font-size:14px}.rpot span{font-size:14px;color:var(--mute);line-height:1.4}
-.scr{display:grid;grid-template-columns:96px 1fr 30px;align-items:center;gap:10px}
-.scr b{font-size:15px;font-weight:600}.scr em{font-style:normal;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
-.sbar{height:6px;border-radius:3px;background:var(--fill);overflow:hidden}.sbar i{display:block;height:100%;border-radius:3px;background:var(--ink)}
-.swhy{font-size:14px;color:var(--mute);line-height:1.4;margin:-4px 0 4px}
-.rh{font-size:13px;font-weight:600;color:var(--mute)}
-.ritem{display:flex;flex-direction:column;gap:5px;text-align:left;padding:12px 14px;border-radius:18px;background:var(--fill)}
-.rrole{font-style:normal;font-size:11px;font-weight:600;letter-spacing:.3px;color:var(--mute);text-transform:uppercase;display:inline-block;padding:2px 8px;border-radius:99px;background:var(--fill)}
-.ritem.good .rrole{background:rgba(78,154,91,.16);color:#4E9A5B}
-.ritem.bad .rrole{background:rgba(212,136,28,.16);color:#D4881C}
-.ract{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:4px}.ract .go2{margin-top:0}
-.go2{height:38px;padding:0 16px;border-radius:99px;font-size:14.5px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;background:var(--tint);color:var(--ontint)}
-.go2.ghost{background:none;color:var(--ink);box-shadow:inset 0 0 0 1px var(--sep)}
-.go2[disabled]{opacity:.5}
-.rwhy{flex:1 1 100%;min-width:0;border:0;border-radius:12px;background:var(--bg);padding:10px 12px;font-size:15px;outline:0;color:var(--ink)}
-.ritem.kept{box-shadow:inset 3px 0 0 var(--mute)}.ritem.kept .go2{align-self:flex-start}
-.ritem q{font-size:16px;font-weight:600;quotes:'“' '”'}
-.ritem span{font-size:15px;line-height:1.4}.ritem .fx{font-size:14px;color:var(--mute)}
-.ritem .go2{align-self:flex-start;margin-top:4px;font-size:13px;font-weight:600;padding:5px 12px;border-radius:99px;background:var(--bg);color:var(--ink)}
+#rt-out{padding:10px 0 22px;animation:pop .22s ease-out}
+#rt-out .gf{margin-bottom:6px}#rt-out .relnote{padding:2px 20px 12px}
+#rt-out .lab{padding-top:14px}
+.rthero{padding:18px 18px 16px;display:flex;flex-direction:column;gap:10px}
+#sheet4 .rthero+.cell::before{content:'';position:absolute;top:0;right:0;left:59px;border-top:.5px solid var(--sep)}
+.rttop{display:flex;align-items:center;gap:10px}
+.rtnum{font:700 48px/1 -apple-system,'SF Pro Display',system-ui,sans-serif;letter-spacing:-1.5px;font-variant-numeric:tabular-nums}
+.rtnum small{font-size:19px;font-weight:600;color:var(--mute);letter-spacing:0;margin-left:3px}
+.rtdelta{margin-left:auto;align-self:flex-start;font-size:13px;font-weight:600;padding:5px 10px;border-radius:99px;background:var(--fill);color:var(--mute);font-variant-numeric:tabular-nums}
+.rtdelta.up{background:rgba(52,199,89,.15);color:#1F9D47}.rtdelta.dn{background:rgba(255,59,48,.13);color:var(--red)}
+.rtverd{font-size:17px;line-height:1.42;letter-spacing:-.1px}
+#sheet4 .cell.rtx{align-items:flex-start}
+#sheet4 .cell.rtx .tile{margin-top:12px}
+.rtx .c2{white-space:normal;padding:12px 0 13px;gap:3px}
+#sheet4 .rtx .c2 b,#sheet4 .rtx .c2 span{white-space:normal;overflow:visible}
+.rtx .c2 .k{font-size:13px;color:var(--mute);font-weight:500}
+.rtx .c2 .v{font-size:15.5px;color:var(--ink);line-height:1.42}
+.rtx .c2 q{font-size:16.5px;font-weight:600;line-height:1.35;quotes:'“' '”'}
+.rtx .c2 .d{font-size:15px;color:var(--ink);line-height:1.42}
+.rtx .c2 .d i{font-style:normal;color:var(--mute)}
+.rtx .c2 .t{font-size:14.5px;color:var(--mute);line-height:1.42}
+#sheet4 .rtx .chev{align-self:center}
+.rtsc{padding:13px 16px 12px;display:flex;flex-direction:column;gap:6px;position:relative}
+.rtsc+.rtsc::before{content:'';position:absolute;top:0;right:0;left:16px;border-top:.5px solid var(--sep)}
+.rtsc .rtrow{display:flex;align-items:center;gap:12px}
+.rtsc .rtrow b{flex:none;width:92px;font-size:15.5px;font-weight:500}
+.rtsc .rtbar{flex:1;height:6px;border-radius:3px;background:var(--fill);overflow:hidden}
+.rtsc .rtbar i{display:block;height:100%;border-radius:3px;background:var(--tint);transform-origin:left;animation:rtbar .6s cubic-bezier(.32,.72,0,1) both}
+@keyframes rtbar{from{transform:scaleX(0)}}
+@media (prefers-reduced-motion:reduce){.rtsc .rtbar i{animation:none}}
+.rtsc .rtrow em{flex:none;width:30px;text-align:right;font-style:normal;font-weight:600;font-variant-numeric:tabular-nums;font-size:15.5px}
+.rtsc .rtwhy{font-size:14px;color:var(--mute);line-height:1.4}
+.rtchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.rtchips button{height:32px;padding:0 14px;border-radius:99px;background:var(--fill);font-size:14px;font-weight:600;color:var(--ink)}
+.rtchips button.pri{background:var(--tint);color:var(--ontint)}
+.rtchips input{flex:1 1 100%;min-width:0;border:0;border-radius:12px;background:var(--fill);padding:10px 12px;font-size:15px;outline:0;color:var(--ink)}
+#sheet4 .rtundo{flex:none;align-self:center;font-size:15px;font-weight:600;color:var(--ink);background:none;padding:6px 4px 6px 10px}
+#sheet4 .cell.rtexit{justify-content:center}#sheet4 .cell.rtexit .ct{flex:none;text-align:center;font-weight:500}
 ::highlight(rkbad){text-decoration:underline wavy #D4881C;text-decoration-thickness:1.5px;text-underline-offset:4px}
 ::highlight(rkgood){text-decoration:underline #4E9A5B;text-decoration-thickness:2px;text-underline-offset:4px}
 .pane>*{flex-shrink:0}
@@ -610,32 +623,32 @@ body.ios .song{padding:13px 24px}
 :is(#acc) .crth{width:40px;height:40px;border-radius:9px;flex:none;overflow:hidden;background:var(--cv1) center/cover;box-shadow:0 0 0 .5px var(--ring);display:block}
 :is(#acc) .crempty{padding:18px 18px 20px;display:flex;flex-direction:column;gap:3px}
 :is(#acc) .crempty b{font-size:15.5px}:is(#acc) .crempty span{font-size:13.5px;color:var(--mute);line-height:1.4}
-:is(#acc,#p-aud,#p-rel) .labrow{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;min-height:22px}
-:is(#acc,#p-aud,#p-rel) .labact{display:flex;gap:2px;margin:-8px -10px -5px 0}
-:is(#acc,#p-aud,#p-rel) .labact button{font-size:15px;font-weight:600;color:var(--ink);background:none;padding:6px 10px;border-radius:99px}
-:is(#acc,#p-aud,#p-rel) .labact button.ghost{color:var(--mute);font-weight:500}
-:is(#acc,#p-aud,#p-rel) .labact button:disabled{opacity:.4}
-:is(#acc,#p-aud,#p-rel) .cell{display:flex;align-items:center;gap:13px;width:100%;min-height:52px;padding:0 16px;background:none;color:var(--ink);font-size:16.5px;text-align:left;position:relative;-webkit-tap-highlight-color:transparent;transition:background-color .12s}
-:is(#acc,#p-aud,#p-rel) .cell+.cell::before{content:'';position:absolute;top:0;right:0;left:59px;border-top:.5px solid var(--sep)}
-:is(#acc,#p-aud,#p-rel) .cell+.cell.notile::before{left:16px}
-:is(#acc,#p-aud,#p-rel) .cell .ct{flex:1;min-width:0;line-height:1.3;padding:13px 0}
-:is(#acc,#p-aud,#p-rel) .cell .cv{flex:none;max-width:52%;color:var(--mute);font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-:is(#acc,#p-aud,#p-rel) .cell .chev{flex:none;display:flex;color:var(--mute);opacity:.5;margin-left:-3px}
-:is(#acc,#p-aud,#p-rel) button.cell:active{background:var(--fill)}
-@media (hover:hover){:is(#acc,#p-aud,#p-rel) button.cell:hover{background:var(--fill)}}
-:is(#acc,#p-aud,#p-rel) .cell.danger{justify-content:center}
-:is(#acc,#p-aud,#p-rel) .cell.danger .ct{flex:none;color:var(--red);text-align:center}
-:is(#acc,#p-aud,#p-rel) .tile{width:30px;height:30px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--tint);color:var(--ontint)}
-:is(#acc,#p-aud,#p-rel) .tile svg{width:17px;height:17px}
-:is(#acc,#p-aud,#p-rel) .tile.soc-spotify{background:#1ED760;color:#000}
-:is(#acc,#p-aud,#p-rel) .tile.soc-spotify svg{width:20px;height:20px}
-:is(#acc,#p-aud,#p-rel) .tile.soc-instagram{background:radial-gradient(circle at 30% 107%,#fdf497 0,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285AEB 90%);color:#fff}
-:is(#acc,#p-aud,#p-rel) .tile.soc-instagram svg{width:18px;height:18px}
-:is(#acc,#p-aud,#p-rel) .tile.soc-tiktok{background:#000;color:#fff;box-shadow:inset 0 0 0 .5px rgba(255,255,255,.2)}
-:is(#acc,#p-aud,#p-rel) .cell.form{cursor:text}
-:is(#acc,#p-aud,#p-rel) .cell.form .fl{flex:none;width:96px;padding:13px 0}
-:is(#acc,#p-aud,#p-rel) .cell.form input{flex:1;min-width:0;border:0;background:none;outline:0;font-size:16.5px;color:var(--ink);padding:14px 0;border-radius:0}
-:is(#acc,#p-aud,#p-rel) .cell.form input::placeholder{color:var(--mute);opacity:.75}
+:is(#acc,#p-aud,#p-rel,#sheet4) .labrow{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;min-height:22px}
+:is(#acc,#p-aud,#p-rel,#sheet4) .labact{display:flex;gap:2px;margin:-8px -10px -5px 0}
+:is(#acc,#p-aud,#p-rel,#sheet4) .labact button{font-size:15px;font-weight:600;color:var(--ink);background:none;padding:6px 10px;border-radius:99px}
+:is(#acc,#p-aud,#p-rel,#sheet4) .labact button.ghost{color:var(--mute);font-weight:500}
+:is(#acc,#p-aud,#p-rel,#sheet4) .labact button:disabled{opacity:.4}
+:is(#acc,#p-aud,#p-rel,#sheet4) .cell{display:flex;align-items:center;gap:13px;width:100%;min-height:52px;padding:0 16px;background:none;color:var(--ink);font-size:16.5px;text-align:left;position:relative;-webkit-tap-highlight-color:transparent;transition:background-color .12s}
+:is(#acc,#p-aud,#p-rel,#sheet4) .cell+.cell::before{content:'';position:absolute;top:0;right:0;left:59px;border-top:.5px solid var(--sep)}
+:is(#acc,#p-aud,#p-rel,#sheet4) .cell+.cell.notile::before{left:16px}
+:is(#acc,#p-aud,#p-rel,#sheet4) .cell .ct{flex:1;min-width:0;line-height:1.3;padding:13px 0}
+:is(#acc,#p-aud,#p-rel,#sheet4) .cell .cv{flex:none;max-width:52%;color:var(--mute);font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:is(#acc,#p-aud,#p-rel,#sheet4) .cell .chev{flex:none;display:flex;color:var(--mute);opacity:.5;margin-left:-3px}
+:is(#acc,#p-aud,#p-rel,#sheet4) button.cell:active{background:var(--fill)}
+@media (hover:hover){:is(#acc,#p-aud,#p-rel,#sheet4) button.cell:hover{background:var(--fill)}}
+:is(#acc,#p-aud,#p-rel,#sheet4) .cell.danger{justify-content:center}
+:is(#acc,#p-aud,#p-rel,#sheet4) .cell.danger .ct{flex:none;color:var(--red);text-align:center}
+:is(#acc,#p-aud,#p-rel,#sheet4) .tile{width:30px;height:30px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--tint);color:var(--ontint)}
+:is(#acc,#p-aud,#p-rel,#sheet4) .tile svg{width:17px;height:17px}
+:is(#acc,#p-aud,#p-rel,#sheet4) .tile.soc-spotify{background:#1ED760;color:#000}
+:is(#acc,#p-aud,#p-rel,#sheet4) .tile.soc-spotify svg{width:20px;height:20px}
+:is(#acc,#p-aud,#p-rel,#sheet4) .tile.soc-instagram{background:radial-gradient(circle at 30% 107%,#fdf497 0,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285AEB 90%);color:#fff}
+:is(#acc,#p-aud,#p-rel,#sheet4) .tile.soc-instagram svg{width:18px;height:18px}
+:is(#acc,#p-aud,#p-rel,#sheet4) .tile.soc-tiktok{background:#000;color:#fff;box-shadow:inset 0 0 0 .5px rgba(255,255,255,.2)}
+:is(#acc,#p-aud,#p-rel,#sheet4) .cell.form{cursor:text}
+:is(#acc,#p-aud,#p-rel,#sheet4) .cell.form .fl{flex:none;width:96px;padding:13px 0}
+:is(#acc,#p-aud,#p-rel,#sheet4) .cell.form input{flex:1;min-width:0;border:0;background:none;outline:0;font-size:16.5px;color:var(--ink);padding:14px 0;border-radius:0}
+:is(#acc,#p-aud,#p-rel,#sheet4) .cell.form input::placeholder{color:var(--mute);opacity:.75}
 #acc .atpre{color:var(--mute);margin-right:-13px}
 #acc .devwrap .devcard{margin-top:0}
 /* ---------- Audio & Credits tabs (Pro) ---------- */
@@ -16115,6 +16128,8 @@ function museCtx(sec){var a=[];
   if(MZ.prof&&MZ.prof.text)a.push('HOW THIS WRITER WRITES (their voice profile; let it shape style and word choice, not subject matter):\n'+MZ.prof.text.slice(0,1400));
   var br=mzBrief(cur);if(br)a.push('BACKGROUND ON THIS SONG from the writer. Treat it as what you know, not a checklist: only bring a name, place or detail in when it fits the line and the moment naturally, change or leave it out when it doesn\'t, and never force it into every suggestion. Most good lines will use none of it:\n'+br);
   var mine=mzMyLines(sec,8);if(mine.length)a.push('THE WRITER\'S OWN LINES from other songs, that might be close to what they\'re writing now. Use them only for how this writer sounds (kind of detail, plainness or strangeness, rhythm), not as material to borrow, and ignore any that don\'t fit this song. Never reuse or paraphrase them:\n'+mine.map(mzQ).join('\n'));
+  var mc=meantChoices(8);if(mc.length)a.push('LINES THEY DEFENDED as deliberate when a critic questioned them. These are habits of their voice: don\'t smooth them away, write with them:\n'+mc.map(function(x){return'- '+mzQ(x.q)+(x.why?' ('+x.why+')':'')}).join('\n'));
+  if(!(MZ.prof&&MZ.prof.text)){var rr=rateReads(2);if(rr.length)a.push('HOW A CLOSE READER DESCRIBED THEIR WRITING (style only):\n'+rr.map(function(x){return'- '+x}).join('\n'))}
   var ed=mzRecent('edited',6);if(ed.length)a.push('SUGGESTIONS THEY REWROTE, and what they changed them to. Learn the direction of each change and write like the "after":\n'+ed.map(function(e){return'- '+mzQ(e.shown)+' -> '+mzQ(e.final)}).join('\n'));
   var kp=mzRecent('kept',5);if(kp.length)a.push('SUGGESTIONS THEY KEPT word for word (this is the bar):\n'+kp.map(function(e){return'- '+mzQ(e.shown)}).join('\n'));
   var rj=MZ.ev.filter(function(e){return(e.o==='reject'||e.o==='deleted')&&e.shown}).slice(-8);if(rj.length)a.push('SUGGESTIONS THEY THREW OUT (don\'t write anything like these):\n'+rj.map(function(e){return'- '+mzQ(e.shown)+(e.why&&MZ_WHYL[e.why]?' ('+MZ_WHYL[e.why].toLowerCase()+')':'')}).join('\n'));
@@ -16147,7 +16162,7 @@ function mzJudge(cands,o){if(!cands||cands.length<3)return Promise.resolve(null)
 function mzProfStore(push){try{localStorage.setItem(mzKey('prof'),JSON.stringify(MZ.prof))}catch(e){}
   var c=push&&mzCloud();if(c&&MZ.prof)c.from('muse_profile').upsert({user_id:AUTH_USER.id,profile:MZ.prof.text||'',edited:!!MZ.prof.edited,basis:MZ.prof.n||0,updated_at:new Date(MZ.prof.at||Date.now()).toISOString()},{onConflict:'user_id'}).then(function(r){if(r.error&&mzMissing(r.error))MZ.noTable=true})}
 function mzCatalog(){var out=[];songs.forEach(function(s){if(s.id===GUIDE_ID)return;(s.lyrics||'').split('\n').forEach(function(l){l=l.trim();if(l&&l[0]!=='[')out.push(l)})});return out}
-function mzOutcomes(){return MZ.ev.filter(function(e){return e.o!=='passed'}).length}
+function mzOutcomes(){var n=0;songs.forEach(function(s){n+=(s.intents||[]).length});return MZ.ev.filter(function(e){return e.o!=='passed'}).length+n}
 function mzProfAuto(){if(MZ.building||!isPro()||!aiAvailable())return;if(MZ.prof&&MZ.prof.edited)return;
   var n=mzOutcomes(),lines=mzCatalog().length;if(lines<16)return;
   if(!MZ.prof||!MZ.prof.text||n-(MZ.prof.n||0)>=25||(Date.now()-(MZ.prof.at||0)>14*864e5&&n>(MZ.prof.n||0)))mzProfBuild()}
@@ -16160,6 +16175,8 @@ function mzProfBuild(manual){if(MZ.building)return Promise.resolve(null);MZ.buil
     (ed.length?'\n\nSuggestions they rewrote (suggested -> their version):\n'+ed.map(function(e){return mzQ(e.shown)+' -> '+mzQ(e.final)}).join('\n'):'')+
     (kp.length?'\n\nSuggestions they kept as written:\n'+kp.map(function(e){return mzQ(e.shown)}).join('\n'):'')+
     (rj.length?'\n\nSuggestions they threw out:\n'+rj.map(function(e){return mzQ(e.shown)+(e.why&&MZ_WHYL[e.why]?' ('+MZ_WHYL[e.why].toLowerCase()+')':'')}).join('\n'):'')+
+    (function(){var mc=meantChoices(12);return mc.length?'\n\nLines of theirs a critic questioned that they defended as deliberate (strong evidence of their habits):\n'+mc.map(function(x){return mzQ(x.q)+(x.why?' ('+x.why+')':'')}).join('\n'):''})()+
+    (function(){var rr=rateReads(4);return rr.length?'\n\nHow a critic who read their songs described their writing (secondary evidence; trust the lyrics over it):\n'+rr.map(function(x){return'- '+x}).join('\n'):''})()+
     '\n\nWrite a voice profile of 120 to 200 words as direct instructions to someone writing lines for them ("Uses...", "Never..."). Cover: what kind of concrete details and nouns they reach for; how literal or oblique they are; vocabulary and register (slang, swearing, plainness); line length and rhythm; how they rhyme (perfect, slant, internal, or loose); point of view and who they talk to; recurring themes; and what they clearly avoid. Be specific to THIS writer and quote short fragments of their own words as evidence. No praise, no generic advice that would fit any songwriter. Return JSON: {"profile":"..."}';
   if(pr.length>20000)pr=pr.slice(0,19000)+'\n\nWrite a voice profile of 120 to 200 words as direct instructions. Return JSON: {"profile":"..."}';
   return aiJson(pr,{modelTier:'complex',cache:false}).then(function(r){if(MZ.uid!==forUid)return null;MZ.building=false;var t=r&&typeof r.profile==='string'?r.profile.trim():'';if(!t)return null;if(!manual&&MZ.prof&&MZ.prof.edited)return null;
@@ -16891,62 +16908,87 @@ function openRate(){setRateMode(true);var g=getSel();rtSel=g.e>g.s?{a:g.s,b:g.e}
 function buildRateHead(){var h=$('#rt-head');h.innerHTML='';if(!cur)return;var sec=secAt(getSel().s);
   var opts=[['song','Whole song']];if(sec)opts.push(['sec','This '+sec.name.replace(/\s*\d+$/,'')]);if(rtSel)opts.push(['sel','Selection']);
   if(!opts.some(function(o){return o[0]===rtScope}))rtScope='song';
-  var l=document.createElement('div');l.className='lab';l.textContent='What to rate';h.appendChild(l);
-  var w=document.createElement('div');w.className='opts';opts.forEach(function(o){var b=document.createElement('button');b.className='r'+(rtScope===o[0]?' f':'');b.textContent=o[1];b.onclick=function(){rtScope=o[0];buildRateHead()};w.appendChild(b)});h.appendChild(w);
-  var l2=document.createElement('div');l2.className='lab';l2.textContent='Feedback';h.appendChild(l2);var w2=document.createElement('div');w2.className='opts';
-  ['enc','bal','blunt'].forEach(function(k){var b=document.createElement('button');b.className='r'+(rtTone===k?' f':'');b.textContent=TONE[k].label;b.onclick=function(){rtTone=k;try{localStorage.setItem('songpad:rtone',k)}catch(e){}buildRateHead()};w2.appendChild(b)});h.appendChild(w2);
-  var a=document.createElement('div');a.className='acts';var go=document.createElement('button');go.className='go';go.textContent=rtBusy?'Reading…':(cur.rating?'Rate Again':'Rate');go.disabled=rtBusy;go.onclick=runRate;a.appendChild(go);
-  var info=document.createElement('span');var vs=[PF.genre,PF.mood].filter(function(x){return x!=='Any'}).join(', ');info.textContent='Judged on what the song is going for'+(vs?', with your '+vs+' voice in mind':'')+'.';a.appendChild(info);h.appendChild(a)}
-function runRate(){if(!aiAvailable()){$('#rt-out').innerHTML='<div class="rcard"><span>Rating needs a connection, which isn’t set up in this copy.</span></div>';return}
+  var seg=function(label,items,on,pick){var l=document.createElement('div');l.className='lab';l.textContent=label;h.appendChild(l);
+    var w=document.createElement('div');w.className='seg';w.setAttribute('role','radiogroup');w.setAttribute('aria-label',label);
+    items.forEach(function(o){var b=document.createElement('button');b.textContent=o[1];b.className=on===o[0]?'on':'';b.setAttribute('role','radio');b.setAttribute('aria-checked',on===o[0]?'true':'false');b.disabled=rtBusy;b.onclick=function(){haptic('select');pick(o[0]);buildRateHead()};w.appendChild(b)});h.appendChild(w)};
+  seg('What to rate',opts,rtScope,function(k){rtScope=k});
+  seg('Feedback',['enc','bal','blunt'].map(function(k){return[k,TONE[k].label]}),rtTone,function(k){rtTone=k;try{localStorage.setItem('songpad:rtone',k)}catch(e){}});
+  var go=document.createElement('button');go.className='rtgo';go.disabled=rtBusy;go.innerHTML=rtBusy?aidots()+' Reading':esc(cur.rating?'Rate Again':'Rate');go.onclick=runRate;h.appendChild(go);
+  var info=document.createElement('div');info.className='relnote';var vs=[PF.genre,PF.mood].filter(function(x){return x!=='Any'}).join(', ');
+  info.textContent='Judged on what this song is going for and how you write'+(vs?', with your '+vs+' voice in mind':'')+'.';h.appendChild(info)}
+function runRate(){if(!aiAvailable()){rtNote('Rating needs a connection, which isn’t set up in this copy.');return}
   var v=getText();if(!v.trim()){toast('Write something to rate first');return}
   var part='',label='the whole song';if(rtScope==='sec'){var s=secAt(getSel().s);if(s){part=v.slice(s.a,s.b);label='the '+s.name+' section'}}if(rtScope==='sel'&&rtSel){part=v.slice(rtSel.a,rtSel.b);label='the selected lines'}
-  rtBusy=true;buildRateHead();$('#rt-out').innerHTML='<div class="rcard"><span>'+aidots()+' Reading '+esc(label)+' like a listener would</span></div>';
+  rtBusy=true;buildRateHead();rtNote(aidots()+' Reading '+esc(label)+' like a listener would',true);
   var song=cur,prev=cur.rating&&cur.rating.scope===rtScope&&(cur.rating.tone||'blunt')===rtTone?cur.rating.overall:null;
   aiJson('You are a seasoned co-writer giving notes on song lyrics, the kind of person writers want in the room. '+TONE[rtTone].who+' Listen first, then judge.\n\nSTEP 1, understand before scoring. Work out what this song is going for: its genre and its conventions, the feeling it is chasing, who is singing to whom, and how finished it is (status: '+(cur.status||'Idea')+'; '+(v.split('\n').filter(function(l){return l.trim()&&l.trim()[0]!=='['}).length)+' lyric lines so far). Judge the song on its own terms. Simple words, repetition, a familiar phrase or a direct hook can be exactly right in pop, country, hip-hop or folk when they are earned; abstraction can be right in dreamy indie. Familiar is not the same as weak — a well-worn phrase, a simple rhyme, or a line that sounds like plenty of others in its genre can still be exactly the right line if it lands. Slang, colloquial speech, regional or genre dialect (AAVE in hip-hop and R&amp;B, Southern or Americana phrasing in country, text-speak or internet voice in pop, bent grammar used for rhythm, emphasis or attitude) is not a legibility or craft problem — judge it by how it sounds spoken or sung in that voice, never against formal grammar. Don\'t reward generic, workshop-polished, \'correct\' writing over something rougher that actually sounds like a person and fits the genre; technically tidy is not automatically better than something out there that works. Don\'t punish a deliberate choice. A sketch is rated on what is there and where it is heading, not on what is missing.\n\nRead every line in context, never in isolation. Before judging a line, ask what job it does in the song: a set-up that a later line pays off, a payoff, a plain line that makes the next image hit harder, a deliberate understatement, a callback to an earlier line, a twist on a repeated phrase, a transition into a new section, the hook, or a rhyme partner that works as a couplet. A line that looks flat or obvious on its own may be doing exactly its job. Section roles matter too: verses set scenes, pre-choruses build, choruses land the idea, bridges turn it. Only flag a line if it still fails once you account for what it sets up or pays off, and when you do, say why in terms of its role (for example: the set-up promises something the payoff never delivers).\n\nTHE SONG’S WORLD. Before judging any line, map the song’s world: its recurring images, motifs and settings, the metaphors it keeps returning to, and how its images connect across sections (for example a door in verse one that becomes a closed road in the bridge). A line that belongs to this world, extends a motif, or echoes an earlier image is working, even if it is abstract, surprising or unexplained on its own. Songs are allowed to leave images unexplained when the whole earns them. Never mark a line down for being unusual if it fits the world.\n\nCOHESION, LINE AGAINST LINE. Separately from the song\'s world, read the lines against each other in sequence, not just each on its own: does it keep a consistent tense and point of view, or drift without reason; do the verses echo or escalate the idea rather than repeat it with nothing new; does the hook or chorus feel earned by what led into it; does the ending answer, pay off or recontextualize the opening rather than just stopping. Score cohesion on how well the lines build on each other as a sequence, not on how good any single line is alone — a song of strong individual lines that never build on each other scores lower on cohesion than a simpler song that clearly goes somewhere.\n\nTHE WRITER’S PERSONALITY. Learn how this writer writes from this song, their other songs below, and what you have learned about them before: plain-spoken or ornate, literal or impressionistic, how they use rhyme, repetition, humour, fragments, slang and line length. This read updates every time you rate them — weigh what you\'re seeing in THIS song and what you\'ve learned across their other songs above any generic idea of \'good writing\'. Their habits are their voice, not mistakes. Judge the song against the best version of THIS writer, not against a generic ideal.\n\nWhen unsure whether a line is a flaw or a choice, treat it as a choice. Fewer, sharper notes beat many weak ones. Remember music is subjective: you are offering one experienced ear\'s honest read, not a final verdict, so stay generous and lead with what is working. Being insightful means explaining WHY something lands or doesn\'t in terms specific to this song, not cataloguing everything that could theoretically be improved — a song can be genuinely good with real weak spots left unmentioned because they are not worth this writer\'s time right now.\n\nSTEP 2, score each dimension 0-10 (one decimal) on how well it achieves what THIS song is going for:\n- cleverness: moments of craft that make you lean in (an image, a turn, a rhyme, a twist), relative to the style\n- legibility: does the listener get what they need to feel it; clear enough for the style\n- cohesion: judged line against line and section against section — does it build as one song rather than a pile of unrelated good lines\n- voice: does it sound like someone, and fit the writer\'s chosen voice settings when they set any\nUse your judgment rather than a formula. '+TONE[rtTone].cal+' Overall is your gut feel as a listener, not an average.\n\nThe writer\'s voice settings:'+pfx()+writerContext()+'\n\nSong: '+(cur.title||'Untitled')+(cur.artist?' by '+cur.artist:'')+(cur.notes?'\nWriter\'s notes: '+cur.notes.slice(0,400):'')+'\n\nFull lyrics:\n'+v.slice(0,7000)+(part?'\n\nRate ONLY this part, using the rest as context:\n'+part:'')+intentText()+
   '\n\nReturn JSON exactly like (fill "world" and "personality" FIRST, then judge with them in mind): {"world":"one or two sentences: the song\'s image world, motifs and how they connect","personality":"one or two sentences: how this writer writes, their habits and strengths","intent":"one sentence: what this song is going for and how you read it","overall":0,"verdict":"one or two sentences, a human reaction, lead with what lands","potential":{"score":0,"how":"one sentence: the single change that would lift it most"},"scores":{"cleverness":{"score":0,"why":"one sentence"},"legibility":{"score":0,"why":""},"cohesion":{"score":0,"why":""},"voice":{"score":0,"why":""}},"strengths":[{"quote":"","role":"1-3 words","note":""}],"issues":[{"quote":"","role":"what this line is doing in the song, 1-3 words (e.g. set-up, payoff, hook, transition, image, callback)","problem":"why it falls short in context","check":"why this is not explained by the song\'s world or the writer\'s style","confidence":0.0,"fix":""}]}\n'+TONE[rtTone].count+' Only raise what a good co-writer actually would. Give each issue a confidence from 0 to 1 that it is a real weakness rather than a deliberate choice. Every quote must be copied EXACTLY from the lyrics (a phrase or a full line). Each fix is a concrete direction, not a rewritten line.',{cache:false,modelTier:'complex'}).then(function(r){
-    rtBusy=false;if(!r||typeof r.overall!=='number'||!r.scores){$('#rt-out').innerHTML='<div class="rcard"><span>That didn’t come back cleanly. Try again.</span></div>';buildRateHead();return}
+    rtBusy=false;if(!r||typeof r.overall!=='number'||!r.scores){rtNote('That didn’t come back cleanly. Try again.');buildRateHead();return}
     var sq={};(r.strengths||[]).forEach(function(x){sq[(x.quote||'').toLowerCase()]=1});
     r.issues=(r.issues||[]).filter(function(x){var q=(x.quote||'').toLowerCase();if(sq[q])return false;for(var k in sq){if(k&&(k.indexOf(q)>=0||q.indexOf(k)>=0))return false}return typeof x.confidence!=='number'||x.confidence>=0.72});
-    learnWriter(r.personality,song);
+    if(typeof r.personality==='string')r.personality=r.personality.slice(0,300);
     r.t=Date.now();r.scope=rtScope;r.tone=rtTone;r.prev=prev;r.marks=true;song.rating=r;song.updated=Date.now();save();if(cur===song){buildRateHead();renderRating();refreshViews()}haptic('success');
-  },function(e){rtBusy=false;buildRateHead();$('#rt-out').innerHTML='<div class="rcard"><span>'+(e&&e.code==='not_granted'?'Allow access to get a rating.':'Couldn’t get a rating. Try again in a moment.')+'</span></div>'})}
+  },function(e){rtBusy=false;buildRateHead();rtNote(e&&e.code==='not_granted'?'Allow access to get a rating.':'Couldn’t get a rating. Try again in a moment.')})}
+function rtNote(t,html){var o=$('#rt-out');o.innerHTML='';var g=document.createElement('div');g.className='gf accg';o.appendChild(g);var c=document.createElement('div');c.className='cell notile';var ct=document.createElement('span');ct.className='ct';if(html)ct.innerHTML=t;else ct.textContent=t;c.appendChild(ct);g.appendChild(c)}
 /* the writer: their other songs, what earlier ratings learned, and choices they've kept on purpose */
-function getWriter(){try{return JSON.parse(localStorage.getItem('songpad:writer'))||[]}catch(e){return[]}}
-function learnWriter(p,song){if(!p||typeof p!=='string')return;var w=getWriter().filter(function(x){return x.id!==song.id});w.push({id:song.id,p:p.slice(0,300),t:Date.now()});w=w.slice(-6);try{localStorage.setItem('songpad:writer',JSON.stringify(w))}catch(e){}}
+/* What Rate has learned about the writer lives on their songs (each rating keeps its read of their style,
+   each "I meant that" keeps the line and why), so it's per account and syncs with the library. The muse
+   (museCtx) and the voice profile (mzProfBuild) read the same notes, and Rate reads the voice profile. */
+try{localStorage.removeItem('songpad:writer')}catch(e){}
+function rateReads(n,skip){return songs.filter(function(s){return s!==skip&&s.id!==GUIDE_ID&&s.rating&&typeof s.rating.personality==='string'&&s.rating.personality.trim()})
+  .sort(function(a,b){return(b.rating.t||0)-(a.rating.t||0)}).slice(0,n).map(function(s){return s.rating.personality.slice(0,300)})}
+function meantChoices(n,skip){var out=[];songs.forEach(function(s){if(s===skip||s.id===GUIDE_ID)return;(s.intents||[]).forEach(function(x){if(x&&x.quote)out.push({q:x.quote,why:x.why||'',t:x.t||0})})});
+  return out.sort(function(a,b){return a.t-b.t}).slice(-n)}
 function writerContext(){var out='',others=songs.filter(function(s){return s!==cur&&(s.lyrics||'').trim()}).sort(function(a,b){return b.updated-a.updated}).slice(0,6);
   if(others.length)out+='\n\nOther songs by this writer (for their style only, do not rate these):\n'+others.map(function(s){return'- '+(s.title||'Untitled')+': '+llines(s).slice(0,6).join(' / ')}).join('\n');
-  var w=getWriter().filter(function(x){return!cur||x.id!==cur.id});if(w.length)out+='\n\nWhat earlier readings learned about this writer:\n'+w.map(function(x){return'- '+x.p}).join('\n');
-  var kept=[];songs.forEach(function(s){if(s!==cur)(s.intents||[]).forEach(function(x){if(x.why)kept.push(x.why)})});if(kept.length)out+='\n\nChoices this writer has told you are deliberate in other songs (their habits):\n'+kept.slice(-10).map(function(x){return'- '+x}).join('\n');
+  if(MZ.prof&&MZ.prof.text)out+='\n\nHow this writer writes (their voice profile, learned from all their songs and from which suggestions they kept, rewrote and threw out; judge against this voice, not a generic ideal):\n'+MZ.prof.text.slice(0,1400);
+  var w=rateReads(6,cur);if(w.length)out+='\n\nWhat earlier readings learned about this writer:\n'+w.map(function(x){return'- '+x}).join('\n');
+  var kept=meantChoices(10,cur);if(kept.length)out+='\n\nLines in other songs this writer told you were deliberate when they were questioned (their habits, not mistakes):\n'+kept.map(function(x){return'- '+mzQ(x.q)+(x.why?' ('+x.why+')':'')}).join('\n');
+  var br=mzBrief(cur);if(br)out+='\n\nWhat the writer told you about this song (use it to understand what it\'s going for and who is singing to whom; never mark a line down for not using these details):\n'+br;
   return out}
 function intentText(){var a=(cur&&cur.intents)||[];if(!a.length)return'';return'\n\nThe writer has told you these choices are deliberate. Respect them: do not raise them as issues again, and re-judge the scores they affect with the intent in mind. If the intent makes the line work, credit it; only mention one if it truly undermines something else, and then gently:\n'+a.map(function(x){return'- "'+x.quote+'"'+(x.why?' (writer: '+x.why+')':' (no reason given)')}).join('\n')}
-function keepIntent(it,why){if(!cur)return;cur.intents=(cur.intents||[]).filter(function(x){return x.quote!==it.quote});cur.intents.push({quote:it.quote,why:why,t:Date.now()});
+function keepIntent(it,why){if(!cur)return;cur.intents=(cur.intents||[]).filter(function(x){return x.quote!==it.quote});cur.intents.push({quote:it.quote,why:why,t:Date.now()});mzProfAuto();
   var R=cur.rating;if(R&&R.issues)R.issues=R.issues.filter(function(x){return x!==it});cur.updated=Date.now();save();refreshViews();renderRating();toast('Got it. Re-rating with that in mind.');runRate()}
 function findQuote(q){var v=getText();if(!q)return null;var i=v.indexOf(q);if(i<0){i=v.toLowerCase().indexOf(q.toLowerCase())}if(i<0){var s=q.replace(/[“”"]/g,'').trim();i=v.toLowerCase().indexOf(s.toLowerCase());if(i>=0)return[i,i+s.length];return null}return[i,i+q.length]}
 function jumpTo(q,edit){var r=findQuote(q);sheet(false);if(!r){toast('That line has changed since the rating');return}lyr.focus();lyr.setSelectionRange(r[0],r[1]);reveal(true);if(edit){lines=true;LSK=null;rhyme();toast('Selected. Tap Rewrite selection for options.')}else{rhyme()}}
 function renderRating(){var o=$('#rt-out'),R=cur&&cur.rating;o.innerHTML='';if(!R)return;
-  var c=document.createElement('div');c.className='rcard';o.appendChild(c);
-  var top=document.createElement('div');top.className='rtop';top.innerHTML='<span class="rbig"></span><span class="rdel"></span>';top.querySelector('.rbig').innerHTML=esc(R.overall.toFixed(1))+'<small> / 10</small>';
-  if(typeof R.prev==='number'){var d=+(R.overall-R.prev).toFixed(1),de=top.querySelector('.rdel');de.textContent=(d>0?'+':'')+d+' since last time';de.className='rdel '+(d>0?'up':d<0?'dn':'')}c.appendChild(top);
-  var vd=document.createElement('div');vd.className='rverd';vd.textContent=R.verdict||'';c.appendChild(vd);[['Reads as',R.intent],['Its world',R.world],['Your style',R.personality]].forEach(function(p){if(!p[1])return;var it=document.createElement('div');it.className='swhy rread';it.style.margin='0';it.innerHTML='<b></b> ';it.firstChild.textContent=p[0]+':';it.appendChild(document.createTextNode(p[1]));c.appendChild(it)});if(R.potential&&typeof R.potential.score==='number'){var pt=document.createElement('div');pt.className='rpot';pt.innerHTML='<b></b><span></span>';pt.querySelector('b').textContent='Could reach '+(+R.potential.score).toFixed(1);pt.querySelector('span').textContent=R.potential.how||'';c.appendChild(pt)}
-  var meta=document.createElement('div');meta.className='rh';meta.textContent=({song:'Whole song',sec:'Section',sel:'Selection'}[R.scope]||'')+' · '+fd(R.t);c.appendChild(meta);
-  var sc=document.createElement('div');sc.className='rcard';o.appendChild(sc);
-  RDIM.forEach(function(d){var x=R.scores[d[0]]||{},v=Math.max(0,Math.min(10,+x.score||0)),row=document.createElement('div');row.className='scr';row.innerHTML='<b></b><div class="sbar"><i></i></div><em></em>';row.querySelector('b').textContent=d[1];row.querySelector('i').style.width=(v*10)+'%';row.querySelector('em').textContent=v.toFixed(1);sc.appendChild(row);
-    if(x.why){var w=document.createElement('div');w.className='swhy';w.textContent=x.why;sc.appendChild(w)}});
-  function list(title,items,kind){if(!items||!items.length)return;var cd=document.createElement('div');cd.className='rcard';o.appendChild(cd);var h=document.createElement('div');h.className='rh';h.textContent=title;cd.appendChild(h);
-    items.forEach(function(it){var b=document.createElement('div');b.className='ritem '+kind;var q=document.createElement('q');q.textContent=it.quote||'';b.appendChild(q);if(it.role){var rl=document.createElement('em');rl.className='rrole';rl.textContent=it.role;b.insertBefore(rl,q)}var sp=document.createElement('span');sp.textContent=kind==='bad'?it.problem:it.note;b.appendChild(sp);
-      if(kind==='bad'&&it.fix){var fx=document.createElement('span');fx.className='fx';fx.textContent='Try: '+it.fix;b.appendChild(fx)}
-      var ra=document.createElement('div');ra.className='ract';var g=document.createElement('button');g.className='go2';g.textContent=kind==='bad'?'Rework this':'Show me';g.onclick=function(){jumpTo(it.quote,kind==='bad')};ra.appendChild(g);
-      if(kind==='bad'){var im=document.createElement('button');im.className='go2 ghost';im.textContent='I meant that';im.onclick=function(){
-        ra.innerHTML='';var inp=document.createElement('input');inp.className='rwhy';inp.placeholder='What were you going for? (optional)';inp.id='rwhy-'+Math.random().toString(36).slice(2,8);
-        var ok=document.createElement('button');ok.className='go2';ok.textContent='Keep it';var no=document.createElement('button');no.className='go2 ghost';no.textContent='Cancel';
-        ok.onclick=function(){keepIntent(it,inp.value.trim())};no.onclick=renderRating;inp.onkeydown=function(e){if(e.key==='Enter')ok.click()};
-        ra.appendChild(inp);ra.appendChild(ok);ra.appendChild(no);inp.focus()};ra.appendChild(im)}
-      b.appendChild(ra);cd.appendChild(b)})}
-  list('What’s working',R.strengths,'good');list((TONE[R.tone]||TONE.blunt).head,R.issues,'bad');
-  if(cur.intents&&cur.intents.length){var kc=document.createElement('div');kc.className='rcard';o.appendChild(kc);var kh=document.createElement('div');kh.className='rh';kh.textContent='Kept as intended';kc.appendChild(kh);
-    cur.intents.forEach(function(x,i){var b=document.createElement('div');b.className='ritem kept';var q=document.createElement('q');q.textContent=x.quote;b.appendChild(q);if(x.why){var sp=document.createElement('span');sp.textContent=x.why;b.appendChild(sp)}
-      var u=document.createElement('button');u.className='go2 ghost';u.textContent='Undo';u.onclick=function(){cur.intents.splice(i,1);cur.updated=Date.now();save();renderRating();toast('Removed. Rate again to include it.')};b.appendChild(u);kc.appendChild(b)})}
-  var mk=document.createElement('button');mk.className='resetb';mk.style.color='var(--ink)';mk.textContent='Exit Rate Mode';mk.onclick=function(){setRateMode(false);sheet(false)};o.appendChild(mk)}
+  var cap=function(t){t=String(t||'').trim();return t?t[0].toUpperCase()+t.slice(1):''};
+  var group=function(title){if(title){var l=document.createElement('div');l.className='lab';l.textContent=title;o.appendChild(l)}var g=document.createElement('div');g.className='gf accg';o.appendChild(g);return g};
+  var text=function(cls,t,tag){var e=document.createElement(tag||'span');e.className=cls;e.textContent=t;return e};
+  /* the score and the gut reaction */
+  var g=group(''),hero=document.createElement('div');hero.className='rthero';g.appendChild(hero);
+  var top=document.createElement('div');top.className='rttop';var num=document.createElement('span');num.className='rtnum';num.innerHTML=esc((+R.overall).toFixed(1))+'<small>/ 10</small>';top.appendChild(num);
+  if(typeof R.prev==='number'){var d=+(R.overall-R.prev).toFixed(1),de=document.createElement('span');de.className='rtdelta '+(d>0?'up':d<0?'dn':'');de.textContent=d===0?'Same as last time':(d>0?'+':'−')+Math.abs(d).toFixed(1)+' since last time';top.appendChild(de)}
+  hero.appendChild(top);if(R.verdict)hero.appendChild(text('rtverd',R.verdict,'div'));
+  if(R.potential&&typeof R.potential.score==='number'){var pc=document.createElement('div');pc.className='cell rtx';var pt=document.createElement('span');pt.className='tile';pt.innerHTML=ACC_ICO.spark;pc.appendChild(pt);
+    var pm=document.createElement('div');pm.className='c2';pm.appendChild(text('v','Could reach '+(+R.potential.score).toFixed(1),'b'));if(R.potential.how)pm.appendChild(text('t',R.potential.how));pc.appendChild(pm);g.appendChild(pc)}
+  /* how it was read */
+  var reads=[['Reads as',R.intent],['Its world',R.world],['Your style',R.personality]].filter(function(x){return x[1]});
+  if(reads.length){var rg=group('How it was read');reads.forEach(function(x){var c=document.createElement('div');c.className='cell notile rtx';var m=document.createElement('div');m.className='c2';m.appendChild(text('k',x[0]));m.appendChild(text('v',x[1]));c.appendChild(m);rg.appendChild(c)})}
+  /* scores */
+  var sg=group('Scores');RDIM.forEach(function(dm){var x=R.scores[dm[0]]||{},v=Math.max(0,Math.min(10,+x.score||0)),r=document.createElement('div');r.className='rtsc';
+    var row=document.createElement('div');row.className='rtrow';row.appendChild(text('',dm[1],'b'));var bar=document.createElement('span');bar.className='rtbar';bar.innerHTML='<i></i>';bar.firstChild.style.width=(v*10)+'%';row.appendChild(bar);row.appendChild(text('',v.toFixed(1),'em'));r.appendChild(row);
+    if(x.why)r.appendChild(text('rtwhy',x.why,'div'));sg.appendChild(r)});
+  /* what's working: tap to find the line */
+  if(R.strengths&&R.strengths.length){var wg=group('What’s working');R.strengths.forEach(function(it){var c=accCell({label:'',chev:true,onclick:function(){jumpTo(it.quote,false)}});c.className+=' notile rtx';c.removeChild(c.querySelector('.ct'));
+    var m=document.createElement('div');m.className='c2';m.appendChild(text('',it.quote||'','q'));var dd=document.createElement('span');dd.className='d';if(it.role){dd.appendChild(text('',cap(it.role)+' · ','i'))}dd.appendChild(document.createTextNode(it.note||''));m.appendChild(dd);c.insertBefore(m,c.firstChild);wg.appendChild(c)})}
+  /* what could be stronger */
+  if(R.issues&&R.issues.length){var ig=group((TONE[R.tone]||TONE.blunt).head);R.issues.forEach(function(it){var c=document.createElement('div');c.className='cell notile rtx';var m=document.createElement('div');m.className='c2';
+    m.appendChild(text('',it.quote||'','q'));var dd=document.createElement('span');dd.className='d';if(it.role)dd.appendChild(text('',cap(it.role)+' · ','i'));dd.appendChild(document.createTextNode(it.problem||''));m.appendChild(dd);
+    if(it.fix)m.appendChild(text('t','Try: '+it.fix));
+    var ch=document.createElement('div');ch.className='rtchips';var paint=function(){ch.innerHTML='';
+      var rw=document.createElement('button');rw.className='pri';rw.textContent='Rework this';rw.onclick=function(){jumpTo(it.quote,true)};ch.appendChild(rw);
+      var im=document.createElement('button');im.textContent='I meant that';im.onclick=function(){ch.innerHTML='';var inp=document.createElement('input');inp.placeholder='What were you going for? (optional)';inp.setAttribute('aria-label','What were you going for?');inp.maxLength=200;
+        var ok=document.createElement('button');ok.className='pri';ok.textContent='Keep It';var no=document.createElement('button');no.textContent='Cancel';
+        ok.onclick=function(){keepIntent(it,inp.value.trim())};no.onclick=paint;inp.onkeydown=function(e){if(e.key==='Enter')ok.click();else if(e.key==='Escape')paint()};
+        ch.appendChild(inp);ch.appendChild(ok);ch.appendChild(no);inp.focus()};ch.appendChild(im)};paint();
+    m.appendChild(ch);c.appendChild(m);ig.appendChild(c)})}
+  /* lines the writer has said are on purpose */
+  if(cur.intents&&cur.intents.length){var kg=group('Kept as intended');cur.intents.forEach(function(x,i){var c=document.createElement('div');c.className='cell notile rtx';var m=document.createElement('div');m.className='c2';
+    m.appendChild(text('',x.quote,'q'));m.appendChild(text('t',x.why||'No reason given'));c.appendChild(m);
+    var u=document.createElement('button');u.className='rtundo';u.textContent='Undo';u.onclick=function(){cur.intents.splice(i,1);cur.updated=Date.now();save();renderRating();toast('Removed. Rate again to include it.')};c.appendChild(u);kg.appendChild(c)})}
+  o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:[({song:'Whole song',sec:'Section',sel:'Selection'}[R.scope]||''),(TONE[R.tone]||{}).label,fd(R.t)].filter(Boolean).join(' · ')+'. Taste is subjective: this is one ear’s read, not a verdict.'}));
+  var eg=group('');var ex=accCell({label:'Exit Rate Mode',onclick:function(){setRateMode(false);sheet(false)}});ex.className+=' notile rtexit';eg.appendChild(ex)}
 function rateMarks(){if(!window.CSS||!CSS.highlights||!window.Highlight)return;CSS.highlights.delete('rkbad');CSS.highlights.delete('rkgood');var R=cur&&cur.rating;if(!R||!rateMode)return;
   [['rkgood',R.strengths],['rkbad',R.issues]].forEach(function(p){var h=new Highlight(),n=0;(p[1]||[]).forEach(function(it){var r=findQuote(it.quote);if(!r)return;var a=locate(r[0]),b=locate(r[1]),rg=document.createRange();try{rg.setStart(a[0],a[1]);rg.setEnd(b[0],b[1]);h.add(rg);n++}catch(e){}});if(n)CSS.highlights.set(p[0],h)})}
 function rateClick(){if(!rateMode&&!isPro())return upsell('rate');if(rateMode&&!$('#sheet4').classList.contains('on')){setRateMode(false);toast('Rate mode off');return}openRate()}
@@ -17864,7 +17906,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
   /* No payments or real beta-tester tiers exist yet — everyone ships fully unlocked, badged
      "Beta". This switch exists purely to preview and test the restricted experience real beta
      testers will eventually get, ahead of that rollout. */
-  var trow=document.createElement('div');trow.className='row';trow.style.cssText='justify-content:space-between;cursor:pointer';
+  var trow=document.createElement('div');trow.className='rtrow';trow.style.cssText='justify-content:space-between;cursor:pointer';
   var ltx=document.createElement('span');ltx.style.cssText='display:flex;flex-direction:column;gap:2px;text-align:left;min-width:0';
   var lt1=document.createElement('b');lt1.style.fontSize='15px';lt1.textContent='All features unlocked';ltx.appendChild(lt1);
   var lt2=document.createElement('span');lt2.style.cssText='color:var(--mute);font-size:12.5px';lt2.textContent=pro?'On for everyone during the beta.':'Off — previewing the restricted tier.';ltx.appendChild(lt2);
@@ -17902,7 +17944,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
   g2.appendChild(accCell({tile:ACC_ICO.down,label:'Import Songs',chev:true,onclick:function(){sheet(false);$('#impin').click()}}));
   g2.appendChild(accCell({tile:ACC_ICO.up,label:'Export All Songs',chev:true,onclick:function(){sheet(false);$('#expb').click()}}));
   var g3=accSection(o,'Rate');
-  g3.appendChild(accCell({tile:ACC_ICO.spark,label:'Forget What Rate Learned About My Style',onclick:function(){try{localStorage.removeItem('songpad:writer')}catch(e){}toast('Rate will learn your style fresh')}}));
+  g3.appendChild(accCell({tile:ACC_ICO.spark,label:'Forget What Rate Learned About My Style',onclick:function(){var n=0;songs.forEach(function(s){if(s.rating&&s.rating.personality){s.rating.personality='';s.updated=Date.now();n++}});if(n)save();toast('Rate will learn your style fresh')}}));
   /* developer tools (Dev Mode only), then the account actions last, where Settings keeps Sign Out */
   if(ga&&devFake){o.appendChild(dvl);o.appendChild(ga)}
   if(AUTH_USER||devFake){
