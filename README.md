@@ -137,4 +137,6 @@ memory stays on each device instead of following the account.
   channels become members-only (the app asks for private channels and only falls back to open ones until this is done).
 - `supabase/song-files-shared.sql` (updated): co-writers can read a shared song's files only when both they and the
   uploader are on that song.
+- `supabase/collab-hardening.sql`: only invited people can join a song, only owners can invite or hand a song over,
+  invitees can only answer invites, stopping sharing removes co-writers, usernames are unique.
 - `supabase/check-policies.sql` is read-only: it lists the access rules on the dashboard-made tables for review.
