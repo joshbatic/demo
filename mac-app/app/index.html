@@ -16020,14 +16020,15 @@ function mzBrief(s){var b=s&&s.brief;if(!b)return'';var a=[];if(b.who)a.push('Wh
 function mzQ(x){return'"'+String(x).replace(/"/g,'\'')+'"'}
 /* everything personal the muse knows, as one block for a prompt */
 function museCtx(sec){var a=[];
-  if(MZ.prof&&MZ.prof.text)a.push('HOW THIS WRITER WRITES (their voice profile; follow it closely):\n'+MZ.prof.text.slice(0,1400));
-  var br=mzBrief(cur);if(br)a.push('WHAT THIS SONG IS REALLY ABOUT, in the writer\'s words. Use these real specifics (names, places, objects) instead of inventing generic ones:\n'+br);
-  var mine=mzMyLines(sec,8);if(mine.length)a.push('THE WRITER\'S OWN LINES from other songs, chosen because they\'re closest to what they\'re writing now. They show the voice: the kind of detail, the plainness or strangeness, the rhythm. Never reuse or paraphrase them:\n'+mine.map(mzQ).join('\n'));
+  if(MZ.prof&&MZ.prof.text)a.push('HOW THIS WRITER WRITES (their voice profile; let it shape style and word choice, not subject matter):\n'+MZ.prof.text.slice(0,1400));
+  var br=mzBrief(cur);if(br)a.push('BACKGROUND ON THIS SONG from the writer. Treat it as what you know, not a checklist: only bring a name, place or detail in when it fits the line and the moment naturally, change or leave it out when it doesn\'t, and never force it into every suggestion. Most good lines will use none of it:\n'+br);
+  var mine=mzMyLines(sec,8);if(mine.length)a.push('THE WRITER\'S OWN LINES from other songs, that might be close to what they\'re writing now. Use them only for how this writer sounds (kind of detail, plainness or strangeness, rhythm), not as material to borrow, and ignore any that don\'t fit this song. Never reuse or paraphrase them:\n'+mine.map(mzQ).join('\n'));
   var ed=mzRecent('edited',6);if(ed.length)a.push('SUGGESTIONS THEY REWROTE, and what they changed them to. Learn the direction of each change and write like the "after":\n'+ed.map(function(e){return'- '+mzQ(e.shown)+' -> '+mzQ(e.final)}).join('\n'));
   var kp=mzRecent('kept',5);if(kp.length)a.push('SUGGESTIONS THEY KEPT word for word (this is the bar):\n'+kp.map(function(e){return'- '+mzQ(e.shown)}).join('\n'));
   var rj=MZ.ev.filter(function(e){return(e.o==='reject'||e.o==='deleted')&&e.shown}).slice(-8);if(rj.length)a.push('SUGGESTIONS THEY THREW OUT (don\'t write anything like these):\n'+rj.map(function(e){return'- '+mzQ(e.shown)+(e.why&&MZ_WHYL[e.why]?' ('+MZ_WHYL[e.why].toLowerCase()+')':'')}).join('\n'));
   var av=mzAvoid();
   a.push('NEVER USE stock song language: neon lights, shattered hearts, echoes, whispers in the dark, fire and desire, tapestries, symphonies, chasing dreams, rising from the ashes, broken wings, the weight of the world, a light in the dark, lost in your eyes, or anything else a thousand songs already say. Prefer one specific, slightly unexpected concrete detail over a big abstract feeling. Plain, true and particular beats poetic and vague.'+(av.length?' Also avoid these words this writer keeps rejecting: '+av.join(', ')+'.':''));
+  a.push('ORDER OF PRIORITY: first, the lines already written in this song and where they\'re heading (that is what the new line must fit and continue); second, how this writer sounds; only then the background above, and only where it genuinely fits. Vary the suggestions: don\'t let one detail or image from the background show up across many of them.');
   return'\n\n'+a.join('\n\n')}
 /* keep the candidates that pass: no stock phrases, no rejected words, nothing already in the song or
    already thrown out. If that would leave too few, the rest come back at the end instead of vanishing. */
@@ -16042,7 +16043,7 @@ function mzJudge(cands,o){if(!cands||cands.length<3)return Promise.resolve(null)
   return new Promise(function(res){var done=false,fin=function(v){if(done)return;done=true;clearTimeout(t);res(v)},t=setTimeout(function(){fin(null)},o.timeout||9000);
     var mine=mzMyLines(o.section,4),br=mzBrief(cur);
     aiJson('You are a hard-to-please co-writer judging lyric lines for a specific writer. Score each candidate from 1 to 10.\n\n'+
-      (MZ.prof&&MZ.prof.text?'The writer\'s voice:\n'+MZ.prof.text.slice(0,900)+'\n\n':'')+(mine.length?'Lines the writer wrote themselves:\n'+mine.map(mzQ).join('\n')+'\n\n':'')+(br?'About this song:\n'+br+'\n\n':'')+
+      (MZ.prof&&MZ.prof.text?'The writer\'s voice:\n'+MZ.prof.text.slice(0,900)+'\n\n':'')+(mine.length?'Lines the writer wrote themselves:\n'+mine.map(mzQ).join('\n')+'\n\n':'')+(br?'Background on this song (a line that forces these details in where they don\'t fit scores lower):\n'+br+'\n\n':'')+
       (o.section&&o.section.length?'The section they\'re writing:\n'+o.section.join('\n')+'\n\n':'')+'Task: '+o.what+'\n\nCandidates:\n'+cands.map(function(c,i){return i+'. '+c}).join('\n')+
       '\n\nScore on: specific and concrete rather than generic; sounds like this writer, not like a generic songwriter; fresh rather than a stock phrase or cliché; natural to sing out loud; belongs in this song at this moment. Be harsh: a line any songwriter could have written scores 4 or less, a stock phrase scores 2. Return ONLY JSON: [{"i":0,"s":7}, ...] with one entry for every candidate.',{cache:false})
       .then(function(r){var out={},n=0;(Array.isArray(r)?r:[]).forEach(function(x){if(x&&isFinite(x.i)&&isFinite(x.s)){out[+x.i]=+x.s;n++}});fin(n?out:null)},function(){fin(null)})})}
@@ -18393,6 +18394,7 @@ var SHARE_BASE='https://listen.hellodemo.app/',SHARE_BUCKET='shares';
 function shId(){var c='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789',r=new Uint8Array(10),o='';try{crypto.getRandomValues(r)}catch(e){for(var j=0;j<10;j++)r[j]=Math.random()*256}for(var i=0;i<10;i++)o+=c[r[i]%c.length];return o}
 function shLinkErr(e){var m=(e&&(e.message||e.error||e.code))||String(e||''),st=e&&e.step;
   if(/relation .*shares|could not find the table|schema cache|42P01|PGRST20/i.test(m)||/bucket not found/i.test(m))return'share links aren’t set up on Supabase yet (run supabase/shares.sql).';
+  if(st==='time')return m;
   var deny=/row-level security|unauthori[sz]ed|not allowed|permission|jwt|403/i.test(m),gone=/object not found|not_found|404/i.test(m);
   if(st==='read'&&(deny||gone))return SHR.song&&SHR.song.shared?'the audio was uploaded by a co-writer and your account can’t open their files yet (run supabase/song-files-shared.sql in Supabase).':'the audio file couldn’t be opened. Try playing it once, then make the link again.';
   if(st==='upload'&&/jwt|expired|unauthori[sz]ed/i.test(m))return'your sign-in expired during the upload. Try again.';
@@ -18409,9 +18411,11 @@ function shMine(song){var sh=song&&song.share,uid=AUTH_USER&&AUTH_USER.id;if(!sh
 function shStep(step){return function(e){if(e&&typeof e==='object'&&!e.step){try{e.step=step}catch(x){}}else if(!e||typeof e!=='object')e={message:String(e||''),step:step};throw e}}
 function shLinkMake(song,bg,withAudio,id){var c=sbClient(),uid=AUTH_USER.id;id=id||shMine(song)||shId();var dir=uid+'/'+id+'/',v=Date.now().toString(36),st=c.storage.from(SHARE_BUCKET),a=withAudio?audCur(song):null,keep=[];
   var up=function(name,blob){keep.push(name);return st.upload(dir+name,blob,{upsert:true,contentType:blob.type||'application/octet-stream',cacheControl:'31536000'}).then(function(r){if(r.error)throw r.error;return st.getPublicUrl(dir+name).data.publicUrl})};
-  /* big audio can take longer to read and upload than the sign-in token has left, so make sure it's fresh first */
-  return c.auth.getSession().catch(function(){}).then(function(){return shArtBlob(song)}).then(function(b){return up('art-'+v+(b.type==='image/png'?'.png':'.jpg'),b).catch(shStep('upload'))}).then(function(art){
-    return(a?shAudioBlob(a).catch(shStep('read')).then(function(b){return c.auth.getSession().catch(function(){}).then(function(){return up('audio-'+v+'.'+(/mpeg/.test(b.type)?'mp3':sfExt(a.name||a.path||'',b.type||a.mime)),b).catch(shStep('upload'))})}):Promise.resolve(null)).then(function(au){
+  /* big audio can take longer to read and upload than the sign-in token has left, so nudge it fresh first, but never
+     wait on that: getSession() can sit forever while supabase-js holds its auth lock, which froze this on "Making the link…" */
+  var fresh=function(){return Promise.race([c.auth.getSession().catch(function(){}),new Promise(function(r){setTimeout(r,3000)})])};
+  return fresh().then(function(){return shArtBlob(song)}).then(function(b){return up('art-'+v+(b.type==='image/png'?'.png':'.jpg'),b).catch(shStep('upload'))}).then(function(art){
+    return(a?shAudioBlob(a).catch(shStep('read')).then(function(b){return fresh().then(function(){return up('audio-'+v+'.'+(/mpeg/.test(b.type)?'mp3':sfExt(a.name||a.path||'',b.type||a.mime)),b).catch(shStep('upload'))})}):Promise.resolve(null)).then(function(au){
       var d=shSnap(song,bg,a,au,art);
       return shOgImage(song,bg,a).then(function(b){return up('og-'+v+(b.type==='image/png'?'.png':'.jpg'),b).catch(shStep('upload'))}).then(function(og){d.og=og;return c.from('shares').upsert({id:id,owner:uid,song_id:song.id,data:d,updated_at:new Date().toISOString()}).then(function(r){if(r.error){r.error.step='save';throw r.error}
         st.list(uid+'/'+id).then(function(l){var old=((l&&l.data)||[]).map(function(f){return f.name}).filter(function(n){return keep.indexOf(n)<0});if(old.length)st.remove(old.map(function(n){return dir+n}))}).catch(function(){});
@@ -18425,7 +18429,8 @@ function shLinkGo(){var song=SHR.song;if(!song||SHR.linkBusy)return;if(!sfCloud(
   /* copy now, while it's still the tap: iPhone and the Mac app only allow the clipboard then, and the address is
      decided before anything uploads. If making the link then fails, the message says the copied link won't work. */
   var copied=shCopyNow(SHARE_BASE+id);
-  shLinkMake(song,shBg(SHR.pal,SHR.ci),SHR.aud&&!!audCur(song),id).then(function(){SHR.linkBusy=null;haptic('success');renderShare();
+  var made=shLinkMake(song,shBg(SHR.pal,SHR.ci),SHR.aud&&!!audCur(song),id),cap=new Promise(function(res,rej){setTimeout(function(){rej({message:'It took too long. Check your connection and try again.',step:'time'})},180000)});
+  Promise.race([made,cap]).then(function(){SHR.linkBusy=null;haptic('success');renderShare();
       copied.then(function(ok){toast((had?'Link updated':'Link ready')+(ok?' and copied':'. Tap Share Link to send it.'))})},
     function(e){SHR.linkBusy=null;renderShare();copied.then(function(ok){toast('Couldn’t make the link: '+shLinkErr(e)+(ok&&!had?' (the copied link won’t work)':''))})})}
 /* copy text right now, during the tap; falls back to the old select-and-copy where the clipboard API is missing */
