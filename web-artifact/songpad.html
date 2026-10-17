@@ -221,8 +221,12 @@ body.ios #dictSheet{top:16%;padding-top:0}
 .r:active,.ln:active,.go:active,.tg:active{transform:scale(.97)}
 .r,.ln,.go,.tg{transition:transform .12s}
 #sc{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:none;padding:calc(env(safe-area-inset-top,0px) + 70px) 26px 270px}
-.hd{display:flex;align-items:center;gap:14px;margin-bottom:20px}
-.hd>div{min-width:0;flex:1}
+.hd{display:flex;align-items:center;gap:14px;margin-bottom:34px}
+.hd>div{min-width:0;flex:1;position:relative}
+/* status lines (Saving…/Saved, "Sam is writing…") float just under the title block instead of taking up room in
+   it, so they can come and go without nudging the cover art sideways/up or pushing the lyrics down */
+.hd>div>.savestate,.hd>div>#here{position:absolute;left:0;right:0;top:100%;margin-top:4px;white-space:nowrap}
+.hd>div:has(#here:not([hidden])) .savestate{display:none}
 .covwrap{position:relative;flex:none}
 .cov{position:relative;z-index:1;width:68px;height:68px;border-radius:16px;flex:none;background:var(--cv1) center/cover;display:grid;place-items:center;color:var(--mute);box-shadow:0 0 0 .5px var(--ring)}
 #title{display:block;width:100%;border:0;background:none;outline:0;padding:0;font:700 26px/1.2 -apple-system,'SF Pro Display',system-ui,sans-serif;letter-spacing:.3px}
