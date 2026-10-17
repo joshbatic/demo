@@ -16550,7 +16550,11 @@ function syncShared(){if(!AUTH_USER)return;var live=LIVE.ch&&LIVE.id;
     if(live&&s.id===LIVE.id){if(!shT){var w=Math.max(0,4000-(Date.now()-shLast));shT=setTimeout(function(){shT=null;shLast=Date.now();if((s.updated||0)>(s._pushed||0))pushShared(s)},w)}return}
     pushShared(s)})}
 function pushShared(s){if(!AUTH_USER)return;var c=sbClient();if(!c)return;s.lastEditBy=AUTH_USER.email;s.lastEditAt=Date.now();var body=ser(s),u=body.updated;
-  c.from('shared_songs').upsert({id:s.id,owner_id:s.owner||AUTH_USER.id,owner_email:s.ownerEmail||AUTH_USER.email,data:body,updated_at:new Date().toISOString()}).then(function(r){
+  /* co-writers update the owner's row; only the owner creates it. An upsert from a co-writer is checked against
+     the "create" rule too, which only the owner passes, so it was refused even though they're allowed to edit */
+  var mineOwn=!s.owner||s.owner===AUTH_USER.id;
+  (mineOwn?c.from('shared_songs').upsert({id:s.id,owner_id:s.owner||AUTH_USER.id,owner_email:s.ownerEmail||AUTH_USER.email,data:body,updated_at:new Date().toISOString()})
+    :c.from('shared_songs').update({data:body,updated_at:new Date().toISOString()}).eq('id',s.id).select('id').then(function(r){if(r&&!r.error&&(!r.data||!r.data.length))r.error={code:'42501',message:'not a member'};return r})).then(function(r){
     if(r&&r.error){console.warn('shared_songs sync failed',r.error);toast(r.error.code==='42501'?'You can’t edit this shared song. Ask the owner for access.':'Couldn’t sync this song (kept on this device): '+(r.error.message||r.error.code||'unknown error'));return}
     s._pushed=Math.max(s._pushed||0,u)
   })

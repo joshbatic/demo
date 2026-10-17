@@ -72,8 +72,10 @@ create trigger collab_invites_guard before update on public.collab_invites for e
 
 -- 5. shared songs: only the owner creates the shared copy, and ownership can't be taken
 drop policy if exists "shared_songs_insert" on public.shared_songs;
+-- (co-writers are included because an upsert is checked against this rule as well as the edit rule; with no
+--  co-writer rows left once sharing stops, see 6., they can't use it to recreate someone else's song)
 create policy "shared_songs_insert" on public.shared_songs for insert to authenticated
-  with check (owner_id = auth.uid());
+  with check (owner_id = auth.uid() or public.is_song_member(id, auth.uid()));
 drop policy if exists "shared_songs_update" on public.shared_songs;
 create policy "shared_songs_update" on public.shared_songs for update to authenticated
   using (owner_id = auth.uid() or public.is_song_member(id, auth.uid()))
