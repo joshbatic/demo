@@ -369,7 +369,12 @@ body.side #side{transform:none}
 #rc.in .r,#rc.in .ln,#rc.in .go{animation:pop .2s ease-out both}
 .r,.ln,.go,.tg,.fb,.sw,.ib,.ib2,.cbtn,.cc,.si,.song,.sh button{transition:transform .14s cubic-bezier(.32,.72,0,1),background-color .18s,filter .18s,opacity .18s}
 .r:active,.ln:active,.go:active,.tg:active,.fb:active,.sw:active,.cc:active,.ib2:active,.sh button:active{transform:scale(.94)}
-@media (hover:hover){.r:hover,.ln:hover,.fb:hover,.cc:hover{filter:brightness(.93)}.go:hover,.tg[aria-pressed=true]:hover{filter:brightness(1.08)}.si:hover,.song:hover,.ib2:hover{background:var(--fill)}.sw:hover{transform:scale(1.12)}.ib:hover,.cbtn:hover{transform:scale(1.05)}.prohandle button:hover{background:var(--row)}.sh button:hover{filter:brightness(.93)}}
+@media (hover:hover){.r:hover,.ln:hover,.fb:hover,.cc:hover{filter:brightness(.93)}.go:hover,.tg[aria-pressed=true]:hover{filter:brightness(1.08)}.si:hover,.song:hover,.ib2:hover{background:var(--fill)}
+.song,.idea{border-radius:16px}
+/* the hairline above and below a highlighted row hides, so the rounded highlight sits cleanly */
+@media (hover:hover){.song:hover::before,.song:hover+.song::before,.idea:hover::before,.idea:hover+.idea::before{opacity:0}}
+.song.held::before,.song.held+.song::before{opacity:0}
+@media (hover:hover){.idea:hover{background:var(--fill)}}.sw:hover{transform:scale(1.12)}.ib:hover,.cbtn:hover{transform:scale(1.05)}.prohandle button:hover{background:var(--row)}.sh button:hover{filter:brightness(.93)}}
 [hidden]{display:none!important}
 /* lifted out of .scroll so the title/account badge sit fixed above the list, instead of
    rubber-banding/bouncing along with it; .fadeT (a sibling, placed just before this in the DOM)
