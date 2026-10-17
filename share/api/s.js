@@ -42,6 +42,10 @@ module.exports = async (req, res) => {
     const hasAudio = !!(data.audio && pub(data.audio.src));
     const desc = (hasAudio ? 'Listen and read along' : 'Read the lyrics') + ' on *[demo]';
     const heading = title + (artist ? ' – ' + artist : '');
+    // the song's own colour from the first frame: iOS 26 Safari tints the bar behind the Dynamic Island from
+    // the page's background-color (not theme-color), and keeps what it saw while the page was loading
+    const col = (v) => (typeof v === 'string' && /^(#[0-9a-f]{3,8}|hsla?\(\s*[\d.]+\s*,\s*[\d.]+%\s*,\s*[\d.]+%\s*(,\s*[\d.]+\s*)?\))$/i.test(v.trim()) ? v.trim() : '');
+    const top = col(data.bg && data.bg.top);
     const og = pub(data.og), img = og || pub(data.art) || 'https://hellodemo.app/icon-512.png';
     const meta = [
       '<title>' + esc(heading) + '</title>',
@@ -60,6 +64,7 @@ module.exports = async (req, res) => {
       '<meta name="twitter:description" content="' + esc(desc) + '">',
       '<meta name="twitter:image" content="' + esc(img) + '">',
       '<link rel="canonical" href="' + SITE + id + '">',
+      top ? '<meta name="theme-color" content="' + top + '"><style>html,html body{background:' + top + '}</style>' : '',
     ].join('\n');
     html = html.replace(/<meta name="robots" content="noindex">\n?/, '').replace(/<meta property="og:site_name" content="\*\[demo\]">\n?/, '')
                .replace(/<!--META-->[\s\S]*?<!--\/META-->/, () => meta)
