@@ -17299,7 +17299,7 @@ function saveUsername(v,dn){var c=sbClient();if(!c||!AUTH_USER)return Promise.re
   v=(v||'').trim().replace(/^@+/,'').toLowerCase();
   if(!/^[a-z0-9_]{3,20}$/.test(v))return Promise.reject(new Error('Usernames are 3–20 characters: letters, numbers, underscores.'));
   return c.from('profiles').upsert({user_id:AUTH_USER.id,username:v,display_name:(dn||myName()||v),updated_at:new Date().toISOString()},{onConflict:'user_id'}).then(function(r){
-    if(r&&r.error)return Promise.reject(new Error(r.error.code==='23505'?'That username’s taken.':r.error.message));
+    if(r&&r.error)return Promise.reject(new Error(r.error.code==='23505'?'That username’s taken.':/reserved_username/.test(r.error.message||'')?'That username’s reserved. If it’s your name, get in touch through hellodemo.app and we’ll set it up for you.':r.error.message));
     MY_PROFILE=MY_PROFILE||{};MY_PROFILE.username=v;if(dn)MY_PROFILE.display_name=dn;profCacheSet(AUTH_USER.id,MY_PROFILE);
   })
 }

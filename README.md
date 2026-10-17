@@ -140,3 +140,7 @@ memory stays on each device instead of following the account.
 - `supabase/collab-hardening.sql`: only invited people can join a song, only owners can invite or hand a song over,
   invitees can only answer invites, stopping sharing removes co-writers, usernames are unique.
 - `supabase/check-policies.sql` is read-only: it lists the access rules on the dashboard-made tables for review.
+
+### Reserved usernames
+
+`supabase/reserved-usernames.sql` keeps about 490 names unavailable: well-known artists and songwriters, plus the app's own words (admin, support, official, demo...). It ignores capitals and underscores, and catches dressed-up versions of artists' names (therealdrake, taylorswiftofficial). People who already have a name keep it. To give a name to its real owner once you've checked it's them, run `select public.grant_username('name', 'their@email.com');` in the SQL Editor; the file's header has how to add or release names.
