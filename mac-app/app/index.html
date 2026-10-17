@@ -14822,7 +14822,7 @@ function renderIdeas(){
   });
 }
 function editIdea(i){curIdea=i||null;$('#itext').value=i?i.text:'';ikindPaint(i?(i.kind||'idea'):ijotKind);$('#ito').hidden=!i;$('#itags').value=i&&i.tags?i.tags.join(', '):'';$('#idel').hidden=!i;sheet(true,'sheet7');setTimeout(function(){$('#itext').focus()},350)}
-function openIdeas(jot){sheet(false);show('vIdeas');ifilterTag='';ifilterKind='';$('#iq').value='';renderIdeas();if(jot)setTimeout(function(){$('#ijot').focus()},320)}
+function openIdeas(jot){sheet(false);if(document.body.classList.contains('side'))sideOn(false);show('vIdeas');ifilterTag='';ifilterKind='';$('#iq').value='';renderIdeas();if(jot)setTimeout(function(){$('#ijot').focus()},320)}
 function ikindPaint(k){var w=$('#ikind');w.dataset.k=k;[].forEach.call(w.children,function(b){b.className=b.dataset.k===k?'on':''})}
 function ensureStorageForMode(){var k=currentKey();if(k!==ACTIVE_KEY){ACTIVE_KEY=k;cur=null;load();if(typeof show==='function')show('vList');renderList();renderSide()}}
 var st,lastSaveShow=0,showThisSave=false;
@@ -15492,7 +15492,7 @@ function sideOn(on){document.body.classList.toggle('side',on);setTimeout(refresh
    automatically on desktop widths whenever a non-list view becomes active. Reads the actual active
    view rather than body.listv so it's correct even on first load, before show() has ever run. */
 function syncSideVisibility(){
-  var onList=(document.querySelector('.view.on')||{}).id==='vList';
+  var vid=(document.querySelector('.view.on')||{}).id,onList=vid==='vList'||vid==='vIdeas'; /* Ideas is full-width like the song list: no docked sidebar over its box */
   if(onList){if(document.body.classList.contains('side'))sideOn(false)}
   else if(wideMQ.matches)sideOn(true)
 }
@@ -15664,7 +15664,7 @@ if(wideMQ.addEventListener)wideMQ.addEventListener('change',syncSideVisibility);
 $('#sbt').onclick=function(){sideOn(true)};$('#shide').onclick=function(){sideOn(false)};$('#scrim2').onclick=function(){sideOn(false)};
 $('#snew').onclick=function(){newSong();if(!wideMQ.matches)sideOn(false)};
 $('#sfolder').onclick=function(){createFolder(true)};
-$('#svault').onclick=function(){openIdeas();if(!wideMQ.matches)sideOn(false)};
+$('#svault').onclick=function(){openIdeas()};
 $('#ideaBack').onclick=function(){show('vList')};
 $('#inew').onclick=function(){editIdea(null)};
 $('#iq').addEventListener('input',renderIdeas);
