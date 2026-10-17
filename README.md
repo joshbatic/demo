@@ -118,3 +118,15 @@ Pushing to `main` redeploys it.
 Run `supabase/song-files-shared.sql` once (after `song-files.sql`). Files are stored in each uploader's own
 folder, and without this rule a co-writer can't play audio the owner added (or the other way round): Supabase
 answers "Object not found". It adds read-only access for files belonging to a song you own or have joined.
+
+## Muse memory (supabase/muse.sql)
+
+Lines and the Muse learn from what each writer does with suggestions: a used line is checked a few minutes later
+(kept word for word, rewritten, or deleted), "Not this" records a reason, and asking for new ideas marks a batch as
+passed over. Every request then carries the writer's closest lines from their other songs, their recent rewrites,
+keeps and rejects, the song brief (Muse → Tell the muse about this song) and a voice profile (Writing voice → How the
+muse sees your writing). Lines asks for 20 candidates, drops stock phrases and rejected words in code, then a second
+quick pass scores the best 14 and the top 6 are shown (falling back to the plain order after 9 seconds).
+
+One-time setup: Supabase → SQL Editor → paste `supabase/muse.sql` → Run. Without it everything still works, but the
+memory stays on each device instead of following the account.

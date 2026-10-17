@@ -733,6 +733,14 @@ body.ios .song{padding:13px 24px}
 .stc b{font-size:16px;font-weight:600}.stc span{font-size:13px;color:var(--mute);line-height:1.3}
 .stc.big{grid-column:1/-1;min-height:0;background:var(--tint);color:var(--ontint)}.stc.big span{color:var(--ontint);opacity:.7}
 @media (hover:hover){.stc:hover{filter:brightness(.96)}}
+.lnw{display:flex;gap:6px;align-items:stretch}.lnw>button:first-child{flex:1;min-width:0}
+.lnx{flex:none;align-self:center;width:34px;height:34px;border-radius:17px;background:var(--fill);color:var(--mute);display:grid;place-items:center;padding:0;opacity:.75}.lnx:active{opacity:1;transform:scale(.94)}
+.lnw.why{flex-wrap:wrap;align-items:center;gap:6px;padding:6px 2px}.lnw.why>span{font-size:13px;color:var(--mute);margin-right:2px}.lnw.why .r{flex:none}
+.stc.brief{grid-column:1/-1;min-height:0;background:var(--fill)}.stc.brief.set b::before{content:'✓ ';color:var(--tint)}
+#stk-out .bfi{font-size:14px;color:var(--mute)}.bfl{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:var(--mute)}
+.bfin{font:inherit;font-size:16px;font-weight:400;color:var(--ink);background:var(--fill);border:0;border-radius:14px;padding:10px 14px;outline:0;resize:vertical;min-height:42px}textarea.bfin{min-height:72px}
+.vprof{margin:0 20px 8px;padding:12px 16px}.vprof textarea{width:100%;border:0;background:none;font:inherit;font-size:15px;line-height:1.45;color:var(--ink);outline:0;resize:none;min-height:120px;padding:0}.vprof p{margin:0;font-size:14px;color:var(--mute);line-height:1.4}
+.vprow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 20px 6px}.vprow span{font-size:12.5px;color:var(--mute);line-height:1.3}.vprow .go2{flex:none;height:32px;font-size:14px}.vprow .go2:disabled{opacity:.45}
 #stk-out:empty{display:none}
 #stk-out{margin:4px 20px 12px;padding:16px;border-radius:24px;background:var(--gl);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);box-shadow:0 0 0 .5px var(--ring),0 1px 1px var(--sh2),0 10px 24px var(--sh2),inset 0 1px 0 var(--hl2);display:flex;flex-direction:column;gap:8px;animation:pop .22s ease-out}
 #stk-out h4{margin:4px 0 0;font-size:13px;font-weight:600;color:var(--mute)}
@@ -15025,7 +15033,7 @@ var LVC={sig:'',txt:''};
 function songsSig(){return songs.length+'|'+songs.reduce(function(a,s){return a+(s.updated||0)},0)}
 function voiceFingerprint(suppressPov,suppressImg){
   var lines=[],words={};
-  songs.forEach(function(s){(s.lyrics||'').split('\n').forEach(function(l){l=l.trim();if(l&&l[0]!=='[')lines.push(l)})});
+  songs.forEach(function(s){if(s.id===GUIDE_ID)return;(s.lyrics||'').split('\n').forEach(function(l){l=l.trim();if(l&&l[0]!=='[')lines.push(l)})});
   if(lines.length<8)return null;
   var totW=0,totS=0,pov={I:0,You:0,We:0},imgRx={City:/\b(city|street|block|skyline|subway|downtown)\b/i,'small town':/\b(small town|main street|porch|county|back road)\b/i,nature:/\b(tree|forest|mountain|river|flower|sky)\b/i,coast:/\b(ocean|beach|wave|tide|coast|shore)\b/i,'the road':/\b(highway|road|drive|miles|wheel|car)\b/i,night:/\b(night|moon|dark|stars)\b/i,home:/\b(home|house|kitchen|bed|porch)\b/i,weather:/\b(rain|storm|snow|sun|wind)\b/i,faith:/\b(god|prayer|faith|heaven|soul)\b/i,money:/\b(money|cash|dollar|broke|rich)\b/i,party:/\b(party|dance|drink|club)\b/i},imgCount={};
   lines.forEach(function(l){
@@ -15047,7 +15055,7 @@ function voiceFingerprint(suppressPov,suppressImg){
 function hookLines(){
   var out=[];
   songs.forEach(function(s){
-    if(!s.rich)return;
+    if(!s.rich||s.id===GUIDE_ID)return;
     try{
       var d=new DOMParser().parseFromString('<body>'+s.rich+'</body>','text/html').body;
       d.querySelectorAll('[style*="background-color"]').forEach(function(el){
@@ -15234,6 +15242,16 @@ function buildSettings(){
   mb.innerHTML='<span>Fine-tune</span><em></em><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l4 4 4-4"/></svg>';
   mb.querySelector('em').textContent=n?n+' set':'Point of view, tense, imagery and more';mb.onclick=function(){moreOpen=!moreOpen;buildSettings()};o.appendChild(mb);
   if(moreOpen){var box=document.createElement('div');box.className='vbox';o.appendChild(box);SG_MORE.forEach(function(g){field(g,box)})}
+  var vl=document.createElement('div');vl.className='lab';vl.textContent='How the muse sees your writing';o.appendChild(vl);
+  var vp=document.createElement('div');vp.className='gf vprof';o.appendChild(vp);
+  if(MZ.prof&&MZ.prof.text){var ta=document.createElement('textarea');ta.value=MZ.prof.text;ta.setAttribute('aria-label','Your voice profile');
+      ta.oninput=function(){clearTimeout(ta._t);ta._t=setTimeout(function(){MZ.prof.text=ta.value.trim();MZ.prof.edited=true;MZ.prof.at=Date.now();mzProfStore(true);vm.textContent='Your edits are kept. Relearn replaces them.'},600)};vp.appendChild(ta);
+      var fit=function(){ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight+2,420)+'px'};setTimeout(fit,0);ta.addEventListener('input',fit)}
+  else{var e=document.createElement('p');e.textContent=mzCatalog().length<16?'Write a few songs and the muse will describe your style here, then use it for every suggestion.':'Not learned yet. Tap Learn my voice, or it will happen on its own as you write.';vp.appendChild(e)}
+  var vr=document.createElement('div');vr.className='vprow';var vm=document.createElement('span');vm.textContent=MZ.building?'Learning from your songs…':MZ.prof&&MZ.prof.edited?'Your edits are kept. Relearn replaces them.':MZ.prof&&MZ.prof.text?'Learned from your songs and what you keep, rewrite and skip. Edit it if it’s off.':'';
+  var vb=document.createElement('button');vb.className='go2 ghost';vb.textContent=MZ.prof&&MZ.prof.text?'Relearn':'Learn my voice';vb.disabled=MZ.building||mzCatalog().length<8;
+  vb.onclick=function(){if(!isPro())return upsell('voice');if(!aiAvailable())return toast('Needs a connection');vb.disabled=true;vm.textContent='Learning from your songs…';mzProfBuild().then(function(t){if(!t){vb.disabled=false;vm.textContent='Couldn’t learn it this time. Try again in a moment.';return}haptic('success');buildSettings()})};
+  vr.appendChild(vm);vr.appendChild(vb);o.appendChild(vr);
   var nt=document.createElement('div');nt.className='note';nt.style.paddingTop='14px';nt.textContent='Saved with this song. It shapes the lines written for you and the word suggestions, and quietly blends in your own style from past songs and favorite lines wherever you haven’t set something specific above.';o.appendChild(nt);
   $('#sheet2').scrollTop=sc;
 }
@@ -15864,8 +15882,9 @@ function lineView(c){
   var rc=$('#rc');
   function hint(x,busy){var h=document.createElement('div');h.className='hint';if(busy){h.appendChild(aidotsEl());h.appendChild(document.createTextNode(' '+x))}else h.appendChild(document.createTextNode(x));rc.appendChild(h)}
   function go(label,fn){var b=document.createElement('button');b.className='go';b.textContent=label;b.onmousedown=prevent;b.onclick=fn;rc.appendChild(b)}
-  function list(st2,apply){if(st2.best>0)hint('No exact match this time. Closest fits first.');
-    st2.list.forEach(function(o){var b=document.createElement('button');b.className='ln';b.innerHTML='<span></span><i></i>';b.children[0].textContent=o.line;b.children[1].textContent=o.n+' syl'+(o.d?' ('+(o.d>0?'+':'')+o.d+')':'')+(o.type&&o.type!=='new'?' · '+(o.type==='loose'?'loose rhyme':o.type==='near'?'near rhyme':o.type):'');b.onmousedown=prevent;b.onclick=function(){apply(o)};rc.appendChild(b)})}
+  function list(st2,apply){if(st2.best>0&&!st2.judged)hint('No exact match this time. Closest fits first.');
+    st2.list.forEach(function(o){o.meta=o.n+' syl'+(o.d?' ('+(o.d>0?'+':'')+o.d+')':'')+(o.type&&o.type!=='new'?' · '+(o.type==='loose'?'loose rhyme':o.type==='near'?'near rhyme':o.type):'');
+      mzLineRow(rc,o,function(x){st2.used=true;mzUsed(x.line,'lines');apply(x)},'lines',function(x){var i=st2.list.indexOf(x);if(i>=0)st2.list.splice(i,1)})})}
   var selT=c.sel.trim();
   /* LSC caches a finished (or in-flight) generation per key, and LSK is just which key is
      currently in focus for display — so switching between "Lines that rhyme" / "Rewrite" /
@@ -15877,7 +15896,7 @@ function lineView(c){
     rc.appendChild(row);
     var active=(LSK===kN||LSK===kR||LSK===kT)?LSC[LSK]:null;
     if(active){
-      if(active.busy)return hint(LSK===kN?'Writing lines that rhyme with your selection':LSK===kT?'Tightening your selection':'Rewriting your selection',true);
+      if(active.busy)return hint(active.stage==='judge'?'Picking the best ones for you':LSK===kN?'Writing lines that rhyme with your selection':LSK===kT?'Tightening your selection':'Rewriting your selection',true);
       if(active.err)return hint(active.err);
       return list(active,function(o){var line=o.line,v=getText(),kind=active.kind;
         if(kind==='rw'||kind==='tighten'){if(v.slice(active.a,active.b)!==active.src){var i=v.indexOf(active.src);if(i<0)return toast('The selected text has changed');active.a=i;active.b=i+active.src.length}lyr.setSelectionRange(active.a,active.b);ins(lyr,line);flash(line.length)}
@@ -15892,7 +15911,7 @@ function lineView(c){
   var st=LSC[key];
   if(st){
     LSK=key;
-    if(st.busy)return hint('Writing line '+(c.p+1),true);
+    if(st.busy)return hint(st.stage==='judge'?'Picking the best ones for you':'Writing line '+(c.p+1),true);
     if(st.err){hint(st.err);return go('Try again',function(){suggest(c,true)})}
     list(st,function(o){var line=o.line,k=ctx();if(k.raw.trim()&&!k.cur.trim()){lyr.setSelectionRange(k.le,k.le);ins(lyr,'\n'+line)}else{lyr.setSelectionRange(k.ls,k.le);ins(lyr,line)}ins(lyr,'\n');flash(line.length);recordLineAccept(o.type);refreshViews()});
     return go('New ideas',function(){suggest(c,true)});
@@ -15931,6 +15950,145 @@ function songCtx(o){
   return head+'\nFull lyrics so far ('+(o.kind==='rw'?'⟦ ⟧ marks the phrase being rewritten':'⟦NEW LINE GOES HERE⟧ marks where the new line goes')+'):\n'+s+'\n\nBefore writing, read what\'s there and note its tone, its writing style (sentence rhythm, vocabulary, formality), and any imagery or metaphors already in play. The new text must belong in this song: match that tone, style and imagery, continue its story, keep its characters, tense and point of view consistent, and do not repeat lines or end words already used nearby.';
 }
 function rhymeSets(lw,cb){if(!lw)return cb({p:[],n:[]});var d=DM[lw];if(!dmOff&&!(d&&!d.then))dmRhymes(lw).then(function(){cb(getR(lw))});else cb(getR(lw))}
+/* ---------- the muse's memory: what this writer actually does with suggestions ----------
+   Every suggestion that gets used is checked again a few minutes later: still there word for word
+   (kept), changed (edited, with the writer's own version, the most useful signal there is), or gone
+   (deleted). "Not this" on a suggestion records a reason, and asking for new ideas marks the batch as
+   passed over. Kept on the device and, when signed in, in the private muse_events table
+   (supabase/muse.sql) so it follows the writer between devices. museCtx() turns it into guidance. */
+var MZ={ev:[],pend:[],q:[],prof:null,noTable:false,building:false};
+(function(){try{MZ.ev=JSON.parse(localStorage.getItem('songpad:muse:ev')||'[]')||[];MZ.pend=JSON.parse(localStorage.getItem('songpad:muse:pend')||'[]')||[];MZ.prof=JSON.parse(localStorage.getItem('songpad:muse:prof')||'null')}catch(e){}})();
+function mzSave(){try{localStorage.setItem('songpad:muse:ev',JSON.stringify(MZ.ev.slice(-500)));localStorage.setItem('songpad:muse:pend',JSON.stringify(MZ.pend.slice(-40)))}catch(e){}}
+function mzId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,9)}
+function mzCloud(){var c=AUTH_USER&&!DEV_MODE&&sbClient();return c&&!MZ.noTable?c:null}
+function mzMissing(err){return/relation|does not exist|schema cache|42P01|PGRST20/i.test((err&&err.message)||'')}
+function mzLog(e){e.id=e.id||mzId();e.at=e.at||Date.now();MZ.ev.push(e);if(MZ.ev.length>500)MZ.ev.splice(0,MZ.ev.length-500);mzSave();MZ.q.push(e);mzFlush()}
+function mzFlush(){clearTimeout(MZ.ft);MZ.ft=setTimeout(function(){var c=mzCloud();if(!c||!MZ.q.length)return;var batch=MZ.q.splice(0,50);
+  c.from('muse_events').upsert(batch.map(function(e){return{id:e.id,song_id:e.song||null,src:e.src||null,outcome:e.o,shown:(e.shown||'').slice(0,600)||null,final:(e.final||'').slice(0,600)||null,reason:e.why||null,created_at:new Date(e.at).toISOString()}}),{onConflict:'id',ignoreDuplicates:true})
+    .then(function(r){if(r.error){if(mzMissing(r.error))MZ.noTable=true;else MZ.q=batch.concat(MZ.q)}else if(MZ.q.length)mzFlush()},function(){MZ.q=batch.concat(MZ.q)})},1500)}
+/* on sign-in: merge the account's history with this device's, upload anything only this device has */
+function mzPull(){var c=mzCloud();if(!c)return;
+  c.from('muse_events').select('id,song_id,src,outcome,shown,final,reason,created_at').order('created_at',{ascending:false}).limit(500).then(function(r){
+    if(r.error){if(mzMissing(r.error))MZ.noTable=true;return}
+    var srv={},have={};MZ.ev.forEach(function(e){have[e.id]=1});
+    (r.data||[]).forEach(function(x){srv[x.id]=1;if(!have[x.id])MZ.ev.push({id:x.id,song:x.song_id,src:x.src,o:x.outcome,shown:x.shown,final:x.final,why:x.reason,at:Date.parse(x.created_at)||0})});
+    MZ.ev.sort(function(a,b){return a.at-b.at});if(MZ.ev.length>500)MZ.ev.splice(0,MZ.ev.length-500);mzSave();
+    var oldest=(r.data&&r.data.length>=500)?Date.parse(r.data[r.data.length-1].created_at):0;
+    MZ.ev.forEach(function(e){if(!srv[e.id]&&e.at>=oldest&&MZ.q.indexOf(e)<0)MZ.q.push(e)});mzFlush();
+    c.from('muse_profile').select('profile,edited,basis,updated_at').maybeSingle().then(function(p){if(p.error||!p.data)return mzProfAuto();var t=Date.parse(p.data.updated_at)||0;
+      if(!MZ.prof||t>(MZ.prof.at||0)){MZ.prof={text:p.data.profile||'',edited:!!p.data.edited,at:t,n:p.data.basis||0};mzProfStore(false)}else if(MZ.prof&&MZ.prof.at>t)mzProfStore(true);mzProfAuto()})})}
+function mzNorm(s){return String(s||'').toLowerCase().replace(/[’‘]/g,"'").replace(/[^a-z0-9' ]+/g,' ').replace(/\s+/g,' ').trim()}
+function mzSim(a,b){var A=mzNorm(a).split(' '),B=mzNorm(b).split(' ');if(!A[0]||!B[0])return 0;var m={},n=0;A.forEach(function(w){m[w]=(m[w]||0)+1});B.forEach(function(w){if(m[w]>0){m[w]--;n++}});return 2*n/(A.length+B.length)}
+/* a suggestion went into the song: follow it up later */
+function mzUsed(line,src){if(!cur||!line)return;MZ.pend.push({id:mzId(),song:cur.id,src:src,shown:line,at:Date.now()});mzSave();mzProfAuto()}
+function mzCheck(force){if(!MZ.pend.length)return;var now=Date.now(),left=[];
+  MZ.pend.forEach(function(p){var s=songs.filter(function(x){return x.id===p.song})[0];if(!s)return;
+    if(!force&&now-p.at<180000){left.push(p);return}
+    var ls=(s.lyrics||'').split('\n').map(function(x){return x.trim()}).filter(function(x){return x&&x[0]!=='['}),t=mzNorm(p.shown),best='',bs=0;
+    if(ls.some(function(x){return mzNorm(x)===t}))return mzLog({song:p.song,src:p.src,o:'kept',shown:p.shown,at:p.at});
+    ls.forEach(function(x){var v=mzSim(x,p.shown);if(v>bs){bs=v;best=x}});
+    mzLog(bs>=.45?{song:p.song,src:p.src,o:'edited',shown:p.shown,final:best,at:p.at}:{song:p.song,src:p.src,o:'deleted',shown:p.shown,at:p.at})});
+  MZ.pend=left;mzSave()}
+setInterval(function(){mzCheck(false)},60000);
+document.addEventListener('visibilitychange',function(){if(document.hidden)mzCheck(false)});
+function mzReject(line,why,src){mzLog({song:cur&&cur.id,src:src,o:'reject',shown:line,why:why})}
+function mzPassed(list,src){if(!list||!list.length)return;mzLog({song:cur&&cur.id,src:src,o:'passed',shown:list.slice(0,6).join(' / ')})}
+var MZ_WHY=[['cliche','Cliché'],['voice','Not my voice'],['nose','Too on the nose'],['sing','Doesn’t sing'],['sense','Makes no sense']];
+var MZ_WHYL={};MZ_WHY.forEach(function(x){MZ_WHYL[x[0]]=x[1]});
+
+/* ---------- stock song phrases: never shown, whatever the model says ---------- */
+var MZ_CLICHE=[/\bneon (light|lights|glow|sign|signs|dream|dreams)\b/,/\bshatter(ed|s)? (heart|hearts|glass|pieces|dreams)\b/,/\b(heart|hearts) (of gold|of stone|on (my|your) sleeve)\b/,/\becho(es|ing)? (of|in the|through)\b/,/\bwhisper(s|ed|ing)? (in the dark|of the|in my ear|of you)\b/,/\btapestry\b/,/\bsymphony\b/,/\bkaleidoscope\b/,/\blabyrinth\b/,/\bdanc(e|ing) in the rain\b/,/\bset (my|your|our) (soul|heart) on fire\b/,/\bburning desire\b/,/\bfire\b.*\bdesire\b|\bdesire\b.*\bfire\b/,/\blost in (your|those|her|his) eyes\b/,/\bchasing (dreams|the sun|shadows|the light|the stars)\b/,/\bbroken wings\b/,/\brise from the ashes\b/,/\bmidnight hour\b/,/\bvelvet (sky|night)\b/,/\bsilver lining\b/,/\bstorm inside\b/,/\btears? (fall|falling) like rain\b/,/\bheart ?beat(s)? like a drum\b/,/\bweight of the world\b/,/\blight in the dark(ness)?\b/,/\bin the dead of (the )?night\b/,/\bagainst all odds\b/,/\bendless night\b/,/\btime stands still\b/,/\bfaded memor(y|ies)\b/,/\bghosts? of (the past|you|us|yesterday)\b/,/\bshadows (dance|dancing)\b/,/\bstarlit\b/,/\bembers? (of|glow)\b/,/\bsoul(s)? (on fire|ablaze)\b/,/\bunspoken words\b/,/\bwings to fly\b/,/\bspread (my|your) wings\b/,/\btouch the sky\b/,/\breach for the stars\b/,/\bheart of the night\b/,/\bbleeding heart\b/,/\bscars (that|tell|of)\b/,/\bcold as ice\b/,/\bhold on tight\b/];
+function mzCliche(line){var l=mzNorm(line);for(var i=0;i<MZ_CLICHE.length;i++)if(MZ_CLICHE[i].test(l))return true;return false}
+/* words this writer keeps throwing out (and never keeps) */
+function mzAvoid(){var bad={},good={},add=function(t,n){mzNorm(t).split(' ').forEach(function(w){if(w.length>3&&!STOP[w])bad[w]=(bad[w]||0)+n})};
+  MZ.ev.forEach(function(e){
+    if(e.o==='deleted'||e.o==='reject')add(e.shown,1);
+    else if(e.o==='kept')mzNorm(e.shown).split(' ').forEach(function(w){good[w]=1});
+    else if(e.o==='edited'){var f={};mzNorm(e.final).split(' ').forEach(function(w){f[w]=1;good[w]=1});mzNorm(e.shown).split(' ').forEach(function(w){if(!f[w]&&w.length>3&&!STOP[w])bad[w]=(bad[w]||0)+1})}});
+  return Object.keys(bad).filter(function(w){return bad[w]>=2&&!good[w]}).sort(function(a,b){return bad[b]-bad[a]}).slice(0,25)}
+function mzRecent(kind,n){return MZ.ev.filter(function(e){return e.o===kind&&e.shown}).slice(-n)}
+/* the writer's own lines closest to what they're writing now (shared words, then favourite hooks) */
+function mzMyLines(sec,n){var q={},words=function(t){return(mzNorm(t).match(/[a-z']+/g)||[]).filter(function(w){return w.length>3&&!STOP[w]})};
+  (sec||[]).concat([cur&&cur.title||'',cur&&cur.brief?[cur.brief.who,cur.brief.to,cur.brief.where,cur.brief.thing].join(' '):'']).forEach(function(t){words(t).forEach(function(w){q[w]=1})});
+  var hk={};hookLines().forEach(function(h){hk[mzNorm(h)]=1});
+  var cand=[];songs.forEach(function(s){if(s===cur||!s.lyrics||s.id===GUIDE_ID)return;s.lyrics.split('\n').forEach(function(l){l=l.trim();if(l.length<14||l.length>110||l[0]==='[')return;
+    var sc=0,seen={};words(l).forEach(function(w){if(q[w]&&!seen[w]){seen[w]=1;sc+=1}});if(hk[mzNorm(l)])sc+=1.5;cand.push({l:l,s:s.id,sc:sc,u:s.updated||0})})});
+  cand.sort(function(a,b){return b.sc-a.sc||b.u-a.u});
+  var out=[],per={},seenL={};for(var i=0;i<cand.length&&out.length<n;i++){var c=cand[i],k=mzNorm(c.l);if(seenL[k]||(per[c.s]||0)>=3)continue;seenL[k]=1;per[c.s]=(per[c.s]||0)+1;out.push(c.l)}
+  return out}
+function mzBrief(s){var b=s&&s.brief;if(!b)return'';var a=[];if(b.who)a.push('Who\'s singing: '+b.who);if(b.to)a.push('Singing to: '+b.to);if(b.where)a.push('Where and when: '+b.where);if(b.thing)a.push('A real detail from it: '+b.thing);if(b.more)a.push('Also true: '+b.more);return a.join('\n')}
+function mzQ(x){return'"'+String(x).replace(/"/g,'\'')+'"'}
+/* everything personal the muse knows, as one block for a prompt */
+function museCtx(sec){var a=[];
+  if(MZ.prof&&MZ.prof.text)a.push('HOW THIS WRITER WRITES (their voice profile; follow it closely):\n'+MZ.prof.text.slice(0,1400));
+  var br=mzBrief(cur);if(br)a.push('WHAT THIS SONG IS REALLY ABOUT, in the writer\'s words. Use these real specifics (names, places, objects) instead of inventing generic ones:\n'+br);
+  var mine=mzMyLines(sec,8);if(mine.length)a.push('THE WRITER\'S OWN LINES from other songs, chosen because they\'re closest to what they\'re writing now. They show the voice: the kind of detail, the plainness or strangeness, the rhythm. Never reuse or paraphrase them:\n'+mine.map(mzQ).join('\n'));
+  var ed=mzRecent('edited',6);if(ed.length)a.push('SUGGESTIONS THEY REWROTE, and what they changed them to. Learn the direction of each change and write like the "after":\n'+ed.map(function(e){return'- '+mzQ(e.shown)+' -> '+mzQ(e.final)}).join('\n'));
+  var kp=mzRecent('kept',5);if(kp.length)a.push('SUGGESTIONS THEY KEPT word for word (this is the bar):\n'+kp.map(function(e){return'- '+mzQ(e.shown)}).join('\n'));
+  var rj=MZ.ev.filter(function(e){return(e.o==='reject'||e.o==='deleted')&&e.shown}).slice(-8);if(rj.length)a.push('SUGGESTIONS THEY THREW OUT (don\'t write anything like these):\n'+rj.map(function(e){return'- '+mzQ(e.shown)+(e.why&&MZ_WHYL[e.why]?' ('+MZ_WHYL[e.why].toLowerCase()+')':'')}).join('\n'));
+  var av=mzAvoid();
+  a.push('NEVER USE stock song language: neon lights, shattered hearts, echoes, whispers in the dark, fire and desire, tapestries, symphonies, chasing dreams, rising from the ashes, broken wings, the weight of the world, a light in the dark, lost in your eyes, or anything else a thousand songs already say. Prefer one specific, slightly unexpected concrete detail over a big abstract feeling. Plain, true and particular beats poetic and vague.'+(av.length?' Also avoid these words this writer keeps rejecting: '+av.join(', ')+'.':''));
+  return'\n\n'+a.join('\n\n')}
+/* keep the candidates that pass: no stock phrases, no rejected words, nothing already in the song or
+   already thrown out. If that would leave too few, the rest come back at the end instead of vanishing. */
+function mzFilter(items,get,min){var av={},have={},rej={};mzAvoid().forEach(function(w){av[w]=1});
+  (getText()||'').split('\n').forEach(function(l){var k=mzNorm(l);if(k)have[k]=1});
+  MZ.ev.forEach(function(e){if(e.o==='reject'||e.o==='deleted')rej[mzNorm(e.shown)]=1});
+  var ok=[],weak=[];items.forEach(function(x){var t=get(x),k=mzNorm(t);if(!k||have[k]||rej[k])return;var bad=mzCliche(t)||k.split(' ').some(function(w){return av[w]});(bad?weak:ok).push(x)});
+  return ok.length>=(min||1)?ok:ok.concat(weak)}
+/* second pass: a hard-to-please judge scores every candidate. Falls back to null (caller keeps its own
+   order) if it takes too long or fails, so suggestions never get stuck behind it. */
+function mzJudge(cands,o){if(!cands||cands.length<3)return Promise.resolve(null);
+  return new Promise(function(res){var done=false,fin=function(v){if(done)return;done=true;clearTimeout(t);res(v)},t=setTimeout(function(){fin(null)},o.timeout||9000);
+    var mine=mzMyLines(o.section,4),br=mzBrief(cur);
+    aiJson('You are a hard-to-please co-writer judging lyric lines for a specific writer. Score each candidate from 1 to 10.\n\n'+
+      (MZ.prof&&MZ.prof.text?'The writer\'s voice:\n'+MZ.prof.text.slice(0,900)+'\n\n':'')+(mine.length?'Lines the writer wrote themselves:\n'+mine.map(mzQ).join('\n')+'\n\n':'')+(br?'About this song:\n'+br+'\n\n':'')+
+      (o.section&&o.section.length?'The section they\'re writing:\n'+o.section.join('\n')+'\n\n':'')+'Task: '+o.what+'\n\nCandidates:\n'+cands.map(function(c,i){return i+'. '+c}).join('\n')+
+      '\n\nScore on: specific and concrete rather than generic; sounds like this writer, not like a generic songwriter; fresh rather than a stock phrase or cliché; natural to sing out loud; belongs in this song at this moment. Be harsh: a line any songwriter could have written scores 4 or less, a stock phrase scores 2. Return ONLY JSON: [{"i":0,"s":7}, ...] with one entry for every candidate.',{cache:false})
+      .then(function(r){var out={},n=0;(Array.isArray(r)?r:[]).forEach(function(x){if(x&&isFinite(x.i)&&isFinite(x.s)){out[+x.i]=+x.s;n++}});fin(n?out:null)},function(){fin(null)})})}
+
+/* ---------- voice profile: a short description of how this writer writes ----------
+   Written by the stronger model from their catalogue plus what they kept, rewrote and threw out.
+   Rebuilt on its own every 25 new outcomes or two weeks, never over a version the writer edited
+   themselves (until they tap Relearn). Shown and editable in Writing voice. */
+function mzProfStore(push){try{localStorage.setItem('songpad:muse:prof',JSON.stringify(MZ.prof))}catch(e){}
+  var c=push&&mzCloud();if(c&&MZ.prof)c.from('muse_profile').upsert({user_id:AUTH_USER.id,profile:MZ.prof.text||'',edited:!!MZ.prof.edited,basis:MZ.prof.n||0,updated_at:new Date(MZ.prof.at||Date.now()).toISOString()},{onConflict:'user_id'}).then(function(r){if(r.error&&mzMissing(r.error))MZ.noTable=true})}
+function mzCatalog(){var out=[];songs.forEach(function(s){if(s.id===GUIDE_ID)return;(s.lyrics||'').split('\n').forEach(function(l){l=l.trim();if(l&&l[0]!=='[')out.push(l)})});return out}
+function mzOutcomes(){return MZ.ev.filter(function(e){return e.o!=='passed'}).length}
+function mzProfAuto(){if(MZ.building||!isPro()||!aiAvailable())return;if(MZ.prof&&MZ.prof.edited)return;
+  var n=mzOutcomes(),lines=mzCatalog().length;if(lines<16)return;
+  if(!MZ.prof||!MZ.prof.text||n-(MZ.prof.n||0)>=25||(Date.now()-(MZ.prof.at||0)>14*864e5&&n>(MZ.prof.n||0)))mzProfBuild()}
+function mzProfBuild(){if(MZ.building)return Promise.resolve(null);MZ.building=true;
+  var hk=hookLines(),pool=[];songs.slice().sort(function(a,b){return(b.updated||0)-(a.updated||0)}).forEach(function(s){if(s.id===GUIDE_ID)return;var ls=(s.lyrics||'').split('\n').map(function(x){return x.trim()}).filter(function(x){return x&&x[0]!=='['});if(ls.length)pool.push({t:s.title||'Untitled',ls:ls})});
+  var sample=[],budget=9000;pool.forEach(function(p){if(budget<=0)return;var chunk=p.ls.slice(0,16).join('\n');budget-=chunk.length;sample.push('['+p.t+']\n'+chunk)});
+  var ed=mzRecent('edited',12),kp=mzRecent('kept',10),rj=MZ.ev.filter(function(e){return(e.o==='reject'||e.o==='deleted')&&e.shown}).slice(-12);
+  var pr='You are studying a songwriter so a writing assistant can write lines that sound like them and not like generic AI lyrics.\n\nTheir songs (most recent first):\n'+sample.join('\n\n')+
+    (hk.length?'\n\nLines they marked as favourites: '+hk.map(mzQ).join(' / '):'')+
+    (ed.length?'\n\nSuggestions they rewrote (suggested -> their version):\n'+ed.map(function(e){return mzQ(e.shown)+' -> '+mzQ(e.final)}).join('\n'):'')+
+    (kp.length?'\n\nSuggestions they kept as written:\n'+kp.map(function(e){return mzQ(e.shown)}).join('\n'):'')+
+    (rj.length?'\n\nSuggestions they threw out:\n'+rj.map(function(e){return mzQ(e.shown)+(e.why&&MZ_WHYL[e.why]?' ('+MZ_WHYL[e.why].toLowerCase()+')':'')}).join('\n'):'')+
+    '\n\nWrite a voice profile of 120 to 200 words as direct instructions to someone writing lines for them ("Uses...", "Never..."). Cover: what kind of concrete details and nouns they reach for; how literal or oblique they are; vocabulary and register (slang, swearing, plainness); line length and rhythm; how they rhyme (perfect, slant, internal, or loose); point of view and who they talk to; recurring themes; and what they clearly avoid. Be specific to THIS writer and quote short fragments of their own words as evidence. No praise, no generic advice that would fit any songwriter. Return JSON: {"profile":"..."}';
+  return aiJson(pr,{modelTier:'complex',cache:false}).then(function(r){MZ.building=false;var t=r&&typeof r.profile==='string'?r.profile.trim():'';if(!t)return null;
+    MZ.prof={text:t,edited:false,at:Date.now(),n:mzOutcomes()};mzProfStore(true);if($('#sheet2')&&$('#sheet2').classList.contains('on'))buildSettings();return t},function(){MZ.building=false;return null})}
+
+/* ---------- song brief: a few true things about this song, asked once, used everywhere ---------- */
+function briefForm(){var o=stkOut(''),b=(cur&&cur.brief)||{};
+  o.innerHTML='<h4>Tell the muse about this song</h4><p class="bfi">Real names, places and things make every suggestion more yours. Skip anything.</p>';
+  var F=[['who','Who’s singing','e.g. me at 19, my dad, a bartender closing up'],['to','Singing to','e.g. my ex, my brother, nobody'],['where','Where and when','e.g. Glenelg, the night before I moved'],['thing','One real detail from it','e.g. her blue Corolla with the cracked windscreen'],['more','Anything else that’s true','what actually happened, what you can’t say out loud']],inp={};
+  F.forEach(function(f){var l=document.createElement('label');l.className='bfl';l.textContent=f[1];var i=document.createElement(f[0]==='more'?'textarea':'input');i.className='bfin';i.placeholder=f[2];i.value=b[f[0]]||'';i.maxLength=f[0]==='more'?600:160;l.appendChild(i);o.appendChild(l);inp[f[0]]=i});
+  act(o,'Save',function(){if(!cur)return;var nb={},any=false;F.forEach(function(f){var v=inp[f[0]].value.trim();if(v){nb[f[0]]=v;any=true}});if(any)cur.brief=nb;else delete cur.brief;cur.updated=Date.now();save();haptic('success');toast(any?'The muse knows this song now':'Song brief cleared');buildStuck();$('#stk-out').innerHTML=''});
+  setTimeout(function(){inp.who.focus()},250)}
+function briefSummary(s){var b=s&&s.brief;if(!b)return'';return[b.who,b.to&&'to '+b.to,b.where].filter(Boolean).join(' · ')}
+
+/* the line buttons in Lines and the Muse, with a small "Not this" button beside each */
+function mzLineRow(host,o,apply,src,onGone){var w=document.createElement('div');w.className='lnw';
+  var b=document.createElement('button');b.className='ln';b.innerHTML='<span></span><i></i>';b.children[0].textContent=o.line;b.children[1].textContent=o.meta;b.onmousedown=prevent;b.onclick=function(){apply(o)};
+  var x=document.createElement('button');x.className='lnx';x.setAttribute('aria-label','Not this one');x.title='Not this one';x.innerHTML='<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';x.onmousedown=prevent;
+  x.onclick=function(){w.innerHTML='';w.className='lnw why';var t=document.createElement('span');t.textContent='Why not?';w.appendChild(t);
+    MZ_WHY.forEach(function(r){var c=document.createElement('button');c.className='r';c.textContent=r[1];c.onmousedown=prevent;c.onclick=function(){mzReject(o.line,r[0],src);haptic('light');w.remove();if(onGone)onGone(o)};w.appendChild(c)});
+    var sk=document.createElement('button');sk.className='r';sk.textContent='Just hide it';sk.onmousedown=prevent;sk.onclick=function(){mzReject(o.line,'',src);w.remove();if(onGone)onGone(o)};w.appendChild(sk)};
+  w.appendChild(b);w.appendChild(x);host.appendChild(w);return w}
+
 function runGen(o){
   LSK=o.k;
   /* Cache hit: this exact generation (same rhyme target/section/voice/context state) was already
@@ -15942,6 +16100,7 @@ function runGen(o){
      so the next batch doesn't just reshuffle the same handful of ideas. Capped so the prompt
      doesn't grow without bound over a long session of repeated regenerates. */
   if(o.again&&LSC[o.k]&&LSC[o.k].list&&LSC[o.k].list.length){
+    if(!LSC[o.k].used)mzPassed(LSC[o.k].list.map(function(x){return x.line}),'lines');
     var h=GENHIST[o.k]=GENHIST[o.k]||[];
     LSC[o.k].list.forEach(function(x){if(h.indexOf(x.line)<0)h.push(x.line)});
     if(h.length>30)h.splice(0,h.length-30);
@@ -15951,7 +16110,7 @@ function runGen(o){
     var P=S.p.slice(0,70),Nr=PF.strict?[]:S.n.slice(0,24),ps={},ns={};P.forEach(function(x){ps[x]=1});Nr.forEach(function(x){ns[x]=1});if(o.keep&&o.lw)ps[o.lw]=1;
     var rule=o.lw?(P.length||Nr.length?'3. Prefer ending on one of these perfect rhymes for "'+o.lw+'": '+P.join(', ')+(Nr.length?'\n   If none fits naturally, end on one of these near/slant rhymes: '+Nr.join(', '):'')+'\n   If neither list works, rhyme by ear.':'3. Rhyme with "'+o.lw+'" by ear.'):'3. End on a word with plenty of rhymes.';
     var skip=GENHIST[o.k]&&GENHIST[o.k].length?'\n5. These were already suggested here and passed over — do not repeat them or near-identical rewordings of them, and vary the approach (different imagery, structure or end word) from all of them: '+GENHIST[o.k].map(function(x){return'"'+x+'"'}).join(' / ')+'.':'';
-    aiJson('You write song lyrics.'+pfx()+'\n\n'+songCtx(o)+'\n\n'+o.task+'\n\nPriorities:\n1. Match the tone, writing style and imagery you just read in the section above — this comes before rhyme or syllable count.\n2. Aim for exactly '+o.n+' syllables, as close as you can.\n'+rule+'\n4. Twelve different options, and spread them across several different end words rather than reusing the same one or two rhyming words over and over. Mix exact/perfect rhymes with slant or near rhymes (words that share the vowel sound or final consonant sound but aren\'t identical) so the set offers real variety, not twelve ways to land on the same sound. Natural phrasing, no filler. Each string is just the lyric line itself — never follow it with its rhyme or end word repeated in parentheses or any other annotation.'+skip+'\n\nReturn ONLY a JSON array of 12 strings.',{cache:!o.again}).then(function(r){
+    aiJson('You write song lyrics.'+pfx()+'\n\n'+songCtx(o)+museCtx(o.section)+'\n\n'+o.task+'\n\nPriorities:\n1. Match the tone, writing style and imagery you just read in the section above — this comes before rhyme or syllable count.\n2. Aim for exactly '+o.n+' syllables, as close as you can.\n'+rule+'\n4. Twenty different options, and spread them across several different end words rather than reusing the same one or two rhyming words over and over. Mix exact/perfect rhymes with slant or near rhymes (words that share the vowel sound or final consonant sound but aren\'t identical) so the set offers real variety, not twenty ways to land on the same sound. Natural phrasing, no filler. Each string is just the lyric line itself — never follow it with its rhyme or end word repeated in parentheses or any other annotation.'+skip+'\n\nReturn ONLY a JSON array of 20 strings.',{cache:!o.again}).then(function(r){
       /* Belt-and-braces: even with the prompt now telling it not to, the model occasionally still
          echoes the end/rhyme word back in parentheses, e.g. "i walk in your room (room)". Strip a
          trailing "(word)" whenever it just repeats the line's own last word or the target rhyme
@@ -15959,11 +16118,19 @@ function runGen(o){
       function deparen(x){var m=x.match(/^(.*?)\s*\(([^()]{1,30})\)\s*$/);if(!m)return x;var core=m[1].trim(),paren=nw(m[2].trim());if(!core)return x;var lastWord=nw(lastW(core));if(paren===lastWord||(o.lw&&paren===nw(o.lw)))return core;return x}
       var seen={},l=(Array.isArray(r)?r:[]).filter(function(x){return typeof x==='string'&&x.trim()}).map(function(x){x=deparen(x.trim());var w=nw(lastW(x)),d=lsyl(x)-o.n,ty=!o.lw?'new':ps[w]?'perfect':ns[w]?'near':'loose';return{line:x,n:lsyl(x),d:d,type:ty,sc:Math.abs(d)+(ty==='near'?1.5:ty==='loose'?3.5:0)}}).filter(function(m){if(seen[m.line])return false;seen[m.line]=1;return true});
       l.sort(function(a,b){return a.sc-b.sc});
-      LSC[o.k]=l.length?{k:o.k,list:l.slice(0,8),best:l[0].sc,kind:o.kind,a:o.a,b:o.b,src:o.src}:{k:o.k,err:'No lines came back. Try again.'};rhyme();
-      /* on mobile, generated lines are picked by tapping one of the result chips, not by typing —
-         so once they're in, drop the keyboard to free up the screen for reading/choosing them.
-         Gated on the keyboard actually being up (mobile-only signal), so this is a no-op on Mac. */
-      if(l.length&&document.body.classList.contains('kb')){var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'))ae.blur()}
+      /* drop stock phrases, words this writer keeps rejecting and lines already in the song, then let the
+         judge score the best 14 and show the top 6: judged quality first, rhyme and syllable fit as tie-breaks */
+      l=mzFilter(l,function(x){return x.line},6);
+      var fin=function(js){var top=l.slice(0,14);
+        if(js)top.forEach(function(x,i){x.js=js[i]!=null?js[i]:0;x.rk=x.js*1.0-x.sc*.55});
+        if(js)top.sort(function(a,b){return b.rk-a.rk});
+        var out=(js?top:l).slice(0,6);
+        LSC[o.k]=out.length?{k:o.k,list:out,best:Math.min.apply(null,out.map(function(x){return x.sc})),kind:o.kind,a:o.a,b:o.b,src:o.src,judged:!!js}:{k:o.k,err:'No lines came back. Try again.'};rhyme();
+        if(out.length&&document.body.classList.contains('kb')){var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'))ae.blur()}};
+      if(l.length<4)return fin(null);
+      LSC[o.k]={k:o.k,busy:true,stage:'judge'};rhyme();
+      mzJudge(l.slice(0,14).map(function(x){return x.line}),{section:o.section,what:o.task.slice(0,600)}).then(fin);
+      return;
     },function(e){LSC[o.k]={k:o.k,err:e&&e.code==='not_granted'?'Allow access to get line suggestions.':'Could not get suggestions.'};rhyme()});
   });
 }
@@ -16131,8 +16298,8 @@ ADJS=['crooked','borrowed','electric','tender','second-hand','salt-heavy','half-
 function pick(a){return a[Math.floor(Math.random()*a.length)]}
 function openStuck(){buildStuck();$('#stk-out').innerHTML='';sheet(true,'sheet3')}
 function stkOut(html){var o=$('#stk-out');o.innerHTML=html;$('#sheet3').scrollTop=0;return o}
-function insLine(line){sheet(false);var k=ctx();lyr.focus();if(k.raw.trim()){lyr.setSelectionRange(k.le,k.le);ins(lyr,'\n'+line)}else{lyr.setSelectionRange(k.ls,k.le);ins(lyr,line)}ins(lyr,'\n');flash(line.length);refreshViews();toast('Added to your song')}
-function lineBtn(o,line,meta){var b=document.createElement('button');b.className='ln';b.innerHTML='<span></span><i></i>';b.children[0].textContent=line;b.children[1].textContent=meta||(lsyl(line)+' syl');b.onclick=function(){haptic('medium');insLine(line)};o.appendChild(b)}
+function insLine(line){mzUsed(line,'muse');sheet(false);var k=ctx();lyr.focus();if(k.raw.trim()){lyr.setSelectionRange(k.le,k.le);ins(lyr,'\n'+line)}else{lyr.setSelectionRange(k.ls,k.le);ins(lyr,line)}ins(lyr,'\n');flash(line.length);refreshViews();toast('Added to your song')}
+function lineBtn(o,line,meta){return mzLineRow(o,{line:line,meta:meta||(lsyl(line)+' syl')},function(){haptic('medium');insLine(line)},'muse')}
 function act(o,label,fn){var w=o.querySelector('.acts');if(!w){w=document.createElement('div');w.className='acts';o.appendChild(w)}var b=document.createElement('button');b.className='go';b.textContent=label;b.onclick=fn;w.appendChild(b)}
 function needAI(){if(aiAvailable())return true;stkOut('<p>This one needs a connection, which isn’t set up in this copy. Try the cards that work offline.</p>');return false}
 function aiErr(o){o.innerHTML='<p>Couldn’t get a response. Try again in a moment.</p>'}
@@ -16140,6 +16307,7 @@ function aidots(){return '<span class="aidots"><i></i><i></i><i></i></span>'}
 function aidotsEl(){var s=document.createElement('span');s.className='aidots';s.innerHTML='<i></i><i></i><i></i>';return s}
 function buildStuck(){
   var g=$('#stg');g.innerHTML='';
+  if(cur){var bs=briefSummary(cur),bb=document.createElement('button');bb.className='stc brief'+(bs?' set':'');bb.innerHTML='<b></b><span></span>';bb.children[0].textContent=bs?'About this song':'Tell the muse about this song';bb.children[1].textContent=bs||'Who’s singing, to whom, where, and one real detail. Every suggestion gets more yours.';bb.onclick=briefForm;g.appendChild(bb)}
   [['big','Read my song','What this is really about, where it stalls, and a few doors out',readSong,1],
    ['rate'+(rateMode?' on':''),rateMode?'Rate mode is on':'Rate my song',rateMode?'Notes are marked in your lyrics. Tap to turn them off.':'Scores and notes on what’s landing and what isn’t',function(){if(rateMode){setRateMode(false);toast('Rate mode off');buildStuck();return}if(!isPro())return upsell('rate');sheet(false);setTimeout(openRate,isPro()?60:0)},1],
    ['','Four doors','Four completely different next lines. Walk through one.',fourWays,1],
@@ -16148,17 +16316,28 @@ function buildStuck(){
    ['','Wild card','One odd instruction. Just do it.',card],
    ['','Pen never stops','Five minutes. No deleting. No rhyme bar. Go.',sprintGo]].forEach(function(x){if(x[4]&&!aiAvailable())return;var b=document.createElement('button');b.className='stc '+x[0]+(x[4]&&!isPro()?' locked':'');b.innerHTML='<b></b><span></span>';b.children[0].textContent=x[1];b.children[1].textContent=x[2];b.onclick=x[4]&&!isPro()?function(){upsell('muse')}:x[3];if(x[4]&&!isPro())b.children[0].insertAdjacentHTML('beforeend',' <i class="protag">Beta</i>');g.appendChild(b)});
 }
-function readSong(){if(!needAI())return;var o=stkOut('<p>'+aidots()+' Reading your song</p>'),at=getSel().s;
-  aiJson('You are a songwriting mentor helping a writer who is stuck.'+pfx()+'\n\n'+songCtx({at:at})+'\n\nRespond as JSON: {"read": one or two plain sentences on what this song is really about so far and where it seems to stall, "questions": 3 short, specific questions about the song\'s subject that would dig up fresh material, "moves": 4 objects {"idea": a short direction to take next (under 12 words), "line": a next line that starts that direction, matching the song\'s voice and line length}}. Be concrete, no flattery. If the song is empty, read the title and notes and suggest openings.',{cache:false}).then(function(r){
-    if(!r||!r.moves){aiErr(o);return}o.innerHTML='';
-    var p=document.createElement('p');p.textContent=r.read||'';o.appendChild(p);
-    if(r.questions&&r.questions.length){var h=document.createElement('h4');h.textContent='Answer one of these in your head';o.appendChild(h);r.questions.forEach(function(q){var x=document.createElement('p');x.textContent='• '+q;o.appendChild(x)})}
-    var h2=document.createElement('h4');h2.textContent='Ways forward (tap to add the line)';o.appendChild(h2);
-    r.moves.forEach(function(m){var b=document.createElement('button');b.className='mv';b.innerHTML='<b></b><span></span><em></em>';b.children[0].textContent=m.idea;b.children[1].textContent=m.line;b.children[2].textContent=lsyl(m.line||'')+' syl · tap to add';b.onclick=function(){insLine(m.line)};o.appendChild(b)});
-    act(o,'Read again',readSong)},function(){aiErr(o)})}
-function fourWays(){if(!needAI())return;var o=stkOut('<p>'+aidots()+' Writing four directions</p>'),at=getSel().s,ref=ctx().ref||'';
-  aiJson('Songwriting partner.'+pfx()+'\n\n'+songCtx({at:at})+'\n\nThe writer is stuck on the next line. Write 4 candidate next lines that go in clearly different directions: 1) a concrete physical detail, 2) a memory or flashback, 3) something said out loud (dialogue), 4) a twist or contradiction. Match the length of "'+ref+'". Return JSON: [{"kind": "Detail"|"Memory"|"Dialogue"|"Twist", "line": "..."}].',{cache:false}).then(function(r){
-    if(!Array.isArray(r)||!r.length){aiErr(o);return}o.innerHTML='<h4>Tap one to add it</h4>';r.forEach(function(x){if(x&&x.line)lineBtn(o,x.line,(x.kind||'')+' · '+lsyl(x.line)+' syl')});act(o,'Four more',fourWays)},function(){aiErr(o)})}
+function readSong(){if(!needAI())return;var o=stkOut('<p>'+aidots()+' Reading your song</p>'),at=getSel().s,k=ctx();
+  aiJson('You are a songwriting mentor helping a writer who is stuck.'+pfx()+'\n\n'+songCtx({at:at})+museCtx(k.st)+'\n\nRespond as JSON: {"read": one or two plain sentences on what this song is really about so far and where it seems to stall, "questions": 3 short, specific questions about the song\'s subject that would dig up fresh material from the writer\'s real life, "moves": 8 objects {"idea": a short direction to take next (under 12 words), "line": a next line that starts that direction, in this writer\'s voice and matching the song\'s line length}}. The 8 moves must go in genuinely different directions. Be concrete, no flattery. If the song is empty, read the title, notes and brief and suggest openings.',{cache:false}).then(function(r){
+    if(!r||!r.moves){aiErr(o);return}
+    var mv=mzFilter((Array.isArray(r.moves)?r.moves:[]).filter(function(m){return m&&typeof m.line==='string'&&m.line.trim()}),function(m){return m.line},4);
+    var show=function(js){o.innerHTML='';
+      if(js){mv.forEach(function(m,i){m.js=js[i]!=null?js[i]:0});mv.sort(function(a,b){return b.js-a.js})}
+      var p=document.createElement('p');p.textContent=r.read||'';o.appendChild(p);
+      if(r.questions&&r.questions.length){var h=document.createElement('h4');h.textContent='Answer one of these in your head';o.appendChild(h);r.questions.forEach(function(q){var x=document.createElement('p');x.textContent='• '+q;o.appendChild(x)})}
+      var h2=document.createElement('h4');h2.textContent='Ways forward (tap to add the line)';o.appendChild(h2);
+      mv.slice(0,4).forEach(function(m){var row=mzLineRow(o,{line:m.line,meta:''},function(){insLine(m.line)},'muse'),b=row.querySelector('.ln');b.className='mv';b.innerHTML='<b></b><span></span><em></em>';b.children[0].textContent=m.idea||'';b.children[1].textContent=m.line;b.children[2].textContent=lsyl(m.line)+' syl · tap to add'});
+      act(o,'Read again',readSong)};
+    o.innerHTML='<p>'+aidots()+' Picking the best ways forward</p>';
+    mzJudge(mv.map(function(m){return m.line}),{section:k.st,what:'the next line for this song'}).then(show)},function(){aiErr(o)})}
+function fourWays(){if(!needAI())return;var o=stkOut('<p>'+aidots()+' Writing four directions</p>'),at=getSel().s,k=ctx(),ref=k.ref||'';
+  aiJson('Songwriting partner.'+pfx()+'\n\n'+songCtx({at:at})+museCtx(k.st)+'\n\nThe writer is stuck on the next line. Write 8 candidate next lines, two for each of four clearly different directions: 1) a concrete physical detail, 2) a memory or flashback, 3) something said out loud (dialogue), 4) a twist or contradiction. Match the length of "'+ref+'". Return JSON: [{"kind": "Detail"|"Memory"|"Dialogue"|"Twist", "line": "..."}].',{cache:false}).then(function(r){
+    var c=mzFilter((Array.isArray(r)?r:[]).filter(function(x){return x&&typeof x.line==='string'&&x.line.trim()}),function(x){return x.line},4);
+    if(!c.length){aiErr(o);return}
+    o.innerHTML='<p>'+aidots()+' Picking the strongest of each</p>';
+    mzJudge(c.map(function(x){return x.line}),{section:k.st,what:'the next line for this song'}).then(function(js){
+      c.forEach(function(x,i){x.js=js&&js[i]!=null?js[i]:0});
+      var best={},order=[];c.forEach(function(x){var kk=x.kind||'';if(!best[kk]){best[kk]=x;order.push(kk)}else if(x.js>best[kk].js)best[kk]=x});
+      o.innerHTML='<h4>Tap one to add it</h4>';order.forEach(function(kk){var x=best[kk];lineBtn(o,x.line,(x.kind||'')+' · '+lsyl(x.line)+' syl')});act(o,'Four more',fourWays)})},function(){aiErr(o)})}
 function flipIt(){if(!needAI())return;var k=ctx(),last=(k.cur.trim()?k.cur:k.ref).trim();if(!last){stkOut('<p>Write a line first, then flip it.</p>');return}var o=stkOut('<p>'+aidots()+' Flipping “'+esc(last)+'”</p>');
   aiJson('Songwriting partner.'+pfx()+'\n\n'+songCtx({at:k.le})+'\n\nTake this line: "'+last+'". Write 6 alternatives that flip it: from the other person\'s point of view, the opposite feeling, years later, as a question, as an understatement, and as an exaggeration. Keep about '+lsyl(last)+' syllables. Return JSON: [{"flip": short label, "line": "..."}].',{cache:false}).then(function(r){
     if(!Array.isArray(r)||!r.length){aiErr(o);return}o.innerHTML='<h4>Flips of your last line. Tap to add as the next line</h4>';r.forEach(function(x){if(x&&x.line)lineBtn(o,x.line,(x.flip||'')+' · '+lsyl(x.line)+' syl')});act(o,'Flip again',flipIt)},function(){aiErr(o)})}
@@ -16844,7 +17023,7 @@ function onAuthUser(){
   if(uid!==lastAuthUid){lastAuthUid=uid;cloudDidPull=false;PENDING_INVITES=[];MY_PROFILE=null}
   var ag=$('#authgate');if(ag)ag.style.display=(AUTH_USER||DEV_MODE)?'none':'flex';
   ensureStorageForMode();
-  if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling()}
+  if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling();MZ.noTable=false;setTimeout(mzPull,1500)}
   if(AUTH_USER)setTimeout(function(){if(cur&&cur.shared)pullShared(cur);liveEnsure()},0);
   if(!AUTH_USER){stopInvitePolling();libStop()}
   refreshAccount();
