@@ -47,7 +47,7 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 .empty{text-align:center;color:var(--mute);margin:90px 44px;line-height:1.4}
 #svault{flex:none;margin:2px 0 8px}
 #svault em{font-style:normal;font-size:13px;color:var(--mute);margin-left:auto;padding-left:8px}
-.irow0{padding-top:8px}
+.irow0{margin-top:10px}
 .th.ith{background:linear-gradient(150deg,#FFE9A8,#FFD3BE 60%,#F6C6E4);color:#fff;box-shadow:0 0 0 .5px var(--ring)}
 .th.ith svg{position:relative;z-index:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.18))}
 .th.ith{position:relative}.th.ith::after{content:'';position:absolute;inset:0;border-radius:inherit;background:#000;opacity:0;pointer-events:none}
@@ -55,7 +55,7 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 :root[data-theme="dark"] .th.ith::after{opacity:.22}
 .ijb{flex:none;width:34px;height:34px;border-radius:50%;background:var(--fill);color:var(--ink);display:grid;place-items:center;margin-right:-4px}
 .ijb:active{transform:scale(.92)}
-.ijot{margin:4px 16px 14px;padding:10px 10px 10px 14px;display:flex;flex-direction:column;gap:8px}
+.ijot.gf{margin:20px 16px 14px;padding:10px 10px 10px 14px;display:flex;flex-direction:column;gap:8px}
 #ijotk{align-self:flex-start;margin:0}.ijk button,.ikind button{padding:0 12px;height:28px;font-size:13px}
 .ijrow{display:flex;align-items:flex-end;gap:8px}
 #ijot{flex:1;border:0;background:none;font:inherit;font-size:17px;line-height:1.35;color:var(--ink);outline:0;resize:none;padding:6px 0;min-height:34px;max-height:180px}
@@ -14872,7 +14872,12 @@ function haptic(kind){
 var NAV_DEPTH={vList:0,vIdeas:1,vEdit:1},navT=0;
 /* no slide in the Mac app (window.desktop is its bridge) - it keeps the quick fade, like a desktop app */
 function navCalm(){if(window.desktop)return true;try{return matchMedia('(prefers-reduced-motion: reduce)').matches||(document.body.classList.contains('side')&&matchMedia('(min-width:980px)').matches)}catch(e){return false}}
-function show(id){
+/* the song list and Ideas scroll under a floating header whose height differs between iPhone (safe area), the Mac
+   app (title bar) and the web; measure it instead of guessing so the first row never starts underneath it */
+function fitHeads(){['vList','vIdeas'].forEach(function(id){var v=document.getElementById(id),h=v&&v.querySelector('.lhead'),sc=v&&v.querySelector('.scroll');
+  if(!h||!sc||!v.classList.contains('on'))return;var hh=h.getBoundingClientRect().bottom-v.getBoundingClientRect().top;if(hh>20)sc.style.paddingTop=Math.round(hh)+'px'})}
+window.addEventListener('resize',function(){requestAnimationFrame(fitHeads)});
+function show(id){setTimeout(fitHeads,0);requestAnimationFrame(fitHeads);
   var from=document.querySelector('.view.on'),fromId=from&&from.id,to=document.getElementById(id);
   clearTimeout(navT);document.querySelectorAll('.view').forEach(function(v){v.classList.remove('vout','nav-in-r','nav-out-l','nav-in-l','nav-out-r','navdone')});
   document.querySelectorAll('.view').forEach(function(v){v.classList.toggle('on',v.id===id)});document.body.classList.toggle('listv',id==='vList');if(typeof syncSideVisibility==='function')syncSideVisibility();
@@ -15654,6 +15659,7 @@ $('#svault').onclick=function(){openIdeas();if(!wideMQ.matches)sideOn(false)};
 $('#ideaBack').onclick=function(){show('vList')};
 $('#inew').onclick=function(){editIdea(null)};
 $('#iq').addEventListener('input',renderIdeas);
+setTimeout(fitHeads,0);window.addEventListener('load',fitHeads);
 $('#ijot').addEventListener('input',ijotFit);
 $('#ijot').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();ijotSave()}});
 $('#ijotgo').onmousedown=prevent;$('#ijotgo').onclick=ijotSave;
