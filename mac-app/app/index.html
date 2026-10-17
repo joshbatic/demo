@@ -18402,21 +18402,31 @@ function shLinkErr(e){var m=(e&&(e.message||e.error||e.code))||String(e||''),st=
   if(st==='save'&&deny)return'this link belongs to someone else. Try again and you’ll get your own link.';
   return sfErr(e)+(st?' ['+st+': '+m+']':'')}
 function shArtBlob(song){if(song.art)return fetch(song.art).then(function(r){return r.blob()});
-  return shLoadImg(shCoverSrc(song)).then(function(im){var c=document.createElement('canvas');c.width=c.height=480;if(im)c.getContext('2d').drawImage(im,0,0,480,480);return new Promise(function(res){c.toBlob(res,'image/png')})})}
+  return shLoadImg(shCoverSrc(song)).then(function(im){var c=document.createElement('canvas');c.width=c.height=480;if(im)c.getContext('2d').drawImage(im,0,0,480,480);return new Promise(function(res){c.toBlob(res,'image/jpeg',.9)})})}
 /* a share link belongs to whoever made it: on a song written together, the other writer's link can't be updated
    by you (and vice versa), so you get your own link instead of an access error */
 function shMine(song){var sh=song&&song.share,uid=AUTH_USER&&AUTH_USER.id;if(!sh||!sh.id)return null;
   if(sh.by)return sh.by===uid?sh.id:null;return(!song.shared||song.owner===uid)?sh.id:null}
 /* tags an error with the step it happened in, so the message says what actually went wrong */
 function shStep(step){return function(e){if(e&&typeof e==='object'&&!e.step){try{e.step=step}catch(x){}}else if(!e||typeof e!=='object')e={message:String(e||''),step:step};throw e}}
-function shLinkMake(song,bg,withAudio,id){var c=sbClient(),uid=AUTH_USER.id;id=id||shMine(song)||shId();var dir=uid+'/'+id+'/',v=Date.now().toString(36),st=c.storage.from(SHARE_BUCKET),a=withAudio?audCur(song):null,keep=[];
-  var up=function(name,blob){keep.push(name);return st.upload(dir+name,blob,{upsert:true,contentType:blob.type||'application/octet-stream',cacheControl:'31536000'}).then(function(r){if(r.error)throw r.error;return st.getPublicUrl(dir+name).data.publicUrl})};
-  return shArtBlob(song).then(function(b){return up('art-'+v+(b.type==='image/png'?'.png':'.jpg'),b).catch(shStep('upload'))}).then(function(art){
-    return(a?shAudioBlob(a).catch(shStep('read')).then(function(b){return up('audio-'+v+'.'+(/mpeg/.test(b.type)?'mp3':sfExt(a.name||a.path||'',b.type||a.mime)),b).catch(shStep('upload'))}):Promise.resolve(null)).then(function(au){
-      var d=shSnap(song,bg,a,au,art);
-      return shOgImage(song,bg,a).then(function(b){return up('og-'+v+(b.type==='image/png'?'.png':'.jpg'),b).catch(shStep('upload'))}).then(function(og){d.og=og;return c.from('shares').upsert({id:id,owner:uid,song_id:song.id,data:d,updated_at:new Date().toISOString()}).then(function(r){if(r.error){r.error.step='save';throw r.error}
-        st.list(uid+'/'+id).then(function(l){var old=((l&&l.data)||[]).map(function(f){return f.name}).filter(function(n){return keep.indexOf(n)<0});if(old.length)st.remove(old.map(function(n){return dir+n}))}).catch(function(){});
-        song.share={id:id,at:Date.now(),audio:!!au,by:uid};sfTouch(song);return id})})})})}
+function shLinkMake(song,bg,withAudio,id){var c=sbClient(),uid=AUTH_USER.id;id=id||shMine(song)||shId();var dir=uid+'/'+id+'/',v=Date.now().toString(36),st=c.storage.from(SHARE_BUCKET),a=withAudio?audCur(song):null,keep=[],prev=song.share&&song.share.id===id?song.share:null,aname=null;
+  var url=function(name){return st.getPublicUrl(dir+name).data.publicUrl};
+  var up=function(name,blob){keep.push(name);return st.upload(dir+name,blob,{upsert:true,contentType:blob.type||'application/octet-stream',cacheControl:'31536000'}).then(function(r){if(r.error)throw r.error;return url(name)})};
+  /* the audio is the slow part, so: reuse it when it's the same version as last time; otherwise copy it straight
+     across inside Supabase (nothing goes through the phone); only if that isn't possible, download and re-upload */
+  var audio=function(){if(!a)return Promise.resolve(null);
+    if(prev&&prev.aid===a.id&&prev.aname){keep.push(prev.aname);aname=prev.aname;return Promise.resolve(url(prev.aname))}
+    var viaPhone=function(){return shAudioBlob(a).catch(shStep('read')).then(function(b){aname='audio-'+v+'.'+(/mpeg/.test(b.type)?'mp3':sfExt(a.name||a.path||'',b.type||a.mime));return up(aname,b).catch(shStep('upload'))})};
+    if(!a.path||/^local:/.test(a.path)||(a.size&&a.size>40e6))return viaPhone();
+    var nm='audio-'+v+'.'+sfExt(a.path,a.mime);
+    return c.storage.from(SF_BUCKET).copy(a.path,dir+nm,{destinationBucket:SHARE_BUCKET}).then(function(r){if(r.error)throw r.error;keep.push(nm);aname=nm;return url(nm)}).catch(viaPhone)};
+  /* artwork, audio and the preview picture all at once rather than one after another */
+  var art=shArtBlob(song).then(function(b){return up('art-'+v+(b.type==='image/png'?'.png':'.jpg'),b).catch(shStep('upload'))});
+  var au=audio(),ogp=shOgImage(song,bg,a).then(function(b){return up('og-'+v+(b.type==='image/png'?'.png':'.jpg'),b).catch(shStep('upload'))});
+  return Promise.all([art,au,ogp]).then(function(r){var d=shSnap(song,bg,a,r[1],r[0]);d.og=r[2];
+    return Promise.resolve().then(function(){return c.from('shares').upsert({id:id,owner:uid,song_id:song.id,data:d,updated_at:new Date().toISOString()}).then(function(res){if(res.error){res.error.step='save';throw res.error}
+      st.list(uid+'/'+id).then(function(l){var old=((l&&l.data)||[]).map(function(f){return f.name}).filter(function(n){return keep.indexOf(n)<0});if(old.length)st.remove(old.map(function(n){return dir+n}))}).catch(function(){});
+      song.share={id:id,at:Date.now(),audio:!!r[1],by:uid,aid:r[1]&&a?a.id:null,aname:r[1]?aname:null};sfTouch(song);return id})})})}
 function shLinkStop(song){var c=sbClient(),id=shMine(song);if(!id)return Promise.reject(new Error('Only the writer who made this link can stop it.'));var uid=AUTH_USER.id,st=c.storage.from(SHARE_BUCKET);
   return c.from('shares').delete().eq('id',id).then(function(r){if(r.error)throw r.error;
     return st.list(uid+'/'+id).then(function(l){var n=((l&&l.data)||[]).map(function(f){return uid+'/'+id+'/'+f.name});return n.length?st.remove(n):null}).catch(function(){})})
