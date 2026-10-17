@@ -1,5 +1,7 @@
 {
   "rewrites": [
+    { "source": "/:name([A-Za-z0-9_@]{3,21})", "has": [{ "type": "host", "value": "artist.hellodemo.app" }], "destination": "/api/a?name=:name" },
+    { "source": "/a/:name([A-Za-z0-9_@]{3,21})", "destination": "/api/a?name=:name" },
     { "source": "/:id([A-Za-z0-9]{10})", "destination": "/api/s?id=:id" }
   ],
   "redirects": [

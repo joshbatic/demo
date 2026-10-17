@@ -125,9 +125,9 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 /* sheet */
 #scrim{position:fixed;inset:0;background:rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .25s;z-index:4}
 #scrim.on{opacity:1;pointer-events:auto}
-#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8{position:fixed;left:0;right:0;bottom:0;height:88%;max-width:720px;margin:0 auto;background:var(--sheet);-webkit-backdrop-filter:blur(40px) saturate(190%);backdrop-filter:blur(40px) saturate(190%);box-shadow:none;border-radius:38px 38px 0 0;transform:translateY(105%);transition:transform .38s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;z-index:5;padding-bottom:env(safe-area-inset-bottom,0px)}
-#sheet.on,#sheet2.on,#sheet3.on,#sheet4.on,#sheet5.on,#sheet6.on,#sheet7.on,#sheet8.on{transform:none;box-shadow:0 0 0 .5px var(--ring),0 -4px 24px var(--sh2),inset 0 1px 0 var(--hl)}
-#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8{height:auto;max-height:84%;overflow-y:auto;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet9{position:fixed;left:0;right:0;bottom:0;height:88%;max-width:720px;margin:0 auto;background:var(--sheet);-webkit-backdrop-filter:blur(40px) saturate(190%);backdrop-filter:blur(40px) saturate(190%);box-shadow:none;border-radius:38px 38px 0 0;transform:translateY(105%);transition:transform .38s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;z-index:5;padding-bottom:env(safe-area-inset-bottom,0px)}
+#sheet.on,#sheet2.on,#sheet3.on,#sheet4.on,#sheet5.on,#sheet6.on,#sheet7.on,#sheet8.on,#sheet9.on{transform:none;box-shadow:0 0 0 .5px var(--ring),0 -4px 24px var(--sh2),inset 0 1px 0 var(--hl)}
+#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet9{height:auto;max-height:84%;overflow-y:auto;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 /* Account scrolls differently from the other auto-height sheets above: the whole sheet (including
    its .sh title/Done header) was the scroll container, so the header scrolled away with the content
    instead of staying put like it does in Details (#sheet), where only the inner pane scrolls and the
@@ -513,6 +513,12 @@ body.ios .song{padding:13px 24px}
 .go2{height:38px;padding:0 16px;border-radius:99px;font-size:14.5px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;background:var(--tint);color:var(--ontint)}
 .go2.ghost{background:none;color:var(--ink);box-shadow:inset 0 0 0 1px var(--sep)}
 .go2[disabled]{opacity:.5}
+#pgx{padding-top:4px}#pgx .relnote{padding:2px 20px 12px}#pgx .gf{margin-bottom:6px}#pgx .lab{padding-top:14px}
+#sheet9 .pgbio textarea{flex:1;min-width:0;border:0;background:none;outline:0;resize:none;font:inherit;font-size:16.5px;line-height:1.4;color:var(--ink);padding:13px 0}
+#sheet9 .pgbio textarea::placeholder{color:var(--mute);opacity:.75}
+#sheet9 .cell.form span.fl,#p-rel .cell.form span.fl{width:112px}
+#sheet9 .pgchips{padding:0 16px 12px 69px;margin-top:-4px}
+#sheet9 .pgsong .swtch{margin-left:4px}
 #rt-out:empty{display:none}
 #rt-out{padding:10px 0 22px;animation:pop .22s ease-out}
 #rt-out .gf{margin-bottom:6px}#rt-out .relnote{padding:2px 20px 12px}
@@ -621,37 +627,37 @@ body.ios .song{padding:13px 24px}
 :is(#acc) .crstat b{font-size:24px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 :is(#acc) .crstat span{font-size:12.5px;color:var(--mute)}
 :is(#acc) .crstat div+div{border-left:.5px solid var(--sep)}
-:is(#acc) .cell.crrow{gap:12px;min-height:64px}
-:is(#acc) .cell.crrow+.cell.crrow::before{left:68px}
-:is(#acc) .crth{width:40px;height:40px;border-radius:9px;flex:none;overflow:hidden;background:var(--cv1) center/cover;box-shadow:0 0 0 .5px var(--ring);display:block}
-:is(#acc) .crempty{padding:18px 18px 20px;display:flex;flex-direction:column;gap:3px}
-:is(#acc) .crempty b{font-size:15.5px}:is(#acc) .crempty span{font-size:13.5px;color:var(--mute);line-height:1.4}
-:is(#acc,#p-aud,#p-rel,#sheet4) .labrow{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;min-height:22px}
-:is(#acc,#p-aud,#p-rel,#sheet4) .labact{display:flex;gap:2px;margin:-8px -10px -5px 0}
-:is(#acc,#p-aud,#p-rel,#sheet4) .labact button{font-size:15px;font-weight:600;color:var(--ink);background:none;padding:6px 10px;border-radius:99px}
-:is(#acc,#p-aud,#p-rel,#sheet4) .labact button.ghost{color:var(--mute);font-weight:500}
-:is(#acc,#p-aud,#p-rel,#sheet4) .labact button:disabled{opacity:.4}
-:is(#acc,#p-aud,#p-rel,#sheet4) .cell{display:flex;align-items:center;gap:13px;width:100%;min-height:52px;padding:0 16px;background:none;color:var(--ink);font-size:16.5px;text-align:left;position:relative;-webkit-tap-highlight-color:transparent;transition:background-color .12s}
-:is(#acc,#p-aud,#p-rel,#sheet4) .cell+.cell::before{content:'';position:absolute;top:0;right:0;left:59px;border-top:.5px solid var(--sep)}
-:is(#acc,#p-aud,#p-rel,#sheet4) .cell+.cell.notile::before{left:16px}
-:is(#acc,#p-aud,#p-rel,#sheet4) .cell .ct{flex:1;min-width:0;line-height:1.3;padding:13px 0}
-:is(#acc,#p-aud,#p-rel,#sheet4) .cell .cv{flex:none;max-width:52%;color:var(--mute);font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-:is(#acc,#p-aud,#p-rel,#sheet4) .cell .chev{flex:none;display:flex;color:var(--mute);opacity:.5;margin-left:-3px}
-:is(#acc,#p-aud,#p-rel,#sheet4) button.cell:active{background:var(--fill)}
-@media (hover:hover){:is(#acc,#p-aud,#p-rel,#sheet4) button.cell:hover{background:var(--fill)}}
-:is(#acc,#p-aud,#p-rel,#sheet4) .cell.danger{justify-content:center}
-:is(#acc,#p-aud,#p-rel,#sheet4) .cell.danger .ct{flex:none;color:var(--red);text-align:center}
-:is(#acc,#p-aud,#p-rel,#sheet4) .tile{width:30px;height:30px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--tint);color:var(--ontint)}
-:is(#acc,#p-aud,#p-rel,#sheet4) .tile svg{width:17px;height:17px}
-:is(#acc,#p-aud,#p-rel,#sheet4) .tile.soc-spotify{background:#1ED760;color:#000}
-:is(#acc,#p-aud,#p-rel,#sheet4) .tile.soc-spotify svg{width:20px;height:20px}
-:is(#acc,#p-aud,#p-rel,#sheet4) .tile.soc-instagram{background:radial-gradient(circle at 30% 107%,#fdf497 0,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285AEB 90%);color:#fff}
-:is(#acc,#p-aud,#p-rel,#sheet4) .tile.soc-instagram svg{width:18px;height:18px}
-:is(#acc,#p-aud,#p-rel,#sheet4) .tile.soc-tiktok{background:#000;color:#fff;box-shadow:inset 0 0 0 .5px rgba(255,255,255,.2)}
-:is(#acc,#p-aud,#p-rel,#sheet4) .cell.form{cursor:text}
-:is(#acc,#p-aud,#p-rel,#sheet4) .cell.form .fl{flex:none;width:96px;padding:13px 0}
-:is(#acc,#p-aud,#p-rel,#sheet4) .cell.form input{flex:1;min-width:0;border:0;background:none;outline:0;font-size:16.5px;color:var(--ink);padding:14px 0;border-radius:0}
-:is(#acc,#p-aud,#p-rel,#sheet4) .cell.form input::placeholder{color:var(--mute);opacity:.75}
+:is(#acc,#sheet9) .cell.crrow{gap:12px;min-height:64px}
+:is(#acc,#sheet9) .cell.crrow+.cell.crrow::before{left:68px}
+:is(#acc,#sheet9) .crth{width:40px;height:40px;border-radius:9px;flex:none;overflow:hidden;background:var(--cv1) center/cover;box-shadow:0 0 0 .5px var(--ring);display:block}
+:is(#acc,#sheet9) .crempty{padding:18px 18px 20px;display:flex;flex-direction:column;gap:3px}
+:is(#acc,#sheet9) .crempty b{font-size:15.5px}:is(#acc,#sheet9) .crempty span{font-size:13.5px;color:var(--mute);line-height:1.4}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .labrow{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;min-height:22px}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .labact{display:flex;gap:2px;margin:-8px -10px -5px 0}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .labact button{font-size:15px;font-weight:600;color:var(--ink);background:none;padding:6px 10px;border-radius:99px}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .labact button.ghost{color:var(--mute);font-weight:500}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .labact button:disabled{opacity:.4}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .cell{display:flex;align-items:center;gap:13px;width:100%;min-height:52px;padding:0 16px;background:none;color:var(--ink);font-size:16.5px;text-align:left;position:relative;-webkit-tap-highlight-color:transparent;transition:background-color .12s}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .cell+.cell::before{content:'';position:absolute;top:0;right:0;left:59px;border-top:.5px solid var(--sep)}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .cell+.cell.notile::before{left:16px}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .cell .ct{flex:1;min-width:0;line-height:1.3;padding:13px 0}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .cell .cv{flex:none;max-width:52%;color:var(--mute);font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .cell .chev{flex:none;display:flex;color:var(--mute);opacity:.5;margin-left:-3px}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) button.cell:active{background:var(--fill)}
+@media (hover:hover){:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) button.cell:hover{background:var(--fill)}}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .cell.danger{justify-content:center}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .cell.danger .ct{flex:none;color:var(--red);text-align:center}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .tile{width:30px;height:30px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--tint);color:var(--ontint)}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .tile svg{width:17px;height:17px}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .tile.soc-spotify{background:#1ED760;color:#000}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .tile.soc-spotify svg{width:20px;height:20px}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .tile.soc-instagram{background:radial-gradient(circle at 30% 107%,#fdf497 0,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285AEB 90%);color:#fff}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .tile.soc-instagram svg{width:18px;height:18px}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .tile.soc-tiktok{background:#000;color:#fff;box-shadow:inset 0 0 0 .5px rgba(255,255,255,.2)}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .cell.form{cursor:text}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .cell.form .fl{flex:none;width:96px;padding:13px 0}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .cell.form input{flex:1;min-width:0;border:0;background:none;outline:0;font-size:16.5px;color:var(--ink);padding:14px 0;border-radius:0}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet9) .cell.form input::placeholder{color:var(--mute);opacity:.75}
 #acc .atpre{color:var(--mute);margin-right:-13px}
 #acc .devwrap .devcard{margin-top:0}
 /* ---------- Audio & Credits tabs (Pro) ---------- */
@@ -931,6 +937,7 @@ body.sprinting #rhy{display:none}
 <div id="sheet5" role="dialog" aria-label="Clean up"><div class="sh"><b>Clean up</b><button id="done5">Done</button></div><div id="cu"></div></div>
 <div id="sheet6" role="dialog" aria-label="Account"><div class="sh"><b>Account</b><button id="done6">Done</button></div><div id="acc"></div></div>
 <div id="sheet8" role="dialog" aria-label="Share song"><div class="sh"><b>Share</b><button id="done8">Done</button></div><div id="shr"></div></div>
+<div id="sheet9" role="dialog" aria-label="Your page"><div class="sh"><b>Your Page</b><button id="done9">Done</button></div><div id="pgx"></div></div>
 <div id="sheet7" role="dialog" aria-label="Idea"><div class="sh"><b>Idea</b><button id="idel" hidden style="color:var(--red)">Delete</button></div><div class="seg ikind" id="ikind"></div><div style="padding:0 20px 12px"><textarea id="itext" rows="4" placeholder="A hook, a title, a stray line, a concept…" style="width:100%;border:0;background:var(--fill);border-radius:14px;padding:12px 14px;font-size:16px;line-height:1.35;color:var(--ink);resize:vertical;outline:0"></textarea></div><div style="padding:0 20px 6px;font-size:12.5px;color:var(--mute)">Tags — mood, theme, project, status, whatever helps you find it later</div><div style="padding:0 20px 18px"><input id="itags" placeholder="e.g. wistful, breakup, album 3, unused" style="width:100%;border:0;background:var(--fill);border-radius:12px;padding:10px 14px;font-size:15px;color:var(--ink);outline:0"></div><div style="display:flex;gap:10px;padding:0 20px 20px"><button class="go" id="isave" style="flex:1;justify-content:center">Save</button><button class="go2 ghost" id="ito" hidden>Start a Song</button><button class="go2 ghost" id="icancel">Cancel</button></div></div>
 <div id="dictSheet" role="dialog" aria-label="Dictionary">
   <div class="sh"><b>Dictionary</b><button id="dictdone">Done</button></div>
@@ -15392,7 +15399,7 @@ $('#logo').onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefau
 var delArm=0;$('#del').onclick=function(){var b=this;if(Date.now()-delArm>3000){delArm=Date.now();b.textContent='Tap Again to Delete';setTimeout(function(){b.textContent='Delete Song'},3000);return}delArm=0;b.textContent='Delete Song';removeSong(cur)};
 function sheet(on,w){if(on&&!wideMQ.matches&&document.body.classList.contains('side'))sideOn(false);
   if(on){var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'||ae.id==='q'))ae.blur()}
-  if(!on){var fa=document.activeElement;if(fa&&fa.blur&&fa.closest&&fa.closest('[role=dialog]'))fa.blur();$('#sheet').classList.remove('on');$('#sheet2').classList.remove('on');$('#sheet3').classList.remove('on');$('#sheet4').classList.remove('on');$('#sheet5').classList.remove('on');$('#sheet6').classList.remove('on');$('#sheet7').classList.remove('on');$('#sheet8').classList.remove('on')}else $('#'+(w||'sheet')).classList.add('on');$('#scrim').classList.toggle('on',on)}
+  if(!on){var fa=document.activeElement;if(fa&&fa.blur&&fa.closest&&fa.closest('[role=dialog]'))fa.blur();$('#sheet').classList.remove('on');$('#sheet2').classList.remove('on');$('#sheet3').classList.remove('on');$('#sheet4').classList.remove('on');$('#sheet5').classList.remove('on');$('#sheet6').classList.remove('on');$('#sheet7').classList.remove('on');$('#sheet8').classList.remove('on');$('#sheet9').classList.remove('on')}else $('#'+(w||'sheet')).classList.add('on');$('#scrim').classList.toggle('on',on)}
 $('#det').onclick=function(){dtab('inf');renderVers();renderCollab();sheet(true)};$('#done').onclick=function(){sheet(false)};$('#scrim').onclick=function(){sheet(false);closeDict()};
 function dtab(t){if(t==='mel'&&!isPro()){upsell('melody');t='inf'}if((t==='aud'||t==='rel')&&!isPro()){upsell('audio');t='inf'}document.querySelectorAll('#dseg button').forEach(function(x){x.classList.toggle('on',x.dataset.t===t)});['chd','inf','mel','aud','rel'].forEach(function(p){$('#p-'+p).classList.toggle('on',p===t)});if(t==='mel')renderMel();if(t==='aud')renderAud();if(t==='rel')renderRel()}
 document.querySelectorAll('#dseg button').forEach(function(b){b.onclick=function(){dtab(b.dataset.t)}});
@@ -17217,10 +17224,10 @@ var lastAuthUid=null;
 function onAuthUser(){
   if(AUTH_USER&&DEV_MODE){DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}}
   var uid=AUTH_USER&&AUTH_USER.id;
-  if(uid!==lastAuthUid){lastAuthUid=uid;cloudDidPull=false;PENDING_INVITES=[];MY_PROFILE=null;mzLoad()}
+  if(uid!==lastAuthUid){lastAuthUid=uid;cloudDidPull=false;PENDING_INVITES=[];MY_PROFILE=null;mzLoad();if(typeof pgReset==='function')pgReset()}
   var ag=$('#authgate');if(ag)ag.style.display=(AUTH_USER||DEV_MODE)?'none':'flex';
   ensureStorageForMode();
-  if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling();MZ.noTable=false;setTimeout(mzPull,1500);setTimeout(sharedGoneCheck,5000)}
+  if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling();MZ.noTable=false;setTimeout(mzPull,1500);setTimeout(function(){pgLoad()},4000);setTimeout(sharedGoneCheck,5000)}
   if(AUTH_USER)setTimeout(function(){if(cur&&cur.shared)pullShared(cur);liveEnsure()},0);
   if(!AUTH_USER){stopInvitePolling();libStop()}
   refreshAccount();
@@ -17307,7 +17314,7 @@ function saveLinks(fields){var c=sbClient();if(!c||!AUTH_USER)return Promise.rej
   return c.from('profiles').upsert(body,{onConflict:'user_id'}).then(function(r){
     if(r&&r.error)return Promise.reject(new Error(r.error.message));
     MY_PROFILE=MY_PROFILE||{};Object.keys(fields).forEach(function(k){MY_PROFILE[k]=fields[k]});
-    profCacheSet(AUTH_USER.id,MY_PROFILE);
+    profCacheSet(AUTH_USER.id,MY_PROFILE);if(PG.on)pgSoon();
   })
 }
 /* reads your profile from the cloud, with a local cache as a safety net: a
@@ -17344,7 +17351,7 @@ function loadProfile(){var c=sbClient();if(!c||!AUTH_USER)return;var uid=AUTH_US
 function saveAvatar(durl){var c=sbClient();if(!c||!AUTH_USER)return Promise.reject(new Error('Sign-in isn’t available right now.'));
   return c.from('profiles').upsert({user_id:AUTH_USER.id,avatar_url:durl,display_name:(MY_PROFILE&&MY_PROFILE.display_name)||myName()||null,updated_at:new Date().toISOString()},{onConflict:'user_id'}).then(function(r){
     if(r&&r.error)return Promise.reject(new Error(r.error.message));
-    MY_PROFILE=MY_PROFILE||{};MY_PROFILE.avatar_url=durl;profCacheSet(AUTH_USER.id,MY_PROFILE);
+    MY_PROFILE=MY_PROFILE||{};MY_PROFILE.avatar_url=durl;profCacheSet(AUTH_USER.id,MY_PROFILE);if(PG.on)pgSoon();
   })
 }
 function saveUsername(v,dn){var c=sbClient();if(!c||!AUTH_USER)return Promise.reject(new Error('Sign-in isn’t available right now.'));
@@ -17352,7 +17359,7 @@ function saveUsername(v,dn){var c=sbClient();if(!c||!AUTH_USER)return Promise.re
   if(!/^[a-z0-9_]{3,20}$/.test(v))return Promise.reject(new Error('Usernames are 3–20 characters: letters, numbers, underscores.'));
   return c.from('profiles').upsert({user_id:AUTH_USER.id,username:v,display_name:(dn||myName()||v),updated_at:new Date().toISOString()},{onConflict:'user_id'}).then(function(r){
     if(r&&r.error)return Promise.reject(new Error(r.error.code==='23505'?'That username’s taken.':/reserved_username/.test(r.error.message||'')?'That username’s reserved. If it’s your name, get in touch through hellodemo.app and we’ll set it up for you.':r.error.message));
-    MY_PROFILE=MY_PROFILE||{};MY_PROFILE.username=v;if(dn)MY_PROFILE.display_name=dn;profCacheSet(AUTH_USER.id,MY_PROFILE);
+    MY_PROFILE=MY_PROFILE||{};MY_PROFILE.username=v;if(dn)MY_PROFILE.display_name=dn;profCacheSet(AUTH_USER.id,MY_PROFILE);if(PG.on)pgSoon();
   })
 }
 function fetchProfiles(ids,cb){var c=sbClient();ids=(ids||[]).filter(function(v,i,a){return v&&a.indexOf(v)===i});if(!c||!ids.length)return cb({});
@@ -17848,6 +17855,10 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
       if(linking){var hm=(k==='instagram'||k==='tiktok')&&/(?:instagram|tiktok)\.com\/@?([^\/?#]+)/i.exec(v||'');var ip=formCell(lg,sx[1],k==='spotify'?'Paste your artist link':'@username','l_'+k,hm?'@'+hm[1]:v,sx[3],'soc-'+k);ip.autocapitalize='off';ip.autocomplete='off';ip.spellcheck=false;ip.inputMode='url';linkInputs[k]=ip;if(!ix&&ACC_AUTOFOCUS==='links'){ACC_AUTOFOCUS=null;try{ip.focus({preventScroll:true})}catch(e){}}}
       else lg.appendChild(accCell({tile:sx[3],tileCls:'soc-'+k,label:sx[1],value:v?socialShown(k,v):'Add',valueCls:v?'':'add',chev:v?'ext':true,onclick:function(){if(v)openLink(v);else{ACC_EDIT='links';ACC_DRAFT={};ACC_AUTOFOCUS='links';renderAccount()}}}));
     });
+    /* ---- Your Page: the public artist page ---- */
+    if(AUTH_USER&&!devFake){var pgg=accSection(o,'Your Page'),ph=pgHandle();
+      pgg.appendChild(accCell({tile:ACC_ICO.spark,label:'artist.hellodemo.app'+(ph?'/'+ph:''),value:PG.loaded?(PG.on?'On':'Off'):'',chev:true,onclick:openPage}));
+      if(!PG.loaded)pgLoad().then(function(){if($('#sheet6').classList.contains('on')&&!ACC_EDIT)renderAccount()})}
     function saveLinksNow(e){var btn=e&&e.target;if(btn)btn.disabled=true;
       var fields={};SOCIALS.forEach(function(sx){fields['link_'+sx[0]]=normalizeLink(sx[0],linkInputs[sx[0]].value)});
       if(devFake){Object.keys(fields).forEach(function(kk){dp[kk]=fields[kk]});devProfileSet(dp);ACC_EDIT=null;ACC_DRAFT={};toast('Saved (dev only)');renderAccount()}
@@ -18029,7 +18040,7 @@ function sfBlob(item){if(/^local:/.test(item.path))return audGet('f:'+item.id).t
   return sfUrl(item).then(function(u){return fetch(u)}).then(function(r){if(!r.ok)throw new Error('Couldn’t download the audio ('+r.status+').');return r.blob()})}
 function sfRemove(item){if(!item||!item.path)return Promise.resolve();delete SF_URLS[item.path];if(/^local:/.test(item.path))return audDel('f:'+item.id);if(!sfCloud())return Promise.resolve();
   return sbClient().storage.from(SF_BUCKET).remove([item.path]).then(function(){},function(){})}
-function sfTouch(song){song=song||cur;if(!song)return;song.updated=Date.now();save();if(song.shared)liveFiles(song)}
+function sfTouch(song){song=song||cur;if(!song)return;song.updated=Date.now();save();if(song.shared)liveFiles(song);if(typeof PG!=='undefined'&&PG.on&&PG.s.show&&PG.s.show[song.id])pgSoon()}
 /* ---------- deleted files stay deleted for everyone on a shared song ----------
    A deleted audio version or file leaves a small tombstone (song.rmFiles: id -> when). Tombstones are merged from
    every copy of the song and always win, so a co-writer's older copy can't bring a deleted file back, and the
@@ -18722,7 +18733,7 @@ function shLinkSend(){var song=SHR.song,r=shRec(song),u=r&&SHARE_BASE+r.id;if(!u
   if(navigator.share&&!window.desktop){navigator.share({title:song.title||'A song',url:u}).catch(function(){});return}
   shCopyNow(u).then(function(ok){toast(ok?'Link copied':u)})}
 function shAgo(t){var s=Math.round((Date.now()-t)/1000);if(s<60)return'just now';if(s<3600)return Math.round(s/60)+' min ago';if(s<86400)return Math.round(s/3600)+' h ago';return new Date(t).toLocaleDateString()}
-$('#shareb').onclick=openShare;$('#done8').onclick=function(){sheet(false)};
+$('#shareb').onclick=openShare;$('#done8').onclick=function(){sheet(false)};$('#done9').onclick=function(){sheet(false)};
 
 /* ---------- credits & splits, release details ---------- */
 var CREDIT_ROLES=['Writer','Composer','Lyricist','Producer','Performer','Featured artist','Mix engineer','Mastering engineer','Other'],SPLIT_ROLES={Writer:1,Composer:1,Lyricist:1};
@@ -18759,12 +18770,140 @@ function renderRel(){var o=$('#rel-body');if(!o||!cur)return;var song=cur,keepTo
   var sw=document.createElement('button');sw.className='swtch'+(R.explicit?' on':'');sw.setAttribute('role','switch');sw.setAttribute('aria-checked',R.explicit?'true':'false');sw.setAttribute('aria-label','Explicit');sw.innerHTML='<i></i>';
   sw.onclick=function(){song.release=song.release||{};song.release.explicit=!song.release.explicit;sw.classList.toggle('on',song.release.explicit);sw.setAttribute('aria-checked',song.release.explicit?'true':'false');sfTouch(song)};er.appendChild(sw);rg.appendChild(er);
   o.appendChild(rnote);
+  /* where to listen (and pre-save, before the release date): used by your artist page */
+  var lk=accSection(o,'Listen links');lk.id='rel-links';
+  [['spotify','Spotify','Track or album link'],['apple','Apple Music','Track or album link'],['youtube','YouTube','Video link'],['presave','Pre-save','Spotify Countdown or distributor link'],['preadd','Pre-add','Apple Music pre-release link']].forEach(function(f){
+    var r=document.createElement('label');r.className='cell form notile';var l=document.createElement('span');l.className='ct fl';l.textContent=f[1];r.appendChild(l);
+    var ip=document.createElement('input');ip.type='url';ip.inputMode='url';ip.autocapitalize='off';ip.autocomplete='off';ip.spellcheck=false;ip.placeholder=f[2];ip.value=R[f[0]]||'';ip.setAttribute('aria-label',f[1]);
+    ip.oninput=function(){song.release=song.release||{};var v=ip.value.trim();if(v)song.release[f[0]]=v;else delete song.release[f[0]];sfTouch(song)};r.appendChild(ip);lk.appendChild(r)});
+  o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:'Shown on your artist page. Before the release date fans see Pre-save and Pre-add; from release day, the listen links. Pre-save links come from Spotify for Artists (Countdown Pages) or your distributor.'}));
   function paintRel(){var rr=song.release||{},bad=[];
     if(rr.isrc&&!/^[A-Z]{2}-?[A-Z0-9]{3}-?\d{2}-?\d{5}$/.test(rr.isrc))bad.push('An ISRC looks like CC-XXX-YY-NNNNN (12 characters).');
     if(rr.upc&&!/^\d{12,13}$/.test(rr.upc))bad.push('A UPC is 12 digits (13 for an EAN).');
     rnote.className='relnote'+(bad.length?' warn':'');rnote.textContent=bad.length?bad.join(' '):'Kept with the song, ready for when you submit it to a distributor.'}
   paintRel();
   var pr=$('#p-rel');if(pr)pr.scrollTop=keepTop}
+
+/* ---------- Your Page: artist.hellodemo.app/<username>, a link-in-bio page for every writer ----------
+   The page is drawn from a snapshot the app publishes (artist_pages.data, see supabase/artist-pages.sql):
+   name, photo, bio, links and the songs the writer picks, with their artwork and (if they allow it) audio
+   copied into the public 'shares' bucket under <uid>/page/. Settings (what to show, bio, extra links) live
+   in the same row so they follow the account. Publishing happens by itself a moment after anything changes. */
+var PAGE_BASE='https://artist.hellodemo.app/';
+var PG={loaded:false,loading:null,on:false,s:{},at:0,busy:false,again:false,err:'',noTable:false,fans:null,t:0};
+var PG_LINKS=[['apple','Apple Music','Paste your artist link'],['youtube','YouTube','Channel link'],['soundcloud','SoundCloud','Profile link'],['bandcamp','Bandcamp','Page link'],['website','Website','yoursite.com']];
+function pgCloud(){var c=AUTH_USER&&!DEV_MODE&&sbClient();return c&&!PG.noTable?c:null}
+function pgMe(){return AUTH_USER&&AUTH_USER.id}
+function pgHandle(){return(MY_PROFILE&&MY_PROFILE.username)||''}
+function pgUrl(){var h=pgHandle();return h?PAGE_BASE+h:''}
+function pgLoad(){var c=pgCloud();if(!c)return Promise.resolve();if(PG.loading)return PG.loading;var forUid=pgMe();
+  PG.loading=c.from('artist_pages').select('enabled,settings,updated_at').maybeSingle().then(function(r){PG.loading=null;if(pgMe()!==forUid)return;
+    if(r.error){if(mzMissing(r.error))PG.noTable=true;return}
+    var row=r.data;PG.loaded=true;PG.on=!!(row&&row.enabled);PG.s=(row&&row.settings)||{};PG.at=row?Date.parse(row.updated_at)||0:0;pgNorm();
+    /* anything shown changed since the last publish (on any device): publish again */
+    if(PG.on&&pgShown().some(function(s){return(s.updated||0)>PG.at}))pgSoon()},function(){PG.loading=null});return PG.loading}
+function pgNorm(){var s=PG.s;s.show=s.show||{};s.play=s.play||{};s.links=s.links||{};s.files=s.files||{};if(typeof s.bio!=='string')s.bio=''}
+function pgReset(){PG={loaded:false,loading:null,on:false,s:{},at:0,busy:false,again:false,err:'',noTable:false,fans:null,t:0};pgNorm()}
+pgNorm();
+/* songs that can go on the page: the writer's own (or co-written) songs that are Finished or have a release date */
+function pgMine(s){var me=pgMe();return s.owner===me||(s.members||[]).indexOf(me)>=0||(!s.shared&&!s.owner)}
+function pgEligible(){var today=new Date().toISOString().slice(0,10);
+  return songs.filter(function(s){return s.id!==GUIDE_ID&&s.title&&pgMine(s)&&(s.status==='Finished'||(s.release&&s.release.date))})
+    .sort(function(a,b){var da=(a.release&&a.release.date)||'',db=(b.release&&b.release.date)||'',ua=da>today,ub=db>today;
+      if(ua!==ub)return ua?-1:1;if(ua)return da<db?-1:1;if(!!da!==!!db)return da?-1:1;if(da!==db)return da<db?1:-1;return(b.updated||0)-(a.updated||0)})}
+function pgShown(){return pgEligible().filter(function(s){return PG.s.show[s.id]})}
+function pgCo(s){var me=(myName()||'').toLowerCase();return(s.shared&&s.owner!==pgMe())||(s.credits||[]).some(function(c){return c&&c.name&&String(c.name).toLowerCase()!==me})}
+function pgArtSig(s){return artOk(s.art)?'a'+s.art.length+':'+s.art.slice(-48):'c:'+(s.title||'')+':'+(s.id||'')}
+function pgSoon(){clearTimeout(PG.t);PG.t=setTimeout(function(){pgPublish()},2200)}
+/* saves the settings (and the on/off switch) straight away, then publishes */
+function pgSaveSettings(){var c=pgCloud();if(!c)return Promise.resolve();
+  return c.from('artist_pages').upsert({user_id:pgMe(),enabled:PG.on,settings:PG.s,updated_at:new Date(PG.at||Date.now()).toISOString()},{onConflict:'user_id'}).then(function(r){if(r.error){if(mzMissing(r.error))PG.noTable=true;throw r.error}})}
+function pgPublish(){var c=pgCloud();if(!c||!PG.loaded)return Promise.resolve();if(PG.busy){PG.again=true;return Promise.resolve()}
+  if(!pgHandle()){PG.err='Choose a username in Account first.';pgPaintStatus();return Promise.resolve()}
+  PG.busy=true;PG.err='';pgPaintStatus();var uid=pgMe(),dir=uid+'/page/',st=c.storage.from(SHARE_BUCKET),v=Date.now().toString(36),keep=[],files=PG.s.files;
+  var url=function(n){return st.getPublicUrl(dir+n).data.publicUrl};
+  var up=function(n,blob){keep.push(n);return st.upload(dir+n,blob,{upsert:true,contentType:blob.type||'application/octet-stream',cacheControl:'31536000'}).then(function(r){if(r.error)throw r.error;return url(n)})};
+  var name=function(u){return u?String(u).split('/').pop():''};
+  var shown=pgShown(),feat=shown.filter(function(s){return s.id===PG.s.featured})[0]||shown[0];
+  var songJobs=shown.map(function(s){var f=files[s.id]=files[s.id]||{},sig=pgArtSig(s),a=PG.s.play[s.id]?audCur(s):null;
+    var art=f.sig===sig&&f.art?(keep.push(name(f.art)),Promise.resolve(f.art)):shArtBlob(s).then(function(b){return up(s.id+'-art-'+v+(b.type==='image/png'?'.png':'.jpg'),b)}).then(function(u){f.sig=sig;f.art=u;return u});
+    var au=!a?Promise.resolve(null):f.aid===a.id&&f.audio?(keep.push(name(f.audio)),Promise.resolve(f.audio)):(function(){
+      var viaPhone=function(){return shAudioBlob(a).then(function(b){return up(s.id+'-audio-'+v+'.'+(/mpeg/.test(b.type)?'mp3':sfExt(a.name||a.path||'',b.type||a.mime)),b)})};
+      var go=(!a.path||/^local:/.test(a.path)||(a.size&&a.size>40e6))?viaPhone():(function(){var nm=s.id+'-audio-'+v+'.'+sfExt(a.path,a.mime);
+        return c.storage.from(SF_BUCKET).copy(a.path,dir+nm,{destinationBucket:SHARE_BUCKET}).then(function(r){if(r.error)throw r.error;keep.push(nm);return url(nm)}).catch(viaPhone)})();
+      return go.then(function(u){f.aid=a.id;f.audio=u;return u})})();
+    if(!a){delete f.aid;delete f.audio}
+    return Promise.all([art,au]).then(function(r){var R=s.release||{};
+      return{id:s.id,title:s.title,art:r[0],date:R.date||'',co:pgCo(s),audio:r[1]?{src:r[1],dur:a.dur||0}:null,
+        links:{spotify:R.spotify||'',apple:R.apple||'',youtube:R.youtube||'',presave:R.presave||'',preadd:R.preadd||''}}})});
+  /* the photo: a link as it is, a photo stored in the profile is copied out once */
+  var av=avatarURL(),avJob=!av?Promise.resolve(''):/^https:/i.test(av)?Promise.resolve(av):(function(){var sig='p'+av.length+':'+av.slice(-48),pf=PG.s.avatar||{};
+    if(pf.sig===sig&&pf.url){keep.push(name(pf.url));return Promise.resolve(pf.url)}
+    return fetch(av).then(function(r){return r.blob()}).then(function(b){return up('avatar-'+v+(b.type==='image/png'?'.png':'.jpg'),b)}).then(function(u){PG.s.avatar={sig:sig,url:u};return u})})();
+  var palJob=feat?songPalette(feat):Promise.resolve([]);
+  var P=MY_PROFILE||{},links=[];[['spotify',P.link_spotify],['apple',PG.s.links.apple],['instagram',P.link_instagram],['tiktok',P.link_tiktok],['youtube',PG.s.links.youtube],['soundcloud',PG.s.links.soundcloud],['bandcamp',PG.s.links.bandcamp],['website',PG.s.links.website]]
+    .forEach(function(x){var u=x[1]&&(normalizeLink(x[0],x[1])||'');if(u&&!/^https?:\/\//i.test(u))u='https://'+u;if(u)links.push({k:x[0],u:u})});
+  return Promise.all([Promise.all(songJobs),avJob,palJob]).then(function(r){
+    Object.keys(files).forEach(function(id){if(!PG.s.show[id])delete files[id]});
+    var bg=shBg(r[2]&&r[2].length?r[2]:[[24,.6,.6],[272,.5,.6],[210,.6,.6]],0);
+    var data={v:1,name:myName()||pgHandle(),avatar:r[1]||'',bio:(PG.s.bio||'').slice(0,280),links:links,bg:{top:bg.top,bot:bg.bot,glow:bg.glow,k:bg.k},featured:feat?feat.id:'',songs:r[0]};
+    var now=new Date().toISOString();
+    return c.from('artist_pages').upsert({user_id:uid,enabled:PG.on,settings:PG.s,data:data,updated_at:now},{onConflict:'user_id'}).then(function(res){if(res.error)throw res.error;PG.at=Date.parse(now);
+      st.list(uid+'/page').then(function(l){var old=((l&&l.data)||[]).map(function(f){return f.name}).filter(function(n){return keep.indexOf(n)<0});if(old.length)st.remove(old.map(function(n){return dir+n}))}).catch(function(){})})})
+  .catch(function(e){if(mzMissing(e))PG.noTable=true;PG.err=sfErr(e)||'Couldn’t publish your page.'})
+  .then(function(){PG.busy=false;pgPaintStatus();if(PG.again){PG.again=false;pgPublish()}})}
+function pgAgo(){if(PG.busy)return'Publishing…';if(PG.err)return'Couldn’t publish: '+PG.err;if(!PG.on)return'Off: nobody can see your page.';return PG.at?'Published '+shAgo(PG.at)+'.':'Not published yet.'}
+function pgPaintStatus(){var el=document.getElementById('pgstat');if(el){el.textContent=pgAgo();el.className='relnote'+(PG.err?' warn':'')}}
+function pgFans(){var c=pgCloud();if(!c)return Promise.resolve();
+  return c.from('artist_fans').select('email,song_title,created_at').order('created_at',{ascending:false}).limit(1000).then(function(r){if(!r.error){PG.fans=r.data||[];if($('#sheet9').classList.contains('on'))renderPage()}})}
+function pgCsv(){var rows=[['Email','Signed up','For']].concat((PG.fans||[]).map(function(f){return[f.email,(f.created_at||'').slice(0,10),f.song_title||'']}));
+  var csv=rows.map(function(r){return r.map(function(x){x=String(x==null?'':x);if(/^[=+\-@]/.test(x))x="'"+x;return/[",\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x}).join(',')}).join('\n');
+  shSend(new File([csv],(pgHandle()||'fans')+'-fans.csv',{type:'text/csv'}))}
+function openPage(){if(!AUTH_USER){toast('Sign in to make your page.');return}sheet(true,'sheet9');renderPage();pgLoad().then(function(){renderPage();pgFans()})}
+function renderPage(){var o=$('#pgx');if(!o)return;var keepTop=$('#sheet9').scrollTop;o.innerHTML='';
+  if(PG.noTable){o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:'Artist pages aren’t switched on for this account yet. (They need supabase/artist-pages.sql run on the server.)'}));return}
+  if(!PG.loaded){var lg0=accSection(o,'');lg0.appendChild(accCell({label:'Loading your page…'}));return}
+  var h=pgHandle(),u=pgUrl();
+  var top=accSection(o,'');
+  if(!h)top.appendChild(accCell({tile:ACC_ICO.person,label:'Choose a username first',chev:true,onclick:function(){sheet(false);openAccount();ACC_EDIT='profile';ACC_AUTOFOCUS='profile';renderAccount()}}));
+  else{var tr=document.createElement('div');tr.className='cell';var tt=document.createElement('span');tt.className='tile';tt.innerHTML=ACC_ICO.person;tr.appendChild(tt);
+    var tl=document.createElement('span');tl.className='ct';tl.textContent='Show my page';tr.appendChild(tl);
+    var sw=document.createElement('button');sw.className='swtch'+(PG.on?' on':'');sw.setAttribute('role','switch');sw.setAttribute('aria-checked',PG.on?'true':'false');sw.setAttribute('aria-label','Show my page');sw.innerHTML='<i></i>';
+    sw.onclick=function(){PG.on=!PG.on;haptic('light');renderPage();pgPublish()};tr.appendChild(sw);top.appendChild(tr);
+    top.appendChild(accCell({tile:ACC_ICO.ext,label:u.replace(/^https:\/\//,''),value:'Copy',chev:false,onclick:function(){shCopyNow(u);toast('Link copied')}}));
+    if(PG.on)top.appendChild(accCell({tile:ACC_ICO.spark,label:'Open My Page',chev:'ext',onclick:function(){openLink(u)}}))}
+  var stl=document.createElement('div');stl.id='pgstat';o.appendChild(stl);pgPaintStatus();
+  /* about */
+  var ag=accSection(o,'About'),bc=document.createElement('label');bc.className='cell notile pgbio';var ta=document.createElement('textarea');ta.rows=3;ta.maxLength=280;ta.placeholder='A line or two about you and your music';ta.value=PG.s.bio||'';ta.setAttribute('aria-label','Bio');
+  ta.oninput=function(){PG.s.bio=ta.value;pgSoon()};bc.appendChild(ta);ag.appendChild(bc);
+  /* links */
+  var lg=accSection(o,'Links');PG_LINKS.forEach(function(x){var r=document.createElement('label');r.className='cell form notile';var l=document.createElement('span');l.className='ct fl';l.textContent=x[1];r.appendChild(l);
+    var ip=document.createElement('input');ip.type='url';ip.inputMode='url';ip.autocapitalize='off';ip.autocomplete='off';ip.spellcheck=false;ip.placeholder=x[2];ip.value=PG.s.links[x[0]]||'';ip.setAttribute('aria-label',x[1]);
+    ip.oninput=function(){var v=ip.value.trim();if(v)PG.s.links[x[0]]=v;else delete PG.s.links[x[0]];pgSoon()};r.appendChild(ip);lg.appendChild(r)});
+  o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:'Spotify, Instagram and TikTok come from your Account links.'}));
+  /* music */
+  var el=pgEligible(),mg=accSection(o,'Music'),today=new Date().toISOString().slice(0,10);
+  if(!el.length){var ce=document.createElement('div');ce.className='crempty';ce.innerHTML='<b>No songs to show yet</b><span>Mark a song Finished, or give it a release date in Details › Credits, and it shows up here.</span>';mg.appendChild(ce)}
+  el.forEach(function(s){var R=s.release||{},on=!!PG.s.show[s.id],up=R.date&&R.date>today,r=document.createElement('div');r.className='cell crrow pgsong';
+    var th=document.createElement('i');th.className='crth';if(s.art)th.style.backgroundImage=artCss(s.art);else th.innerHTML=cover(s);r.appendChild(th);
+    var mid=document.createElement('span');mid.className='c2';mid.innerHTML='<b></b><span></span>';mid.firstChild.textContent=s.title;
+    var d=R.date?new Date(R.date+'T12:00:00'):null,ds=d&&!isNaN(d)?d.toLocaleDateString(undefined,{day:'numeric',month:'short',year:up?undefined:'numeric'}):'';
+    mid.lastChild.textContent=[up?'Out '+ds:ds||'Finished',up?(R.presave||R.preadd?'Pre-save ready':'No pre-save link'):(R.spotify||R.apple||R.youtube?'':'No listen links'),PG.s.featured===s.id&&on?'Featured':''].filter(Boolean).join(' · ');r.appendChild(mid);
+    var sw2=document.createElement('button');sw2.className='swtch'+(on?' on':'');sw2.setAttribute('role','switch');sw2.setAttribute('aria-checked',on?'true':'false');sw2.setAttribute('aria-label','Show '+s.title);sw2.innerHTML='<i></i>';
+    sw2.onclick=function(){if(on){delete PG.s.show[s.id];if(PG.s.featured===s.id)delete PG.s.featured}else PG.s.show[s.id]=true;haptic('light');renderPage();pgSoon()};r.appendChild(sw2);mg.appendChild(r);
+    if(on){var ch=document.createElement('div');ch.className='rtchips pgchips';
+      var fb=document.createElement('button');fb.className=PG.s.featured===s.id?'pri':'';fb.textContent=PG.s.featured===s.id?'Featured':'Feature at Top';fb.onclick=function(){PG.s.featured=PG.s.featured===s.id?'':s.id;renderPage();pgSoon()};ch.appendChild(fb);
+      if(audCur(s)){var pb=document.createElement('button');pb.className=PG.s.play[s.id]?'pri':'';pb.textContent=PG.s.play[s.id]?'Playable':'Let Fans Play It';pb.onclick=function(){if(PG.s.play[s.id])delete PG.s.play[s.id];else PG.s.play[s.id]=true;renderPage();pgSoon()};ch.appendChild(pb)}
+      var lb=document.createElement('button');lb.textContent=up?'Pre-save Links':'Listen Links';lb.onclick=function(){sheet(false);openSong(s.id);setTimeout(function(){dtab('rel');sheet(true);setTimeout(function(){var x=$('#rel-links');if(x)x.scrollIntoView({block:'center'})},250)},200)};ch.appendChild(lb);
+      mg.appendChild(ch)}});
+  o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:'Upcoming songs show a countdown with your pre-save links, then switch to your listen links on release day. Add links in each song’s Details › Credits.'}));
+  /* fans */
+  var fg=accSection(o,'Fans',PG.fans&&PG.fans.length?[['Export',pgCsv]]:null),n=PG.fans?PG.fans.length:null;
+  fg.appendChild(accCell({tile:ACC_ICO.person,label:n==null?'Loading…':n===1?'1 person signed up':n+' people signed up'}));
+  (PG.fans||[]).slice(0,5).forEach(function(f){var r=document.createElement('div');r.className='cell notile';var m=document.createElement('span');m.className='c2';m.innerHTML='<b></b><span></span>';m.firstChild.textContent=f.email;
+    m.lastChild.textContent=[f.song_title?'For “'+f.song_title+'”':'New music',new Date(f.created_at).toLocaleDateString(undefined,{day:'numeric',month:'short'})].join(' · ');r.appendChild(m);fg.appendChild(r)});
+  o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:'People who sign up on your page for new music. Only you can see them. Export them as a spreadsheet to email them.'}));
+  $('#sheet9').scrollTop=keepTop}
 
 /* ---------- perform mode ---------- */
 var pfRaf=0,pfOn=false,pfSpd=1,pfSize=34,pfLock=null,SPD=[.5,.75,1,1.25,1.5,2,3];

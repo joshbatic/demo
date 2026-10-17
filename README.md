@@ -144,3 +144,13 @@ memory stays on each device instead of following the account.
 ### Reserved usernames
 
 `supabase/reserved-usernames.sql` keeps about 490 names unavailable: well-known artists and songwriters, plus the app's own words (admin, support, official, demo...). It ignores capitals and underscores, and catches dressed-up versions of artists' names (therealdrake, taylorswiftofficial). People who already have a name keep it. To give a name to its real owner once you've checked it's them, run `select public.grant_username('name', 'their@email.com');` in the SQL Editor; the file's header has how to add or release names.
+
+### Artist pages (on `next`)
+
+Every writer gets a link-in-bio page at `artist.hellodemo.app/<username>`. It shows their photo, bio and links, a featured song (a countdown with Pre-save / Pre-add buttons before its release date, listen buttons after), their other songs (playable if they allow it), and a "New music" email sign-up. They manage it in Account › Your Page; it republishes itself a moment after anything on it changes.
+
+- Database: run `supabase/artist-pages.sql` (tables `artist_pages`, `artist_fans`; public functions `get_artist`, `fan_signup`).
+- Page: `share/api/a.js` + `share/api/_artist.js` on the Vercel project, routed by `share/vercel.json` (host `artist.hellodemo.app`, or `/a/<username>` on any host, e.g. a preview URL).
+- Domain: Namecheap CNAME `artist` → `cname.vercel-dns.com`, then add `artist.hellodemo.app` to the Vercel project (assign it to the `next` branch while testing).
+- Pre-save uses Spotify's own Countdown Pages / distributor pre-save links and Apple Music pre-add links (song › Details › Credits › Listen links). An in-house Spotify pre-save isn't possible for apps under 250k monthly users.
+- Before this reaches `main`: add fan sign-ups to privacy.html.
