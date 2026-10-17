@@ -18411,11 +18411,8 @@ function shMine(song){var sh=song&&song.share,uid=AUTH_USER&&AUTH_USER.id;if(!sh
 function shStep(step){return function(e){if(e&&typeof e==='object'&&!e.step){try{e.step=step}catch(x){}}else if(!e||typeof e!=='object')e={message:String(e||''),step:step};throw e}}
 function shLinkMake(song,bg,withAudio,id){var c=sbClient(),uid=AUTH_USER.id;id=id||shMine(song)||shId();var dir=uid+'/'+id+'/',v=Date.now().toString(36),st=c.storage.from(SHARE_BUCKET),a=withAudio?audCur(song):null,keep=[];
   var up=function(name,blob){keep.push(name);return st.upload(dir+name,blob,{upsert:true,contentType:blob.type||'application/octet-stream',cacheControl:'31536000'}).then(function(r){if(r.error)throw r.error;return st.getPublicUrl(dir+name).data.publicUrl})};
-  /* big audio can take longer to read and upload than the sign-in token has left, so nudge it fresh first, but never
-     wait on that: getSession() can sit forever while supabase-js holds its auth lock, which froze this on "Making the link…" */
-  var fresh=function(){return Promise.race([c.auth.getSession().catch(function(){}),new Promise(function(r){setTimeout(r,3000)})])};
-  return fresh().then(function(){return shArtBlob(song)}).then(function(b){return up('art-'+v+(b.type==='image/png'?'.png':'.jpg'),b).catch(shStep('upload'))}).then(function(art){
-    return(a?shAudioBlob(a).catch(shStep('read')).then(function(b){return fresh().then(function(){return up('audio-'+v+'.'+(/mpeg/.test(b.type)?'mp3':sfExt(a.name||a.path||'',b.type||a.mime)),b).catch(shStep('upload'))})}):Promise.resolve(null)).then(function(au){
+  return shArtBlob(song).then(function(b){return up('art-'+v+(b.type==='image/png'?'.png':'.jpg'),b).catch(shStep('upload'))}).then(function(art){
+    return(a?shAudioBlob(a).catch(shStep('read')).then(function(b){return up('audio-'+v+'.'+(/mpeg/.test(b.type)?'mp3':sfExt(a.name||a.path||'',b.type||a.mime)),b).catch(shStep('upload'))}):Promise.resolve(null)).then(function(au){
       var d=shSnap(song,bg,a,au,art);
       return shOgImage(song,bg,a).then(function(b){return up('og-'+v+(b.type==='image/png'?'.png':'.jpg'),b).catch(shStep('upload'))}).then(function(og){d.og=og;return c.from('shares').upsert({id:id,owner:uid,song_id:song.id,data:d,updated_at:new Date().toISOString()}).then(function(r){if(r.error){r.error.step='save';throw r.error}
         st.list(uid+'/'+id).then(function(l){var old=((l&&l.data)||[]).map(function(f){return f.name}).filter(function(n){return keep.indexOf(n)<0});if(old.length)st.remove(old.map(function(n){return dir+n}))}).catch(function(){});
