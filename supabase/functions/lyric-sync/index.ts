@@ -1,7 +1,7 @@
 // *[demo] lyric-sync: hears a song and returns when each sung word starts.
 //
-// The app sends a small speech-quality copy of the track (16 kHz mono WAV, made on the device) plus
-// the song's lyrics as a hint. This forwards it to OpenAI's Whisper with word-level timestamps and
+// The app sends the track in one-minute pieces (16 kHz mono MP3s made on the device, a few at a time)
+// plus the song's lyrics as a hint. This forwards it to OpenAI's Whisper with word-level timestamps and
 // returns the words; the app then lines them up against the lyric lines itself.
 //
 // Deploy:   supabase functions deploy lyric-sync
@@ -49,6 +49,7 @@ Deno.serve(async (req) => {
   out.append("model", "whisper-1");
   out.append("response_format", "verbose_json");
   out.append("timestamp_granularities[]", "word");
+  out.append("timestamp_granularities[]", "segment");
   if (prompt) out.append("prompt", prompt);
 
   const r = await fetch("https://api.openai.com/v1/audio/transcriptions", {
@@ -62,5 +63,10 @@ Deno.serve(async (req) => {
   const words = (body.words ?? []).map((w: { word: string; start: number; end: number }) => ({
     w: w.word, s: Math.round(w.start * 100) / 100, e: Math.round(w.end * 100) / 100,
   }));
-  return json({ words, duration: body.duration ?? null, text: body.text ?? "" });
+  // how sure Whisper is that each stretch was really sung: over instrumentals it can "hear" the hint
+  const segments = (body.segments ?? []).map((g: { start: number; end: number; no_speech_prob: number; avg_logprob: number }) => ({
+    s: Math.round(g.start * 100) / 100, e: Math.round(g.end * 100) / 100,
+    ns: Math.round((g.no_speech_prob ?? 0) * 100) / 100, lp: Math.round((g.avg_logprob ?? 0) * 100) / 100,
+  }));
+  return json({ words, segments, duration: body.duration ?? null, text: body.text ?? "" });
 });

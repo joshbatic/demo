@@ -18005,7 +18005,7 @@ var MP3_WORKER='self.onmessage=function(e){var d=e.data;try{var ch=d.ch,L=d.left
   'b=ch>1?enc.encodeBuffer(l16.subarray(0,m),r16.subarray(0,m)):enc.encodeBuffer(l16.subarray(0,m));if(b.length)out.push(new Uint8Array(b));if(i-last>d.sr*5){last=i;self.postMessage({p:i/n})}}'+
   'b=enc.flush();if(b.length)out.push(new Uint8Array(b));self.postMessage({done:true,parts:out})}catch(err){self.postMessage({error:String(err&&err.message||err)})}};';
 function mp3Able(f){return/\.(wav|wave|aif|aiff|aifc|flac)$/i.test((f&&(f.name||f.path))||'')||/audio\/(wav|x-wav|wave|vnd\.wave|aiff|x-aiff|flac|x-flac)/i.test((f&&(f.type||f.mime))||'')}
-function mp3FromBuf(buf,onProg){var job=function(){return new Promise(function(res,rej){
+function mp3FromBuf(buf,onProg,kbps){var job=function(){return new Promise(function(res,rej){
   if(!mp3W){var lib=document.getElementById('lamejs-src');if(!lib)return rej(new Error('the MP3 encoder is missing'));
     try{mp3W=new Worker(URL.createObjectURL(new Blob([lib.textContent+'\n'+MP3_WORKER],{type:'text/javascript'})))}catch(e){return rej(e)}}
   if(buf.sampleRate>48000)return rej(new Error('that sample rate isn’t supported for MP3'));
@@ -18013,7 +18013,7 @@ function mp3FromBuf(buf,onProg){var job=function(){return new Promise(function(r
   for(var c=2;c<chs;c++){var x=buf.getChannelData(c);for(var i=0;i<L.length;i++){L[i]+=x[i]*.5;R[i]+=x[i]*.5}}
   mp3W.onmessage=function(e){var d=e.data;if(d.error)return rej(new Error(d.error));if(d.done)return res(new Blob(d.parts,{type:'audio/mpeg'}));if(onProg)onProg(d.p)};
   mp3W.onerror=function(e){mp3W=null;rej(new Error((e&&e.message)||'the MP3 encoder stopped'))};
-  mp3W.postMessage({ch:ch,sr:buf.sampleRate,kbps:ch>1?256:160,left:L,right:R},R?[L.buffer,R.buffer]:[L.buffer])})};
+  mp3W.postMessage({ch:ch,sr:buf.sampleRate,kbps:kbps||(ch>1?256:160),left:L,right:R},R?[L.buffer,R.buffer]:[L.buffer])})};
   var p=mp3Q.then(job,job);mp3Q=p.catch(function(){});return p}
 /* decode once: the waveform comes from the same pass */
 function convertToMp3(file,onProg){return decodeBlob(file).then(function(buf){var pk=peaksFromBuf(buf);return mp3FromBuf(buf,onProg).then(function(blob){
@@ -18113,7 +18113,7 @@ function renderAud(){var o=$('#aud-body');if(!o||!cur)return;var song=cur,keepTo
   /* lyric sync */
   if(cu){var sg=accSection(o,'Lyric sync'),bx=document.createElement('div');bx.className='syncbox';sg.appendChild(bx);
     var p=document.createElement('p'),sy=song.sync,ok=!!(sy&&sy.audioId===cu.id),stale=ok&&sy.sig!==lyricSig(song);
-    if(SYNC_BUSY===song.id)p.innerHTML='<b>Listening…</b> Timing every line to “'+esc(cu.name)+'”. This can take a minute.';
+    if(SYNC_BUSY===song.id){p.innerHTML='<b>Listening…</b> <span id="syncprog"></span>';p.querySelector('#syncprog').textContent=syncProgText(cu.name)}
     else if(ok)p.innerHTML='<b>Synced</b> to “'+esc(cu.name)+'”: '+sy.timed+' of '+sy.total+' lines heard.'+(stale?' The lyrics have changed since, so sync again to update the timings.':'');
     else if(sy)p.textContent='The lyrics are synced to another version. Sync again to time them to “'+cu.name+'”.';
     else p.textContent='Times every lyric line to “'+cu.name+'” automatically, so the words light up as the song plays.';
@@ -18177,21 +18177,51 @@ function alignLyrics(lines,words){
     var tp=pv>=0?times[pv]:null,tn=nx<times.length?times[nx]:null;
     if(tp!=null&&tn!=null)times[b]=tp+(tn-tp)*(b-pv)/(nx-pv);else if(tn!=null)times[b]=Math.max(0,tn-3*(nx-b));else if(tp!=null)times[b]=tp+3*(b-pv);else times[b]=3*b}
   return{lines:lines.map(function(t,x){return{text:t,t:Math.round(times[x]*100)/100}}),timed:timed,total:lines.length}}
-/* A small speech-quality copy for listening: 16 kHz mono 16-bit WAV, made on the device, so even a
-   big WAV master goes up as a few MB. */
-function toSyncWav(blob){return decodeBlob(blob).then(function(buf){
+/* A small speech-quality copy for listening: the track decoded once and resampled to 16 kHz mono on the device. */
+function toSyncPcm(blob){return decodeBlob(blob).then(function(buf){
   var sr=16000,len=Math.max(1,Math.ceil(buf.duration*sr)),OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
   var manual=function(){var chs=buf.numberOfChannels,src=buf.sampleRate,out=new Float32Array(len),data=[];for(var c=0;c<chs;c++)data.push(buf.getChannelData(c));
     var ratio=src/sr;for(var i=0;i<len;i++){var x=i*ratio,x0=Math.floor(x),f=x-x0,v=0;for(var c2=0;c2<chs;c2++){var d=data[c2];v+=(d[x0]||0)*(1-f)+(d[x0+1]||0)*f}out[i]=v/chs}return out};
   var viaOAC=function(){return new Promise(function(res,rej){try{var oc=new OAC(1,len,sr),s=oc.createBufferSource();s.buffer=buf;s.connect(oc.destination);s.start(0);
     oc.oncomplete=function(e){res(e.renderedBuffer.getChannelData(0))};var p=oc.startRendering();if(p&&p.then)p.then(function(r){res(r.getChannelData(0))},rej)}catch(e){rej(e)}})};
-  return(OAC?viaOAC().catch(manual):Promise.resolve(manual())).then(function(pcm){return{wav:wav16(pcm,sr),dur:buf.duration}})})}
+  return(OAC?viaOAC().catch(manual):Promise.resolve(manual())).then(function(pcm){return{pcm:pcm,sr:sr,dur:buf.duration}})})}
+/* The song goes up in one-minute pieces (each overlapping the next by a couple of seconds so a word on
+   the join isn't lost), a few at a time, as small 48 kbps MP3s. Whisper's time grows with the length of
+   what it hears, so one long request could run past the server's time limit; short pieces in parallel
+   finish in seconds. Each piece keeps only the words that start inside its own minute. */
+var SYNC_CHUNK=60,SYNC_OVER=2,SYNC_PAR=4,SYNC_WAIT=90000,SYNC_PROG=null;
+function syncProgText(name){var g=SYNC_PROG;if(!g||!g.total)return'Getting “'+name+'” ready to listen to…';
+  return g.done>=g.total?'Lining the words up with your lyrics…':'Timing every line to “'+name+'”: '+g.done+' of '+g.total+' minutes heard.'}
+function syncProgPaint(name){var el=document.getElementById('syncprog');if(el)el.textContent=syncProgText(name)}
+function syncPiece(pcm,sr,k,prompt){var a=Math.max(0,k*SYNC_CHUNK-SYNC_OVER),b=Math.min(pcm.length/sr,(k+1)*SYNC_CHUNK+SYNC_OVER),
+    part=pcm.subarray(Math.floor(a*sr),Math.ceil(b*sr)),fake={numberOfChannels:1,sampleRate:sr,length:part.length,getChannelData:function(){return part}};
+  var send=function(file){var fd=new FormData();fd.append('audio',file);fd.append('prompt',prompt);
+    var t,timer=new Promise(function(_,rej){t=setTimeout(function(){rej(new Error('the sync server took too long to answer. Try again in a moment.'))},SYNC_WAIT)});
+    return Promise.race([sbClient().functions.invoke('lyric-sync',{body:fd}),timer]).then(function(res){clearTimeout(t);
+      if(res&&res.error)return fnErr(res.error).then(function(m){throw new Error(m)});return(res&&res.data)||{}},function(e){clearTimeout(t);throw e})};
+  var fileP=mp3FromBuf(fake,null,48).then(function(bl){return new File([bl],'part'+k+'.mp3',{type:'audio/mpeg'})},
+    function(){return new File([wav16(part,sr)],'part'+k+'.wav',{type:'audio/wav'})});
+  return fileP.then(function(file){return send(file).catch(function(e){if(/sign in|deployed|too long to sync|isn.t set up/i.test(e.message))throw e;return send(file)})})
+    .then(function(d){var lo=k*SYNC_CHUNK,hi=(k+1)*SYNC_CHUNK,len=b-a;
+      /* (once the updated function is deployed) leave out stretches Whisper itself thinks were not singing:
+         over music it can otherwise "hear" the lyrics it was given as a hint */
+      var bad=(d.segments||[]).filter(function(g){return g.ns>.6&&g.lp<-.8});
+      return(d.words||[]).filter(function(w){return w.s<=len+.5&&!bad.some(function(g){return w.s>=g.s-.05&&w.s<=g.e+.05})})
+        .map(function(w){return{w:w.w,s:w.s+a,e:w.e+a}}).filter(function(w){return w.s>=lo&&(w.s<hi||k===Math.ceil(pcm.length/sr/SYNC_CHUNK)-1)})})}
+function syncListen(pcm,sr,prompt,onStep){var n=Math.max(1,Math.ceil(pcm.length/sr/SYNC_CHUNK)),out=new Array(n),next=0,done=0;
+  onStep(0,n);
+  return new Promise(function(res,rej){var failed=false,running=0;
+    function pump(){if(failed)return;if(done===n)return res([].concat.apply([],out));
+      while(running<SYNC_PAR&&next<n){(function(k){running++;
+        syncPiece(pcm,sr,k,prompt).then(function(ws){out[k]=ws;running--;done++;onStep(done,n);pump()},function(e){failed=true;rej(e)})})(next++)}}
+    pump()})}
 function wav16(f,sr){var n=f.length,b=new ArrayBuffer(44+n*2),v=new DataView(b),w=function(o,s){for(var i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))};
   w(0,'RIFF');v.setUint32(4,36+n*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*2,true);
   for(var i=0,o=44;i<n;i++,o+=2){var s=Math.max(-1,Math.min(1,f[i]));v.setInt16(o,s<0?s*0x8000:s*0x7FFF,true)}return new Blob([b],{type:'audio/wav'})}
 function fnErr(err){var ctx=err&&err.context;
   if(ctx&&ctx.status===404)return Promise.resolve('the lyric-sync function isn’t deployed on Supabase yet (or is named differently).');
   if(ctx&&ctx.status===401)return Promise.resolve('Supabase didn’t accept your sign-in. Sign out and back in, then try again.');
+  if(ctx&&(ctx.status===504||ctx.status===546||ctx.status===408))return Promise.resolve('the sync server took too long to answer. Try again in a moment.');
   if(ctx&&ctx.json)return ctx.json().then(function(b){return(b&&b.error)||err.message},function(){return err.message});
   var m=(err&&err.message)||'';return Promise.resolve(/failed to send|fetch/i.test(m)?'check your connection and try again.':m)}
 function runSync(){var song=cur,a=audCur(song);if(!song||!a)return;
@@ -18199,17 +18229,15 @@ function runSync(){var song=cur,a=audCur(song);if(!song||!a)return;
   if(!sfCloud())return toast(DEV_MODE?'Lyric sync needs a signed-in account.':'Sign in to sync lyrics.');
   var lines=syncLinesOf(song.lyrics);if(lines.length<2)return toast('Write the lyrics first, then sync them to the audio.');
   if(a.dur>720)return toast('That track is too long to sync (over 12 minutes).');
-  SYNC_BUSY=song.id;renderAud();
-  sfBlob(a).then(toSyncWav).then(function(r){if(r.dur>720)throw new Error('That track is too long to sync (over 12 minutes).');
-    var fd=new FormData();fd.append('audio',new File([r.wav],'track.wav',{type:'audio/wav'}));fd.append('prompt',lines.join('\n'));
-    return sbClient().functions.invoke('lyric-sync',{body:fd})})
-  .then(function(res){if(res&&res.error)return fnErr(res.error).then(function(m){throw new Error(m)});
-    var words=(res&&res.data&&res.data.words)||[];if(!words.length)throw new Error('no words could be heard in that track.');
+  SYNC_BUSY=song.id;SYNC_PROG=null;renderAud();
+  sfBlob(a).then(toSyncPcm).then(function(r){if(r.dur>720)throw new Error('That track is too long to sync (over 12 minutes).');
+    return syncListen(r.pcm,r.sr,lines.join('\n'),function(d,n){SYNC_PROG={done:d,total:n};syncProgPaint(a.name)})})
+  .then(function(words){if(!words.length)throw new Error('no words could be heard in that track.');
     var al=alignLyrics(lines,words);
     song.sync={audioId:a.id,at:Date.now(),sig:lines.join('\n'),lines:al.lines,timed:al.timed,total:al.total};sfTouch(song);
     toast(al.timed<al.total*.4?'Synced, but the vocals were hard to make out, so some lines are estimates':'Lyrics synced to “'+a.name+'”')})
   .catch(function(e){toast('Couldn’t sync: '+sfErr(e))})
-  .then(function(){SYNC_BUSY=null;if(cur===song)renderAud()})}
+  .then(function(){SYNC_BUSY=null;SYNC_PROG=null;if(cur===song)renderAud()})}
 
 /* ---------- Play with Lyrics: the current version plays and its lines light up in time ---------- */
 var lpAu=null,lpRaf=0,lpLines=[],lpEls=[],lpIdx=-1,lpSeeking=false,lpUserScroll=0;
