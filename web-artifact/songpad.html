@@ -16191,6 +16191,13 @@ function briefForm(){var o=stkOut(''),b=(cur&&cur.brief)||{};
   var F=[['who','Who’s singing','e.g. me at 19, my dad, a bartender closing up'],['to','Singing to','e.g. my ex, my brother, nobody'],['where','Where and when','e.g. Glenelg, the night before I moved'],['thing','One real detail from it','e.g. her blue Corolla with the cracked windscreen'],['more','Anything else that’s true','what actually happened, what you can’t say out loud']],inp={};
   F.forEach(function(f){var l=document.createElement('label');l.className='bfl';l.textContent=f[1];var i=document.createElement(f[0]==='more'?'textarea':'input');i.className='bfin';i.placeholder=f[2];i.value=b[f[0]]||'';i.maxLength=f[0]==='more'?600:160;l.appendChild(i);o.appendChild(l);inp[f[0]]=i});
   act(o,'Save',function(){if(!cur)return;var nb={},any=false;F.forEach(function(f){var v=inp[f[0]].value.trim();if(v){nb[f[0]]=v;any=true}});if(any)cur.brief=nb;else delete cur.brief;cur.updated=Date.now();save();haptic('success');toast(any?'The muse knows this song now':'Song brief cleared');buildStuck();$('#stk-out').innerHTML=''});
+  /* Clear: empties the form, and forgets the saved brief straight away if there is one */
+  var clr=document.createElement('button');clr.className='go2 ghost';clr.textContent='Clear';o.querySelector('.acts').appendChild(clr);
+  var empty=function(){return F.every(function(f){return!inp[f[0]].value.trim()})},sync=function(){clr.disabled=empty()&&!(cur&&cur.brief)};
+  F.forEach(function(f){inp[f[0]].addEventListener('input',sync)});sync();
+  clr.onclick=function(){F.forEach(function(f){inp[f[0]].value=''});
+    if(cur&&cur.brief){delete cur.brief;cur.updated=Date.now();save();haptic('light');toast('Song brief cleared');buildStuck()}
+    sync();try{inp.who.focus()}catch(e){}};
   setTimeout(function(){inp.who.focus()},250)}
 function briefSummary(s){var b=s&&s.brief;if(!b)return'';return[b.who,b.to&&'to '+b.to,b.where].filter(Boolean).join(' · ')}
 
