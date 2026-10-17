@@ -18050,14 +18050,19 @@ function liveFilesRecv(x){if(!x||x.id!==LIVE.id||x.dev===LIB_DEV)return;var s=li
   if(fileMerge(s,x.rm,x.audio,x.files)){LIVE.applying=true;try{save()}finally{LIVE.applying=false}if(s===cur){renderAud();paintPlayB()}renderList()}}
 /* ---------- WAV/AIFF/FLAC -> MP3 on the device before upload: about 80% smaller at 256 kbps ----------
    lamejs runs in a Web Worker (built from the embedded copy above), so the app stays responsive
-   while a long song encodes. Turn it off in Audio to keep lossless masters. */
-var MP3_ON=(function(){try{return localStorage.getItem('songpad:mp3')!=='0'}catch(e){return true}})(),mp3W=null,mp3Q=Promise.resolve();
+   while a long song encodes. Always on: every WAV/AIFF/FLAC version and stem goes up as an MP3. */
+try{localStorage.removeItem('songpad:mp3')}catch(e){}
+var mp3W=null,mp3Q=Promise.resolve();
 var MP3_WORKER='self.onmessage=function(e){var d=e.data;try{var ch=d.ch,L=d.left,R=d.right,n=L.length,enc=new lamejs.Mp3Encoder(ch,d.sr,d.kbps),out=[],blk=1152*24,l16=new Int16Array(blk),r16=ch>1?new Int16Array(blk):null,k,v,b,last=0;'+
   'for(var i=0;i<n;i+=blk){var m=Math.min(blk,n-i);for(k=0;k<m;k++){v=L[i+k];v=v<-1?-1:v>1?1:v;l16[k]=v<0?v*32768:v*32767;if(r16){v=R[i+k];v=v<-1?-1:v>1?1:v;r16[k]=v<0?v*32768:v*32767}}'+
   'b=ch>1?enc.encodeBuffer(l16.subarray(0,m),r16.subarray(0,m)):enc.encodeBuffer(l16.subarray(0,m));if(b.length)out.push(new Uint8Array(b));if(i-last>d.sr*5){last=i;self.postMessage({p:i/n})}}'+
   'b=enc.flush();if(b.length)out.push(new Uint8Array(b));self.postMessage({done:true,parts:out})}catch(err){self.postMessage({error:String(err&&err.message||err)})}};';
 function mp3Able(f){return/\.(wav|wave|aif|aiff|aifc|flac)$/i.test((f&&(f.name||f.path))||'')||/audio\/(wav|x-wav|wave|vnd\.wave|aiff|x-aiff|flac|x-flac)/i.test((f&&(f.type||f.mime))||'')}
-function mp3FromBuf(buf,onProg,kbps){var job=function(){return new Promise(function(res,rej){
+/* MP3 tops out at 48 kHz, so 88.2/96/192 kHz masters are resampled first (to 44.1 or 48 kHz, whichever divides evenly) */
+function mp3Rate(buf){var OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;if(!OAC)return Promise.reject(new Error('that sample rate isn’t supported for MP3'));
+  var sr=buf.sampleRate%44100===0?44100:48000,ch=Math.min(2,buf.numberOfChannels),oc=new OAC(ch,Math.max(1,Math.ceil(buf.duration*sr)),sr),src=oc.createBufferSource();src.buffer=buf;src.connect(oc.destination);src.start(0);
+  return new Promise(function(res,rej){oc.oncomplete=function(e){res(e.renderedBuffer)};var p=oc.startRendering();if(p&&p.then)p.then(res,rej)})}
+function mp3FromBuf(buf,onProg,kbps){if(buf.sampleRate>48000)return mp3Rate(buf).then(function(b){return mp3FromBuf(b,onProg,kbps)});var job=function(){return new Promise(function(res,rej){
   if(!mp3W){var lib=document.getElementById('lamejs-src');if(!lib)return rej(new Error('the MP3 encoder is missing'));
     try{mp3W=new Worker(URL.createObjectURL(new Blob([lib.textContent+'\n'+MP3_WORKER],{type:'text/javascript'})))}catch(e){return rej(e)}}
   if(buf.sampleRate>48000)return rej(new Error('that sample rate isn’t supported for MP3'));
@@ -18092,7 +18097,7 @@ function sfAdd(files,isAudio){var song=cur;if(!song||!files.length)return;
   if(!isPro())return upsell('audio');
   var list=files.slice();
   (function next(){var f=list.shift();if(!f){if(cur===song)renderAud();return}
-    var id=uuid4(),busy={id:id,name:sfBase(f.name),audio:isAudio},conv=isAudio&&MP3_ON&&mp3Able(f),pre=null;SF_BUSY.push(busy);
+    var id=uuid4(),busy={id:id,name:sfBase(f.name),audio:isAudio},conv=isAudio&&mp3Able(f),pre=null;SF_BUSY.push(busy);
     if(conv)busy.label='Converting “'+busy.name+'” to MP3…';if(cur===song)renderAud();
     (conv?convertToMp3(f,function(p){busyText(busy,'Converting “'+busy.name+'” to MP3… '+Math.round(p*100)+'%')}).then(function(r){pre=r;f=r.file},function(e){toast('Couldn’t convert “'+busy.name+'” to MP3, so uploading the original ('+sfErr(e)+')')}):Promise.resolve())
     .then(function(){busyText(busy,'Uploading “'+busy.name+'”…');return pre?pre.dur:(isAudio?sfMediaDur(f):0)})
@@ -18157,11 +18162,7 @@ function renderAud(){var o=$('#aud-body');if(!o||!cur)return;var song=cur,keepTo
     var pb=document.createElement('button');pb.dataset.id=a.id;pb._on=SF_PLAY===a.id;pb.className='audplay'+(SF_PLAY===a.id?' on':'');pb.setAttribute('aria-label',SF_PLAY===a.id?'Pause':'Play '+a.name);pb.innerHTML=SF_PLAY===a.id?SVG_PAUSE:SVG_PLAY;pb.onclick=function(){sfPreview(a)};r.appendChild(pb);
     vg.appendChild(r);
     if(AUD_OPEN===a.id)vg.appendChild(sfEditor(a,AUD_KINDS,delA))});
-  if(auds.length)o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:'The ticked version is the current one: it’s what plays with your lyrics and what they’re synced to.'}));
-  var ug=accSection(o,'Uploads'),ur=document.createElement('div');ur.className='cell notile';ur.innerHTML='<span class="ct">Convert WAV to MP3</span>';
-  var usw=document.createElement('button');usw.className='swtch'+(MP3_ON?' on':'');usw.setAttribute('role','switch');usw.setAttribute('aria-checked',MP3_ON?'true':'false');usw.setAttribute('aria-label','Convert WAV to MP3');usw.innerHTML='<i></i>';
-  usw.onclick=function(){MP3_ON=!MP3_ON;try{localStorage.setItem('songpad:mp3',MP3_ON?'1':'0')}catch(e){}usw.classList.toggle('on',MP3_ON);usw.setAttribute('aria-checked',MP3_ON?'true':'false')};ur.appendChild(usw);ug.appendChild(ur);
-  o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:'WAV, AIFF and FLAC files become 256 kbps MP3s on this device before they upload, about 80% smaller. Turn this off to keep lossless masters.'}));
+  if(auds.length)o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:'The ticked version is the current one: it’s what plays with your lyrics and what they’re synced to. WAV, AIFF and FLAC files become 256 kbps MP3s on this device before they upload.'}));
   /* lyric sync */
   if(cu){var sg=accSection(o,'Lyric sync'),bx=document.createElement('div');bx.className='syncbox';sg.appendChild(bx);
     var p=document.createElement('p'),sy=song.sync,ok=!!(sy&&sy.audioId===cu.id),stale=ok&&sy.sig!==lyricSig(song);
