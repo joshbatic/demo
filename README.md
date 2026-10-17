@@ -130,3 +130,11 @@ quick pass scores the best 14 and the top 6 are shown (falling back to the plain
 
 One-time setup: Supabase → SQL Editor → paste `supabase/muse.sql` → Run. Without it everything still works, but the
 memory stays on each device instead of following the account.
+
+## Security setup (run once)
+
+- `supabase/realtime-private.sql`, then Project Settings → Realtime → turn off **Allow public access**. Live co-writing
+  channels become members-only (the app asks for private channels and only falls back to open ones until this is done).
+- `supabase/song-files-shared.sql` (updated): co-writers can read a shared song's files only when both they and the
+  uploader are on that song.
+- `supabase/check-policies.sql` is read-only: it lists the access rules on the dashboard-made tables for review.

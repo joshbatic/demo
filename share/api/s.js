@@ -24,15 +24,15 @@ module.exports = async (req, res) => {
     return res.end();
   }
 
-  let data = null;
+  let data = null, failed = false;
   try {
     const r = await fetch(SB_URL + '/rest/v1/rpc/get_share', {
       method: 'POST',
       headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({ sid: id }),
     });
-    if (r.ok) data = await r.json();
-  } catch (e) { /* the viewer shows a friendly error and retries in the browser */ }
+    if (r.ok) data = await r.json(); else failed = true;
+  } catch (e) { failed = true; /* the viewer shows a friendly error and retries in the browser */ }
 
   let html = VIEWER;
   if (data && typeof data === 'object') {
@@ -64,13 +64,22 @@ module.exports = async (req, res) => {
     html = html.replace(/<meta name="robots" content="noindex">\n?/, '').replace(/<meta property="og:site_name" content="\*\[demo\]">\n?/, '')
                .replace(/<!--META-->[\s\S]*?<!--\/META-->/, () => meta)
                .replace('var PRE=null;/*PRELOAD*/', () => 'var PRE=' + json({ id: id, data: data }) + ';');
-  } else if (data === null) {
+  } else if (data === null && !failed) {
     res.statusCode = 404;
     html = html.replace(/<!--META-->[\s\S]*?<!--\/META-->/, () => '<title>Not shared any more · *[demo]</title>');
   }
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  // short edge cache: an updated link shows its new preview within a minute
-  res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=600');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  if (failed) {
+    // Supabase hiccup: don't let it be cached as "not shared any more"; the page retries in the browser
+    res.statusCode = 503;
+    res.setHeader('Cache-Control', 'no-store');
+  } else {
+    // short edge cache: an updated (or stopped) link changes within a minute or two
+    res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=60');
+  }
   res.end(html);
 };

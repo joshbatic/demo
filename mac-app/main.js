@@ -1,5 +1,6 @@
 // [demo.] for macOS: a thin native shell around the lyric app in ./app
-const { app, BrowserWindow, Menu, shell, session, ipcMain, nativeTheme } = require('electron');
+const { app, BrowserWindow, Menu, shell, session, ipcMain, nativeTheme, dialog, safeStorage } = require('electron');
+const { pathToFileURL } = require('url');
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
@@ -32,10 +33,12 @@ function createWindow() {
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#000000' : '#ffffff',
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true, spellcheck: false }
   });
-  win.loadFile(path.join(__dirname, 'app', 'index.html'));
+  const appFile = path.join(__dirname, 'app', 'index.html'), appUrl = pathToFileURL(appFile).href;
+  win.loadFile(appFile);
   // links to websites open in the default browser, never inside the app
   win.webContents.setWindowOpenHandler(({ url }) => { if (/^https?:/i.test(url)) shell.openExternal(url); return { action: 'deny' }; });
-  win.webContents.on('will-navigate', (e, url) => { if (!url.startsWith('file:')) { e.preventDefault(); if (/^https?:/i.test(url)) shell.openExternal(url); } });
+  // only the app's own page may load in this window (it holds the desktop bridge); everything else is refused or sent to the browser
+  win.webContents.on('will-navigate', (e, url) => { if (url.split('#')[0].split('?')[0] === appUrl) return; e.preventDefault(); if (/^https:/i.test(url)) shell.openExternal(url); });
   win.webContents.on('did-finish-load', () => {
     if (pendingAuthUrl) { win.webContents.send('auth-callback', pendingAuthUrl); pendingAuthUrl = null; }
   });
@@ -74,7 +77,9 @@ function openSongsFolder() {
 }
 
 // ---- songs mirrored as plain-text files + a full backup ----
-const safe = (s) => (s || 'Untitled').replace(/[\/\\:*?"<>|\u0000-\u001f]/g, '-').replace(/\s+/g, ' ').trim().slice(0, 80) || 'Untitled';
+const safe = (s) => { const v = (s || 'Untitled').replace(/[\/\\:*?"<>|\u0000-\u001f]/g, '-').replace(/\s+/g, ' ').trim().slice(0, 80).replace(/^\.+/, '').trim(); return v || 'Untitled'; };
+// true only for a path strictly inside the Songs folder (no '..', no sibling folder with the same prefix)
+const inside = (dir, p) => { const r = path.relative(dir, p); return !!r && !r.startsWith('..') && !path.isAbsolute(r); };
 function songText(s) {
   const meta = [s.artist && 'by ' + s.artist, s.key && 'Key: ' + s.key, s.bpm && s.bpm + ' BPM', s.capo && 'Capo: ' + s.capo,
     s.tuning && 'Tuning: ' + s.tuning, s.status && 'Status: ' + s.status].filter(Boolean).join(' · ');
@@ -98,6 +103,7 @@ ipcMain.handle('songs:mirror', (e, songs) => {
     let rel = path.join(sub, base + '.txt'), n = 2;
     while (used.has(rel.toLowerCase())) rel = path.join(sub, base + ' (' + n++ + ').txt');
     used.add(rel.toLowerCase());
+    if (!inside(dir, path.join(dir, rel))) continue;
     fs.mkdirSync(path.join(dir, sub), { recursive: true });
     fs.writeFileSync(path.join(dir, rel), songText(s));
     next[s.id] = rel;
@@ -107,7 +113,7 @@ ipcMain.handle('songs:mirror', (e, songs) => {
     const old = man[id];
     if (Object.values(next).includes(old)) continue;
     const p = path.join(dir, old);
-    if (p.startsWith(dir)) { try { fs.unlinkSync(p); } catch (_) {} }
+    if (typeof old === 'string' && /\.txt$/i.test(old) && inside(dir, p)) { try { fs.unlinkSync(p); } catch (_) {} }
   }
   fs.writeFileSync(manPath, JSON.stringify(next, null, 1));
   fs.writeFileSync(path.join(dir, '[demo.] backup.json'), JSON.stringify({ app: '[demo.]', saved: new Date().toISOString(), songs }, null, 1));
@@ -119,6 +125,8 @@ ipcMain.handle('songs:open', () => openSongsFolder());
 // local config folder and never leaves this machine; it is read only by this
 // main process, never by the page itself. ----
 const oaiKeyPath = () => path.join(app.getPath('userData'), 'openai-key.txt');
+// stored encrypted with the macOS Keychain (safeStorage); older plain-text files still read
+function readKey() { try { const b = fs.readFileSync(oaiKeyPath()); if (b.slice(0, 5).toString() === 'enc1:') return safeStorage.decryptString(b.slice(5)).trim(); return b.toString('utf8').trim(); } catch (_) { return ''; } }
 ipcMain.handle('openai:setKey', (e, key) => {
   const k = (key || '').trim();
   if (!k) { try { fs.unlinkSync(oaiKeyPath()); } catch (_) {} return { ok: true }; }
@@ -126,8 +134,11 @@ ipcMain.handle('openai:setKey', (e, key) => {
   // real secret check, just a guard against saving garbage (a pasted URL, a stray newline, etc.)
   // that would otherwise fail confusingly on first use.
   if (!/^sk-[A-Za-z0-9_-]{10,}$/.test(k)) return { ok: false, error: 'That doesn’t look like an OpenAI API key (they start with "sk-").' };
+  // the page asks; the person confirms in a native dialog the page can't click, so injected script can't swap the key
+  const ok = dialog.showMessageBoxSync(win, { type: 'question', buttons: ['Save Key', 'Cancel'], defaultId: 0, cancelId: 1, message: 'Save this OpenAI key?', detail: 'AI requests from [demo.] on this Mac will be billed to it.' });
+  if (ok !== 0) return { ok: false, error: 'Cancelled' };
   fs.mkdirSync(app.getPath('userData'), { recursive: true });
-  fs.writeFileSync(oaiKeyPath(), k, { mode: 0o600 });
+  fs.writeFileSync(oaiKeyPath(), safeStorage.isEncryptionAvailable() ? Buffer.concat([Buffer.from('enc1:'), safeStorage.encryptString(k)]) : k, { mode: 0o600 });
   return { ok: true };
 });
 ipcMain.handle('openai:hasKey', () => { try { return fs.statSync(oaiKeyPath()).size > 0; } catch (_) { return false; } });
@@ -160,6 +171,8 @@ ipcMain.handle('dev:setLimit', async (e, n) => {
   try {
     if (n === null || n === undefined) { try { fs.unlinkSync(devLimitPath()); } catch (_) {} return { ok: true, value: DAILY_MAX_CALLS, isCustom: false }; }
     const v = Math.max(1, Math.min(DEV_LIMIT_CAP, Math.round(Number(n) || 0)));
+    // raising the cap is confirmed natively, so a script in the page can't quietly lift it
+    if (v > DAILY_MAX_CALLS && dialog.showMessageBoxSync(win, { type: 'warning', buttons: ['Raise Limit', 'Cancel'], defaultId: 1, cancelId: 1, message: 'Raise the daily AI limit to ' + v + '?', detail: 'Requests are billed to your OpenAI key.' }) !== 0) return { ok: false, error: 'Cancelled' };
     fs.writeFileSync(devLimitPath(), JSON.stringify({ dailyMax: v }));
     return { ok: true, value: v, isCustom: true };
   } catch (err) { return { ok: false, error: String((err && err.message) || err) }; }
@@ -210,7 +223,7 @@ function openaiCall(key, prompt, model, maxTokens, reasoningEffort, timeoutMs) {
 }
 ipcMain.handle('openai:test', async () => {
   let key = '';
-  try { key = fs.readFileSync(oaiKeyPath(), 'utf8').trim(); } catch (_) {}
+  key = readKey();
   if (!key) return { ok: false, error: 'No OpenAI key saved yet.' };
   const guard = guardCall();
   if (!guard.ok) return guard;
@@ -244,7 +257,7 @@ ipcMain.handle('openai:json', async (e, args) => {
   // mini tier stay fast so they keep the short timeout.
   const timeoutMs = tier === 'complex' ? 110000 : 45000;
   let key = '';
-  try { key = fs.readFileSync(oaiKeyPath(), 'utf8').trim(); } catch (_) {}
+  key = readKey();
   if (!key) return { ok: false, error: 'No OpenAI key saved yet.' };
   if (!prompt) return { ok: false, error: 'Empty prompt.' };
   if (prompt.length > MAX_PROMPT_CHARS) return { ok: false, error: 'That request is too large to send (' + prompt.length + ' characters, limit ' + MAX_PROMPT_CHARS + ').' };
@@ -272,8 +285,14 @@ app.whenReady().then(() => {
   // registers this app to handle demo:// links, for the Google sign-in callback
   app.setAsDefaultProtocolClient('demo');
   // microphone for melody recording; nothing else
-  session.defaultSession.setPermissionRequestHandler((wc, perm, cb) => cb(perm === 'media' || perm === 'clipboard-sanitized-write'));
-  session.defaultSession.setPermissionCheckHandler((wc, perm) => perm === 'media');
+  // microphone (audio only) and clipboard writes, and only for the app's own page in its main frame
+  const ours = (wc, url) => { try { const u = wc && wc.getURL(); return !!u && u.startsWith('file:') && (!url || url === 'null' || url.startsWith('file:')); } catch (_) { return false; } };
+  session.defaultSession.setPermissionRequestHandler((wc, perm, cb, details) => {
+    const mainFrame = !details || details.isMainFrame !== false;
+    const audioOnly = !details || !details.mediaTypes || details.mediaTypes.every((t) => t === 'audio');
+    cb(ours(wc, details && details.requestingUrl) && mainFrame && ((perm === 'media' && audioOnly) || perm === 'clipboard-sanitized-write'));
+  });
+  session.defaultSession.setPermissionCheckHandler((wc, perm, origin) => perm === 'media' && ours(wc, origin));
   buildMenu();
   createWindow();
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });

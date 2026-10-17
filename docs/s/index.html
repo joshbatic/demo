@@ -36,7 +36,7 @@ var PRE=null;/*PRELOAD*/
   Keep it self-contained: plain functions, no app state. */
 var SH_FONT="-apple-system,'SF Pro Display',system-ui,'Helvetica Neue',Arial,sans-serif";
 function shEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function shBgCss(b){var g0=String(b.glow).replace('hsl(','hsla(').replace(')',',0)');return'radial-gradient(90% 60% at 88% 4%,'+b.glow+','+g0+' 72%),linear-gradient(155deg,'+b.top+','+b.bot+')'}
+function shBgCss(b){var m=/^hsla?\((\d{1,3}),(\d{1,3})%,(\d{1,3})%/.exec(String(b.glow)),g0=m?'hsla('+m[1]+','+m[2]+'%,'+m[3]+'%,0)':'transparent';return'radial-gradient(90% 60% at 88% 4%,'+b.glow+','+g0+' 72%),linear-gradient(155deg,'+b.top+','+b.bot+')'}
 /* the waveform, drawn the same way as the in-note player: rounded bars from the saved peaks, played part
    solid, the rest faint, with Dock-style magnification around magX while scrubbing. Used for the share
    image and preview, and copied as-is into the shared page so it looks identical there. */
