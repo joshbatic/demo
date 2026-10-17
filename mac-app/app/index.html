@@ -16558,9 +16558,11 @@ function pushShared(s){if(!AUTH_USER)return;var c=sbClient();if(!c)return;s.last
 function pullShared(s){var c=sbClient();if(!c||!AUTH_USER||!s||!s.shared)return;
   c.from('shared_songs').select('data,owner_id,owner_email').eq('id',s.id).maybeSingle().then(function(r){
     if(!r||r.error||!r.data)return;var d=r.data.data||{};
-    if((d.updated||0)>(s.updated||0)){
+    if(d.rmFiles)d.rmFiles=Object.assign({},s.rmFiles||{},d.rmFiles);
+    if((d.updated||0)<=(s.updated||0)&&fileMerge(s,d.rmFiles,null,null)){s.updated=Date.now();save();if(s===cur){renderAud();paintPlayB()}renderList()}
+    if((d.updated||0)>(s.updated||0)){var keepRm=s.rmFiles;
       var mine=s===cur,sel=mine?getSel():null,focused=mine&&document.activeElement===lyr;
-      Object.keys(d).forEach(function(k){s[k]=d[k]});s.owner=r.data.owner_id;s.ownerEmail=r.data.owner_email;s._pushed=d.updated;liveSnap(s);
+      Object.keys(d).forEach(function(k){s[k]=d[k]});if(keepRm&&fileMerge(s,keepRm,null,null))s.updated=Date.now();else fileGC(s);s.owner=r.data.owner_id;s.ownerEmail=r.data.owner_email;s._pushed=d.updated;liveSnap(s);if(s===cur){renderAud();paintPlayB()}
       if(mine){Object.keys(map).forEach(function(sel2){var el=$(sel2);if(document.activeElement!==el)el.value=s[map[sel2]]||''});setLyr(s);if(focused){var L=getText().length;setSel(Math.min(sel.s,L),Math.min(sel.e,L))}PF=mkPF(s.pf||pgGet());hdr();LSK=null;rhyme();refreshViews()}
       renderList();renderSide()
     }
@@ -16607,6 +16609,7 @@ function liveJoin(s){if(!s||!s.shared||!AUTH_USER){liveLeave();return}if(LIVE.id
       .on('broadcast',{event:'need'},function(m){if(LIVE.ch!==ch)return;var x=m&&m.payload;if(x&&x.id===LIVE.id&&cur&&cur.id===x.id&&(!x.u||(cur.updated||0)>=x.u))liveSendFull()})
       .on('broadcast',{event:'full'},function(m){if(LIVE.ch===ch)liveFull(m&&m.payload)})
       .on('broadcast',{event:'fmt'},function(m){if(LIVE.ch!==ch||LIVE.comp)return;liveFmt(m&&m.payload)})
+      .on('broadcast',{event:'files'},function(m){if(LIVE.ch===ch)liveFilesRecv(m&&m.payload)})
       .subscribe(function(st){if(LIVE.ch!==ch)return;
         if(st==='SUBSCRIBED'){LIVE.ok=true;LIVE.everOk=true;if(cur&&cur.id===s.id){liveSend();try{ch.send({type:'broadcast',event:'need',payload:{id:s.id,dev:LIB_DEV,u:cur.updated||0}})}catch(e){}}}
         else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){LIVE.ok=false;if(priv&&st==='CHANNEL_ERROR'&&!LIVE.everOk)RT_PRIV=false;setTimeout(liveEnsure,2000)}});
@@ -17927,7 +17930,25 @@ function sfBlob(item){if(/^local:/.test(item.path))return audGet('f:'+item.id).t
   return sfUrl(item).then(function(u){return fetch(u)}).then(function(r){if(!r.ok)throw new Error('Couldn’t download the audio ('+r.status+').');return r.blob()})}
 function sfRemove(item){if(!item||!item.path)return Promise.resolve();delete SF_URLS[item.path];if(/^local:/.test(item.path))return audDel('f:'+item.id);if(!sfCloud())return Promise.resolve();
   return sbClient().storage.from(SF_BUCKET).remove([item.path]).then(function(){},function(){})}
-function sfTouch(song){song=song||cur;if(!song)return;song.updated=Date.now();save()}
+function sfTouch(song){song=song||cur;if(!song)return;song.updated=Date.now();save();if(song.shared)liveFiles(song)}
+/* ---------- deleted files stay deleted for everyone on a shared song ----------
+   A deleted audio version or file leaves a small tombstone (song.rmFiles: id -> when). Tombstones are merged from
+   every copy of the song and always win, so a co-writer's older copy can't bring a deleted file back, and the
+   file disappears from their list (and stops playing) as soon as they hear about it: instantly over the live
+   channel when the song is open, otherwise the next time their copy syncs. */
+function fileGC(s){var rm=s&&s.rmFiles;if(!rm)return false;var ch=false,keep=function(a){return(a||[]).filter(function(x){if(x&&rm[x.id]){ch=true;return false}return true})};
+  if(s.audio)s.audio=keep(s.audio);if(s.files)s.files=keep(s.files);
+  if(ch){if(lpAu&&rm[lpAu._id])npStop();if(SF_PLAY&&rm[SF_PLAY])sfStopPreview();if(AUD_OPEN&&rm[AUD_OPEN])AUD_OPEN=null;
+    var c0=(s.audio||[]).filter(function(x){return x.cur})[0];if(!c0&&s.audio&&s.audio.length)s.audio[s.audio.length-1].cur=true}
+  return ch}
+function fileMerge(s,rm,audio,files){var ch=false;if(rm){s.rmFiles=s.rmFiles||{};Object.keys(rm).forEach(function(k){if(!s.rmFiles[k]){s.rmFiles[k]=rm[k];ch=true}})}
+  var un=function(mine,theirs){if(!Array.isArray(theirs))return mine;var ids={},out=[];theirs.forEach(function(x){if(x&&x.id&&!ids[x.id]){ids[x.id]=1;out.push(x)}});(mine||[]).forEach(function(x){if(x&&x.id&&!ids[x.id]){ids[x.id]=1;out.push(x);}});
+    if(JSON.stringify(out)!==JSON.stringify(mine||[]))ch=true;return out};
+  if(audio)s.audio=un(s.audio,audio);if(files)s.files=un(s.files,files);
+  if(fileGC(s))ch=true;return ch}
+function liveFiles(s){if(!LIVE.ch||!s||s.id!==LIVE.id)return;try{LIVE.ch.send({type:'broadcast',event:'files',payload:{id:s.id,dev:LIB_DEV,rm:s.rmFiles||{},audio:s.audio||[],files:s.files||[]}})}catch(e){}}
+function liveFilesRecv(x){if(!x||x.id!==LIVE.id||x.dev===LIB_DEV)return;var s=liveSong(x.id);if(!s)return;
+  if(fileMerge(s,x.rm,x.audio,x.files)){LIVE.applying=true;try{save()}finally{LIVE.applying=false}if(s===cur){renderAud();paintPlayB()}renderList()}}
 /* ---------- WAV/AIFF/FLAC -> MP3 on the device before upload: about 80% smaller at 256 kbps ----------
    lamejs runs in a Web Worker (built from the embedded copy above), so the app stays responsive
    while a long song encodes. Turn it off in Audio to keep lossless masters. */
@@ -17989,7 +18010,7 @@ function sfPreview(item){
   var now=sfUrlNow(item);if(now)go(now);else sfUrl(item).then(go,function(e){toast('Couldn’t play it: '+sfErr(e))})}
 function sfOpen(item){var now=sfUrlNow(item);if(now)return openLink(now);sfUrl(item).then(openLink,function(e){toast('Couldn’t open it: '+sfErr(e))})}
 /* remove a version or file: from the song, then from storage */
-function sfDelete(it,onDel){if(SF_PLAY===it.id)sfStopPreview();if(lpAu&&lpAu._id===it.id)npStop();onDel();sfRemove(it);AUD_OPEN=null;sfTouch();haptic('medium');renderAud();paintPlayB();toast('Deleted “'+it.name+'”')}
+function sfDelete(it,onDel){if(SF_PLAY===it.id)sfStopPreview();if(lpAu&&lpAu._id===it.id)npStop();onDel();sfRemove(it);if(cur){cur.rmFiles=cur.rmFiles||{};cur.rmFiles[it.id]=Date.now()}AUD_OPEN=null;sfTouch();haptic('medium');renderAud();paintPlayB();toast('Deleted “'+it.name+'”')}
 /* expanded row: kind, rename, delete (tap twice) */
 function sfEditor(it,kinds,onDel){var w=document.createElement('div');w.className='audxw';w.dataset.id=it.id;var x=document.createElement('div');x.className='audx';w.appendChild(x);
   var ch=document.createElement('div');ch.className='chips';kinds.forEach(function(k){var b=document.createElement('button');b.textContent=k;if(it.kind===k)b.className='on';b.onclick=function(){it.kind=k;sfTouch();renderAud()};ch.appendChild(b)});x.appendChild(ch);
