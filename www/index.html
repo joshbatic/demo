@@ -45,17 +45,16 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 .song b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .song span{display:block;font-size:15px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .empty{text-align:center;color:var(--mute);margin:90px 44px;line-height:1.4}
-#svault{display:none;align-items:center;gap:10px;width:100%;padding:12px 12px;border-radius:14px;background:var(--fill);margin:2px 0 10px;font-size:15px;font-weight:600;color:var(--ink);flex:none}
-#svault svg{color:var(--tint);flex:none}
-#svault span{margin-left:auto;font-size:13px;font-weight:400;color:var(--mute)}
-#svault{display:flex}
-.icard{display:flex;align-items:stretch;gap:8px;margin:6px 16px 4px}
-.icmain{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;background:var(--fill);text-align:left}
-.icmain>i{width:38px;height:38px;border-radius:11px;flex:none;display:grid;place-items:center;color:#5b4a00;background:linear-gradient(150deg,#FFE9A8,#FFD3BE)}
-.icmain>span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.icmain b{font-size:16px;font-weight:650}
-.icmain em{font-style:normal;font-size:14px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.icmain small{font-size:14px;color:var(--mute);flex:none}
-.icjot{flex:none;width:52px;border-radius:18px;background:var(--fill);color:var(--ink);display:grid;place-items:center}
+#svault{flex:none;margin:2px 0 8px}
+#svault em{font-style:normal;font-size:13px;color:var(--mute);margin-left:auto;padding-left:8px}
+.irow0{padding-top:8px}
+.th.ith{background:linear-gradient(150deg,#FFE9A8,#FFD3BE 60%,#F6C6E4);color:#fff;box-shadow:0 0 0 .5px var(--ring)}
+.th.ith svg{position:relative;z-index:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.18))}
+.th.ith{position:relative}.th.ith::after{content:'';position:absolute;inset:0;border-radius:inherit;background:#000;opacity:0;pointer-events:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .th.ith::after{opacity:.22}}
+:root[data-theme="dark"] .th.ith::after{opacity:.22}
+.ijb{flex:none;width:34px;height:34px;border-radius:50%;background:var(--fill);color:var(--ink);display:grid;place-items:center;margin-right:-4px}
+.ijb:active{transform:scale(.92)}
 .ijot{margin:4px 16px 14px;padding:10px 10px 10px 14px;display:flex;flex-direction:column;gap:8px}
 #ijotk{align-self:flex-start;margin:0}.ijk button,.ikind button{padding:0 12px;height:28px;font-size:13px}
 .ijrow{display:flex;align-items:flex-end;gap:8px}
@@ -495,7 +494,7 @@ body.ios .si .th{width:40px;height:40px}
 body.ios .si .th svg{width:18px;height:18px}
 body.ios .si .tx>b{font-size:17px}
 body.ios .si .tx>span{font-size:14px}
-body.ios #svault{font-size:16px}
+
 body.ios .song{padding:13px 24px}
 #rt-head{padding:0 20px 4px}#rt-head .opts{padding:0}#rt-head .lab{padding:6px 8px 6px}
 #rt-head .acts{display:flex;align-items:center;gap:10px;padding:10px 0 4px}#rt-head .acts span{font-size:13px;color:var(--mute)}
@@ -854,7 +853,7 @@ body.sprinting #rhy{display:none}
 
 <aside id="side" aria-label="Songs">
   <div class="sdh"><b id="logo" role="button" tabindex="0" aria-label="Songs overview">*[demo]</b><div class="gl grp2"><button class="ib2" id="sacct" aria-label="Account"><img id="sacctav" class="sacctav" alt="" hidden><svg id="sacctsvg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.9-3.6 3.7-5.6 7-5.6s6.1 2 7 5.6"/></svg><i class="invdot" id="invdot2" hidden></i></button><button class="ib2" id="snew" aria-label="New song"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6"/><path d="M18.5 3.5l2 2L11 15l-3 1 1-3z"/></svg></button><button class="ib2" id="sfolder" aria-label="New folder" title="New folder"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5a2 2 0 0 1 2-2h4.5l1.8 2H19a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 12.3v4.4M9.8 14.5h4.4"/></svg></button><button class="ib2" id="shide" aria-label="Hide sidebar"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M9.5 4v16"/></svg></button></div></div>
-  <button id="svault"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.4 10.9c.6.4.9 1.1.9 1.8V16h5v-.3c0-.7.3-1.4.9-1.8A6 6 0 0 0 12 3z"/></svg>Ideas<span id="svaultct"></span></button>
+  <button id="svault" class="si"><i class="th ith"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.4 10.9c.6.4.9 1.1.9 1.8V16h5v-.3c0-.7.3-1.4.9-1.8A6 6 0 0 0 12 3z"/></svg></i><div class="tx"><b>Ideas</b><span id="svaultsub">A quick jot for lines and ideas</span></div><em id="svaultct"></em></button>
   <input id="sq" type="search" placeholder="Search">
   <div id="slist"></div>
 </aside>
@@ -14766,18 +14765,24 @@ function seedGuide(){
 }
 var IK='songpad:ideas:v1',ideas=[],ifilterTag='',curIdea=null;
 function ideasKey(){if(typeof DEV_MODE!=='undefined'&&DEV_MODE&&!AUTH_USER)return IK+':dev';if(typeof AUTH_USER!=='undefined'&&AUTH_USER&&AUTH_USER.id)return IK+':'+AUTH_USER.id;return IK}
-function loadIdeas(){try{ideas=JSON.parse(localStorage.getItem(ideasKey()))||[]}catch(e){ideas=[]}var ct=$('#svaultct');if(ct)ct.textContent=ideas.length||''}
-var ist;function saveIdeas(){clearTimeout(ist);ist=setTimeout(function(){try{localStorage.setItem(ideasKey(),JSON.stringify(ideas))}catch(e){toast('Could not save in this browser')}if(typeof cloudPush==='function')cloudPush();var ct=$('#svaultct');if(ct)ct.textContent=ideas.length||'';if(document.getElementById('vIdeas').classList.contains('on'))renderIdeas()},200)}
+function loadIdeas(){try{ideas=JSON.parse(localStorage.getItem(ideasKey()))||[]}catch(e){ideas=[]}paintVault()}
+var ist;function saveIdeas(){clearTimeout(ist);ist=setTimeout(function(){try{localStorage.setItem(ideasKey(),JSON.stringify(ideas))}catch(e){toast('Could not save in this browser')}if(typeof cloudPush==='function')cloudPush();paintVault();if(document.getElementById('vIdeas').classList.contains('on'))renderIdeas()},200)}
 function allIdeaTags(){var t={};ideas.forEach(function(i){(i.tags||[]).forEach(function(x){t[x]=(t[x]||0)+1})});return Object.keys(t).sort(function(a,b){return t[b]-t[a]})}
 /* ---------- ideas: a quick jot for stray lines, ideas and concepts ----------
    A card at the top of the song list opens them; the box at the top of Ideas saves with Return. Each one is a
    Line, an Idea or a Concept, can carry tags, and can start a new song. Synced with the library like songs. */
 var IKINDS=[['line','Line','A lyric line or hook'],['idea','Idea','A title, image, phrase, anything'],['concept','Concept','What a song could be about']],IKL={};IKINDS.forEach(function(k){IKL[k[0]]=k[1]});
-var ijotKind='line',ifilterKind='';
-function ideasCard(){var b=document.createElement('div');b.className='icard';var last=ideas.slice().sort(function(a,c){return c.updated-a.updated})[0];
-  b.innerHTML='<button class="icmain"><i><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.4 10.9c.6.4.9 1.1.9 1.8V16h5v-.3c0-.7.3-1.4.9-1.8A6 6 0 0 0 12 3z"/></svg></i><span><b>Ideas</b><em></em></span><small></small></button><button class="icjot" aria-label="Jot an idea"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>';
-  b.querySelector('em').textContent=last?last.text.split('\n')[0]:'Jot down a line, an idea or a concept before it’s gone';b.querySelector('small').textContent=ideas.length||'';
-  b.querySelector('.icmain').onclick=function(){openIdeas()};b.querySelector('.icjot').onclick=function(){openIdeas(true)};return b}
+var ijotKind='line',ifilterKind='',IBULB='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.4 10.9c.6.4.9 1.1.9 1.8V16h5v-.3c0-.7.3-1.4.9-1.8A6 6 0 0 0 12 3z"/></svg>';
+/* the Ideas row at the top of the song list: built like a song row (tile, title, latest idea, count and time)
+   so it sits in the list rather than on top of it, with a small + to jot one straight away */
+function paintVault(){var ct=$('#svaultct'),sb=$('#svaultsub');if(ct)ct.textContent=ideas.length||'';if(sb){var l=ideas.slice().sort(function(a,c){return c.updated-a.updated})[0];sb.textContent=l?l.text.split('\n')[0]:'A quick jot for lines and ideas'}}
+function ideasCard(){var last=ideas.slice().sort(function(a,c){return c.updated-a.updated})[0],n=ideas.length;
+  var b=document.createElement('div');b.className='song irow0';b.setAttribute('role','button');b.tabIndex=0;b.setAttribute('aria-label','Ideas');
+  b.innerHTML='<i class="th ith">'+IBULB+'</i><div class="tx"><b>Ideas</b><span></span><em></em></div><button class="ijb" aria-label="Jot an idea" title="Jot an idea"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>';
+  b.querySelector('span').textContent=last?last.text.split('\n')[0]:'A quick jot for lines, ideas and concepts';
+  b.querySelector('em').textContent=n?n+(n===1?' idea':' ideas')+' · '+fd(last.updated):'Tap + to jot one';
+  b.onclick=function(e){if(e.target.closest('.ijb'))return;openIdeas()};b.onkeydown=function(e){if((e.key==='Enter'||e.key===' ')&&e.target===b){e.preventDefault();openIdeas()}};
+  b.querySelector('.ijb').onclick=function(e){e.stopPropagation();openIdeas(true)};return b}
 function ijotSave(){var ta=$('#ijot'),t=ta.value.trim();if(!t)return;
   ideas.unshift({id:uuid4(),text:t,kind:ijotKind,tags:[],created:Date.now(),updated:Date.now()});saveIdeas();ta.value='';ijotFit();haptic('light');renderIdeas();ta.focus()}
 function ijotFit(){var ta=$('#ijot');if(!ta)return;ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,180)+'px'}
@@ -17394,7 +17399,7 @@ function cloudSync(first){
         try{localStorage.setItem(ACTIVE_KEY,JSON.stringify(songs))}catch(e){}
         try{localStorage.setItem(ideasKey(),JSON.stringify(ideas))}catch(e){}
         desktopMirror();renderList();renderSide();
-        var ct=$('#svaultct');if(ct)ct.textContent=ideas.length||'';
+        paintVault();
         if(document.getElementById('vIdeas').classList.contains('on'))renderIdeas();
         if(openId&&!songs.some(function(s){return s.id===openId})){toList();toast('That song was deleted on another device')}
         else if(as.curHit&&cur)libRefreshCur();
