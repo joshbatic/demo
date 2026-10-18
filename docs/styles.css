@@ -228,3 +228,17 @@ footer .links{display:flex;gap:16px}
 .done p{color:var(--mute);font-size:17px;line-height:1.5;margin:0 auto 26px;max-width:28em}
 .go.ghost{background:var(--fill);color:var(--ink)}
 @media (max-width:480px){.frow>span{width:96px;font-size:15.5px}.beta h1{font-size:34px}}
+
+/* Mac download page */
+.mac .macicon{display:block;width:112px;height:112px;margin:8px 0 18px;border-radius:26px;box-shadow:0 10px 28px var(--sh)}
+.mac .go{width:auto;margin-top:0}
+.mac .macfine{margin:12px 2px 34px}
+.mac .mach{font-size:20px;margin:0 0 12px}
+.isteps{list-style:none;counter-reset:s;margin:0 0 22px;padding:0;background:var(--card2);border-radius:18px;box-shadow:0 0 0 .5px var(--ring),0 1px 2px var(--sh);overflow:hidden}
+.isteps li{counter-increment:s;position:relative;padding:15px 18px 15px 58px}
+.isteps li+li{border-top:.5px solid var(--ring)}
+.isteps li::before{content:counter(s);position:absolute;left:18px;top:15px;width:26px;height:26px;border-radius:13px;background:var(--tint);color:var(--ontint);font-size:13.5px;font-weight:700;display:grid;place-items:center}
+.isteps b{display:block;font-size:16px}
+.isteps span{display:block;font-size:14.5px;line-height:1.45;color:var(--mute);margin-top:3px}
+.isteps i{font-style:normal;color:var(--ink);font-weight:600}
+.cta .macdl{display:inline-block;margin-top:12px;font-size:15px;font-weight:600;color:var(--ink)}
