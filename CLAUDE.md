@@ -7,3 +7,6 @@
 - `next`: work toward the next major release (started from 4.0.0). New features go here unless Josh says they're for the current release; bring fixes across from `main` with a merge.
 - `stable-1` … `stable-4`: frozen snapshots of past milestones; never commit to them.
 - Releases are tagged `vX.Y.Z` on `main`, with notes in `RELEASE-NOTES-vX.Y.Z.md`.
+
+## Mac dev build
+- `~/Applications/[demo] Dev.app` is a copy of the Mac app with a `dev-build` file in `Contents/Resources/app/` (Beta Requests on the home screen, developer tools, its own data and `demo-dev://` sign-in). When updating the Mac app's `index.html`, `main.js` or `preload.js`, copy them into both apps. `mac-app/scripts/make-dev-app.sh` recreates it.
