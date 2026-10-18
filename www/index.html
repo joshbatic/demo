@@ -14890,10 +14890,16 @@ var IREC=null,IDA=null,IDA_ID=null,IREC_MAX=600;
 var IMIC='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 17.5v3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 function imExt(mime){return/mp4|m4a|aac/i.test(mime)?'m4a':/ogg/i.test(mime)?'ogg':/wav/i.test(mime)?'wav':/mpeg|mp3/i.test(mime)?'mp3':'webm'}
 function imMime(){if(!window.MediaRecorder||!MediaRecorder.isTypeSupported)return'';var t=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus'];for(var i=0;i<t.length;i++)if(MediaRecorder.isTypeSupported(t[i]))return t[i];return''}
+/* the microphone: on the Mac, ask macOS first (so the permission prompt actually appears), and if it's been
+   turned off, say where to turn it back on */
+function micGet(c){var d=window.desktop;var pre=d&&d.micAccess?d.micAccess().catch(function(){return'granted'}):Promise.resolve('granted');
+  return pre.then(function(st){if(st==='denied'||st==='restricted'){var e=new Error('microphone blocked');e.micDenied=true;throw e}return navigator.mediaDevices.getUserMedia(c)})}
+function micBlocked(alt){if(window.desktop&&window.desktop.openMicSettings){toast('Turn on *[demo] in System Settings › Privacy & Security › Microphone, then try again.');try{window.desktop.openMicSettings()}catch(e){}return}
+  toast(document.body.classList.contains('ios')?'Allow microphone access for *[demo] in Settings to record.':(alt||'Microphone access is blocked. Allow it to record.'))}
 function irecStart(){if(IREC)return;
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){toast('Recording isn’t available here.');return}
   var box=$('.ijot');box.classList.add('arming');
-  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}).then(function(st){
+  micGet({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}).then(function(st){
     var mime=imMime(),mr;try{mr=new MediaRecorder(st,mime?{mimeType:mime,audioBitsPerSecond:128000}:undefined)}catch(e){mr=new MediaRecorder(st)}
     var R=IREC={mr:mr,st:st,chunks:[],t0:Date.now(),save:false};
     mr.ondataavailable=function(e){if(e.data&&e.data.size)R.chunks.push(e.data)};
@@ -14902,17 +14908,30 @@ function irecStart(){if(IREC)return;
       if(R.save&&blob.size&&dur>=.6)ideaMemoSave(blob,dur);else if(R.save)toast('That was too short to keep.')};
     mr.start(1000);
     /* a live level meter, so it's obvious it's hearing you */
-    try{var AC=window.AudioContext||window.webkitAudioContext,ac=new AC(),src=ac.createMediaStreamSource(st),an=ac.createAnalyser();an.fftSize=512;src.connect(an);R.ac=ac;R.an=an;R.lv=[];
-      var buf=new Uint8Array(an.fftSize);(function draw(){if(IREC!==R)return;an.getByteTimeDomainData(buf);var m=0;for(var i=0;i<buf.length;i++){var v=Math.abs(buf[i]-128);if(v>m)m=v}
-        R.lv.push(Math.min(1,Math.pow(m/90,.7)));if(R.lv.length>240)R.lv.shift();irecMeter(R);R.raf=requestAnimationFrame(draw)})()}catch(e){}
+    /* a live waveform like Voice Memos: a new bar every 70 ms scrolling smoothly to the left, the newest one
+       moving with your voice right now. Levels are on a decibel scale so a quiet hum still shows. */
+    try{var AC=window.AudioContext||window.webkitAudioContext,ac=new AC();if(ac.state==='suspended')ac.resume();var src=ac.createMediaStreamSource(st),an=ac.createAnalyser();an.fftSize=1024;src.connect(an);R.ac=ac;R.an=an;R.lv=[];R.acc=0;R.cur=0;R.last=performance.now();R.peak=0;
+      var buf=new Float32Array(an.fftSize);(function draw(now){if(IREC!==R)return;now=now||performance.now();
+        if(an.getFloatTimeDomainData)an.getFloatTimeDomainData(buf);var m=0;for(var i=0;i<buf.length;i++){var v=Math.abs(buf[i]);if(v>m)m=v}
+        var lv=m>0?Math.max(0,Math.min(1,(20*Math.log10(m)+50)/44)):0;R.cur+= (lv-R.cur)*(lv>R.cur?.6:.25);R.acc=Math.max(R.acc,lv);if(lv>R.peak)R.peak=lv;
+        while(now-R.last>=IREC_STEP){R.lv.push(R.acc);R.acc=R.cur;R.last+=IREC_STEP;if(R.lv.length>400)R.lv.shift()}
+        irecMeter(R,(now-R.last)/IREC_STEP);R.raf=requestAnimationFrame(draw)})()}catch(e){}
+    /* nothing coming in after a few seconds: usually the wrong input, or macOS giving the app silence */
+    setTimeout(function(){if(IREC===R&&R.an&&R.peak<.04)toast(window.desktop?'No sound is coming in. Check the input in System Settings › Sound, and that *[demo] is allowed under Privacy & Security › Microphone.':'No sound is coming in. Check your microphone.')},3500);
     R.tick=setInterval(function(){var s=(Date.now()-R.t0)/1000;var t=$('#irect');if(t)t.textContent=sfTime(s);if(s>=IREC_MAX){toast('Saved at 10 minutes, the longest a voice memo can be.');irecStop(true)}},250);
     box.classList.remove('arming');irecPaint();haptic('medium')
-  },function(){box.classList.remove('arming');toast(document.body.classList.contains('ios')?'Allow microphone access for *[demo] in Settings to record.':'Microphone access is blocked. Allow it to record.')})}
+  },function(){box.classList.remove('arming');micBlocked()})}
 function irecStop(save){if(!IREC)return;IREC.save=!!save;haptic(save?'success':'light');try{IREC.mr.stop()}catch(e){IREC=null;irecPaint()}}
 function irecPaint(){var box=$('.ijot');if(!box)return;var on=!!IREC;box.classList.toggle('recording',on);$('#irec').hidden=!on;var t=$('#irect');if(t)t.textContent='0:00'}
-function irecMeter(R){var cv=$('#irecw');if(!cv)return;var dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(!w)return;if(cv.width!==Math.round(w*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
-  var x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);x.fillStyle=getComputedStyle(cv).color;var bw=3,gap=2.4,n=Math.floor((w+gap)/(bw+gap)),L=R.lv;
-  for(var i=0;i<n;i++){var v=L[L.length-n+i];if(v==null)v=0;var bh=Math.max(3,v*h);x.globalAlpha=v?1:.3;var X=w-(n-i)*(bw+gap)+gap,Y=(h-bh)/2;if(x.roundRect){x.beginPath();x.roundRect(X,Y,bw,bh,1.5);x.fill()}else x.fillRect(X,Y,bw,bh)}x.globalAlpha=1}
+var IREC_STEP=70;
+function irecMeter(R,frac){var cv=$('#irecw');if(!cv)return;var dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(!w)return;if(cv.width!==Math.round(w*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
+  var x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);x.fillStyle=getComputedStyle(cv).color;
+  var bw=3,gap=2.5,st=bw+gap,L=R.lv,n=Math.ceil(w/st)+2,off=(frac||0)*st,mid=h/2;
+  var bar=function(X,v,a){var bh=Math.max(3,v*(h-2));x.globalAlpha=a;if(x.roundRect){x.beginPath();x.roundRect(X,mid-bh/2,bw,bh,1.5);x.fill()}else x.fillRect(X,mid-bh/2,bw,bh)};
+  /* the newest bar sits at the right edge and follows the voice live; the rest slide left and fade */
+  var right=w-bw;bar(right,R.cur||0,1);
+  for(var i=0;i<n;i++){var v=L[L.length-1-i];if(v==null)break;var X=right-(i+1)*st+ (st-off);if(X<-bw)break;bar(X,v,.35+.65*Math.max(0,X/w))}
+  x.globalAlpha=1}
 function ideaMemoSave(blob,dur){var ta=$('#ijot'),t=ta.value.trim(),mid=uuid4();
   var memo={id:mid,path:'local:'+mid,mime:blob.type||'',size:blob.size,dur:Math.round(dur*10)/10,peaks:[],pend:true};
   var i={id:uuid4(),text:t,kind:t?'line':'memo',tags:[],created:Date.now(),updated:Date.now(),memo:memo};
@@ -16777,9 +16796,9 @@ $('#mel-imp').onclick=function(){$('#melin').click()};
 $('#melin').onchange=function(){var f=this.files&&this.files[0];this.value='';if(f)melFrom(f,f.name.replace(/\.[^.]+$/,''))};
 $('#mel-rec').onclick=function(){var btn=this;if(recr){recr.stop();return}
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){toast('Recording isn’t available here. Import a voice memo instead.');return}
-  navigator.mediaDevices.getUserMedia({audio:true}).then(function(st){recChunks=[];recr=new MediaRecorder(st);recr.ondataavailable=function(e){if(e.data&&e.data.size)recChunks.push(e.data)};
+  micGet({audio:true}).then(function(st){recChunks=[];recr=new MediaRecorder(st);recr.ondataavailable=function(e){if(e.data&&e.data.size)recChunks.push(e.data)};
     recr.onstop=function(){st.getTracks().forEach(function(x){x.stop()});var bl=new Blob(recChunks,{type:recr.mimeType||'audio/webm'});recr=null;btn.textContent='Record';melFrom(bl,'Recording')};
-    recr.start();btn.textContent='Stop Recording';toast('Recording. One phrase per line.')},function(){toast('Microphone access is blocked here. Import a voice memo instead.')})};
+    recr.start();btn.textContent='Stop Recording';toast('Recording. One phrase per line.')},function(){micBlocked('Microphone access is blocked here. Import a voice memo instead.')})};
 /* ---------- default cover: one bar per line, length = syllables, gaps between sections ---------- */
 /* a stable two-colour pairing per song, from the app's ink palette: bold background, light tint of a different colour for the lines */
 function duo(id){var P=['#E5566F','#D4881C','#4E9A5B','#2C8DBF','#5D6BE0','#A35FCB','#8E8E96'],h=0;for(var i=0;i<id.length;i++)h=(h*33+id.charCodeAt(i))>>>0;
