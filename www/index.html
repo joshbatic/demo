@@ -16602,9 +16602,7 @@ window.addEventListener('resize',refreshViews);
 $('#ctxb').onmousedown=prevent;$('#ctxb').onclick=function(){if(!isPro())return upsell('listen');VIEW.ctx=!VIEW.ctx;vset();rhyme();toast(VIEW.ctx?'Listening to the whole song':'Only listening to nearby lines')};
 /* ---------- I'm stuck ---------- */
 var CARDS=['Say the quiet part out loud.','Write the line you would never sing to their face.','Swap the feeling for an object you could hold.','Move the scene to a kitchen at 3am.','What is the smallest true detail you remember?','Write the next line as a text you never sent.','Change the tense. Then change it back.','Cut your first line and start at the second.','Give the “you” a name.','Write the opposite of what you mean.','Put the weather in it.','Count something.','Name a real street, shop or brand.','Ask a question you can’t answer.','Turn the next four lines into a list.','Write what happened five minutes before this.','What is the shortest version of this song? Say it in six words.','Let a stranger say the next line.','Lie in the next line.','Use something someone actually said to you.','Tell it from the point of view of the room.','Rhyme on the first word of the line, not the last.','Make it smaller: one room, one minute.','Repeat your best line and change one word.','What’s on the floor?','Hum the melody first. Find words for the vowels.','Write the bridge before the chorus.','Argue with your own title.','Write the ending first.','What does this song want that it can’t have?'];
-var NOUNS=['matchbook','porch light','ferry','radio','ash tray','car keys','hospital bed','church hall','bus shelter','motel pool','windscreen','wedding dress','fishing line','loose tooth','phone charger','backyard','hairbrush','ticket stub','mirror','tram','rain gutter','screen door','kitchen table','petrol station','stairwell','bedsheet','lighthouse','paper cup','jukebox','overcoat'],
-VERBS=['unravel','borrow','drown','stitch','hitchhike','bleach','forgive','pawn','rust','flicker','whisper','bury','undress','haunt','sweep','dial','stall','swallow','float','chip'],
-ADJS=['crooked','borrowed','electric','tender','second-hand','salt-heavy','half-lit','cheap','holy','sunburnt','brittle','velvet','reckless','quiet','plastic','unsent','sleepless','gold','frozen','lucky'];
+var NOUNS=['matchbook','porch light','ferry','radio','ash tray','car keys','hospital bed','church hall','bus shelter','motel pool','windscreen','wedding dress','fishing line','loose tooth','phone charger','backyard','hairbrush','ticket stub','mirror','tram','rain gutter','screen door','kitchen table','petrol station','stairwell','bedsheet','lighthouse','paper cup','jukebox','overcoat'];
 function pick(a){return a[Math.floor(Math.random()*a.length)]}
 function openStuck(){buildStuck();$('#stk-out').innerHTML='';sheet(true,'sheet3')}
 var STK_SEQ=0;
@@ -16622,9 +16620,7 @@ function buildStuck(){
   if(cur){var bs=briefSummary(cur),bb=document.createElement('button');bb.className='stc brief'+(bs?' set':'');bb.innerHTML='<b></b><span></span>';bb.children[0].textContent=bs?'About this song':'Tell the muse about this song';bb.children[1].textContent=bs||'Who’s singing, to whom, where, one real detail.';bb.onclick=briefForm;g.appendChild(bb)}
   [['big','Read my song','What this is really about, where it stalls, and a few doors out',readSong,1],
    ['rate'+(rateMode?' on':''),rateMode?'Rate mode is on':'Rate my song',rateMode?'Notes are marked in your lyrics. Tap to hide them.':'Scores and notes on what’s landing and what isn’t',function(){if(rateMode){setRateMode(false);toast('Rate mode off');buildStuck();return}if(!isPro())return upsell('rate');sheet(false);setTimeout(openRate,isPro()?60:0)},1],
-   ['','Four doors','Four completely different next lines. Walk through one.',fourWays,1],
    ['','Stare at a thing','90 seconds on one object. Every sense. No rhyming.',zoomIn],
-   ['','Word collision','Three random words. Jam them in somehow.',collide],
    ['','Wild card','One odd instruction. Just do it.',card],
    ['','Pen never stops','Five minutes. No deleting. No rhyme bar. Go.',sprintGo]].forEach(function(x){if(x[4]&&!aiAvailable())return;var b=document.createElement('button');b.className='stc '+x[0]+(x[4]&&!isPro()?' locked':'');b.innerHTML='<b></b><span></span>';b.children[0].textContent=x[1];b.children[1].textContent=x[2];b.onclick=x[4]&&!isPro()?function(){upsell('muse')}:x[3];if(x[4]&&!isPro())b.children[0].insertAdjacentHTML('beforeend',' <i class="protag">Beta</i>');g.appendChild(b)});
 }
@@ -16641,22 +16637,9 @@ function readSong(){if(!needAI())return;var o=stkOut('<p>'+aidots()+' Reading yo
       act(o,'Read again',readSong)};
     o.innerHTML='<p>'+aidots()+' Picking the best ways forward</p>';
     mzJudge(mv.map(function(m){return m.line}),{section:k.st,what:'the next line for this song'}).then(show)},function(){if(live())aiErr(o)})}
-function fourWays(){if(!needAI())return;var o=stkOut('<p>'+aidots()+' Writing four directions</p>'),at=getSel().s,k=ctx(),ref=k.ref||'',tk=o.dataset.seq,live=function(){return o.dataset.seq===tk};
-  aiJson('Songwriting partner.'+pfx()+'\n\n'+songCtx({at:at})+museCtx(k.st)+'\n\nThe writer is stuck on the next line. Write 8 candidate next lines, two for each of four clearly different directions: 1) a concrete physical detail, 2) a memory or flashback, 3) something said out loud (dialogue), 4) a twist or contradiction. Match the length of "'+ref+'". Return JSON: [{"kind": "Detail"|"Memory"|"Dialogue"|"Twist", "line": "..."}].',{cache:false}).then(function(r){
-    if(!live())return;var c=mzFilter((Array.isArray(r)?r:[]).filter(function(x){return x&&typeof x.line==='string'&&x.line.trim()}),function(x){return x.line},4);
-    if(!c.length){aiErr(o);return}
-    o.innerHTML='<p>'+aidots()+' Picking the strongest of each</p>';
-    mzJudge(c.map(function(x){return x.line}),{section:k.st,what:'the next line for this song'}).then(function(js){if(!live())return;
-      c.forEach(function(x,i){x.js=js&&js[i]!=null?js[i]:0});
-      var best={},order=[];c.forEach(function(x){var kk=x.kind||'';if(!best[kk]){best[kk]=x;order.push(kk)}else if(x.js>best[kk].js)best[kk]=x});
-      o.innerHTML='<h4>Tap one to add it</h4>';order.forEach(function(kk){var x=best[kk];lineBtn(o,x.line,(x.kind||'')+' · '+lsyl(x.line)+' syl')});act(o,'Four more',fourWays)})},function(){if(live())aiErr(o)})}
-function flipIt(){if(!needAI())return;var k=ctx(),last=(k.cur.trim()?k.cur:k.ref).trim();if(!last){stkOut('<p>Write a line first, then flip it.</p>');return}var o=stkOut('<p>'+aidots()+' Flipping “'+esc(last)+'”</p>');
-  aiJson('Songwriting partner.'+pfx()+'\n\n'+songCtx({at:k.le})+'\n\nTake this line: "'+last+'". Write 6 alternatives that flip it: from the other person\'s point of view, the opposite feeling, years later, as a question, as an understatement, and as an exaggeration. Keep about '+lsyl(last)+' syllables. Return JSON: [{"flip": short label, "line": "..."}].',{cache:false}).then(function(r){
-    if(!Array.isArray(r)||!r.length){aiErr(o);return}o.innerHTML='<h4>Flips of your last line. Tap to add as the next line</h4>';r.forEach(function(x){if(x&&x.line)lineBtn(o,x.line,(x.flip||'')+' · '+lsyl(x.line)+' syl')});act(o,'Flip again',flipIt)},function(){aiErr(o)})}
 function zoomIn(){var tp=topics().split(',').filter(Boolean),n=tp.length&&Math.random()<.5?pick(tp):pick(NOUNS),o=stkOut('');
   o.innerHTML='<h4>Zoom in on</h4><p class="big"></p><p>90 seconds on just this: how it looks, sounds, smells and feels. No rhyming. It goes in a scratch section.</p>';o.querySelector('.big').textContent=n;
   act(o,'Start 90 seconds',function(){scratch('Scratch: '+n);sprintGo(90)});act(o,'Another object',zoomIn)}
-function collide(){var w=[pick(ADJS),pick(NOUNS),pick(VERBS)],o=stkOut('');o.innerHTML='<h4>Get all three into the next two lines</h4><p class="big"></p><p>Bend them, rhyme them, hide them.</p>';o.querySelector('.big').textContent=w.join(' · ');act(o,'New words',collide)}
 function card(){var o=stkOut('');o.innerHTML='<h4>Strategy card</h4><p class="big"></p>';o.querySelector('.big').textContent=pick(CARDS);act(o,'Another card',card)}
 function scratch(label){var v=getText();lyr.focus();lyr.setSelectionRange(v.length,v.length);ins(lyr,(v.trim()?(/\n\s*$/.test(v)?'\n':'\n\n'):'')+'['+label+']\n');tagBold()}
 var spT=null,spEnd=0,spW=0;
