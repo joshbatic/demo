@@ -23,6 +23,7 @@ Run these in **SQL Editor** (New query → paste → Run), in this order. All ar
 10. `supabase/storage-limit.sql`: 150 MB of audio and files per account for the beta. Change it in **Table Editor › storage_limit** (empty means no limit). On the free Supabase plan the whole project gets 1 GB (about 6 full accounts), so move to Pro before inviting more testers than that.
 11. `supabase/user-blocks.sql`: lets people block someone from inviting them.
 12. `supabase/beta-access.sql`: the beta waitlist. Then run `supabase/ai-limits.sql` and `supabase/delete-account.sql` again (both changed for it).
+13. `supabase/admin-tools.sql`: the Admin sheet in [demo] Dev (user counts, users, errors, settings).
 
 Settings:
 

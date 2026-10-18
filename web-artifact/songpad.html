@@ -55,7 +55,35 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 .devpill{display:inline-flex;align-items:center;height:20px;padding:0 8px;margin-left:8px;border-radius:99px;font-size:11px;font-weight:800;letter-spacing:.4px;vertical-align:middle;color:#fff;background:linear-gradient(140deg,#FFAA7F,#FF8FA3)}
 .bth{color:#fff;background:linear-gradient(140deg,#FFE9A8,#FFAA7F)!important}.bth svg{filter:drop-shadow(0 .5px 1.5px rgba(0,0,0,.25))}
 .brow0 em{font-style:normal}.brow0 .bct{min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:#FF3B30;color:#fff;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-left:auto}
-#sbeta[hidden]{display:none!important}#sbeta{flex:none;margin:-4px 0 8px}#sbeta em{font-style:normal;margin-left:auto}#sbeta em:empty{display:none}#sbeta em{min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:#FF3B30;color:#fff;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+#sbeta[hidden],#sadm[hidden]{display:none!important}#sadm{flex:none;margin:-4px 0 4px}#sadm em{font-style:normal;margin-left:auto}#sadm em:empty{display:none}#sadm em{min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:#FF3B30;color:#fff;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+.ath{color:#fff;background:linear-gradient(140deg,#D7C4FF,#9CC8FF)!important}.ath svg{filter:drop-shadow(0 .5px 1.5px rgba(0,0,0,.25))}
+#adm{padding:4px 16px 12px}
+#adm .bseg{display:flex;gap:4px;padding:3px;margin:4px 0 14px;border-radius:12px;background:var(--fill)}
+#adm .bseg button{flex:1;padding:8px 4px;border-radius:9px;font-size:14px;font-weight:600;color:var(--ink);background:none}
+#adm .bseg button.on{background:var(--bg);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+#adm .agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+#adm .astat{padding:14px 14px 12px;border-radius:16px;background:var(--row);box-shadow:0 0 0 .5px var(--ring)}
+#adm .astat b{display:block;font-size:26px;font-weight:750;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+#adm .astat span{display:block;font-size:13px;color:var(--mute);margin-top:2px}
+#adm .astat em{display:block;font-style:normal;font-size:12.5px;color:var(--mute);margin-top:6px}
+#adm .astat.warn b{color:#FF3B30}
+#adm .abar{height:6px;border-radius:3px;background:var(--fill);margin-top:8px;overflow:hidden}#adm .abar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#9CC8FF,#B9A6FF)}
+#adm .alab{font-size:13px;color:var(--mute);margin:18px 4px 8px}
+#adm .abox{border-radius:18px;background:var(--row);box-shadow:0 0 0 .5px var(--ring);overflow:hidden}
+#adm .arow{padding:12px 16px;position:relative;cursor:pointer}#adm .arow+.arow::before{content:'';position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--sep)}
+#adm .arow b{display:block;font-size:15.5px;overflow-wrap:anywhere}#adm .arow .am{font-size:13px;color:var(--mute);margin-top:2px;overflow-wrap:anywhere}
+#adm .arow .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}#adm .chips span{font-size:12px;padding:3px 8px;border-radius:99px;background:var(--fill);color:var(--ink)}
+#adm .chips .ok{background:rgba(52,199,89,.16);color:#1f8a3b}#adm .chips .bad{background:rgba(255,59,48,.14);color:#d92d20}#adm .chips .wait{background:rgba(255,159,10,.16);color:#b26a00}
+#adm .aacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}#adm .aacts button{padding:8px 12px;border-radius:10px;font-size:14px;font-weight:600;background:var(--fill);color:var(--ink)}
+#adm .aacts .ok{background:var(--tint);color:var(--ontint)}#adm .aacts button:disabled{opacity:.5}
+#adm .asearch{width:100%;padding:11px 14px;border-radius:12px;border:.5px solid var(--sep);background:var(--row);color:var(--ink);font-size:16px;margin-bottom:12px}
+#adm .aempty{padding:26px 16px;text-align:center;color:var(--mute);font-size:15px}
+#adm .aset{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;position:relative}#adm .aset+.aset::before{content:'';position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--sep)}
+#adm .aset b{font-size:15.5px}#adm .aset span{display:block;font-size:13px;color:var(--mute);margin-top:2px}
+#adm .aset input{width:90px;padding:8px 10px;border-radius:10px;border:.5px solid var(--sep);background:var(--bg);color:var(--ink);font-size:16px;text-align:right}
+#adm .alink{display:block;width:100%;text-align:left;padding:13px 16px;font-size:15.5px;color:var(--ink);background:none;position:relative}#adm .alink+.alink::before{content:'';position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--sep)}
+#adm .anote{font-size:12.5px;color:var(--mute);padding:10px 4px 0;line-height:1.45}
+#adm pre{white-space:pre-wrap;font:12px/1.45 ui-monospace,Menlo,monospace;color:var(--mute);margin:8px 0 0;max-height:160px;overflow:auto}#sbeta{flex:none;margin:-4px 0 8px}#sbeta em{font-style:normal;margin-left:auto}#sbeta em:empty{display:none}#sbeta em{min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:#FF3B30;color:#fff;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
 #brq{padding:4px 16px 8px}
 #vList .lhead h1 .devpill{height:24px;font-size:13px;padding:0 10px;margin-left:10px;transform:translateY(-4px)}
 #brq .bseg{display:flex;gap:4px;padding:3px;margin:4px 0 14px;border-radius:12px;background:var(--fill)}
@@ -161,9 +189,9 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 /* sheet */
 #scrim{position:fixed;inset:0;background:rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .2s;z-index:4}
 #scrim.on{opacity:1;pointer-events:auto}
-#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet10{position:fixed;left:0;right:0;bottom:0;height:88%;max-width:720px;margin:0 auto;background:var(--sheet);-webkit-backdrop-filter:blur(40px) saturate(190%);backdrop-filter:blur(40px) saturate(190%);box-shadow:none;border-radius:38px 38px 0 0;transform:translateY(105%);transition:transform .32s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;z-index:5;padding-bottom:env(safe-area-inset-bottom,0px)}
-#sheet.on,#sheet2.on,#sheet3.on,#sheet4.on,#sheet5.on,#sheet6.on,#sheet7.on,#sheet8.on,#sheet10.on{transform:none;box-shadow:0 0 0 .5px var(--ring),0 -4px 24px var(--sh2),inset 0 1px 0 var(--hl)}
-#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet10{height:auto;max-height:84%;overflow-y:auto;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet10,#sheet11{position:fixed;left:0;right:0;bottom:0;height:88%;max-width:720px;margin:0 auto;background:var(--sheet);-webkit-backdrop-filter:blur(40px) saturate(190%);backdrop-filter:blur(40px) saturate(190%);box-shadow:none;border-radius:38px 38px 0 0;transform:translateY(105%);transition:transform .32s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;z-index:5;padding-bottom:env(safe-area-inset-bottom,0px)}
+#sheet.on,#sheet2.on,#sheet3.on,#sheet4.on,#sheet5.on,#sheet6.on,#sheet7.on,#sheet8.on,#sheet10.on,#sheet11.on{transform:none;box-shadow:0 0 0 .5px var(--ring),0 -4px 24px var(--sh2),inset 0 1px 0 var(--hl)}
+#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet10,#sheet11{height:auto;max-height:84%;overflow-y:auto;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 /* Account scrolls differently from the other auto-height sheets above: the whole sheet (including
    its .sh title/Done header) was the scroll container, so the header scrolled away with the content
    instead of staying put like it does in Details (#sheet), where only the inner pane scrolls and the
@@ -183,7 +211,7 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
    motion stutter; on top of the sheet's own blur the cards look the same without their own. */
 [role=dialog] :is(.gf,.sh button,#stk-out,.vsum,.vmore,.cupv,.plancard,.devcard,#chd,.dictwm button){-webkit-backdrop-filter:none;backdrop-filter:none}
 /* Muse, Rate, Clean up and Share: the same fixed header, with only the body below it scrolling */
-#sheet3,#sheet4,#sheet5,#sheet8,#sheet10{overflow-y:hidden}
+#sheet3,#sheet4,#sheet5,#sheet8,#sheet10,#sheet11{overflow-y:hidden}
 .sbd{flex:1;min-height:0;overflow-y:auto}
 /* the idea sheet: same fixed header, only the body scrolls */
 #sheet7{overflow-y:hidden;display:flex;flex-direction:column}
@@ -978,6 +1006,7 @@ body.sprinting #rhy{display:none}
 <aside id="side" aria-label="Songs">
   <div class="sdh"><b id="logo" role="button" tabindex="0" aria-label="Songs overview">*[demo]</b><div class="gl grp2"><button class="ib2" id="sacct" aria-label="Account"><img id="sacctav" class="sacctav" alt="" hidden><svg id="sacctsvg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.9-3.6 3.7-5.6 7-5.6s6.1 2 7 5.6"/></svg><i class="invdot" id="invdot2" hidden></i></button><button class="ib2" id="snew" aria-label="New song"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6"/><path d="M18.5 3.5l2 2L11 15l-3 1 1-3z"/></svg></button><button class="ib2" id="sfolder" aria-label="New folder" title="New folder"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5a2 2 0 0 1 2-2h4.5l1.8 2H19a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 12.3v4.4M9.8 14.5h4.4"/></svg></button><button class="ib2" id="shide" aria-label="Hide sidebar"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M9.5 4v16"/></svg></button></div></div>
   <button id="svault" class="si"><i class="th ith"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.4 10.9c.6.4.9 1.1.9 1.8V16h5v-.3c0-.7.3-1.4.9-1.8A6 6 0 0 0 12 3z"/></svg></i><div class="tx"><b>Ideas</b><span id="svaultsub">A quick jot for lines and ideas</span></div><em id="svaultct"></em></button>
+  <button id="sadm" class="si" hidden><i class="th ath"></i><div class="tx"><b>Admin</b><span id="sadmsub">Users, errors and settings</span></div><em id="sadmct"></em></button>
   <button id="sbeta" class="si" hidden><i class="th bth"></i><div class="tx"><b>Beta Requests</b><span id="sbetasub">Sign in as the admin to review</span></div><em id="sbetact"></em></button>
   <input id="sq" type="search" placeholder="Search">
   <div id="slist"></div>
@@ -1016,6 +1045,7 @@ body.sprinting #rhy{display:none}
 <div id="sheet4" role="dialog" aria-label="Rate song"><div class="sh"><b>Rate</b><button id="done4">Done</button></div><div class="sbd" id="rtbd"><div id="rt-head"></div><div id="rt-out"></div></div></div>
 <div id="sheet5" role="dialog" aria-label="Clean up"><div class="sh"><b>Clean up</b><button id="done5">Done</button></div><div id="cu" class="sbd"></div></div>
 <div id="sheet6" role="dialog" aria-label="Account"><div class="sh"><b>Account</b><button id="done6">Done</button></div><div id="acc"></div></div>
+<div id="sheet11" role="dialog" aria-label="Admin"><div class="sh"><b>Admin</b><button id="done11">Done</button></div><div id="adm" class="sbd"></div></div>
 <div id="sheet10" role="dialog" aria-label="Beta Requests"><div class="sh"><b>Beta Requests</b><button id="done10">Done</button></div><div id="brq" class="sbd"></div></div>
 <div id="sheet8" role="dialog" aria-label="Share song"><div class="sh"><b>Share</b><button id="done8">Done</button></div><div id="shr" class="sbd"></div></div>
 <div id="sheet7" role="dialog" aria-label="Idea"><div class="sh ish"><button id="icancel">Cancel</button><b id="ititle">Idea</b><button id="isave" class="pri">Done</button></div><div class="ibd" id="ibd"><div id="imemow"></div><div class="ifield"><textarea id="itext" rows="3" placeholder="A line, a title, an idea…" aria-label="Idea"></textarea></div><div class="gf accg" id="iacts"></div></div></div>
@@ -15564,7 +15594,7 @@ function llines(s){return(s.lyrics||'').split('\n').filter(function(x){return x.
 function renderList(){setTimeout(function(){addNewZone($('#list'))},0);
   var q=$('#q').value.toLowerCase(),L=$('#list');L.innerHTML='';
   var rows=songs.filter(function(s){return!q||(s.title+' '+s.lyrics).toLowerCase().indexOf(q)>=0}).sort(function(a,b){return b.updated-a.updated});
-  if(!q){if(DEV_BUILD)L.appendChild(betaCard());L.appendChild(ideasCard())}
+  if(!q){if(DEV_BUILD){L.appendChild(admCard());L.appendChild(betaCard())}L.appendChild(ideasCard())}
   if(!rows.length){L.insertAdjacentHTML('beforeend',songs.length?'<div class="empty">No Results</div>':'<div class="empty"><b>No songs yet</b><p>Tap the pencil to write your first line.</p></div>');return}
   var g={},pin=[];rows.forEach(function(s){if(isPinned(s)){pin.push(s);return}var f=s.folder||'Songs';(g[f]=g[f]||[]).push(s)});
   if(pin.length)g['\u0000pin']=pin;
@@ -15606,7 +15636,7 @@ $('#logo').onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefau
 var delArm=0;$('#del').onclick=function(){var b=this;if(Date.now()-delArm>3000){delArm=Date.now();b.textContent='Tap Again to Delete';setTimeout(function(){b.textContent='Delete Song'},3000);return}delArm=0;b.textContent='Delete Song';removeSong(cur)};
 function sheet(on,w){if(on&&!wideMQ.matches&&document.body.classList.contains('side'))sideOn(false);
   if(on){var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'||ae.id==='q'))ae.blur()}
-  if(!on){var fa=document.activeElement;if(fa&&fa.blur&&fa.closest&&fa.closest('[role=dialog]'))fa.blur();$('#sheet').classList.remove('on');$('#sheet2').classList.remove('on');$('#sheet3').classList.remove('on');$('#sheet4').classList.remove('on');$('#sheet5').classList.remove('on');$('#sheet6').classList.remove('on');$('#sheet7').classList.remove('on');$('#sheet8').classList.remove('on');var s10=$('#sheet10');if(s10)s10.classList.remove('on')}else $('#'+(w||'sheet')).classList.add('on');$('#scrim').classList.toggle('on',on)}
+  if(!on){var fa=document.activeElement;if(fa&&fa.blur&&fa.closest&&fa.closest('[role=dialog]'))fa.blur();$('#sheet').classList.remove('on');$('#sheet2').classList.remove('on');$('#sheet3').classList.remove('on');$('#sheet4').classList.remove('on');$('#sheet5').classList.remove('on');$('#sheet6').classList.remove('on');$('#sheet7').classList.remove('on');$('#sheet8').classList.remove('on');var s10=$('#sheet10');if(s10)s10.classList.remove('on');var s11=$('#sheet11');if(s11)s11.classList.remove('on')}else $('#'+(w||'sheet')).classList.add('on');$('#scrim').classList.toggle('on',on)}
 $('#det').onclick=function(){dtab('inf');renderVers();renderCollab();sheet(true)};$('#done').onclick=function(){sheet(false)};$('#scrim').onclick=function(){sheet(false);closeDict()};
 function dtab(t){if(t==='mel'&&!isPro()){upsell('melody');t='inf'}if((t==='aud'||t==='rel')&&!isPro()){upsell('audio');t='inf'}document.querySelectorAll('#dseg button').forEach(function(x){x.classList.toggle('on',x.dataset.t===t)});['chd','inf','mel','aud','rel'].forEach(function(p){$('#p-'+p).classList.toggle('on',p===t)});if(t==='mel')renderMel();if(t==='aud')renderAud();if(t==='rel')renderRel()}
 document.querySelectorAll('#dseg button').forEach(function(b){b.onclick=function(){dtab(b.dataset.t)}});
@@ -15969,10 +15999,10 @@ $('#snew').onclick=function(){newSong();if(!wideMQ.matches)sideOn(false)};
 $('#sfolder').onclick=function(){createFolder(true)};
 /* the dev build of the Mac app ([demo] Dev.app, see mac-app/main.js) */
 var DEV_BUILD=!!(window.desktop&&window.desktop.devBuild),AUTH_SCHEME=(window.desktop&&window.desktop.authScheme)||'demo';
-$('#svault').onclick=function(){openIdeas()};$('#sbeta').onclick=openBetaRequests;$('#done10').onclick=function(){sheet(false)};
-if(DEV_BUILD){document.body.classList.add('devbuild');setTimeout(paintBetaSide,0);['#logo','#vList .lhead h1'].forEach(function(q){var lg=$(q);if(lg&&!lg.querySelector('.devpill'))lg.insertAdjacentHTML('beforeend','<span class="devpill">DEV</span>')});try{document.title='*[demo] Dev'}catch(e){}
+$('#svault').onclick=function(){openIdeas()};$('#sbeta').onclick=openBetaRequests;$('#done10').onclick=function(){sheet(false)};$('#sadm').onclick=openAdmin;$('#done11').onclick=function(){sheet(false)};
+if(DEV_BUILD){document.body.classList.add('devbuild');setTimeout(function(){paintBetaSide();paintAdmSide()},0);['#logo','#vList .lhead h1'].forEach(function(q){var lg=$(q);if(lg&&!lg.querySelector('.devpill'))lg.insertAdjacentHTML('beforeend','<span class="devpill">DEV</span>')});try{document.title='*[demo] Dev'}catch(e){}
   /* new requests show up without reopening the app */
-  setInterval(function(){if(BETA.admin&&!document.hidden)betaAdminLoad(true)},120000);document.addEventListener('visibilitychange',function(){if(!document.hidden&&BETA.admin)betaAdminLoad(true)})}
+  setInterval(function(){if(BETA.admin&&!document.hidden){betaAdminLoad(true);admLoadOverview(true)}},120000);document.addEventListener('visibilitychange',function(){if(!document.hidden&&BETA.admin){betaAdminLoad(true);admLoadOverview(true)}})}
 $('#ideaBack').onclick=function(){show('vList')};
 $('#inew').onclick=function(){editIdea(null)};
 $('#iq').addEventListener('input',renderIdeas);
@@ -17561,7 +17591,7 @@ function betaCheck(){var c=sbClient();if(!c||!c.rpc||!AUTH_USER||DEV_MODE){betaG
     var st=r.data,was=BETA.admin;BETA.st=st;BETA.admin=st==='admin';
     if(st==='open'||st==='admin'||st==='approved'){try{localStorage.setItem(betaKey(),'ok')}catch(e){}betaGate(null)}
     else{try{localStorage.removeItem(betaKey())}catch(e){}betaGate(st)}
-    if(BETA.admin!==was)renderAccount();if(DEV_BUILD){if(BETA.admin)betaAdminLoad(true);betaRefreshViews()}},function(){betaGate(null)})}
+    if(BETA.admin!==was)renderAccount();if(DEV_BUILD){if(BETA.admin){betaAdminLoad(true);admLoadOverview(true)}betaRefreshViews()}},function(){betaGate(null)})}
 function betaGate(st){var g=$('#betagate');if(!g)return;if(!st){g.hidden=true;return}
   var em=(AUTH_USER&&AUTH_USER.email)||'',relay=/privaterelay\.appleid\.com$/i.test(em),c=$('#bg-card');
   var T={checking:['*[demo]','Checking your access…'],
@@ -17601,8 +17631,97 @@ function betaDecide(rq,approve){var c=sbClient();if(!c||BETA.busy[rq.id])return;
     /* no beta function deployed yet: decide straight in the database, without the email */
     return c.rpc('beta_admin_decide',{p_id:rq.id,p_approve:approve}).then(function(r2){if(r2.error)throw r2.error;done({code:r2.data&&r2.data.code,emailed:false})})})
   .catch(function(e){delete BETA.busy[rq.id];renderAccount();toast('Couldn’t update the request: '+((e&&e.message)||'try again'))})}
-function betaRefreshViews(){paintBetaSide();if(DEV_BUILD&&typeof renderList==='function'&&!$('#q').value)renderList();var s10=$('#sheet10');if(s10&&s10.classList.contains('on'))renderBetaRequests()}
-function betaSetGate(on){var c=sbClient();if(!c)return;c.rpc('beta_admin_set_gate',{p_on:on}).then(function(r){if(r.error)return toast('Couldn’t change it: '+r.error.message);if(BETA.sum)BETA.sum.gate=!!r.data;toast(r.data?'Waitlist lock is on. Only approved accounts can use *[demo]':'Waitlist lock is off. Anyone who signs in can use *[demo]');renderAccount();betaRefreshViews()})}
+function betaRefreshViews(){paintBetaSide();paintAdmSide();if(DEV_BUILD&&typeof renderList==='function'&&!$('#q').value)renderList();var s10=$('#sheet10');if(s10&&s10.classList.contains('on'))renderBetaRequests()}
+/* ---------- Admin ([demo] Dev only): users, errors and settings (supabase/admin-tools.sql) ---------- */
+var ADM={tab:'overview',ov:null,users:null,q:'',errs:null,hours:24,open:null,uerr:{},busy:{},t:0,miss:false};
+var ADM_ICO='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>';
+var SB_DASH='https://supabase.com/dashboard/project/cygfgurzvmbtcegkpnss';
+function admAgo(t){if(!t)return'never';var s=(Date.now()-new Date(t).getTime())/1000;if(s<90)return'just now';if(s<3600)return Math.round(s/60)+' min ago';if(s<86400)return Math.round(s/3600)+' h ago';if(s<86400*30)return Math.round(s/86400)+' d ago';return new Date(t).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})}
+function admSub(){if(!AUTH_USER||!BETA.admin)return'Users, errors and settings';var o=ADM.ov;if(!o)return'Loading…';return(o.users||0)+' users · '+(o.new_today||0)+' new today'+(o.errors_24h?' · '+o.errors_24h+' errors today':'')}
+function paintAdmSide(){var b=$('#sadm');if(!b)return;b.hidden=!DEV_BUILD;if(!DEV_BUILD)return;var th=b.querySelector('.ath');if(th&&!th.innerHTML)th.innerHTML=ADM_ICO;$('#sadmsub').textContent=admSub();$('#sadmct').textContent=BETA.admin&&ADM.ov&&ADM.ov.errors_24h?String(ADM.ov.errors_24h):''}
+function admCard(){var b=document.createElement('div');b.className='song irow0 brow0';b.setAttribute('role','button');b.tabIndex=0;b.setAttribute('aria-label','Admin');
+  b.innerHTML='<i class="th ath">'+ADM_ICO+'</i><div class="tx"><b>Admin</b><span></span><em></em></div>';b.querySelector('span').textContent=admSub();
+  b.onclick=openAdmin;b.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openAdmin()}};return b}
+function admRpc(fn,args){var c=sbClient();if(!c)return Promise.reject(new Error('Not connected'));return c.rpc(fn,args||{}).then(function(r){if(r.error){if(/admin_|function .* does not exist|PGRST202/i.test(r.error.message||'')&&!/Admins only/.test(r.error.message)){ADM.miss=true}throw r.error}return r.data})}
+function admLoadOverview(force){if(!BETA.admin)return;if(!force&&ADM.ov&&Date.now()-ADM.t<30000)return;ADM.t=Date.now();
+  admRpc('admin_overview').then(function(o){ADM.ov=o;ADM.miss=false;paintAdmSide();if(DEV_BUILD&&!$('#q').value)renderList();renderAdmin()},function(){renderAdmin()})}
+function admLoadUsers(){admRpc('admin_users',{p_q:ADM.q,p_limit:200}).then(function(u){ADM.users=u||[];renderAdmin()},function(e){ADM.users=[];renderAdmin();if(!ADM.miss)toast('Couldn’t load users: '+(e.message||e))})}
+function admLoadErrors(){admRpc('admin_errors',{p_hours:ADM.hours}).then(function(r){ADM.errs=r||{groups:[],latest:[]};renderAdmin()},function(){ADM.errs={groups:[],latest:[]};renderAdmin()})}
+function openAdmin(){if(!AUTH_USER){toast('Sign in as dev@hellodemo.app to use Admin');return}if(!BETA.admin){toast('Admin is only for the admin account (dev@hellodemo.app)');return}
+  renderAdmin();sheet(true,'sheet11');admLoadOverview(true);if(ADM.tab==='users')admLoadUsers();if(ADM.tab==='errors')admLoadErrors()}
+function admTab(t){ADM.tab=t;renderAdmin();if(t==='overview')admLoadOverview(true);if(t==='users')admLoadUsers();if(t==='errors')admLoadErrors()}
+function admStat(g,num,label,extra,warn,bar){var d=document.createElement('div');d.className='astat'+(warn?' warn':'');d.innerHTML='<b></b><span></span>';d.querySelector('b').textContent=num;d.querySelector('span').textContent=label;
+  if(bar!=null){var br=document.createElement('div');br.className='abar';br.innerHTML='<i></i>';br.firstChild.style.width=Math.max(2,Math.min(100,bar))+'%';d.appendChild(br)}
+  if(extra){var e=document.createElement('em');e.textContent=extra;d.appendChild(e)}g.appendChild(d)}
+function admCopy(t,what){try{navigator.clipboard.writeText(t).then(function(){toast('Copied '+(what||''))},function(){})}catch(e){}}
+function renderAdmin(){var o=$('#adm');if(!o)return;o.innerHTML='';
+  var seg=document.createElement('div');seg.className='bseg';[['overview','Overview'],['users','Users'],['errors','Errors'],['settings','Settings']].forEach(function(t){var b=document.createElement('button');b.className=ADM.tab===t[0]?'on':'';b.textContent=t[1];b.onclick=function(){admTab(t[0])};seg.appendChild(b)});o.appendChild(seg);
+  if(ADM.miss){var m=document.createElement('div');m.className='aempty';m.textContent='Run supabase/admin-tools.sql in Supabase › SQL Editor to turn on the admin tools.';o.appendChild(m);return}
+  var ov=ADM.ov||{},lab=function(t){var l=document.createElement('div');l.className='alab';l.textContent=t;o.appendChild(l)};
+  if(ADM.tab==='overview'){
+    if(!ADM.ov){var ld=document.createElement('div');ld.className='aempty';ld.textContent='Loading…';o.appendChild(ld);return}
+    var g=document.createElement('div');g.className='agrid';o.appendChild(g);
+    admStat(g,ov.users||0,'Accounts',(ov.google||0)+' Google · '+(ov.apple||0)+' Apple');
+    admStat(g,ov.new_today||0,'New today',(ov.new_7d||0)+' this week · '+(ov.new_30d||0)+' this month'+(ov.signups_per_day!=null?' · cap '+ov.signups_per_day+'/day':''));
+    admStat(g,ov.active_24h||0,'Signed in today',(ov.active_7d||0)+' this week');
+    if(ov.beta_pending!=null)admStat(g,ov.beta_pending,'Waiting for beta',(ov.beta_approved||0)+' approved · lock '+(ov.gate?'on':'off'));
+    var plan=1073741824;admStat(g,sfSize(ov.storage_bytes||0)||'0 KB','Storage used','of 1 GB on the free plan'+(ov.storage_mb!=null?' · '+ov.storage_mb+' MB each':''),(ov.storage_bytes||0)>plan*.8,(ov.storage_bytes||0)/plan*100);
+    if(ov.ai_units_today!=null)admStat(g,ov.ai_units_today,'AI units today',(ov.ai_users_today||0)+' people · '+(ov.sync_today||0)+' syncs');
+    if(ov.errors_24h!=null)admStat(g,ov.errors_24h,'Errors today',(ov.error_users_24h||0)+' people affected',ov.errors_24h>0);
+    if(ov.songs!=null)admStat(g,ov.songs,'Songs',(ov.ideas||0)+' ideas · '+(ov.share_links||0)+' share links · '+(ov.shared_songs||0)+' co-written');
+    var nt=document.createElement('div');nt.className='anote';nt.textContent='Updated '+admAgo(ov.at)+'. Day counts reset at midnight Adelaide time; AI counts at midnight UTC.';o.appendChild(nt);
+    lab('Shortcuts');var bx=document.createElement('div');bx.className='abox';o.appendChild(bx);
+    [['Beta Requests',function(){sheet(false);setTimeout(openBetaRequests,200)}],['Supabase dashboard',function(){openLink(SB_DASH)}],['Supabase users',function(){openLink(SB_DASH+'/auth/users')}],['Edge Function logs',function(){openLink(SB_DASH+'/functions')}],['Resend emails',function(){openLink('https://resend.com/emails')}],['OpenAI usage',function(){openLink('https://platform.openai.com/usage')}]].forEach(function(x){var b=document.createElement('button');b.className='alink';b.textContent=x[0];b.onclick=x[1];bx.appendChild(b)});
+    return}
+  if(ADM.tab==='users'){
+    var sr=document.createElement('input');sr.className='asearch';sr.type='search';sr.placeholder='Search email, username or name';sr.value=ADM.q;
+    sr.oninput=function(){ADM.q=sr.value;clearTimeout(ADM.qt);ADM.qt=setTimeout(admLoadUsers,300)};o.appendChild(sr);
+    var bx2=document.createElement('div');bx2.className='abox';o.appendChild(bx2);
+    if(!ADM.users){bx2.innerHTML='<div class="aempty">Loading…</div>';return}
+    if(!ADM.users.length){bx2.innerHTML='<div class="aempty">No accounts match.</div>';return}
+    ADM.users.forEach(function(u){var d=document.createElement('div');d.className='arow';d.innerHTML='<b></b><div class="am"></div><div class="chips"></div>';
+      d.querySelector('b').textContent=u.display_name||(u.username?'@'+u.username:u.email);
+      d.querySelector('.am').textContent=[u.display_name||u.username?u.email:'',u.username&&u.display_name?'@'+u.username:'',u.provider?u.provider.replace(/^./,function(c){return c.toUpperCase()}):'','joined '+admAgo(u.created_at),'seen '+admAgo(u.last_sign_in_at)].filter(Boolean).join(' · ');
+      var ch=d.querySelector('.chips'),chip=function(t,c){var sp=document.createElement('span');sp.textContent=t;if(c)sp.className=c;ch.appendChild(sp)};
+      var bs={admin:['Admin','ok'],approved:['Approved','ok'],open:['Open access',''],pending:['Waiting','wait'],declined:['Declined','bad'],none:['No access','bad']}[u.beta]||[u.beta,''];chip(bs[0],bs[1]);
+      chip((u.songs||0)+' songs');if(u.ideas)chip(u.ideas+' ideas');chip(sfSize(u.storage_bytes||0)||'0 KB');if(u.ai_today)chip(u.ai_today+' AI today');if(u.errors_7d)chip(u.errors_7d+' errors this week','bad');
+      if(ADM.open===u.id){var busy=!!ADM.busy[u.id],ac=document.createElement('div');ac.className='aacts';
+        var add=function(lbl,fn,cls){var b=document.createElement('button');b.textContent=lbl;if(cls)b.className=cls;b.disabled=busy;b.onclick=function(e){e.stopPropagation();fn()};ac.appendChild(b)};
+        if(u.beta!=='admin'&&u.beta!=='approved')add('Give Access',function(){admAccess(u,true)},'ok');
+        if(u.beta==='approved')add('Remove Access',function(){if(confirm('Remove beta access for '+u.email+'? With the waitlist lock on, they’ll see the waitlist screen.'))admAccess(u,false)});
+        if(u.ai_today)add('Reset Today’s AI',function(){admRpc('admin_reset_ai',{p_user:u.id}).then(function(){toast('AI limit reset for today');admLoadUsers()},function(e){toast('Couldn’t reset: '+(e.message||e))})});
+        add('Copy Email',function(){admCopy(u.email,'email')});add('Copy ID',function(){admCopy(u.id,'account ID')});
+        add('Open in Supabase',function(){openLink(SB_DASH+'/auth/users?search='+encodeURIComponent(u.email||u.id))});d.appendChild(ac);
+        var ue=ADM.uerr[u.id];if(u.errors_7d){if(!ue){ADM.uerr[u.id]='…';admRpc('admin_user_errors',{p_user:u.id}).then(function(l){ADM.uerr[u.id]=l||[];renderAdmin()},function(){ADM.uerr[u.id]=[]})}
+          else if(Array.isArray(ue)&&ue.length){var pr=document.createElement('pre');pr.textContent=ue.slice(0,8).map(function(x){return admAgo(x.at)+' · '+[x.platform,x.build,x.screen].filter(Boolean).join(' ')+'\n  '+x.message}).join('\n');d.appendChild(pr)}}}
+      d.onclick=function(){ADM.open=ADM.open===u.id?null:u.id;renderAdmin()};bx2.appendChild(d)});
+    var n2=document.createElement('div');n2.className='anote';n2.textContent=ADM.users.length+(ADM.users.length>=200?'+':'')+' accounts. Tap one for actions. Delete accounts in Supabase › Authentication.';o.appendChild(n2);return}
+  if(ADM.tab==='errors'){
+    var sg=document.createElement('div');sg.className='bseg';[[24,'Last 24 hours'],[168,'Last 7 days'],[720,'Last 30 days']].forEach(function(t){var b=document.createElement('button');b.className=ADM.hours===t[0]?'on':'';b.textContent=t[1];b.onclick=function(){ADM.hours=t[0];ADM.errs=null;renderAdmin();admLoadErrors()};sg.appendChild(b)});o.appendChild(sg);
+    var bx3=document.createElement('div');bx3.className='abox';o.appendChild(bx3);
+    if(!ADM.errs){bx3.innerHTML='<div class="aempty">Loading…</div>';return}
+    if(ADM.errs.missing){bx3.innerHTML='<div class="aempty">Run supabase/app-errors.sql to collect error reports.</div>';return}
+    if(!ADM.errs.groups.length){bx3.innerHTML='<div class="aempty">No errors. Nice.</div>';return}
+    ADM.errs.groups.forEach(function(gr,i){var d=document.createElement('div');d.className='arow';d.innerHTML='<b></b><div class="am"></div>';d.querySelector('b').textContent=gr.message;
+      d.querySelector('.am').textContent=['×'+gr.n,gr.users+(gr.users===1?' person':' people'),'last '+admAgo(gr.last_at),(gr.platforms||[]).filter(Boolean).join('/'),(gr.builds||[]).filter(Boolean).join(', '),(gr.screens||[]).filter(Boolean).join(', ')].filter(Boolean).join(' · ');
+      if(ADM.open==='e'+i){if(gr.detail){var pr=document.createElement('pre');pr.textContent=gr.detail;d.appendChild(pr)}
+        var ac=document.createElement('div');ac.className='aacts';var cb=document.createElement('button');cb.textContent='Copy Details';cb.onclick=function(e){e.stopPropagation();admCopy(gr.message+'\n'+d.querySelector('.am').textContent+(gr.detail?'\n\n'+gr.detail:''),'error details')};ac.appendChild(cb);d.appendChild(ac)}
+      d.onclick=function(){ADM.open=ADM.open==='e'+i?null:'e'+i;renderAdmin()};bx3.appendChild(d)});
+    var n3=document.createElement('div');n3.className='anote';n3.textContent='Grouped by message. Reports never include lyrics, and song and file names are removed.';o.appendChild(n3);return}
+  if(ADM.tab==='settings'){
+    var bx4=document.createElement('div');bx4.className='abox';o.appendChild(bx4);
+    var lk=document.createElement('div');lk.className='aset';lk.innerHTML='<div><b>Waitlist Lock</b><span></span></div>';lk.querySelector('span').textContent=ov.gate?'On: only approved accounts can use *[demo]':'Off: anyone who signs in can use *[demo]';
+    var sw=document.createElement('button');sw.className='swtch'+(ov.gate?' on':'');sw.setAttribute('role','switch');sw.setAttribute('aria-checked',ov.gate?'true':'false');sw.setAttribute('aria-label','Waitlist Lock');sw.innerHTML='<i></i>';sw.onclick=function(){betaSetGate(!ov.gate)};lk.appendChild(sw);bx4.appendChild(lk);
+    [['signups_per_day','New accounts per day','0 pauses sign-ups. Empty means no limit.',ov.signups_per_day],['storage_mb','Storage per account (MB)','Empty means no limit. The free plan has 1 GB in total.',ov.storage_mb]].forEach(function(x){
+      var r=document.createElement('div');r.className='aset';r.innerHTML='<div><b></b><span></span></div>';r.querySelector('b').textContent=x[1];r.querySelector('span').textContent=x[2];
+      var ip=document.createElement('input');ip.type='number';ip.min='0';ip.inputMode='numeric';ip.value=x[3]==null?'':x[3];ip.placeholder='None';
+      var save=function(){var v=ip.value.trim(),n=v===''?null:Math.max(0,Math.round(+v));if(v!==''&&!isFinite(+v))return;if((x[3]==null?null:+x[3])===n)return;
+        admRpc('admin_set_setting',{p_key:x[0],p_value:n}).then(function(){toast(x[1]+': '+(n==null?'no limit':n));admLoadOverview(true)},function(e){toast('Couldn’t save: '+(e.message||e));ip.value=x[3]==null?'':x[3]})};
+      ip.onchange=save;ip.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();ip.blur()}};r.appendChild(ip);bx4.appendChild(r)});
+    var n4=document.createElement('div');n4.className='anote';n4.textContent='Changes apply straight away for everyone.';o.appendChild(n4)}}
+function admAccess(u,on){ADM.busy[u.id]=1;renderAdmin();admRpc('admin_set_access',{p_user:u.id,p_approved:on}).then(function(r){delete ADM.busy[u.id];
+  toast(on?'Access given to '+u.email+(r&&r.code?' · invite code '+String(r.code).replace(/^(.{4})/,'$1-'):''):'Access removed for '+u.email);admLoadUsers();admLoadOverview(true);BRQ_LISTS={};betaAdminLoad(true)},function(e){delete ADM.busy[u.id];renderAdmin();toast('Couldn’t change access: '+(e.message||e))})}
+function betaSetGate(on){var c=sbClient();if(!c)return;c.rpc('beta_admin_set_gate',{p_on:on}).then(function(r){if(r.error)return toast('Couldn’t change it: '+r.error.message);if(BETA.sum)BETA.sum.gate=!!r.data;toast(r.data?'Waitlist lock is on. Only approved accounts can use *[demo]':'Waitlist lock is off. Anyone who signs in can use *[demo]');if(ADM.ov)ADM.ov.gate=!!r.data;renderAccount();betaRefreshViews();renderAdmin()})}
 function onAuthUser(){
   if(AUTH_USER&&DEV_MODE){DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}}
   var uid=AUTH_USER&&AUTH_USER.id;
