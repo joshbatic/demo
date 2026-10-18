@@ -1,12 +1,12 @@
 // *[demo] status: checks every service the app depends on and saves the results (supabase/service-status.sql).
 //
-//   { action: "cron" }   from the 5-minute schedule; needs the x-cron-token header to match STATUS_CRON_TOKEN.
+//   { action: "cron" }   from the 5-minute schedule; its x-cron-token header must match the token kept in
+//                        Supabase Vault (service-status.sql makes it), or the STATUS_CRON_TOKEN secret if you set one.
 //   { action: "check" }  from [developer] › Admin › Status › Check Now; admins only.
 // Returns { results: [{ service, ok, ms, detail }] }. ok is "up", "slow", "down" or "unknown".
 //
 // Deploy:  supabase functions deploy status        (or paste into Edge Functions › New function › "status")
-// Secrets: STATUS_CRON_TOKEN (any long random text, also pasted into the schedule). It also reads
-// OPENAI_API_KEY and RESEND_API_KEY, which are already set, to check those keys still work.
+// Secrets: none to add. It reads OPENAI_API_KEY and RESEND_API_KEY, which are already set, to check those keys still work.
 // Nothing here uses AI or sends email: OpenAI is asked for its model list, Resend for its domains.
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -128,8 +128,17 @@ Deno.serve(async (req) => {
   try { body = await req.json(); } catch { /* empty body is fine */ }
 
   // who's asking: the schedule (shared token) or an admin (signed in)
-  const token = env("STATUS_CRON_TOKEN");
-  let allowed = !!token && req.headers.get("x-cron-token") === token;
+  const given = req.headers.get("x-cron-token") || "";
+  let allowed = false;
+  if (given) {
+    const token = env("STATUS_CRON_TOKEN");
+    if (token) allowed = given === token;
+    else {
+      const admin = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
+      const { data } = await admin.rpc("_status_cron_token");
+      allowed = typeof data === "string" && data.length >= 32 && given === data;
+    }
+  }
   if (!allowed) {
     const user = createClient(env("SUPABASE_URL"), env("SUPABASE_ANON_KEY"), { global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } } });
     const { data } = await user.rpc("is_admin");
