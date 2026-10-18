@@ -17886,7 +17886,8 @@ var oauthInFlight=false;
    stopping point is visible on-screen on a real device, without needing a Mac + Safari Web
    Inspector cable hookup. Remove once the iOS/Mac sign-in issue is confirmed fixed. */
 var OAUTH_DEBUG=[];
-function oauthDbg(s){OAUTH_DEBUG.push(s);var ag=$('#ag-note');if(ag)ag.textContent='[debug] '+OAUTH_DEBUG.join(' -> ')}
+/* sign-in steps, for troubleshooting: kept in OAUTH_DEBUG and the console, never shown on the sign-in screen */
+function oauthDbg(s){OAUTH_DEBUG.push(s);if(OAUTH_DEBUG.length>40)OAUTH_DEBUG.shift();try{console.debug('[sign-in] '+s)}catch(e){}}
 function signInOAuth(provider,forceChooser,label){
   OAUTH_DEBUG=[];oauthDbg('click');
   var c=sbClient();if(!c){toast('Sign-in isn’t available right now.');oauthDbg('no sbClient');return}
