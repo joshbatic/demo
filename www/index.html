@@ -374,8 +374,6 @@ body.side #side{transform:none}
 #aiask .go{background:var(--tint);color:var(--ontint)}
 #aiask #aiask-n{background:none;color:var(--mute)}
 #authgate .aglegal{margin-top:10px;font-size:11.5px;opacity:.75}#authgate .aglegal a{color:inherit;text-decoration:underline}#authgate .note:empty{display:none}
-#authgate .devlink{margin-top:18px;background:none;border:0;color:var(--mute);font-size:13px;text-decoration:underline;padding:4px}
-#authgate .devrow{display:none;margin-top:12px;gap:8px}
 /* the beta waitlist screen: shown after sign-in to accounts that aren't approved yet */
 #betagate{position:fixed;inset:0;z-index:52;background:var(--bg);display:flex;overflow-y:auto;padding:calc(24px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom))}
 #betagate[hidden]{display:none}
@@ -397,9 +395,6 @@ body.side #side{transform:none}
 #acc .brq .bn,#brq .brq .bn{font-size:14.5px;margin-top:8px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
 #acc .brq .bacts,#brq .brq .bacts{display:flex;gap:8px;margin-top:12px}#acc .brq .bacts button,#brq .brq .bacts button{flex:1;padding:10px;border-radius:12px;font-size:15px;font-weight:600;background:var(--fill);color:var(--ink)}
 #acc .brq .bacts .ok,#brq .brq .bacts .ok{background:var(--tint);color:var(--ontint)}#acc .brq .bacts button:disabled,#brq .brq .bacts button:disabled{opacity:.5}
-#authgate .devrow.on{display:flex}
-#authgate .devrow input{flex:1;padding:10px 12px;border-radius:10px;border:.5px solid var(--sep);background:var(--row);color:var(--ink);font-size:16px}
-#authgate .devrow button{padding:0 16px;border-radius:10px;background:var(--fill);font-size:14px}
 .view.on{animation:vin .3s cubic-bezier(.32,.72,0,1)}
 /* push / pop between the song list and a song, like iOS navigation: the song slides in from the right
    over the list (which drifts a little to the left beneath it), and back the other way. Both screens
@@ -1354,7 +1349,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
 </div>
 <div id="perf" hidden><b id="pf-title"></b><div id="pf-txt"></div><div class="pbar gl"><button id="pf-x">Done</button><button id="pf-sm" aria-label="Smaller text">A−</button><button id="pf-lg" aria-label="Larger text">A+</button><button id="pf-sl" aria-label="Slower">−</button><span id="pf-sp">1×</span><button id="pf-fa" aria-label="Faster">+</button><button id="pf-play">Play</button></div></div>
 <div id="betagate" hidden role="dialog" aria-modal="true" aria-label="Beta access"><div class="ag-card" id="bg-card"></div></div>
-<div id="authgate"><div class="ag-card"><h1>*[demo]</h1><p>Sign in to use *[demo]. Your songs sync to your account and stay backed up.</p><button class="go" id="ag-google"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg><span>Sign in with Google</span></button><button class="go ag-apple" id="ag-apple"><svg width="17" height="17" viewBox="0 0 170 170" aria-hidden="true" fill="currentColor"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.197-2.12-9.973-3.17-14.34-3.17-4.58 0-9.492 1.05-14.746 3.17-5.262 2.13-9.501 3.24-12.742 3.35-4.929.21-9.842-1.96-14.746-6.52-3.13-2.73-7.045-7.41-11.735-14.04-5.032-7.08-9.169-15.29-12.41-24.65-3.471-10.11-5.211-19.9-5.211-29.378 0-10.857 2.345-20.221 7.045-28.068 3.693-6.303 8.606-11.275 14.755-14.925 6.149-3.65 12.792-5.51 19.946-5.629 3.915 0 9.045 1.211 15.42 3.591 6.356 2.388 10.44 3.599 12.238 3.599 1.342 0 5.877-1.416 13.57-4.239 7.275-2.618 13.415-3.702 18.445-3.275 13.63 1.1 23.87 6.473 30.68 16.153-12.19 7.386-18.22 17.731-18.1 31.002.11 10.337 3.86 18.939 11.23 25.769 3.34 3.17 7.07 5.62 11.22 7.36-.9 2.61-1.85 5.11-2.86 7.51zM119.11 7.24c0 8.102-2.96 15.667-8.86 22.669-7.12 8.324-15.732 13.134-25.071 12.375a25.21 25.21 0 0 1-.188-3.07c0-7.772 3.384-16.089 9.399-22.877 3.002-3.43 6.82-6.282 11.45-8.56 4.62-2.245 8.99-3.486 13.1-3.685.12 1.056.17 2.111.17 3.148z"/></svg><span>Sign in with Apple</span></button><p class="note" id="ag-note"></p><p class="note aglegal">By continuing, you agree to the <a href="#" data-doc="terms">Terms</a> and <a href="#" data-doc="privacy">Privacy Policy</a>.</p><button class="devlink" id="ag-devlink">Dev Mode</button><div class="devrow" id="ag-devrow"><input type="password" id="ag-devpw" placeholder="Dev password" autocomplete="off"><button id="ag-devgo">Enter</button></div></div></div>
+<div id="authgate"><div class="ag-card"><h1>*[demo]</h1><p>Sign in to use *[demo]. Your songs sync to your account and stay backed up.</p><button class="go" id="ag-google"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg><span>Sign in with Google</span></button><button class="go ag-apple" id="ag-apple"><svg width="17" height="17" viewBox="0 0 170 170" aria-hidden="true" fill="currentColor"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.197-2.12-9.973-3.17-14.34-3.17-4.58 0-9.492 1.05-14.746 3.17-5.262 2.13-9.501 3.24-12.742 3.35-4.929.21-9.842-1.96-14.746-6.52-3.13-2.73-7.045-7.41-11.735-14.04-5.032-7.08-9.169-15.29-12.41-24.65-3.471-10.11-5.211-19.9-5.211-29.378 0-10.857 2.345-20.221 7.045-28.068 3.693-6.303 8.606-11.275 14.755-14.925 6.149-3.65 12.792-5.51 19.946-5.629 3.915 0 9.045 1.211 15.42 3.591 6.356 2.388 10.44 3.599 12.238 3.599 1.342 0 5.877-1.416 13.57-4.239 7.275-2.618 13.415-3.702 18.445-3.275 13.63 1.1 23.87 6.473 30.68 16.153-12.19 7.386-18.22 17.731-18.1 31.002.11 10.337 3.86 18.939 11.23 25.769 3.34 3.17 7.07 5.62 11.22 7.36-.9 2.61-1.85 5.11-2.86 7.51zM119.11 7.24c0 8.102-2.96 15.667-8.86 22.669-7.12 8.324-15.732 13.134-25.071 12.375a25.21 25.21 0 0 1-.188-3.07c0-7.772 3.384-16.089 9.399-22.877 3.002-3.43 6.82-6.282 11.45-8.56 4.62-2.245 8.99-3.486 13.1-3.685.12 1.056.17 2.111.17 3.148z"/></svg><span>Sign in with Apple</span></button><p class="note" id="ag-note"></p><p class="note aglegal">By continuing, you agree to the <a href="#" data-doc="terms">Terms</a> and <a href="#" data-doc="privacy">Privacy Policy</a>.</p></div></div>
 <div id="toast" class="gl"></div>
 <div id="invbanner" class="gl" role="alertdialog" aria-label="Song invitation" aria-live="polite">
   <button id="ib-x" aria-label="Not now">×</button>
@@ -17510,7 +17505,8 @@ $('#done5').onclick=function(){sheet(false)};
 /* ---------- plans: Free by default, Pro unlocked with a code (payments not connected yet) ---------- */
 /* ---------- account sign-in (Google, via Supabase) ---------- */
 var sbc=null,AUTH_USER=null,cloudDidPull=false,DEV_MODE=false,MY_PROFILE=null;
-try{DEV_MODE=localStorage.getItem('songpad:devmode')==='1'}catch(e){}
+/* Dev Mode has been removed: the app always needs a real sign-in. Clear the old switch and its fake profile. */
+try{localStorage.removeItem('songpad:devmode');localStorage.removeItem('songpad:devprofile')}catch(e){}
 if(DEV_MODE){var ag0=$('#authgate');if(ag0)ag0.style.display='none'}
 var lastAuthUid=null;
 /* ---------- beta waitlist (supabase/beta-access.sql) ----------
@@ -17782,7 +17778,6 @@ function renameMyArtistCredit(oldName,newName){
   });
   if(changed){save();renderList();renderSide();if(cur){hdr();var fa=$('#f-artist');if(fa)fa.value=cur.artist||''}}
 }
-function setDevMode(on){DEV_MODE=on;try{localStorage.setItem('songpad:devmode',on?'1':'0')}catch(e){}onAuthUser()}
 function sbClient(){
   if(sbc)return sbc;
   if(!window.supabase||!window.supabase.createClient)return null;
@@ -18081,11 +18076,6 @@ $('#ag-google').onclick=function(){$('#ag-note').textContent='';signInGoogle(tru
 $('#ag-apple').onclick=function(){$('#ag-note').textContent='';signInApple(true)};
 setTimeout(function(){if(!AUTH_USER&&!sbClient())$('#ag-note').textContent='Couldn’t reach the sign-in service. Check your connection and try again.'},4000);
 document.querySelectorAll('#authgate [data-doc]').forEach(function(x){x.onclick=function(e){e.preventDefault();openDoc(x.dataset.doc)}});
-/* Dev Mode is for testing on the Mac and web; the iPhone app (TestFlight / App Store) doesn't show it */
-(function(){try{var C=window.Capacitor;if(C&&C.isNativePlatform&&C.isNativePlatform()){$('#ag-devlink').style.display='none';$('#ag-devrow').style.display='none'}}catch(e){}})();
-$('#ag-devlink').onclick=function(){var r=$('#ag-devrow');r.classList.toggle('on');if(r.classList.contains('on'))$('#ag-devpw').focus()};
-function tryDevMode(){var v=$('#ag-devpw').value;if(v==='demo'){$('#ag-devpw').value='';setDevMode(true);toast('Dev Mode — local testing only, nothing syncs')}else{var ip=$('#ag-devpw');ip.classList.remove('shake');void ip.offsetWidth;ip.classList.add('shake')}}
-$('#ag-devgo').onclick=tryDevMode;$('#ag-devpw').onkeydown=function(e){if(e.key==='Enter')tryDevMode()};
 sbClient();
 /* Pre-launch: *[demo] ships with every feature unlocked by default, badged "Beta" rather than
    a paid-tier name since there's no real subscription yet. PLAN.tier 'beta' = fully unlocked
@@ -18178,7 +18168,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
   /* Dev Mode has no real Supabase session, so devFake fills the profile with a fake, clearly-labeled
      local-only one (dp, backed by localStorage, never touching Supabase) so the full layout can be
      seen and exercised without a real sign-in. */
-  var devFake=!AUTH_USER&&DEV_MODE,ga=null;
+  var devFake=false,ga=null;
   if(AUTH_USER||devFake){
     var dp=devFake?devProfileGet():null;
     var meta=AUTH_USER?(AUTH_USER.user_metadata||{}):{};
@@ -18187,7 +18177,6 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
     var handle=prof('username');
     /* ---- hero: photo, name, handle, email - straight on the sheet, the way Settings shows your account ---- */
     var hero=document.createElement('div');hero.className='prohero';o.appendChild(hero);
-    if(devFake){var db=document.createElement('div');db.className='pbadge';db.textContent='Dev Mode · fake profile';hero.appendChild(db)}
     var avSrc=devFake?(dp.avatar_url||''):((MY_PROFILE&&MY_PROFILE.avatar_url)||meta.avatar_url);
     var avWrap=document.createElement('button');avWrap.className='proav';avWrap.setAttribute('aria-label','Change photo');
     if(avSrc){var av=document.createElement('img');av.src=avSrc;av.alt='';av.referrerPolicy='no-referrer';avWrap.appendChild(av)}
@@ -18364,13 +18353,13 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
   var gl=accSection(o,'About');
   gl.appendChild(accCell({tile:ACC_ICO.lock,grad:10,label:'Privacy Policy',chev:true,onclick:function(){openDoc('privacy')}}));
   gl.appendChild(accCell({tile:ACC_ICO.doc,grad:3,label:'Terms of Service',chev:true,onclick:function(){openDoc('terms')}}));
-  /* developer tools (Dev Mode only), then the account actions last, where Settings keeps Sign Out */
+  /* developer tools ([demo] Dev only), then the account actions last, where Settings keeps Sign Out */
   if(ga&&(devFake||DEV_BUILD)&&dvl){o.appendChild(dvl);o.appendChild(ga)}
   if(AUTH_USER||devFake){
     var ag=accSection(o,'');
     ag.appendChild(accCell({tile:ACC_ICO.swap,grad:9,label:'Switch Account',chev:true,onclick:function(){signInGoogle(true)}}));
     var og=accSection(o,'');
-    og.appendChild(accCell({label:devFake?'Exit Dev Mode':'Sign Out',cls:'danger',onclick:devFake?function(){setDevMode(false)}:signOutGoogle}));
+    og.appendChild(accCell({label:'Sign Out',cls:'danger',onclick:signOutGoogle}));
     /* deleting the account: a second, deliberate step that says exactly what goes */
     if(AUTH_USER&&!devFake){
       if(ACC_EDIT!=='delete'){var dg=accSection(o,'');dg.appendChild(accCell({label:'Delete Account',cls:'danger',onclick:function(){ACC_EDIT='delete';renderAccount();setTimeout(function(){var x=$('#acc .delcard');if(x)x.scrollIntoView({block:'center',behavior:'smooth'})},60)}}))}
@@ -18666,7 +18655,6 @@ function renderAud(){var o=$('#aud-body');if(!o||!cur)return;var song=cur,keepTo
     var ob=document.createElement('button');ob.className='audplay';ob.setAttribute('aria-label','Open '+f.name);ob.innerHTML=SVG_OPEN;ob.onclick=function(){sfOpen(f)};r.appendChild(ob);
     fg.appendChild(r);
     if(AUD_OPEN===f.id)fg.appendChild(sfEditor(f,FILE_KINDS,delF))});
-  if(!sfCloud())o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:'Dev Mode: files stay on this device.'}));
   var pa=$('#p-aud');if(pa)pa.scrollTop=keepTop}
 
 /* ---------- automatic lyric sync: hear the track, time each lyric line ---------- */
