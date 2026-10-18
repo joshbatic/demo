@@ -158,6 +158,10 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 /* Writing Voice (#sheet2) had the same issue — same fix, scoped to its own content pane (#opts)
    instead of #acc so its "Writing voice"/Done header stays put while the settings list scrolls. */
 #sheet2{overflow-y:hidden}
+#acc .delcard{padding:18px 18px 12px;display:flex;flex-direction:column;gap:10px;text-align:center}
+#acc .delcard b{font-size:17px}#acc .delcard p{margin:0;font-size:14.5px;line-height:1.4;color:var(--mute)}
+#acc .delgo{height:48px;border-radius:99px;background:var(--red);color:#fff;font-size:16px;font-weight:600;margin-top:4px}#acc .delgo:disabled{opacity:.6}
+#acc .delno{height:40px;font-size:16px;color:var(--ink);font-weight:500}
 /* performance: a sheet already blurs what's behind it, so the cards and buttons inside it don't blur again.
    Stacked backdrop blurs are re-rendered every frame while a sheet slides or scrolls, which is what made the
    motion stutter; on top of the sheet's own blur the cards look the same without their own. */
@@ -15024,7 +15028,20 @@ function setSaveState(s){var el=$('#savestate');if(!el)return;clearTimeout(saveS
    toolbar once the keyboard was up. Comparing two getBoundingClientRect() results directly avoids
    that mismatch altogether, whatever the toolbar's height/state — multi-row chips, keyboard
    open/closed, safe area. */
-function toast(m){var t=$('#toast');t.textContent=m;
+/* ---------- error reports (supabase/app-errors.sql) ----------
+   Script errors and every "Couldn't ..." message someone sees go to the app_errors table with the build,
+   platform and screen, so problems on testers' phones show up. Each distinct message is sent once a
+   session, at most 25 a session, only when signed in; nothing is sent if the table isn't set up. */
+var ERR_SENT={},ERR_N=0,ERR_OFF=false;
+function errPlatform(){return document.body.classList.contains('ios')||(typeof NATIVE_IOS!=='undefined'&&NATIVE_IOS)?'ios':window.desktop?'mac':'web'}
+function errScreen(){var v=document.querySelector('.view.on'),sh=document.querySelector('[role=dialog].on');return((v&&v.id)||'')+(sh?'/'+(sh.getAttribute('aria-label')||sh.id):'')}
+function reportErr(kind,msg,detail){try{msg=String(msg||'').replace(/“[^”]*”/g,'“…”').slice(0,600);/* no song or file names */if(!msg||ERR_OFF||ERR_N>=25||ERR_SENT[kind+msg])return;
+  if(typeof AUTH_USER==='undefined'||!AUTH_USER||(typeof DEV_MODE!=='undefined'&&DEV_MODE))return;var c=sbClient();if(!c)return;ERR_SENT[kind+msg]=1;ERR_N++;
+  c.from('app_errors').insert({build:typeof APP_COMMIT!=='undefined'?APP_COMMIT:'',platform:errPlatform(),kind:kind,screen:errScreen().slice(0,40),message:msg,detail:detail?String(detail).slice(0,2000):null})
+   .then(function(r){if(r&&r.error&&/relation|does not exist|schema cache|42P01|PGRST20/i.test(r.error.message||''))ERR_OFF=true},function(){})}catch(e){}}
+window.addEventListener('error',function(e){reportErr('crash',(e&&e.message)||'Script error',e&&e.error&&e.error.stack||((e&&e.filename)||'')+':'+((e&&e.lineno)||''))});
+window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;reportErr('crash',(r&&r.message)||String(r||'Unhandled rejection'),r&&r.stack)});
+function toast(m){if(/^Couldn[’']t /.test(String(m||'')))reportErr('shown',m);var t=$('#toast');t.textContent=m;
   var rhy=$('#rhy'),r=rhy&&rhy.getBoundingClientRect();
   if(r&&r.width&&r.height){var th=t.getBoundingClientRect().height||40;t.style.bottom='auto';t.style.top=(r.top-th-14)+'px'}
   else{t.style.top='';t.style.bottom=''}
@@ -18114,11 +18131,37 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
     ag.appendChild(accCell({tile:ACC_ICO.swap,label:'Switch Account',chev:true,onclick:function(){signInGoogle(true)}}));
     var og=accSection(o,'');
     og.appendChild(accCell({label:devFake?'Exit Dev Mode':'Sign Out',cls:'danger',onclick:devFake?function(){setDevMode(false)}:signOutGoogle}));
+    /* deleting the account: a second, deliberate step that says exactly what goes */
+    if(AUTH_USER&&!devFake){
+      if(ACC_EDIT!=='delete'){var dg=accSection(o,'');dg.appendChild(accCell({label:'Delete Account',cls:'danger',onclick:function(){ACC_EDIT='delete';renderAccount();setTimeout(function(){var x=$('#acc .delcard');if(x)x.scrollIntoView({block:'center',behavior:'smooth'})},60)}}))}
+      else{var dc=document.createElement('div');dc.className='gf delcard';dc.innerHTML='<b>Delete your account?</b><p>Your songs, ideas, recordings, share links and profile are deleted from every device, and songs you share stop being shared. This can’t be undone.</p>';
+        var dbt=document.createElement('button');dbt.className='delgo';dbt.textContent=DEL_BUSY?'Deleting…':'Delete Account';dbt.disabled=DEL_BUSY;dbt.onclick=deleteAccount;dc.appendChild(dbt);
+        var dcx=document.createElement('button');dcx.className='delno';dcx.textContent='Cancel';dcx.disabled=DEL_BUSY;dcx.onclick=function(){ACC_EDIT=null;renderAccount()};dc.appendChild(dcx);o.appendChild(dc)}
+    }
   }
   var ver=document.createElement('div');ver.className='note';ver.style.cssText='text-align:center;padding:18px 0 6px;font-variant-numeric:tabular-nums;-webkit-user-select:text;user-select:text';ver.textContent='Version '+APP_COMMIT;o.appendChild(ver);
   if(keepF){var kf=o.querySelector('input[data-dk="'+keepF.dk+'"]');if(kf){try{kf.focus({preventScroll:true});kf.setSelectionRange(keepF.s,keepF.e)}catch(e){}}}
 }
 $('#acctb').onclick=function(){openAccount('')};$('#sacct').onclick=function(){openAccount('')};$('#done6').onclick=function(){sheet(false)};
+/* ---------- deleting the account (Account › Delete Account) ----------
+   Files first (recordings, artwork, share-link audio: SQL can't remove stored files), then
+   delete_my_account() in Supabase (supabase/delete-account.sql) removes the data and the sign-in, then
+   this device forgets everything saved for that account. */
+var DEL_BUSY=false;
+function delListAll(st,prefix){var out=[];
+  var walk=function(p){return st.list(p,{limit:1000}).then(function(r){if(r.error)throw r.error;var jobs=[];(r.data||[]).forEach(function(x){var full=p+'/'+x.name;if(x.id)out.push(full);else jobs.push(walk(full))});return Promise.all(jobs)})};
+  return walk(prefix).then(function(){return out})}
+function delFiles(c,bucket,uid){var st=c.storage.from(bucket);return delListAll(st,uid).then(function(paths){var chunks=[];for(var i=0;i<paths.length;i+=100)chunks.push(paths.slice(i,i+100));
+  return chunks.reduce(function(pr,ch){return pr.then(function(){return st.remove(ch)})},Promise.resolve()).then(function(){return paths.length})}).catch(function(e){if(/not found|bucket/i.test((e&&e.message)||''))return 0;throw e})}
+function deleteAccount(){var c=sbClient(),uid=AUTH_USER&&AUTH_USER.id;if(!c||!uid||DEL_BUSY)return;DEL_BUSY=true;renderAccount();
+  var local=[];songs.forEach(function(s){(s.audio||[]).concat(s.files||[]).forEach(function(x){if(x&&/^local:/.test(x.path||''))local.push('f:'+x.id)})});ideas.forEach(function(i){if(i.memo&&/^local:/.test(i.memo.path||''))local.push('f:'+i.memo.id)});
+  Promise.all([delFiles(c,SF_BUCKET,uid),delFiles(c,SHARE_BUCKET,uid)])
+  .then(function(){return c.rpc('delete_my_account')}).then(function(r){if(r.error)throw r.error;
+    local.forEach(function(k){try{audDel(k)}catch(e){}});
+    try{Object.keys(localStorage).forEach(function(k){if(k.indexOf(uid)>=0)localStorage.removeItem(k)})}catch(e){}
+    DEL_BUSY=false;ACC_EDIT=null;signOutGoogle();toast('Your account and everything in it has been deleted.')})
+  .catch(function(e){DEL_BUSY=false;renderAccount();var m=(e&&e.message)||'';
+    toast(/function|delete_my_account|schema cache|PGRST20/i.test(m)?'Account deletion isn’t set up on the server yet (supabase/delete-account.sql).':'Couldn’t delete your account: '+(m||'try again.'))})}
 /* ---------- versions ---------- */
 function snap(label){if(!cur)return false;cur.versions=cur.versions||[];var last=cur.versions[cur.versions.length-1];if(last&&last.lyrics===(cur.lyrics||'')&&last.rich===(cur.rich||''))return false;cur.versions.push({t:Date.now(),lyrics:cur.lyrics||'',rich:cur.rich||'',label:label||''});if(cur.versions.length>30)cur.versions.shift();save();return true}
 function autoSnap(){if(!cur||!(cur.lyrics||'').trim())return;var vs=cur.versions||[],last=vs[vs.length-1];if(!last||Date.now()-last.t>2*3600e3)snap('Auto')}
@@ -18405,7 +18448,7 @@ function syncPiece(pcm,sr,k,prompt){var a=Math.max(0,k*SYNC_CHUNK-SYNC_OVER),b=M
       if(res&&res.error)return fnErr(res.error).then(function(m){throw new Error(m)});return(res&&res.data)||{}},function(e){clearTimeout(t);throw e})};
   var fileP=mp3FromBuf(fake,null,48).then(function(bl){return new File([bl],'part'+k+'.mp3',{type:'audio/mpeg'})},
     function(){return new File([wav16(part,sr)],'part'+k+'.wav',{type:'audio/wav'})});
-  return fileP.then(function(file){return send(file).catch(function(e){if(/sign in|deployed|too long to sync|isn.t set up/i.test(e.message))throw e;return send(file)})})
+  return fileP.then(function(file){return send(file).catch(function(e){if(/sign in|deployed|too long to sync|isn.t set up|limit|a minute/i.test(e.message))throw e;return send(file)})})
     .then(function(d){var lo=k*SYNC_CHUNK,hi=(k+1)*SYNC_CHUNK,len=b-a;
       /* (once the updated function is deployed) leave out stretches Whisper itself thinks were not singing:
          over music it can otherwise "hear" the lyrics it was given as a hint */

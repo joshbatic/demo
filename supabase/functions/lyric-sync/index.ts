@@ -21,6 +21,9 @@ const json = (body: unknown, status = 200) =>
 
 const MAX_BYTES = 24 * 1024 * 1024; // Whisper's limit is 25 MB
 
+// limits reset at midnight UTC
+const hoursToReset = () => { const n = new Date(); return Math.max(1, Math.ceil((Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate() + 1) - n.getTime()) / 3600e3)); };
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "Use POST." }, 405);
@@ -35,6 +38,13 @@ Deno.serve(async (req) => {
   });
   const { data: who, error: whoErr } = await sb.auth.getUser();
   if (whoErr || !who?.user) return json({ error: "Sign in to sync lyrics." }, 401);
+
+  // each one-minute piece counts against the account's daily lyric-sync allowance (supabase/ai-limits.sql);
+  // if that isn't set up yet, syncing goes ahead
+  const { data: take, error: takeErr } = await sb.rpc("ai_take", { kind: "sync", units: 1 });
+  if (!takeErr && take && take.ok === false) {
+    return json({ error: take.reason === "minute" ? "Syncing a lot at once. Give it a minute and try again." : `You've reached today's lyric sync limit (about an hour of songs). It resets in about ${hoursToReset()} hours.` }, 429);
+  }
 
   let form: FormData;
   try { form = await req.formData(); } catch { return json({ error: "Expected audio as form data." }, 400); }
