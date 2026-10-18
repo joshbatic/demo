@@ -7,15 +7,27 @@ const https = require('https');
 
 let win;
 let pendingAuthUrl = null;
-const songsDir = () => path.join(app.getPath('documents'), '[demo] Songs');
 
-// ---- Google sign-in callback (demo://auth-callback) ----
+// ---- dev build ----
+// A copy of the app with a "dev-build" file next to main.js runs as "[demo] Dev": its own settings and
+// sign-in (so it can stay signed in as the admin), its own songs folder, its own sign-in link
+// (demo-dev://, so callbacks never land in the regular app), and the admin tools on the home screen.
+const DEV_BUILD = fs.existsSync(path.join(__dirname, 'dev-build'));
+const SCHEME = DEV_BUILD ? 'demo-dev' : 'demo';
+if (DEV_BUILD) {
+  app.setName('[demo] Dev');
+  app.setPath('userData', path.join(app.getPath('appData'), '[demo] Dev'));
+}
+ipcMain.on('app:info', (e) => { e.returnValue = { devBuild: DEV_BUILD, scheme: SCHEME }; });
+const songsDir = () => path.join(app.getPath('documents'), DEV_BUILD ? '[demo] Dev Songs' : '[demo] Songs');
+
+// ---- Google sign-in callback (demo://auth-callback, or demo-dev:// in the dev build) ----
 // macOS hands the app this custom-scheme URL after the system browser finishes the Google
 // OAuth flow started from the renderer. We just forward the raw URL to the page, which holds
 // the Supabase client (and the PKCE code verifier it needs to finish signing in).
 app.on('open-url', (event, url) => {
   event.preventDefault();
-  if (!/^demo:\/\//i.test(url)) return;
+  if (url.toLowerCase().indexOf(SCHEME + '://') !== 0) return;
   if (win && !win.isDestroyed()) win.webContents.send('auth-callback', url);
   else pendingAuthUrl = url;
 });
@@ -293,7 +305,7 @@ ipcMain.handle('openai:json', async (e, args) => {
 
 app.whenReady().then(() => {
   // registers this app to handle demo:// links, for the Google sign-in callback
-  app.setAsDefaultProtocolClient('demo');
+  app.setAsDefaultProtocolClient(SCHEME);
   // microphone for melody recording; nothing else
   // microphone (audio only) and clipboard writes, and only for the app's own page in its main frame
   const ours = (wc, url) => { try { const u = wc && wc.getURL(); return !!u && u.startsWith('file:') && (!url || url === 'null' || url.startsWith('file:')); } catch (_) { return false; } };
