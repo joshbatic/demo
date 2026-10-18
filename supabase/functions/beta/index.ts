@@ -40,18 +40,95 @@ function tooMany(ip: string) {
   return a.length > 5;
 }
 
-function page(title: string, body: string) {
-  return `<!doctype html><html><body style="margin:0;background:#f5f4f7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#1c1c1e">
-<div style="max-width:520px;margin:0 auto;padding:32px 20px">
-<div style="background:#fff;border-radius:18px;padding:28px 24px">
-<div style="font-weight:800;font-size:18px;margin-bottom:18px">*[demo]</div>
-<h1 style="font-size:22px;line-height:1.3;margin:0 0 12px">${title}</h1>
-${body}
-</div>
-<p style="font-size:12px;color:#8e8e93;text-align:center;margin-top:16px">*[demo] · <a href="https://hellodemo.app" style="color:#8e8e93">hellodemo.app</a></p>
-</div></body></html>`;
+// ---------- emails, styled like the app ----------
+// Built with tables and inline styles so they hold up in Gmail, Outlook and Apple Mail. A pastel cover gradient
+// with "lyric lines" (like a song's default cover) heads each one; Apple Mail also gets a dark version.
+const ICON = "https://hellodemo.app/icon-192.png";
+const COVERS: Record<string, [string, string, string]> = {
+  lavender: ["#D7C4FF", "#9CC8FF", "#B9B3FF"],
+  sunrise:  ["#FFD3BE", "#E3CCFF", "#BFDDFF"],
+  mint:     ["#BFF0D4", "#7FCCDB", "#9FE0D2"],
+  amber:    ["#FFE9A8", "#FFAA7F", "#FFC994"],
+};
+// darker washes for dark mode (Apple Mail), the same pairs the website uses
+const DARK: Record<string, [string, string]> = {
+  lavender: ["#4E3F7A", "#2F4E72"], sunrise: ["#6B4A5E", "#2F4E72"], mint: ["#2E5A4C", "#245560"], amber: ["#6A5A30", "#6E4430"],
+};
+// "*[demo]" never breaks across a line
+const nb = (t: string) => t.replace(/\*\[demo\]/g, '<span style="white-space:nowrap">*[demo]</span>');
+const FONT = "-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Helvetica,Arial,sans-serif";
+
+function mail(o: { preheader: string; cover: keyof typeof COVERS; title: string; body: string; foot?: string }) {
+  const [c1, c2, mid] = COVERS[o.cover];
+  // the cover's "lyric lines": white bars of different lengths, like a song without artwork
+  const bars = [62, 44, 70, 0, 52, 36].map((w) => w
+    ? `<div style="height:5px;width:${w}%;background:#ffffff;opacity:.85;border-radius:3px;margin:0 0 9px;font-size:0;line-height:0">&nbsp;</div>`
+    : `<div style="height:8px;font-size:0;line-height:0">&nbsp;</div>`).join("");
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark">
+<title>${esc(o.title)}</title>
+<style>
+  body{margin:0;padding:0;-webkit-text-size-adjust:100%}
+  a{color:inherit}
+  @media (max-width:520px){ .pad{padding-left:22px!important;padding-right:22px!important} .h1{font-size:26px!important} }
+  @media (prefers-color-scheme:dark){
+    .bg{background:#000000!important} .card{background:#1C1C1E!important} .ink{color:#FFFFFF!important}
+    .body{color:#EBEBF5!important} .mute{color:#8E8E93!important} .tile{background:#2C2C2E!important}
+    .rule{border-color:#38383A!important} .btn{background:#FFFFFF!important} .btn a{color:#000000!important}
+    .lnk{color:#C9B8FF!important}
+    .cover-${o.cover}{background-image:linear-gradient(140deg,${DARK[o.cover][0]},${DARK[o.cover][1]})!important;background-color:${DARK[o.cover][1]}!important}
+    .bars div{opacity:.5!important}
+  }
+</style></head>
+<body class="bg" style="margin:0;padding:0;background:#F2F2F7">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">${esc(o.preheader)}&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#F2F2F7">
+<tr><td align="center" style="padding:28px 12px 36px">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px">
+    <tr><td style="padding:0 6px 16px">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="padding-right:10px"><img src="${ICON}" width="36" height="36" alt="" style="display:block;border:0;border-radius:9px"></td>
+        <td class="ink" style="font:800 18px/1 ${FONT};color:#000000;letter-spacing:-.2px">*[demo]</td>
+      </tr></table>
+    </td></tr>
+    <tr><td class="card" style="background:#FFFFFF;border-radius:24px;overflow:hidden">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr><td bgcolor="${mid}" class="cover-${o.cover}" style="background-color:${mid};background-image:linear-gradient(140deg,${c1},${c2});border-radius:24px 24px 0 0;padding:30px 30px 22px" class="pad">
+          <table role="presentation" width="62%" cellpadding="0" cellspacing="0" border="0"><tr><td class="bars">${bars}</td></tr></table>
+        </td></tr>
+        <tr><td class="pad" style="padding:30px 32px 32px">
+          <h1 class="ink h1" style="margin:0 0 14px;font:800 28px/1.15 ${FONT};color:#000000;letter-spacing:-.5px">${esc(o.title)}</h1>
+          ${o.body}
+        </td></tr>
+      </table>
+    </td></tr>
+    <tr><td class="mute" style="padding:20px 18px 0;text-align:center;font:400 12.5px/1.5 ${FONT};color:#8E8E93">
+      ${nb(o.foot ?? "You're getting this because you asked to join the *[demo] beta.")}<br>
+      <a href="https://hellodemo.app" style="color:#8E8E93;text-decoration:none">hellodemo.app</a> &nbsp;·&nbsp;
+      <a href="https://hellodemo.app/privacy.html" style="color:#8E8E93;text-decoration:none">Privacy</a> &nbsp;·&nbsp;
+      <a href="mailto:help@hellodemo.app" style="color:#8E8E93;text-decoration:none">help@hellodemo.app</a>
+    </td></tr>
+  </table>
+</td></tr></table>
+</body></html>`;
 }
-const p = (t: string) => `<p style="font-size:15.5px;line-height:1.5;margin:0 0 14px">${t}</p>`;
+const p = (t: string) => `<p class="body" style="margin:0 0 16px;font:400 16px/1.55 ${FONT};color:#3A3A3C">${nb(t)}</p>`;
+const small = (t: string) => `<p class="mute" style="margin:18px 0 0;font:400 14px/1.5 ${FONT};color:#8E8E93">${nb(t)}</p>`;
+const button = (href: string, label: string) => `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 22px"><tr>
+  <td class="btn" bgcolor="#1C1C1E" style="background:#1C1C1E;border-radius:999px"><a href="${esc(href)}" style="display:inline-block;padding:15px 30px;font:700 16px/1 ${FONT};color:#FFFFFF;text-decoration:none;border-radius:999px">${esc(label)}</a></td></tr></table>`;
+// an inset grouped list, like a Settings section, with a numbered gradient badge on each row
+function steps(rows: string[], cover: keyof typeof COVERS) {
+  const [c1, c2, mid] = COVERS[cover];
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="tile" style="background:#F2F2F7;border-radius:16px;margin:4px 0 22px">` +
+    rows.map((r, i) => `<tr><td style="padding:${i ? "0" : "4px"} 16px ${i === rows.length - 1 ? "4px" : "0"}"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"${i ? ` class="rule" style="border-top:.5px solid #D1D1D6"` : ""}><tr>
+      <td width="38" valign="top" style="padding:14px 0"><div bgcolor="${mid}" style="width:26px;height:26px;border-radius:13px;background-color:${mid};background-image:linear-gradient(140deg,${c1},${c2});color:#2B2140;font:800 13.5px/26px ${FONT};text-align:center">${i + 1}</div></td>
+      <td class="body" style="padding:15px 0;font:400 15.5px/1.45 ${FONT};color:#1C1C1E">${nb(r)}</td></tr></table></td></tr>`).join("") + `</table>`;
+}
+const codeTile = (code: string) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="tile" style="background:#F2F2F7;border-radius:16px;margin:0 0 6px"><tr><td align="center" style="padding:18px 12px 16px">
+  <div class="mute" style="font:600 12px/1 ${FONT};color:#8E8E93;letter-spacing:.4px;margin-bottom:10px">YOUR INVITE CODE</div>
+  <div class="ink" style="font:700 28px/1 ui-monospace,'SF Mono',Menlo,Consolas,monospace;color:#000000;letter-spacing:5px">${esc(code)}</div></td></tr></table>`;
+const detail = (k: string, v: string) => v ? `<tr><td class="mute" width="96" valign="top" style="padding:7px 0;font:400 14px/1.45 ${FONT};color:#8E8E93">${k}</td><td class="body" style="padding:7px 0;font:400 15px/1.45 ${FONT};color:#1C1C1E">${v}</td></tr>` : "";
 
 async function send(to: string, subject: string, html: string) {
   const key = env("RESEND_API_KEY"), from = env("BETA_FROM") || "*[demo] <beta@hellodemo.app>";
@@ -91,17 +168,25 @@ Deno.serve(async (req) => {
     console.log(`Request from ${email}: ${data}`);
     if (data === "new") {
       const first = esc(name.split(/\s+/)[0] || "there");
-      await send(email, "We got your request for the *[demo] beta", page("You're on the list",
-        p(`Hi ${first}, thanks for asking to try *[demo]. We're letting people in a few at a time.`) +
-        p("When there's a spot for you, we'll email you a link to install the beta through TestFlight, with an invite code.") +
-        p("Nothing else to do for now.")));
+      await send(email, "You're on the list for *[demo]", mail({
+        preheader: "Thanks for asking to try *[demo]. We'll email you when there's a spot.",
+        cover: "lavender", title: "You're on the list",
+        body: p(`Hi ${first}, thanks for asking to try *[demo]. We're letting songwriters in a few at a time, so everyone gets a good first run.`) +
+          p("When there's a spot for you, we'll send you a link to install the beta with TestFlight, and your own invite code.") +
+          small("Nothing else to do for now. Questions? Just reply."),
+      }));
       const admin = env("ADMIN_EMAIL");
-      if (admin) await send(admin, `New beta request: ${name || email}`, page("New beta request",
-        p(`<b>${esc(name || "(no name)")}</b> · ${esc(email)}`) +
-        p([str(body.role, 60), str(body.heard, 200)].filter(Boolean).map(esc).join(" · ") || "") +
-        (str(body.link, 300) ? p(esc(str(body.link, 300))) : "") +
-        (str(body.note, 1000) ? p(esc(str(body.note, 1000))) : "") +
-        p("Approve or decline it in the app: Account › Beta Requests.")));
+      const lk = str(body.link, 300);
+      if (admin) await send(admin, `New beta request: ${name || email}`, mail({
+        preheader: `${name || email} asked to join the beta.`,
+        cover: "amber", title: "New beta request", foot: "Sent to you as the *[demo] beta admin.",
+        body: `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 18px">` +
+          detail("Name", esc(name)) + detail("Email", esc(email)) + detail("They are", esc(str(body.role, 60))) +
+          detail("Heard from", esc(str(body.heard, 200))) +
+          detail("Music", /^https?:\/\//i.test(lk) ? `<a class="lnk" href="${esc(lk)}" style="color:#5B3FD6">${esc(lk)}</a>` : esc(lk)) +
+          detail("Note", esc(str(body.note, 1000)).replace(/\n/g, "<br>")) + `</table>` +
+          small("Approve or decline it in the app: Account › Beta Requests."),
+      }));
     }
     return json({ ok: true });
   }
@@ -118,16 +203,27 @@ Deno.serve(async (req) => {
     if (approve) {
       const tf = env("TESTFLIGHT_URL");
       const code = String(r.code || ""), shown = code ? code.slice(0, 4) + "-" + code.slice(4) : "";
-      emailed = await send(r.email, "You're in: the *[demo] beta", page("You're in",
-        p(`Hi ${first}, there's a spot for you in the *[demo] beta.`) +
-        p(`<b>1.</b> On your iPhone, open this link to install *[demo] with TestFlight:<br><a href="${esc(tf)}" style="color:#5b3fd6;font-weight:600">${esc(tf || "TestFlight link coming soon")}</a>`) +
-        p("<b>2.</b> Sign in with Apple or Google. If you sign in with the same email this message went to, you're straight in.") +
-        p(`<b>3.</b> Signed in with a different email, or chose "Hide My Email"? Enter your invite code when asked:<br><span style="display:inline-block;margin-top:8px;padding:10px 16px;border-radius:12px;background:#f2f0f7;font:700 20px/1 ui-monospace,Menlo,monospace;letter-spacing:2px">${esc(shown)}</span>`) +
-        p("Tell us anything that feels confusing, slow or broken: take a screenshot in the app to send it through TestFlight, or reply to this email.")));
+      emailed = await send(r.email, "You're in: welcome to the *[demo] beta", mail({
+        preheader: "There's a spot for you. Install *[demo] with TestFlight and start writing.",
+        cover: "sunrise", title: "You're in",
+        body: p(`Hi ${first}, there's a spot for you in the *[demo] beta. We can't wait to hear what you write.`) +
+          (tf ? button(tf, "Install with TestFlight") : small("Your TestFlight link is on its way in a separate email.")) +
+          steps([
+            "Tap the button above on your <b>iPhone</b>. It installs TestFlight first, then *[demo].",
+            "Sign in with <b>Apple</b> or <b>Google</b>. Use this email address and you're straight in.",
+            "Used a different email, or <b>Hide My Email</b>? Enter your invite code when *[demo] asks.",
+          ], "sunrise") +
+          (shown ? codeTile(shown) : "") +
+          small("Found something confusing, slow or broken? Take a screenshot in *[demo] to send it through TestFlight, or just reply to this email."),
+        foot: "You're getting this because you asked to join the *[demo] beta.",
+      }));
     } else {
-      emailed = await send(r.email, "About your *[demo] beta request", page("Not this round",
-        p(`Hi ${first}, thanks for asking to try *[demo]. We can't fit everyone into this round of the beta, so we're not able to add you just yet.`) +
-        p("We'll let you know when *[demo] opens up more widely.")));
+      emailed = await send(r.email, "About your *[demo] beta request", mail({
+        preheader: "Thanks for asking to try *[demo]. We'll be in touch when it opens up.",
+        cover: "mint", title: "Not this round",
+        body: p(`Hi ${first}, thanks for asking to try *[demo]. We're keeping this round of the beta small, so we can't add you just yet.`) +
+          p("We'll let you know as soon as *[demo] opens up more widely. Thanks for your patience, and keep writing."),
+      }));
     }
     if (emailed) await sb.rpc("beta_admin_mark_emailed", { p_id: id });
     return json({ ok: true, status: r.status, code: r.code, email: r.email, emailed, emailReady: !!env("RESEND_API_KEY") });
