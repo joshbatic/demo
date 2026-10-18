@@ -10,3 +10,4 @@
 
 ## Mac dev build
 - `~/Applications/[developer].app` is a copy of the Mac app with a `dev-build` file in `Contents/Resources/app/` (Beta Requests on the home screen, developer tools, its own data and `demo-dev://` sign-in). When updating the Mac app's `index.html`, `main.js` or `preload.js`, copy them into both apps. `mac-app/scripts/make-dev-app.sh` recreates it.
+- `~/Documents/songpad-ios-dev` is the [developer] iPhone app (app ID `app.hellodemo.demo.dev`, `demo-dev://` sign-in, white DEV icon). The app turns on its dev features when its ID ends in `.dev`. Copy `www/index.html` into its `www/` and `ios/App/App/public/` too.
