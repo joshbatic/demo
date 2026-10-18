@@ -15028,7 +15028,7 @@ function setSaveState(s){var el=$('#savestate');if(!el)return;clearTimeout(saveS
 var ERR_SENT={},ERR_N=0,ERR_OFF=false;
 function errPlatform(){return document.body.classList.contains('ios')||(typeof NATIVE_IOS!=='undefined'&&NATIVE_IOS)?'ios':window.desktop?'mac':'web'}
 function errScreen(){var v=document.querySelector('.view.on'),sh=document.querySelector('[role=dialog].on');return((v&&v.id)||'')+(sh?'/'+(sh.getAttribute('aria-label')||sh.id):'')}
-function reportErr(kind,msg,detail){try{msg=String(msg||'').slice(0,600);if(!msg||ERR_OFF||ERR_N>=25||ERR_SENT[kind+msg])return;
+function reportErr(kind,msg,detail){try{msg=String(msg||'').replace(/“[^”]*”/g,'“…”').slice(0,600);/* no song or file names */if(!msg||ERR_OFF||ERR_N>=25||ERR_SENT[kind+msg])return;
   if(typeof AUTH_USER==='undefined'||!AUTH_USER||(typeof DEV_MODE!=='undefined'&&DEV_MODE))return;var c=sbClient();if(!c)return;ERR_SENT[kind+msg]=1;ERR_N++;
   c.from('app_errors').insert({build:typeof APP_COMMIT!=='undefined'?APP_COMMIT:'',platform:errPlatform(),kind:kind,screen:errScreen().slice(0,40),message:msg,detail:detail?String(detail).slice(0,2000):null})
    .then(function(r){if(r&&r.error&&/relation|does not exist|schema cache|42P01|PGRST20/i.test(r.error.message||''))ERR_OFF=true},function(){})}catch(e){}}
