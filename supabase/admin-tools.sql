@@ -84,8 +84,7 @@ begin
   perform public._admin_check();
   if public._has('public.beta_config') then execute 'select coalesce(gate, false) from public.beta_config where id = 1' into gate; end if;
   create temp table if not exists _au (id uuid, email text, provider text, created_at timestamptz, last_sign_in_at timestamptz,
-    username text, display_name text, songs int, ideas int, storage_bytes bigint, ai_today int, errors_7d int, beta text) on commit drop;
-  delete from _au where true;  -- Supabase refuses a DELETE without WHERE from the API
+    username text, display_name text, songs int, ideas int, storage_bytes bigint, ai_today int, errors_7d int, beta text) on commit drop;  -- new and empty for each request
   insert into _au (id, email, provider, created_at, last_sign_in_at, storage_bytes)
   select u.id, u.email, u.raw_app_meta_data->>'provider', u.created_at, u.last_sign_in_at,
     (select coalesce(sum((o.metadata->>'size')::bigint), 0) from storage.objects o
@@ -95,7 +94,6 @@ begin
   if public._has('public.profiles') then
     execute 'update _au a set username = p.username, display_name = p.display_name from public.profiles p where p.user_id = a.id';
   end if;
-  delete from _au where q <> '%%' and not (lower(coalesce(email, '')) like q or lower(coalesce(username, '')) like q or lower(coalesce(display_name, '')) like q);
   if public._has('public.cloud_library') then
     execute $q$ update _au a set
       songs = case when jsonb_typeof(c.data->'songs') = 'array' then jsonb_array_length(c.data->'songs') else 0 end,
@@ -117,7 +115,9 @@ begin
   update _au set beta = 'admin' where lower(email) in (select email from public.app_admins);
   update _au set beta = case when gate then 'none' else 'open' end where beta is null;
   select coalesce(jsonb_agg(to_jsonb(x) order by x.created_at desc), '[]'::jsonb) into r
-    from (select * from _au order by created_at desc limit greatest(1, least(coalesce(p_limit, 100), 500))) x;
+    from (select * from _au
+      where q = '%%' or lower(coalesce(email, '')) like q or lower(coalesce(username, '')) like q or lower(coalesce(display_name, '')) like q
+      order by created_at desc limit greatest(1, least(coalesce(p_limit, 100), 500))) x;
   return r;
 end $$;
 
