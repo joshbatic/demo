@@ -60,7 +60,7 @@ Rebuild in Xcode and run through these, ideally with a second account for the co
    - iOS
    - Name: *[demo] (if it's taken, try "*[demo] songwriting")
    - Primary language: English (Australia)
-   - Bundle ID: `com.joshbatic.songpad`
+   - Bundle ID: `app.hellodemo.demo`
    - SKU: `songpad`
 2. **App Privacy.** Fill this in using the answers below. It's needed before outside testers. Privacy Policy URL: `https://hellodemo.app/privacy.html`.
 3. **TestFlight tab.**
