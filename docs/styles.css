@@ -201,3 +201,30 @@ footer .links{display:flex;gap:16px}
   .np .pp{background:#fff;color:#000}.np .meta span,.np .npbot{color:rgba(235,235,245,.62)}.np .wave i{background:#fff}
   .ly{color:#fff}.ly small{color:rgba(255,255,255,.5)!important}.ly p{color:rgba(255,255,255,.34)!important}.ly p.past{color:rgba(255,255,255,.55)!important}.ly p.on{color:#fff!important}
 }
+
+/* ---- beta request form (beta.html) ---- */
+.beta{max-width:560px;padding:28px 0 24px}
+.beta h1{font-size:40px;letter-spacing:-.025em;margin-bottom:12px}
+.beta .lede{font-size:18px;line-height:1.5;color:var(--mute);margin:0 0 30px}
+.fgroup{background:var(--card2);border-radius:18px;box-shadow:0 0 0 .5px var(--ring),0 1px 2px var(--sh);overflow:hidden;margin-bottom:10px}
+.frow{display:flex;align-items:center;gap:14px;min-height:52px;padding:0 18px;position:relative;font-size:16.5px}
+.frow+.frow::before{content:'';position:absolute;top:0;left:18px;right:0;border-top:.5px solid var(--sep)}
+.frow>span{flex:none;width:118px;color:var(--ink)}
+.frow input,.frow select,.frow textarea{flex:1;min-width:0;border:0;background:none;color:var(--ink);font:inherit;padding:14px 0;outline:none;-webkit-appearance:none;appearance:none}
+.frow select{cursor:pointer;color:var(--ink)}.frow select:invalid{color:var(--mute)}
+.frow input::placeholder,.frow textarea::placeholder{color:var(--faint)}
+.ftall{align-items:flex-start}.ftall>span{padding-top:14px}.frow textarea{resize:vertical;line-height:1.4}
+.frow:focus-within{background:var(--fill)}
+.fhint{font-size:13.5px;color:var(--mute);margin:0 18px 22px;line-height:1.45}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.ferr{color:var(--red);font-size:15px;margin:16px 4px 0}
+.beta .go{width:100%;margin-top:22px;border:0;cursor:pointer;font-family:inherit}
+.beta .go:disabled{opacity:.6}
+.beta .fine{font-size:13px;color:var(--mute);text-align:center;margin-top:14px;line-height:1.5}
+.beta .fine a{color:inherit}
+.done{text-align:center;padding:40px 0}
+.done .tick{width:64px;height:64px;border-radius:50%;margin:0 auto 18px;display:grid;place-items:center;color:#fff;background:linear-gradient(140deg,#BFF0D4,#7FCCDB)}
+.done h2{font-size:30px;margin-bottom:12px}
+.done p{color:var(--mute);font-size:17px;line-height:1.5;margin:0 auto 26px;max-width:28em}
+.go.ghost{background:var(--fill);color:var(--ink)}
+@media (max-width:480px){.frow>span{width:96px;font-size:15.5px}.beta h1{font-size:34px}}

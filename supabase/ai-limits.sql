@@ -30,6 +30,10 @@ declare me uuid := auth.uid(); k text := coalesce(kind, 'ai'); u int := greatest
   used int; recent int;
 begin
   if me is null then return jsonb_build_object('ok', false, 'reason', 'auth'); end if;
+  -- with the beta waitlist lock on (beta-access.sql), only approved accounts can use AI
+  if to_regprocedure('public.beta_ok()') is not null then
+    if not public.beta_ok() then return jsonb_build_object('ok', false, 'reason', 'beta'); end if;
+  end if;
   select coalesce(sum(c.units), 0) into used from public.ai_calls c where c.user_id = me and c.kind = k and c.at >= date_trunc('day', now());
   if used + u > day_limit then return jsonb_build_object('ok', false, 'reason', 'day', 'used', used, 'limit', day_limit); end if;
   select count(*) into recent from public.ai_calls c where c.user_id = me and c.kind = k and c.at > now() - interval '1 minute';

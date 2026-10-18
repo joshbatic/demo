@@ -43,6 +43,7 @@ Deno.serve(async (req) => {
   // if that isn't set up yet, syncing goes ahead
   const { data: take, error: takeErr } = await sb.rpc("ai_take", { kind: "sync", units: 1 });
   if (!takeErr && take && take.ok === false) {
+    if (take.reason === "beta") return json({ error: "Your beta access hasn't been approved yet." }, 403);
     return json({ error: take.reason === "minute" ? "Syncing a lot at once. Give it a minute and try again." : `You've reached today's lyric sync limit (about an hour of songs). It resets in about ${hoursToReset()} hours.` }, 429);
   }
 

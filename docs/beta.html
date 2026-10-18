@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Request access — *[demo]</title>
+<meta name="description" content="Ask to join the *[demo] beta. We're letting songwriters in a few at a time.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta property="og:title" content="Join the *[demo] beta">
+<meta property="og:description" content="A songwriting app for iPhone and Mac. We're letting songwriters in a few at a time.">
+<meta property="og:image" content="https://hellodemo.app/icon-512.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="nav">
+  <a class="brand" href="index.html"><img src="icon-192.png" alt=""><b>*[demo]</b></a>
+  <div class="navlinks"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div>
+</div>
+
+<div class="wrap beta">
+  <h1>Join the beta</h1>
+  <p class="lede">*[demo] is in private beta on iPhone. We're letting songwriters in a few at a time. Tell us a little about you, and we'll email you when there's a spot.</p>
+
+  <form id="f" novalidate>
+    <div class="fgroup">
+      <label class="frow"><span>Name</span><input name="name" autocomplete="name" maxlength="100" required placeholder="Your name"></label>
+      <label class="frow"><span>Email</span><input name="email" type="email" autocomplete="email" inputmode="email" maxlength="254" required placeholder="you@example.com"></label>
+    </div>
+    <p class="fhint">Use the email you'll sign in to *[demo] with (your Apple ID or Google account) and you'll get straight in once approved.</p>
+
+    <div class="fgroup">
+      <label class="frow"><span>You are</span>
+        <select name="role" required>
+          <option value="" disabled selected>Choose one</option>
+          <option>Songwriter</option><option>Artist</option><option>Producer</option><option>Topliner</option><option>Band member</option><option>Writing for fun</option><option>Other</option>
+        </select></label>
+      <label class="frow"><span>Heard from</span><input name="heard" maxlength="200" placeholder="A friend, Instagram…"></label>
+      <label class="frow"><span>Your music</span><input name="link" type="url" inputmode="url" maxlength="300" placeholder="Link (optional)"></label>
+    </div>
+
+    <div class="fgroup">
+      <label class="frow ftall"><span>Anything else?</span><textarea name="note" rows="3" maxlength="1000" placeholder="How you write, what you'd want from the app (optional)"></textarea></label>
+    </div>
+
+    <!-- only bots fill this in -->
+    <label class="hp" aria-hidden="true">Website <input name="website" tabindex="-1" autocomplete="off"></label>
+
+    <p class="ferr" id="err" role="alert" hidden></p>
+    <button class="go" id="go" type="submit">Request Access</button>
+    <p class="fine">By requesting access you agree to the <a href="terms.html">Terms</a>. We'll only use your details for the beta. See the <a href="privacy.html">Privacy Policy</a>.</p>
+  </form>
+
+  <div class="done" id="done" hidden>
+    <div class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
+    <h2>You're on the list</h2>
+    <p>Thanks! We've sent a confirmation to <b id="doneEmail"></b>. When there's a spot for you, we'll email you a link to install *[demo] with TestFlight.</p>
+    <a class="go ghost" href="index.html">Back to *[demo]</a>
+  </div>
+</div>
+
+<div class="wrap"><footer>
+  <span>© 2026 *[demo]</span>
+  <div class="links"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="mailto:help@hellodemo.app">Contact</a></div>
+</footer></div>
+
+<script>
+(function(){
+  var FN='https://cygfgurzvmbtcegkpnss.supabase.co/functions/v1/beta',KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5Z2ZndXJ6dm1idGNlZ2twbnNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODk0MTIsImV4cCI6MjEwNzI2NTQxMn0.kJhE1V8V_W1BIuu0iSVaLqa5GyxeOrUy0lrqylq4_Cs';
+  var f=document.getElementById('f'),go=document.getElementById('go'),err=document.getElementById('err'),opened=Date.now();
+  try{var q=new URLSearchParams(location.search).get('email');if(q)f.email.value=q}catch(e){}
+  function fail(m,el){err.textContent=m;err.hidden=false;if(el)el.focus();go.disabled=false;go.textContent='Request Access'}
+  f.addEventListener('submit',function(e){e.preventDefault();err.hidden=true;
+    var v=function(n){return(f[n].value||'').trim()};
+    if(!v('name'))return fail('Add your name.',f.name);
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v('email')))return fail('Enter a valid email address.',f.email);
+    if(!v('role'))return fail('Choose what best describes you.',f.role);
+    go.disabled=true;go.textContent='Sending…';
+    fetch(FN,{method:'POST',headers:{'Content-Type':'application/json',apikey:KEY,Authorization:'Bearer '+KEY},
+      body:JSON.stringify({action:'request',name:v('name'),email:v('email'),role:v('role'),heard:v('heard'),link:v('link'),note:v('note'),website:v('website'),t:Date.now()-opened})})
+    .then(function(r){return r.json().catch(function(){return{}}).then(function(j){if(!r.ok||j.error)throw new Error(j.error||'');return j})})
+    .then(function(){document.getElementById('doneEmail').textContent=v('email');f.hidden=true;document.getElementById('done').hidden=false;document.querySelector('.beta h1').hidden=true;document.querySelector('.lede').hidden=true;window.scrollTo(0,0)})
+    .catch(function(x){fail((x&&x.message)||'Couldn’t send your request. Check your connection and try again.')})});
+})();
+</script>
+</body>
+</html>
