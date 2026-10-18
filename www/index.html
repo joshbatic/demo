@@ -15730,6 +15730,30 @@ syncSideVisibility();
   document.addEventListener('touchend',function(){armed=false;scroller=null},{passive:true});
   document.addEventListener('touchcancel',function(){armed=false;scroller=null},{passive:true});
 })();
+/* every other text field (Ideas, idea sheet, Account, Credits, searches, the muse's forms...): a way to put
+   the keyboard away, since the iOS keyboard bar with its Done button is switched off natively. Swipe down
+   anywhere (a mostly vertical drag of about a thumb's length), or tap an empty spot outside the field. The
+   lyric editor and its title keep their own gestures above. A drag that starts inside a field that scrolls
+   its own text is left alone, so reading back a long note doesn't close the keyboard. */
+(function(){
+  var on=false,sy0=0,sx0=0,moved=false,tgt=null;
+  function own(ae){return ae&&(ae.id==='lyr'||ae.id==='title')}
+  function touchy(){return matchMedia('(pointer:coarse)').matches||document.body.classList.contains('ios')}
+  function scrollsItself(el){return el&&el.scrollHeight>el.clientHeight+2&&/(auto|scroll)/.test(getComputedStyle(el).overflowY)}
+  function quiet(el){/* a tap that should close the keyboard: not on anything you can type in or press */
+    return!(el&&el.closest&&el.closest('input,textarea,select,button,a,label,[contenteditable="true"],[role="button"],[role="switch"],[role="slider"],canvas,.cell,.song,.idea,.ln,.r,#rhy,.bar'))}
+  document.addEventListener('touchstart',function(e){var ae=document.activeElement;on=false;moved=false;tgt=e.target;
+    if(!touchy()||!isTextField(ae)||own(ae)||e.touches.length!==1)return;
+    if(ae.contains(e.target)&&scrollsItself(ae))return;
+    if(e.target.closest&&e.target.closest('#rhy'))return;
+    on=true;sy0=e.touches[0].clientY;sx0=e.touches[0].clientX},{passive:true,capture:true});
+  document.addEventListener('touchmove',function(e){if(!on)return;var t=e.touches[0],dy=t.clientY-sy0,dx=t.clientX-sx0;
+    if(Math.abs(dx)>10||Math.abs(dy)>10)moved=true;
+    if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>14){on=false;return}
+    if(dy>64&&dy>Math.abs(dx)*1.5){on=false;var ae=document.activeElement;if(ae&&ae.blur)ae.blur()}},{passive:true,capture:true});
+  document.addEventListener('touchend',function(){if(on&&!moved&&quiet(tgt)){var ae=document.activeElement;if(ae&&!ae.contains(tgt)&&ae.blur)ae.blur()}on=false},{passive:true,capture:true});
+  document.addEventListener('touchcancel',function(){on=false},{passive:true,capture:true});
+})();
 /* on mobile, swiping down anywhere on the bottom toolbar itself tucks it away along with the
    keyboard — a quick way to see the lyrics full-screen without hunting for a dedicated close
    button. It only arms while the keyboard is actually up (same 'kb' signal as the gesture above),
