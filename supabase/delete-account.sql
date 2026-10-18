@@ -34,6 +34,7 @@ begin
   if to_regclass('public.app_errors')     is not null then delete from public.app_errors     where user_id = me; end if;
   if to_regclass('public.artist_fans')    is not null then delete from public.artist_fans    where artist_id = me; end if;
   if to_regclass('public.artist_pages')   is not null then delete from public.artist_pages   where user_id = me; end if;
+  if to_regclass('public.beta_requests')  is not null then delete from public.beta_requests  where user_id = me or email = lower(auth.jwt() ->> 'email'); end if;
   if to_regclass('public.cloud_library')  is not null then delete from public.cloud_library  where user_id = me; end if;
   if to_regclass('public.profiles')       is not null then delete from public.profiles       where user_id = me; end if;
   delete from auth.users where id = me;

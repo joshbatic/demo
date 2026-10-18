@@ -1,17 +1,18 @@
 -- Storage limit per account (audio, voice memos, files and share-link copies).
 -- New uploads are refused once an account has used its limit; replacing an existing file still works.
--- The app shows "Storage: 120 MB of 500 MB" in Account, and a clear message when it's full.
+-- The app shows "Storage: 40 MB of 150 MB" in Account, and a clear message when it's full.
 --
 -- Change the limit any time in Table Editor › storage_limit (or run the update at the bottom):
---   per_account_mb = 500  → 500 MB per account
+--   per_account_mb = 150  → 150 MB per account (the beta setting)
 --   per_account_mb = null → no limit
 -- Safe to run again.
 
 create table if not exists public.storage_limit (
   id int primary key default 1 check (id = 1),
-  per_account_mb int default 500 check (per_account_mb is null or per_account_mb >= 0)
+  per_account_mb int default 150 check (per_account_mb is null or per_account_mb >= 0)
 );
-insert into public.storage_limit (id, per_account_mb) values (1, 500) on conflict (id) do nothing;
+insert into public.storage_limit (id, per_account_mb) values (1, 150) on conflict (id) do nothing;
+-- already ran this file with the old 500 MB default? Run:  update public.storage_limit set per_account_mb = 150 where id = 1;
 
 alter table public.storage_limit enable row level security;
 revoke all on public.storage_limit from anon, authenticated;

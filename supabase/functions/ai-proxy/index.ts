@@ -49,6 +49,7 @@ Deno.serve(async (req) => {
   if (!takeErr && take && take.ok === false) {
     if (take.reason === "minute") return json({ error: "That's a lot of requests at once. Give it a minute and try again." });
     if (take.reason === "day") return json({ error: `You've reached today's AI limit. It resets in about ${hoursToReset()} hours.` });
+    if (take.reason === "beta") return json({ error: "Your beta access hasn't been approved yet." }, 403);
     return json({ error: "Sign in to use AI features." }, 401);
   }
   // (if ai_take doesn't exist yet, or errors, the request goes ahead rather than breaking the app)

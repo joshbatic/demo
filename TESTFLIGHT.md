@@ -20,8 +20,9 @@ Run these in **SQL Editor** (New query → paste → Run), in this order. All ar
 7. `supabase/app-errors.sql`: error reports from testers
 8. `supabase/delete-account.sql`: in-app account deletion (Apple requires this)
 9. `supabase/signup-limit.sql`: at most 25 new accounts a day. Then **Authentication › Hooks › Add hook › Before User Created › Postgres › `public.hook_signup_limit`**. Change the number in **Table Editor › signup_limit** (0 pauses sign-ups, empty means no limit).
-10. `supabase/storage-limit.sql`: 500 MB of audio and files per account. Change it in **Table Editor › storage_limit** (empty means no limit). On the free Supabase plan the whole project only gets 1 GB, so move to Pro before inviting more than a couple of testers.
+10. `supabase/storage-limit.sql`: 150 MB of audio and files per account for the beta. Change it in **Table Editor › storage_limit** (empty means no limit). On the free Supabase plan the whole project gets 1 GB (about 6 full accounts), so move to Pro before inviting more testers than that.
 11. `supabase/user-blocks.sql`: lets people block someone from inviting them.
+12. `supabase/beta-access.sql`: the beta waitlist. Then run `supabase/ai-limits.sql` and `supabase/delete-account.sql` again (both changed for it).
 
 Settings:
 
@@ -35,6 +36,29 @@ Edge Functions (paste the new code into **Edge Functions › [name] › Code**, 
 Backstop:
 
 - **platform.openai.com › Settings › Limits:** set a monthly budget. It protects the bill even if something else goes wrong.
+
+## 2b. Beta waitlist
+
+How it works: people ask for a spot at hellodemo.app/beta.html. You approve or decline them in the app under **Account › Beta Requests**. Approving emails them the TestFlight link and a personal invite code. With **Waitlist Lock** on, anyone who signs in without approval sees "You're on the waitlist", and the server refuses their AI requests and uploads.
+
+1. **Make yourself an admin.** In SQL Editor, run this with the email you sign in with:
+   `insert into public.app_admins (email) values (lower('you@example.com')) on conflict do nothing;`
+2. **Resend** (resend.com):
+   - **Domains › Add domain › hellodemo.app.** Add the DNS records it shows at your domain provider, then wait for "Verified".
+   - **API Keys › Create** (Sending access).
+3. **Supabase › Edge Functions:**
+   - Create a function named **beta** with the code from `supabase/functions/beta/index.ts`, and deploy it.
+   - Redeploy **ai-proxy** and **lyric-sync** too (they now respect the lock).
+4. **Edge Functions › Secrets:**
+   - `RESEND_API_KEY`: the key from step 2
+   - `BETA_FROM`: `*[demo] <beta@hellodemo.app>`
+   - `TESTFLIGHT_URL`: your public TestFlight link (step 5 below)
+   - `ADMIN_EMAIL`: where you want "new request" emails
+5. **Let your current testers in** (optional), so they aren't locked out. In SQL Editor:
+   `insert into public.beta_requests (email, status, user_id, decided_at) select lower(email), 'approved', id, now() from auth.users where email is not null on conflict (email) do update set status = 'approved', user_id = excluded.user_id, decided_at = now();`
+6. **Turn the lock on:** Account › Beta Requests › Waitlist Lock.
+
+If you approve someone before Resend is set up, the app copies their invite code for you, so you can send it with the TestFlight link yourself.
 
 ## 3. Try it on your phone first
 
