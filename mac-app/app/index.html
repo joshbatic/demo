@@ -17654,7 +17654,7 @@ var SVC=[['Your app',[['website','Website','hellodemo.app'],['share','Share page
   ['Your providers',[['openai','OpenAI','API key works'],['resend','Resend','email key works'],['datamuse','Datamuse','rhymes']]],
   ['Platform status',[['supabase-status','Supabase','status.supabase.com'],['vercel-status','Vercel','share-page hosting'],['github-status','GitHub','website hosting'],['openai-status','OpenAI','status.openai.com'],['apple','Apple developer','TestFlight, App Store Connect']]]];
 function svcDown(){var l=(ADM.st&&ADM.st.services)||[];return{down:l.filter(function(x){return x.ok==='down'}).length,slow:l.filter(function(x){return x.ok==='slow'}).length,n:l.length}}
-function admLoadStatus(){admRpc('admin_status').then(function(r){ADM.st=r||{services:[]};ADM.stMiss=false;paintAdmSide();renderAdmin()},function(){ADM.stMiss=true;renderAdmin()})}
+function admLoadStatus(){admRpc('admin_status').then(function(r){ADM.st=r||{services:[]};ADM.stMiss=false;ADM.stErr='';paintAdmSide();renderAdmin()},function(e){var m=String((e&&(e.message||e.details||e.hint))||e||'');ADM.stMiss=/admin_status|does not exist|PGRST202|schema cache/i.test(m)&&!/service_checks/i.test(m);ADM.stErr=ADM.stMiss?'':(m||'Unknown error');try{console.warn('admin_status',e)}catch(x){}renderAdmin()})}
 function admCheckNow(){var c=sbClient();if(!c||ADM.stBusy)return;ADM.stBusy=true;renderAdmin();
   c.functions.invoke('status',{body:{action:'check'}}).then(function(r){ADM.stBusy=false;if(r.error||!r.data||!r.data.results){toast('Couldn’t run the checks. Is the status function deployed?');renderAdmin();return}
     var d=r.data.results.filter(function(x){return x.ok==='down'}).length;toast(d?d+' service'+(d===1?' is':'s are')+' down':'Everything’s up');admLoadStatus()},function(){ADM.stBusy=false;toast('Couldn’t reach the status function');renderAdmin()})}
@@ -17697,7 +17697,7 @@ function renderAdmin(){var o=$('#adm');if(!o)return;o.innerHTML='';
     [['Beta Requests',function(){sheet(false);setTimeout(openBetaRequests,200)}],['Supabase dashboard',function(){openLink(SB_DASH)}],['Supabase users',function(){openLink(SB_DASH+'/auth/users')}],['Edge Function logs',function(){openLink(SB_DASH+'/functions')}],['Resend emails',function(){openLink('https://resend.com/emails')}],['OpenAI usage',function(){openLink('https://platform.openai.com/usage')}]].forEach(function(x){var b=document.createElement('button');b.className='alink';b.textContent=x[0];b.onclick=x[1];bx.appendChild(b)});
     return}
   if(ADM.tab==='status'){
-    if(ADM.stMiss){var m2=document.createElement('div');m2.className='aempty';m2.textContent='Run supabase/service-status.sql and deploy the status function to start tracking your services.';o.appendChild(m2);return}
+    if(ADM.stMiss||ADM.stErr){var m2=document.createElement('div');m2.className='aempty';m2.textContent=ADM.stMiss?'The app can’t find admin_status yet. Run supabase/service-status.sql in the SQL editor (it ends by reloading the API), then tap Status again.':'Couldn’t load the status: '+ADM.stErr;o.appendChild(m2);return}
     var st=ADM.st,list=(st&&st.services)||[],byId={};list.forEach(function(x){byId[x.service]=x});var sd=svcDown();
     var hd=document.createElement('div');hd.className='shead';hd.innerHTML='<div><b></b><span></span></div>';
     hd.querySelector('b').textContent=!st?'Loading…':!list.length?'No checks yet':sd.down?sd.down+(sd.down===1?' service down':' services down'):sd.slow?'Up, '+sd.slow+' slow':'Everything’s up';
