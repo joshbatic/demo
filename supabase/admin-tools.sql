@@ -1,4 +1,4 @@
--- Admin tools for [demo] Dev (Mac): user counts, a searchable user list, error reports and settings.
+-- Admin tools for [developer] (the Mac dev app): user counts, a searchable user list, error reports and settings.
 -- Every function checks public.is_admin() (beta-access.sql: dev@hellodemo.app), so nobody else can call them.
 -- Tables that haven't been set up yet are skipped rather than breaking the dashboard.
 -- Run after beta-access.sql. Safe to run again.

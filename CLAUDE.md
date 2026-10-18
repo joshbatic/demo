@@ -9,4 +9,4 @@
 - Releases are tagged `vX.Y.Z` on `main`, with notes in `RELEASE-NOTES-vX.Y.Z.md`.
 
 ## Mac dev build
-- `~/Applications/[demo] Dev.app` is a copy of the Mac app with a `dev-build` file in `Contents/Resources/app/` (Beta Requests on the home screen, developer tools, its own data and `demo-dev://` sign-in). When updating the Mac app's `index.html`, `main.js` or `preload.js`, copy them into both apps. `mac-app/scripts/make-dev-app.sh` recreates it.
+- `~/Applications/[developer].app` is a copy of the Mac app with a `dev-build` file in `Contents/Resources/app/` (Beta Requests on the home screen, developer tools, its own data and `demo-dev://` sign-in). When updating the Mac app's `index.html`, `main.js` or `preload.js`, copy them into both apps. `mac-app/scripts/make-dev-app.sh` recreates it.
