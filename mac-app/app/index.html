@@ -63,6 +63,12 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 #svault em{font-style:normal;font-size:13px;color:var(--mute);margin-left:auto;padding-left:8px}
 .irow0{margin-top:10px}
 /* the dev build: a Dev badge, and Beta Requests on the home screen */
+.audplay.lockd{opacity:.6}#np.locked #np-wave{opacity:.28}
+.plbuy{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 20px 0}
+.plopt{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:14px 14px 13px;border-radius:16px;background:var(--row);box-shadow:0 0 0 .5px var(--ring);text-align:left;color:var(--ink);font:inherit;cursor:pointer}
+.plopt b{font-size:16px}.plopt span{font-size:13.5px;color:var(--mute)}
+.plopt em{position:absolute;top:-9px;right:10px;font-style:normal;font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;background:var(--tint);color:var(--ontint)}
+.plopt.best{box-shadow:0 0 0 2px var(--tint)}
 .devpill{display:inline-flex;align-items:center;height:20px;padding:0 8px;margin-left:8px;border-radius:99px;font-size:11px;font-weight:800;letter-spacing:.4px;vertical-align:middle;color:#fff;background:linear-gradient(140deg,#FFAA7F,#FF8FA3)}
 .bth{color:#fff;background:linear-gradient(140deg,#FFE9A8,#FFAA7F)!important}.bth svg{filter:drop-shadow(0 .5px 1.5px rgba(0,0,0,.25))}
 .brow0 em{font-style:normal}.brow0 .bct{min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:#FF3B30;color:#fff;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-left:auto}
@@ -14979,7 +14985,7 @@ function micGet(c){var d=window.desktop;var pre=d&&d.micAccess?d.micAccess().cat
   return pre.then(function(st){if(st==='denied'||st==='restricted'){var e=new Error('microphone blocked');e.micDenied=true;throw e}return navigator.mediaDevices.getUserMedia(c)})}
 function micBlocked(alt){if(window.desktop&&window.desktop.openMicSettings){toast('Turn on *[demo] in System Settings › Privacy & Security › Microphone, then try again.');try{window.desktop.openMicSettings()}catch(e){}return}
   toast(document.body.classList.contains('ios')?'Allow microphone access for *[demo] in Settings to record.':(alt||'Microphone access is blocked. Allow it to record.'))}
-function irecStart(){if(IREC)return;
+function irecStart(){if(IREC)return;if(!isPro()&&ideas.filter(function(i){return i.memo}).length>=FREE_MEMOS)return upsell('memos');
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){toast('Recording isn’t available here.');return}
   var box=$('.ijot');box.classList.add('arming');
   micGet({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}).then(function(st){
@@ -15001,7 +15007,7 @@ function irecStart(){if(IREC)return;
         irecMeter(R,(now-R.last)/IREC_STEP);R.raf=requestAnimationFrame(draw)})()}catch(e){}
     /* nothing coming in after a few seconds: usually the wrong input, or macOS giving the app silence */
     setTimeout(function(){if(IREC===R&&R.an&&R.peak<.04)toast(window.desktop?'No sound is coming in. Check the input in System Settings › Sound, and that *[demo] is allowed under Privacy & Security › Microphone.':'No sound is coming in. Check your microphone.')},3500);
-    R.tick=setInterval(function(){var s=(Date.now()-R.t0)/1000;var t=$('#irect');if(t)t.textContent=sfTime(s);if(s>=IREC_MAX){toast('Saved at 10 minutes, the longest a voice memo can be.');irecStop(true)}},250);
+    R.tick=setInterval(function(){var s=(Date.now()-R.t0)/1000;var t=$('#irect');if(t)t.textContent=sfTime(s);if(s>=(isPro()?IREC_MAX:FREE_MEMO_SECS)){toast(isPro()?'Saved at 10 minutes, the longest a voice memo can be.':'Saved at a minute, the longest on Free. Pro memos can run 10 minutes.');irecStop(true)}},250);
     box.classList.remove('arming');irecPaint();haptic('medium')
   },function(){box.classList.remove('arming');micBlocked()})}
 function irecStop(save){if(!IREC)return;IREC.save=!!save;haptic(save?'success':'light');try{IREC.mr.stop()}catch(e){IREC=null;irecPaint()}}
@@ -15023,12 +15029,12 @@ function ideaMemoSave(blob,dur){var ta=$('#ijot'),t=ta.value.trim(),mid=uuid4();
     decodeBlob(blob).then(function(buf){var pk=peaksFromBuf(buf).peaks,out=[];for(var k=0;k<60;k++)out.push(pk[Math.floor(k*pk.length/60)]||0);memo.peaks=out;if(buf.duration)memo.dur=Math.round(buf.duration*10)/10;saveIdeas()}).catch(function(){});
     ideaMemoUpload(i)},function(){toast('Couldn’t save the recording on this device.')})}
 /* uploads a memo that's only on this device (now, or the next time Ideas opens with a connection) */
-function ideaMemoUpload(i){var m=i&&i.memo;if(!m||!m.pend||m.busy||!sfCloud())return;m.busy=true;
+function ideaMemoUpload(i){var m=i&&i.memo;if(!m||!m.pend||m.busy||!sfCloud()||!isPro())return;m.busy=true;
   audGet('f:'+m.id).then(function(b){if(!b)throw new Error('missing');var path=AUTH_USER.id+'/ideas/'+m.id+'.'+imExt(m.mime);
     return sfRoom().then(function(){return sbClient().storage.from(SF_BUCKET).upload(path,b,{contentType:m.mime||'audio/mp4',upsert:true})}).then(function(r){if(r.error)throw r.error;STORE&&(STORE.used+=b.size||0);
       var old=m.path;m.path=path;delete m.pend;delete SF_URLS[old];i.updated=Date.now();saveIdeas();acPut(path,b).then(function(){audDel('f:'+m.id)})})})
   .catch(function(){}).then(function(){delete m.busy})}
-function ideaMemosPending(){if(!sfCloud())return;ideas.forEach(function(i){if(i.memo&&i.memo.pend)ideaMemoUpload(i)})}
+function ideaMemosPending(){if(!sfCloud()||!isPro())return;ideas.forEach(function(i){if(i.memo&&i.memo.pend)ideaMemoUpload(i)})}
 function ideaMemoRemove(i){if(!i||!i.memo)return;var m=i.memo;if(IDA_ID===m.id&&IDA)try{IDA.pause()}catch(e){}sfRemove({id:m.id,path:m.path});delete i.memo}
 /* playback: one audio element for all memos; links are fetched ahead so a tap starts at once on iPhone */
 function imWarm(i){var m=i.memo;if(m&&!sfUrlNow(m))sfUrl1(m).catch(function(){})}
@@ -15076,14 +15082,14 @@ function imPaintRow(r,m){var on=IDA_ID===m.id&&IDA,playing=on&&!IDA.paused,f=on&
 function imPaintAll(){document.querySelectorAll('.imemo').forEach(function(r){var i=ideas.filter(function(x){return x.memo&&x.memo.id===r.dataset.mid})[0];if(i)imPaintRow(r,i.memo)})}
 /* a song started from a memo idea gets the recording as its first Voice memo version (copied, so deleting
    the idea later doesn't take the song's audio with it) */
-function ideaMemoToSong(i,s){var m=i&&i.memo;if(!m)return;var nid=uuid4(),ext=imExt(m.mime);
+function ideaMemoToSong(i,s){var m=i&&i.memo;if(!m)return;if(!isPro()){setTimeout(function(){upsell('audio','Your voice memo stays in Ideas. Pro adds recordings to songs.')},900);return}var nid=uuid4(),ext=imExt(m.mime);
   var add=function(path){s.audio=[{id:nid,name:i.text?i.text.split('\n')[0].slice(0,60):'Voice memo',path:path,size:m.size||0,mime:m.mime||'',added:Date.now(),kind:'Voice memo',dur:m.dur||0,cur:true}];sfTouch(s);if(cur===s){renderAud();paintPlayB()}};
   if(/^local:/.test(m.path))return audGet('f:'+m.id).then(function(b){if(b)return sfPut(s,new File([b],'Voice memo.'+ext,{type:m.mime||'audio/mp4'}),nid).then(add)}).catch(function(e){toast('Couldn’t add the voice memo to the song: '+sfErr(e))});
   if(!sfCloud())return;var dst=AUTH_USER.id+'/'+s.id+'/'+nid+'.'+ext;
   sbClient().storage.from(SF_BUCKET).copy(m.path,dst).then(function(r){if(r.error)throw r.error;add(dst)}).catch(function(e){toast('Couldn’t add the voice memo to the song: '+sfErr(e))})}
 
 function ijotFit(){var ta=$('#ijot');if(!ta)return;ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,180)+'px'}
-function ideaToSong(i){if(!i)return;if(!isPro()&&songs.filter(function(x){return!x.shared}).length>=FREE_SONGS)return upsell('songs');
+function ideaToSong(i){if(!i)return;
   var k=i.kind==='memo'?'line':(i.kind||'line'),nm=myName(),t=(i.text||'').trim(),first=t.split('\n')[0];
   var s={pf:mkPF({}),id:uuid4(),title:k==='line'?'':first.length<=60&&k==='idea'?first:'',lyrics:k==='line'?t+'\n':'',chords:'',key:'',bpm:'',capo:'',time:'',tuning:'',status:'Idea',folder:'',notes:k==='line'?'':t,artist:nm,_autoArtist:nm,updated:Date.now()};
   if(k==='concept')s.brief={more:t.slice(0,600)};
@@ -15631,7 +15637,7 @@ function renderList(){setTimeout(function(){addNewZone($('#list'))},0);
 $('#q').oninput=renderList;
 /* real UUIDs so song ids are always valid for the shared_songs table, whether or not the song is ever shared */
 function uuid4(){try{if(window.crypto&&crypto.randomUUID)return crypto.randomUUID()}catch(e){}return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c==='x'?r:(r&3|8);return v.toString(16)})}
-function newSong(){if(!isPro()&&songs.filter(function(x){return!x.shared}).length>=FREE_SONGS)return upsell('songs');var nm=myName();var s={pf:mkPF({}),id:uuid4(),title:'',lyrics:'',chords:'',key:'',bpm:'',capo:'',time:'',tuning:'',status:'Idea',folder:'',notes:'',artist:nm,_autoArtist:nm,updated:Date.now()};songs.push(s);save();openSong(s.id)}
+function newSong(){var nm=myName();var s={pf:mkPF({}),id:uuid4(),title:'',lyrics:'',chords:'',key:'',bpm:'',capo:'',time:'',tuning:'',status:'Idea',folder:'',notes:'',artist:nm,_autoArtist:nm,updated:Date.now()};songs.push(s);save();openSong(s.id)}
 $('#new').onclick=newSong;
 
 /* ---------- editor ---------- */
@@ -15658,7 +15664,7 @@ function sheet(on,w){if(on&&!wideMQ.matches&&document.body.classList.contains('s
   if(on){var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'||ae.id==='q'))ae.blur()}
   if(!on){var fa=document.activeElement;if(fa&&fa.blur&&fa.closest&&fa.closest('[role=dialog]'))fa.blur();$('#sheet').classList.remove('on');$('#sheet2').classList.remove('on');$('#sheet3').classList.remove('on');$('#sheet4').classList.remove('on');$('#sheet5').classList.remove('on');$('#sheet6').classList.remove('on');$('#sheet7').classList.remove('on');$('#sheet8').classList.remove('on');var s10=$('#sheet10');if(s10)s10.classList.remove('on');var s11=$('#sheet11');if(s11)s11.classList.remove('on')}else $('#'+(w||'sheet')).classList.add('on');$('#scrim').classList.toggle('on',on)}
 $('#det').onclick=function(){dtab('inf');renderVers();renderCollab();sheet(true)};$('#done').onclick=function(){sheet(false)};$('#scrim').onclick=function(){sheet(false);closeDict()};
-function dtab(t){if(t==='mel'&&!isPro()){upsell('melody');t='inf'}if((t==='aud'||t==='rel')&&!isPro()){upsell('audio');t='inf'}document.querySelectorAll('#dseg button').forEach(function(x){x.classList.toggle('on',x.dataset.t===t)});['chd','inf','mel','aud','rel'].forEach(function(p){$('#p-'+p).classList.toggle('on',p===t)});if(t==='mel')renderMel();if(t==='aud')renderAud();if(t==='rel')renderRel()}
+function dtab(t){if(t==='mel'&&!isPro()){upsell('melody');t='inf'}if(t==='rel'&&!isPro()){upsell('release');t='inf'}document.querySelectorAll('#dseg button').forEach(function(x){x.classList.toggle('on',x.dataset.t===t)});['chd','inf','mel','aud','rel'].forEach(function(p){$('#p-'+p).classList.toggle('on',p===t)});if(t==='mel')renderMel();if(t==='aud')renderAud();if(t==='rel')renderRel()}
 document.querySelectorAll('#dseg button').forEach(function(b){b.onclick=function(){dtab(b.dataset.t)}});
 var N=['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
 function chordChips(){
@@ -16776,10 +16782,10 @@ function buildStuck(){
   var g=$('#stg');g.innerHTML='';
   if(cur){var bs=briefSummary(cur),bb=document.createElement('button');bb.className='stc brief'+(bs?' set':'');bb.innerHTML='<b></b><span></span>';bb.children[0].textContent=bs?'About this song':'Tell the muse about this song';bb.children[1].textContent=bs||'Who’s singing, to whom, where, one real detail.';bb.onclick=briefForm;g.appendChild(bb)}
   [['big','Read my song','What this is really about, where it stalls, and a few doors out',readSong,1],
-   ['rate'+(rateMode?' on':''),rateMode?'Rate mode is on':'Rate my song',rateMode?'Notes are marked in your lyrics. Tap to hide them.':'Scores and notes on what’s landing and what isn’t',function(){if(rateMode){setRateMode(false);toast('Rate mode off');buildStuck();return}if(!isPro())return upsell('rate');sheet(false);setTimeout(openRate,isPro()?60:0)},1],
+   ['rate'+(rateMode?' on':''),rateMode?'Rate mode is on':'Rate my song',rateMode?'Notes are marked in your lyrics. Tap to hide them.':'Scores and notes on what’s landing and what isn’t',function(){if(rateMode){setRateMode(false);toast('Rate mode off');buildStuck();return}if(!isPro())return upsell('rate');sheet(false);setTimeout(openRate,isPro()?60:0)},1,1],
    ['','Stare at a thing','90 seconds on one object. Every sense. No rhyming.',zoomIn],
    ['','Wild card','One odd instruction. Just do it.',card],
-   ['','Pen never stops','Five minutes. No deleting. No rhyme bar. Go.',sprintGo]].forEach(function(x){if(x[4]&&!aiAvailable())return;var b=document.createElement('button');b.className='stc '+x[0]+(x[4]&&!isPro()?' locked':'');b.innerHTML='<b></b><span></span>';b.children[0].textContent=x[1];b.children[1].textContent=x[2];b.onclick=x[4]&&!isPro()?function(){upsell('muse')}:x[3];if(x[4]&&!isPro())b.children[0].insertAdjacentHTML('beforeend',' <i class="protag">Beta</i>');g.appendChild(b)});
+   ['','Pen never stops','Five minutes. No deleting. No rhyme bar. Go.',sprintGo]].forEach(function(x){if(x[4]&&!aiAvailable())return;var b=document.createElement('button');b.className='stc '+x[0]+(x[5]&&!isPro()?' locked':'');b.innerHTML='<b></b><span></span>';b.children[0].textContent=x[1];b.children[1].textContent=x[2];b.onclick=x[5]&&!isPro()?function(){upsell('rate')}:x[3];if(x[5]&&!isPro())b.children[0].insertAdjacentHTML('beforeend',' <i class="protag">Pro</i>');g.appendChild(b)});
 }
 function readSong(){if(!needAI())return;var o=stkOut('<p>'+aidots()+' Reading your song</p>'),at=getSel().s,k=ctx(),tk=o.dataset.seq,live=function(){return o.dataset.seq===tk};
   aiJson('You are a songwriting mentor helping a writer who is stuck.'+pfx()+'\n\n'+songCtx({at:at})+museCtx(k.st)+'\n\nRespond as JSON: {"read": one or two plain sentences on what this song is really about so far and where it seems to stall, "questions": 3 short, specific questions about the song\'s subject that would dig up fresh material from the writer\'s real life, "moves": 8 objects {"idea": a short direction to take next (under 12 words), "line": a next line that starts that direction, in this writer\'s voice and matching the song\'s line length}}. The 8 moves must go in genuinely different directions. Be concrete, no flattery. If the song is empty, read the title, notes and brief and suggest openings.',{cache:false}).then(function(r){
@@ -17205,7 +17211,7 @@ function renderCollab(){var g=$('#collab'),n=$('#collab-note');g.innerHTML='';n.
     var e=document.createElement('div');e.className='clempty';
     var st=document.createElement('span');st.className='clstack';st.appendChild(clAvatar(MY_PROFILE,myName()||'You',AUTH_USER&&AUTH_USER.id));var plus=document.createElement('span');plus.className='clav clplus';plus.textContent='+';st.appendChild(plus);e.appendChild(st);
     var tx=document.createElement('div');tx.innerHTML='<b>Write this one together</b><span></span>';tx.lastChild.textContent=AUTH_USER?'Invite co-writers by username and write it together, live.':'Sign in to write with other people.';e.appendChild(tx);
-    if(AUTH_USER){var sb=document.createElement('button');sb.className='go2';sb.innerHTML='Share Song'+(isPro()?'':' <i class="protag">Beta</i>');sb.onclick=function(){if(!isPro())return upsell('share');shareSong()};e.appendChild(sb)}
+    if(AUTH_USER){var sb=document.createElement('button');sb.className='go2';sb.innerHTML='Share Song'+(isPro()?'':' <i class="protag">Pro</i>');sb.onclick=function(){if(!isPro())return upsell('share');shareSong()};e.appendChild(sb)}
     g.appendChild(e);return}
   var owner=isOwnerOf(cur),known={},list=document.createElement('div');list.className='cllist';g.appendChild(list);
   /* invite field (owner only) */
@@ -17500,7 +17506,7 @@ function dragSrc(b,s){b.draggable=true;b.addEventListener('dragstart',function(e
   },{passive:true});
   b.addEventListener('touchcancel',function(){if(tdOn){tdOn=false;b.classList.remove('dragging');document.body.classList.remove('dnd');clearDrop()}},{passive:true})}
 function addNewZone(L){if(!L||L.querySelector('.newzone'))return;var z=document.createElement('div');z.className='newzone';z.dataset.folder='__new__';z.textContent='Drop here for a new folder';L.appendChild(z)}
-function createFolder(inSide){if(!isPro()&&songs.filter(function(x){return!x.shared}).length>=FREE_SONGS)return upsell('songs');
+function createFolder(inSide){
   var base='New Folder',n=1,names={};songs.forEach(function(x){if(x.folder)names[x.folder]=1});var f=base;while(names[f])f=base+' '+(++n);
   var s={pf:mkPF({}),id:'s'+Date.now(),title:'',lyrics:'',chords:'',key:'',bpm:'',capo:'',time:'',tuning:'',status:'Idea',folder:f,notes:'',updated:Date.now()};
   songs.push(s);save();renderList();renderSide();
@@ -17695,7 +17701,7 @@ function renderAdmin(){var o=$('#adm');if(!o)return;o.innerHTML='';
   if(ADM.tab==='overview'){
     if(!ADM.ov){var ld=document.createElement('div');ld.className='aempty';ld.textContent='Loading…';o.appendChild(ld);return}
     var g=document.createElement('div');g.className='agrid';o.appendChild(g);
-    admStat(g,ov.users||0,'Accounts',(ov.google||0)+' Google · '+(ov.apple||0)+' Apple'+(ov.plan_beta!=null?' · '+ov.plan_beta+' Beta, '+ov.plan_free+' Free':''));
+    admStat(g,ov.users||0,'Accounts',(ov.google||0)+' Google · '+(ov.apple||0)+' Apple'+(ov.plan_beta!=null?' · '+(ov.plan_pro?ov.plan_pro+' Pro, ':'')+ov.plan_beta+' Beta, '+ov.plan_free+' Free':''));
     admStat(g,ov.new_today||0,'New today',(ov.new_7d||0)+' this week · '+(ov.new_30d||0)+' this month'+(ov.signups_per_day!=null?' · cap '+ov.signups_per_day+'/day':''));
     admStat(g,ov.active_24h||0,'Signed in today',(ov.active_7d||0)+' this week');
     if(ov.beta_pending!=null)admStat(g,ov.beta_pending,'Waiting for beta',(ov.beta_approved||0)+' approved · lock '+(ov.gate?'on':'off'));
@@ -17735,7 +17741,7 @@ function renderAdmin(){var o=$('#adm');if(!o)return;o.innerHTML='';
       d.querySelector('b').textContent=u.display_name||(u.username?'@'+u.username:u.email);
       d.querySelector('.am').textContent=[u.display_name||u.username?u.email:'',u.username&&u.display_name?'@'+u.username:'',u.provider?u.provider.replace(/^./,function(c){return c.toUpperCase()}):'','joined '+admAgo(u.created_at),'seen '+admAgo(u.last_sign_in_at)].filter(Boolean).join(' · ');
       var ch=d.querySelector('.chips'),chip=function(t,c){var sp=document.createElement('span');sp.textContent=t;if(c)sp.className=c;ch.appendChild(sp)};
-      var pl={paid:['Paid','ok'],beta:['Beta · all features','plan'],free:['Free','free']}[u.plan];if(pl)chip(pl[0],pl[1]);
+      var pl={pro:['Pro','ok'],paid:['Paid','ok'],beta:['Beta · all features','plan'],free:['Free','free']}[u.plan];if(pl)chip(pl[0],pl[1]);
       var bs={admin:['Admin','ok'],approved:['Approved','ok'],open:['Open access',''],pending:['Waiting','wait'],declined:['Declined','bad'],none:['No access','bad']}[u.beta]||[u.beta,''];chip(bs[0],bs[1]);
       chip((u.songs||0)+' songs');if(u.ideas)chip(u.ideas+' ideas');chip(sfSize(u.storage_bytes||0)||'0 KB');if(u.ai_today)chip(u.ai_today+' AI today');if(u.errors_7d)chip(u.errors_7d+' errors this week','bad');
       if(ADM.open===u.id){var busy=!!ADM.busy[u.id],ac=document.createElement('div');ac.className='aacts';
@@ -17743,6 +17749,7 @@ function renderAdmin(){var o=$('#adm');if(!o)return;o.innerHTML='';
         if(u.beta!=='admin'&&u.beta!=='approved')add('Give Access',function(){admAccess(u,true)},'ok');
         if(u.beta==='approved')add('Remove Access',function(){if(confirm('Remove beta access for '+u.email+'? With the waitlist lock on, they’ll see the waitlist screen.'))admAccess(u,false)});
         if(u.ai_today)add('Reset Today’s AI',function(){admRpc('admin_reset_ai',{p_user:u.id}).then(function(){toast('AI limit reset for today');admLoadUsers()},function(e){toast('Couldn’t reset: '+(e.message||e))})});
+        if(u.plan!=='pro')add('Make Pro',function(){admPlan(u,'pro')},'ok');if(u.plan!=='free')add('Make Free',function(){admPlan(u,'free')});if(u.plan!=='beta')add('Reset Plan',function(){admPlan(u,'beta')});
         add('Copy Email',function(){admCopy(u.email,'email')});add('Copy ID',function(){admCopy(u.id,'account ID')});
         add('Open in Supabase',function(){openLink(SB_DASH+'/auth/users?search='+encodeURIComponent(u.email||u.id))});d.appendChild(ac);
         var ue=ADM.uerr[u.id];if(u.errors_7d){if(!ue){ADM.uerr[u.id]='…';admRpc('admin_user_errors',{p_user:u.id}).then(function(l){ADM.uerr[u.id]=l||[];renderAdmin()},function(){ADM.uerr[u.id]=[]})}
@@ -17765,6 +17772,12 @@ function renderAdmin(){var o=$('#adm');if(!o)return;o.innerHTML='';
     var bx4=document.createElement('div');bx4.className='abox';o.appendChild(bx4);
     var lk=document.createElement('div');lk.className='aset';lk.innerHTML='<div><b>Waitlist Lock</b><span></span></div>';lk.querySelector('span').textContent=ov.gate?'On: only approved accounts can use *[demo]':'Off: anyone who signs in can use *[demo]';
     var sw=document.createElement('button');sw.className='swtch'+(ov.gate?' on':'');sw.setAttribute('role','switch');sw.setAttribute('aria-checked',ov.gate?'true':'false');sw.setAttribute('aria-label','Waitlist Lock');sw.innerHTML='<i></i>';sw.onclick=function(){betaSetGate(!ov.gate)};lk.appendChild(sw);bx4.appendChild(lk);
+    if(ov.beta_unlocks!=null){var bu=document.createElement('div');bu.className='aset';bu.innerHTML='<div><b>Beta Unlocks Everything</b><span></span></div>';
+      bu.querySelector('span').textContent=ov.beta_unlocks?'On: beta testers get every Pro feature for free':'Off: only Pro accounts get Pro features. Everyone else is on Free';
+      var sw2=document.createElement('button');sw2.className='swtch'+(ov.beta_unlocks?' on':'');sw2.setAttribute('role','switch');sw2.setAttribute('aria-checked',ov.beta_unlocks?'true':'false');sw2.setAttribute('aria-label','Beta Unlocks Everything');sw2.innerHTML='<i></i>';
+      sw2.onclick=function(){if(ov.beta_unlocks&&!confirm('Turn off Beta Unlocks Everything? Testers without Pro move to the Free plan straight away.'))return;
+        admRpc('admin_set_beta_unlocks',{p_on:!ov.beta_unlocks}).then(function(on){ov.beta_unlocks=!!on;toast(on?'Beta testers have every feature again':'Beta testers are on Free unless they have Pro');admLoadOverview(true);planRefresh();renderAdmin()},function(e){toast('Couldn’t change it: '+(e.message||e))})};
+      bu.appendChild(sw2);bx4.appendChild(bu)}
     [['signups_per_day','New accounts per day','0 pauses sign-ups. Empty means no limit.',ov.signups_per_day],['storage_mb','Storage per account (MB)','Empty means no limit. The free plan has 1 GB in total.',ov.storage_mb]].forEach(function(x){
       var r=document.createElement('div');r.className='aset';r.innerHTML='<div><b></b><span></span></div>';r.querySelector('b').textContent=x[1];r.querySelector('span').textContent=x[2];
       var ip=document.createElement('input');ip.type='number';ip.min='0';ip.inputMode='numeric';ip.value=x[3]==null?'':x[3];ip.placeholder='None';
@@ -17772,6 +17785,9 @@ function renderAdmin(){var o=$('#adm');if(!o)return;o.innerHTML='';
         admRpc('admin_set_setting',{p_key:x[0],p_value:n}).then(function(){toast(x[1]+': '+(n==null?'no limit':n));admLoadOverview(true)},function(e){toast('Couldn’t save: '+(e.message||e));ip.value=x[3]==null?'':x[3]})};
       ip.onchange=save;ip.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();ip.blur()}};r.appendChild(ip);bx4.appendChild(r)});
     var n4=document.createElement('div');n4.className='anote';n4.textContent='Changes apply straight away for everyone.';o.appendChild(n4)}}
+function admPlan(u,t){ADM.busy[u.id]=1;renderAdmin();admRpc('admin_set_plan',{p_user:u.id,p_tier:t,p_days:null}).then(function(r){delete ADM.busy[u.id];
+  toast((u.display_name||u.email)+' is now on '+({pro:'Pro',beta:'Beta',free:'Free'}[r]||r));admLoadUsers();admLoadOverview(true);if(AUTH_USER&&u.id===AUTH_USER.id)planRefresh()},
+  function(e){delete ADM.busy[u.id];renderAdmin();toast('Couldn’t change the plan: '+(e.message||e))})}
 function admAccess(u,on){ADM.busy[u.id]=1;renderAdmin();admRpc('admin_set_access',{p_user:u.id,p_approved:on}).then(function(r){delete ADM.busy[u.id];
   toast(on?'Access given to '+u.email+(r&&r.code?' · invite code '+String(r.code).replace(/^(.{4})/,'$1-'):''):'Access removed for '+u.email);admLoadUsers();admLoadOverview(true);BRQ_LISTS={};betaAdminLoad(true)},function(e){delete ADM.busy[u.id];renderAdmin();toast('Couldn’t change access: '+(e.message||e))})}
 function betaSetGate(on){var c=sbClient();if(!c)return;c.rpc('beta_admin_set_gate',{p_on:on}).then(function(r){if(r.error)return toast('Couldn’t change it: '+r.error.message);if(BETA.sum)BETA.sum.gate=!!r.data;toast(r.data?'Waitlist lock is on. Only approved accounts can use *[demo]':'Waitlist lock is off. Anyone who signs in can use *[demo]');if(ADM.ov)ADM.ov.gate=!!r.data;renderAccount();betaRefreshViews();renderAdmin()})}
@@ -18161,22 +18177,9 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden)libP
 window.addEventListener('focus',libPoll);
 window.addEventListener('online',function(){cloudSync()});
 /* ---------- cloud plan sync: Pro status follows the Google account, not the browser ---------- */
-function cloudPushPlan(){
-  var c=sbClient();if(!c||!AUTH_USER)return;
-  c.from('profiles').upsert({user_id:AUTH_USER.id,pro:isPro(),pro_since:PLAN.since?new Date(PLAN.since).toISOString():new Date().toISOString(),updated_at:new Date().toISOString()},{onConflict:'user_id'}).then(function(r){if(r&&r.error)console.warn('plan sync failed',r.error.message)})
-}
-function cloudPullPlan(){
-  var c=sbClient();if(!c||!AUTH_USER)return;
-  c.from('profiles').select('pro,pro_since').eq('user_id',AUTH_USER.id).order('updated_at',{ascending:false,nullsFirst:false}).limit(1).then(function(r){
-    if(r&&r.error)return;
-    var row=r&&r.data&&r.data[0];
-    if(row&&row.pro&&!isPro()){
-      PLAN={tier:'pro',since:row.pro_since?new Date(row.pro_since).getTime():Date.now()};
-      try{localStorage.setItem('songpad:plan',JSON.stringify(PLAN))}catch(e){}
-      applyPlan();refreshAccount();toast('Beta access restored from your account');
-    }else if(isPro()&&(!row||!row.pro)){cloudPushPlan()}
-  })
-}
+/* the plan comes from the server (my_plan, supabase/plans.sql); nothing is written from here */
+function cloudPushPlan(){}
+function cloudPullPlan(){return planRefresh()}
 /* Shared OAuth path for both Google and Apple — same desktop-vs-web branching either way: on the
    Mac app the provider's page can't load inside the app window (and Google/Apple's own redirect
    can't land on a file:// URL anyway), so the OAuth URL is handed to the system browser and the
@@ -18249,26 +18252,32 @@ $('#ag-apple').onclick=function(){$('#ag-note').textContent='';signInApple(true)
 setTimeout(function(){if(!AUTH_USER&&!sbClient())$('#ag-note').textContent='Couldn’t reach the sign-in service. Check your connection and try again.'},4000);
 document.querySelectorAll('#authgate [data-doc]').forEach(function(x){x.onclick=function(e){e.preventDefault();openDoc(x.dataset.doc)}});
 sbClient();
-/* Pre-launch: *[demo] ships with every feature unlocked by default, badged "Beta" rather than
-   a paid-tier name since there's no real subscription yet. PLAN.tier 'beta' = fully unlocked
-   (the shipping default); 'pro' is kept as a back-compat alias for any account that previously
-   synced a real unlock from the cloud. 'free' is the restricted/paywalled experience — the one
-   actual beta testers will eventually see — reachable only via the toggle in Account so it can
-   be previewed and tested before that rollout. */
-var FREE_SONGS=10,PLAN={tier:'beta'};try{PLAN=JSON.parse(localStorage.getItem('songpad:plan'))||PLAN}catch(e){}
-function isPro(){return PLAN.tier==='beta'||PLAN.tier==='pro'}
-var FEAT={lines:'Lines',rate:'Rate',perform:'Perform mode',voice:'Writing voice',listen:'Listening to the whole song',melody:'Melody',songs:'More than '+FREE_SONGS+' songs',share:'Sharing songs',muse:'Muse ideas',audio:'Audio, lyric sync & release details'};
-function setPlan(tier){PLAN={tier:tier,since:Date.now()};try{localStorage.setItem('songpad:plan',JSON.stringify(PLAN))}catch(e){}applyPlan();cloudPushPlan()}
-function applyPlan(){var pro=isPro();document.body.classList.toggle('pro',pro);var ap=$('#acctplan');if(ap)ap.hidden=!pro;var acb=$('#acctb');if(acb)acb.classList.toggle('nobadge',!pro);
+/* Plans (supabase/plans.sql): the server decides each person's plan, so it can't be changed from here.
+   'beta' = everything, while the beta unlocks it (today's default); 'pro' = paid, or given by an admin;
+   'free' = writing, rhymes and a taste of the AI. The last plan we heard is kept for offline use. */
+var PLAN={tier:'beta'};try{var _pl=JSON.parse(localStorage.getItem('songpad:plan'));if(_pl&&/^(free|pro|beta)$/.test(_pl.tier))PLAN=_pl}catch(e){}
+var PRICE={month:'A$8.99',year:'A$69.99',trial:7},FREE_MEMOS=10,FREE_MEMO_SECS=60;
+function isPro(){return PLAN.tier!=='free'}
+function planName(){return PLAN.tier==='pro'?'Pro':PLAN.tier==='beta'?'Beta':'Free'}
+var FEAT={lines:'Lines',rate:'Rate',perform:'Perform mode',voice:'Writing voice',listen:'Listening to the whole song',melody:'Melody',share:'Inviting co-writers',muse:'Muse',audio:'Adding music and files',sync:'Lyric sync',play:'Play with Lyrics',release:'Release details',memos:'More voice memos',ai:'More AI'};
+function planSave(p){var was=PLAN.tier;PLAN=p;try{localStorage.setItem('songpad:plan',JSON.stringify(PLAN))}catch(e){}if(was!==PLAN.tier){applyPlan();try{refreshAccount()}catch(e){}if(cur){try{paintPlayer()}catch(e){}if($('#p-aud')&&$('#p-aud').classList.contains('on'))try{renderAud()}catch(e){}}if(PLAN.tier!=='free')try{ideaMemosPending()}catch(e){}}}
+function planRefresh(){var c=sbClient();if(!c||!AUTH_USER)return Promise.resolve();
+  return c.rpc('my_plan').then(function(r){if(r.error||!r.data||!r.data.tier)return;var d=r.data;
+    planSave({tier:d.tier,expires_at:d.expires_at||null,beta_unlocks:d.beta_unlocks!==false,storage_limit:d.storage_limit,heavy_month:d.heavy_month||0,sync_month:d.sync_month||0,at:Date.now()})},function(){})}
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&AUTH_USER&&Date.now()-(PLAN.at||0)>60000)planRefresh()});
+/* admins only: preview the Free plan on your own account (the server keeps it, so it's real) */
+function setPlan(tier){var c=sbClient();if(!c||!AUTH_USER)return Promise.resolve();
+  return c.rpc('admin_set_plan',{p_user:AUTH_USER.id,p_tier:tier==='free'?'free':'beta'}).then(function(r){if(r.error){toast('Couldn’t change your plan: '+r.error.message);return}return planRefresh()})}
+function applyPlan(){var pro=isPro();document.body.classList.toggle('pro',pro);var ap=$('#acctplan');if(ap){ap.hidden=!pro;ap.textContent=planName()}var acb=$('#acctb');if(acb)acb.classList.toggle('nobadge',!pro);
   if(!pro){if(VIEW.ctx){VIEW.ctx=false;vset()}if(lines){lines=false}if(typeof rateMode!=='undefined'&&rateMode)setRateMode(false)}
   else if(!VIEW.ctx){VIEW.ctx=true;vset()}
   ['#rateb','#gear','#ctxb'].forEach(function(s){var el=$(s);if(el)el.classList.toggle('prolock',!pro)});
-  var lm=$('#lm');if(lm)lm.innerHTML='Lines'+(pro?'':' <i class="protag">Beta</i>');
-  var pf=$('#perfb');if(pf)pf.innerHTML='Perform'+(pro?'':' <i class="protag">Beta</i>');
+  var lm=$('#lm');if(lm)lm.innerHTML='Lines'+(pro?'':' <i class="protag">Pro</i>');
+  var pf=$('#perfb');if(pf)pf.innerHTML='Perform'+(pro?'':' <i class="protag">Pro</i>');
   LSK=null;try{rhyme()}catch(e){}}
 var probT=null;
 function showProBanner(msg,k){
-  $('#pb-t').textContent='Beta feature';$('#pb-d').textContent=msg;
+  $('#pb-t').textContent='*[demo] Pro';$('#pb-d').textContent=msg;
   var pb=$('#probanner');
   /* same rect-based anchoring as toast() above, and for the same reason: a static bottom offset
      sits UNDER the toolbar once the keyboard pushes it up (or on taller toolbars generally),
@@ -18286,7 +18295,8 @@ function showProBanner(msg,k){
 }
 function hideProBanner(){$('#probanner').classList.remove('on');clearTimeout(probT)}
 $('#pb-x').onmousedown=prevent;$('#pb-x').onclick=function(e){e.stopPropagation();hideProBanner()};
-function upsell(k){showProBanner(k==='songs'?('The restricted preview keeps up to '+FREE_SONGS+' songs. Turn Beta back on for unlimited.'):((FEAT[k]||'That')+' is a Beta feature.'),k)}
+function upsellMsg(k){return k==='memos'?'Free keeps '+FREE_MEMOS+' voice memos on this device, up to a minute each. Pro syncs them everywhere, with no limit.':k==='ai'?'You’ve used today’s free AI. Pro has plenty more.':(FEAT[k]||'That')+' is part of *[demo] Pro.'}
+function upsell(k,msg){showProBanner(msg||upsellMsg(k),k)}
 var accWhy='';
 function openAccount(k){accWhy=k||'';renderAccount();sheet(true,'sheet6')}
 function devProfileGet(){try{return JSON.parse(localStorage.getItem('songpad:devprofile'))||{}}catch(e){return{}}}
@@ -18442,36 +18452,39 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
     ab.innerHTML='<svg width="17" height="17" viewBox="0 0 170 170" aria-hidden="true" fill="currentColor"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.197-2.12-9.973-3.17-14.34-3.17-4.58 0-9.492 1.05-14.746 3.17-5.262 2.13-9.501 3.24-12.742 3.35-4.929.21-9.842-1.96-14.746-6.52-3.13-2.73-7.045-7.41-11.735-14.04-5.032-7.08-9.169-15.29-12.41-24.65-3.471-10.11-5.211-19.9-5.211-29.378 0-10.857 2.345-20.221 7.045-28.068 3.693-6.303 8.606-11.275 14.755-14.925 6.149-3.65 12.792-5.51 19.946-5.629 3.915 0 9.045 1.211 15.42 3.591 6.356 2.388 10.44 3.599 12.238 3.599 1.342 0 5.877-1.416 13.57-4.239 7.275-2.618 13.415-3.702 18.445-3.275 13.63 1.1 23.87 6.473 30.68 16.153-12.19 7.386-18.22 17.731-18.1 31.002.11 10.337 3.86 18.939 11.23 25.769 3.34 3.17 7.07 5.62 11.22 7.36-.9 2.61-1.85 5.11-2.86 7.51zM119.11 7.24c0 8.102-2.96 15.667-8.86 22.669-7.12 8.324-15.732 13.134-25.071 12.375a25.21 25.21 0 0 1-.188-3.07c0-7.772 3.384-16.089 9.399-22.877 3.002-3.43 6.82-6.282 11.45-8.56 4.62-2.245 8.99-3.486 13.1-3.685.12 1.056.17 2.111.17 3.148z"/></svg><span>Sign in with Apple</span>';
     ab.onclick=function(){signInApple(true)};ga.appendChild(ab);
   }
-  if(accWhy&&!pro){var w=document.createElement('div');w.className='accwhy';w.textContent=accWhy==='songs'?'The restricted preview keeps up to '+FREE_SONGS+' songs. Turn Beta back on for unlimited.':(FEAT[accWhy]||'That')+' is a Beta feature.';o.appendChild(w)}
-  if(pro&&!devFake&&!DEV_BUILD){if(typeof hero!=='undefined'&&hero){var bb=document.createElement('div');bb.className='prbeta';bb.textContent='Beta · everything unlocked';hero.appendChild(bb)}}else{
+  if(accWhy&&!pro){var w=document.createElement('div');w.className='accwhy';w.textContent=upsellMsg(accWhy);o.appendChild(w)}
+  var tier=PLAN.tier,isAdm=typeof BETA!=='undefined'&&BETA&&BETA.admin;
+  if(tier==='beta'&&!isAdm){if(typeof hero!=='undefined'&&hero){var bb=document.createElement('div');bb.className='prbeta';bb.textContent='Beta · everything unlocked';hero.appendChild(bb)}}else{
   var card=document.createElement('div');card.className='plancard'+(pro?' pro':'');
   card.innerHTML='<span class="plic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5l1.6 4.4c.3.8.9 1.4 1.7 1.7l4.4 1.6-4.4 1.6c-.8.3-1.4.9-1.7 1.7L10 18.9l-1.6-4.4c-.3-.8-.9-1.4-1.7-1.7L2.3 11.2l4.4-1.6c.8-.3 1.4-.9 1.7-1.7z"/></svg></span><span class="pltx"><b></b><p></p></span>';
-  card.querySelector('b').textContent=pro?'Beta':'Free';
-  var mine=songs.filter(function(x){return!x.shared}).length;
-  card.querySelector('p').textContent=pro?'Everything’s unlocked while *[demo] is in beta.':'Previewing the restricted, post-beta experience — '+mine+' of '+FREE_SONGS+' songs used.';
+  card.querySelector('b').textContent=tier==='pro'?'*[demo] Pro':planName();
+  card.querySelector('p').textContent=tier==='pro'?((PLAN.expires_at?'Until '+new Date(PLAN.expires_at).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})+'. ':'')+(PLAN.heavy_month||0)+' of 100 Rates used this month.')
+    :tier==='beta'?'Everything’s unlocked while *[demo] is in beta.':'Unlimited songs, rhymes and ideas. Free for good.';
   o.appendChild(card);
-  var lab=document.createElement('div');lab.className='lab';lab.textContent='Beta access';o.appendChild(lab);
-  var box=document.createElement('div');box.className='gf';o.appendChild(box);
-  /* No payments or real beta-tester tiers exist yet — everyone ships fully unlocked, badged
-     "Beta". This switch exists purely to preview and test the restricted experience real beta
-     testers will eventually get, ahead of that rollout. */
-  var trow=document.createElement('div');trow.className='row';trow.style.cssText='justify-content:space-between;cursor:pointer';
-  var ltx=document.createElement('span');ltx.style.cssText='display:flex;flex-direction:column;gap:2px;text-align:left;min-width:0';
-  var lt1=document.createElement('b');lt1.style.fontSize='15px';lt1.textContent='All features unlocked';ltx.appendChild(lt1);
-  var lt2=document.createElement('span');lt2.style.cssText='color:var(--mute);font-size:12.5px';lt2.textContent=pro?'On for everyone during the beta.':'Off — previewing the restricted tier.';ltx.appendChild(lt2);
-  trow.appendChild(ltx);
-  var sw=document.createElement('button');sw.className='swtch'+(pro?' on':'');sw.setAttribute('role','switch');sw.setAttribute('aria-checked',pro?'true':'false');sw.setAttribute('aria-label','All features unlocked');sw.innerHTML='<i></i>';
-  function flipBeta(){setPlan(pro?'free':'beta');accWhy='';renderAccount();toast(pro?'Switched to the restricted preview':'Beta unlocked — everything’s available again')}
-  sw.onclick=function(e){e.stopPropagation();flipBeta()};trow.onclick=flipBeta;
-  trow.appendChild(sw);box.appendChild(trow);
-  var n=document.createElement('div');n.className='note';n.style.paddingTop='8px';n.textContent='A testing switch for the upcoming beta tier.';o.appendChild(n);}
-  if(!pro){var lt=document.createElement('div');lt.className='lab';lt.textContent='Unlocks when Beta is on';o.appendChild(lt);
+  /* admins can try the Free plan on their own account; the server keeps it, so everything behaves for real */
+  if(isAdm){var lab=document.createElement('div');lab.className='lab';lab.textContent='Testing';o.appendChild(lab);
+    var box=document.createElement('div');box.className='gf';o.appendChild(box);
+    var trow=document.createElement('div');trow.className='row';trow.style.cssText='justify-content:space-between;cursor:pointer';
+    var ltx=document.createElement('span');ltx.style.cssText='display:flex;flex-direction:column;gap:2px;text-align:left;min-width:0';
+    var lt1=document.createElement('b');lt1.style.fontSize='15px';lt1.textContent='Preview the Free plan';ltx.appendChild(lt1);
+    var lt2=document.createElement('span');lt2.style.cssText='color:var(--mute);font-size:12.5px';lt2.textContent=tier==='free'?'On: your account is on Free until you turn this off.':'See *[demo] exactly as a free user does.';ltx.appendChild(lt2);
+    trow.appendChild(ltx);
+    var on=tier==='free',sw=document.createElement('button');sw.className='swtch'+(on?' on':'');sw.setAttribute('role','switch');sw.setAttribute('aria-checked',on?'true':'false');sw.setAttribute('aria-label','Preview the Free plan');sw.innerHTML='<i></i>';
+    var flip=function(){sw.disabled=true;setPlan(on?'beta':'free').then(function(){accWhy='';renderAccount();toast(on?'Back to your full plan':'You’re on the Free plan')})};
+    sw.onclick=function(e){e.stopPropagation();flip()};trow.onclick=flip;trow.appendChild(sw);box.appendChild(trow)}}
+  if(!pro){var lt=document.createElement('div');lt.className='lab';lt.textContent='*[demo] Pro';o.appendChild(lt);
   var fbox=document.createElement('div');fbox.className='gf';o.appendChild(fbox);
-  ['Unlimited songs','Lines: rhyming lines in your voice','Rate: honest notes on your song','Whole-song context for every suggestion','Writing voice & Perform mode','Muse: more cards, and sharing songs','Audio versions, synced lyrics, credits & release details'].forEach(function(t){
+  ['Add your demos, mixes, stems and files (5 GB)','Voice memos synced to every device, no limit','Lyric sync and Play with Lyrics','Share links with your audio','Invite co-writers to your songs','Lines, Rate and your writing voice','Perform mode, whole-song listening, release details'].forEach(function(t){
     var r2=document.createElement('div');r2.className='row';
     r2.innerHTML='<span class="pfrow"><i class="pfi"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></i><span class="pft"></span></span>';
-    r2.querySelector('.pft').textContent=t;fbox.appendChild(r2)
-  });}
+    r2.querySelector('.pft').textContent=t;fbox.appendChild(r2)});
+  /* payments aren't switched on yet (they need the Apple Developer account): the buttons explain that */
+  var buy=document.createElement('div');buy.className='plbuy';
+  [['year','Yearly',PRICE.year+' a year','About 35% off'],['month','Monthly',PRICE.month+' a month','']].forEach(function(x){
+    var b=document.createElement('button');b.className='plopt'+(x[0]==='year'?' best':'');b.innerHTML='<b></b><span></span><em></em>';b.children[0].textContent=x[1];b.children[1].textContent=x[2];b.children[2].textContent=x[3];if(!x[3])b.children[2].remove();
+    b.onclick=function(){toast('Subscriptions open soon. You’ll start your '+PRICE.trial+'-day free trial right here.')};buy.appendChild(b)});
+  o.appendChild(buy);
+  var tn=document.createElement('div');tn.className='note';tn.style.paddingTop='8px';tn.textContent=PRICE.trial+'-day free trial, then billed through the App Store. Cancel any time; your songs and recordings stay yours.';o.appendChild(tn)}
   if(AUTH_USER){
     /* Credits: a small discography of finished songs you wrote or co-wrote */
     var credited=songs.filter(function(s){return s.title&&s.status==='Finished'&&(s.owner===AUTH_USER.id||(s.members||[]).indexOf(AUTH_USER.id)>=0||(!s.shared&&!s.owner))}).sort(function(a,b){return b.updated-a.updated});
@@ -18580,6 +18593,7 @@ var SVG_PLAY='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 
   SVG_CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>',
   SVG_X='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
   SVG_OPEN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>',
+  SVG_LOCK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2.2"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg>',
   FILE_ICO={Stem:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 10v4M8 6v12M12 9v6M16 4v16M20 10v4"/></svg>',
     Artwork:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>',
     Session:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>',
@@ -18589,6 +18603,16 @@ function sfExt(name,mime){var m=/\.([a-z0-9]{1,6})$/i.exec(name||'');return(m?m[
 function sfSize(n){if(!n)return'';return n<1048576?Math.max(1,Math.round(n/1024))+' KB':(n/1048576).toFixed(n<10485760?1:0)+' MB'}
 function sfTime(sec){sec=Math.max(0,+sec||0);var m=Math.floor(sec/60),s=Math.floor(sec%60);return m+':'+(s<10?'0':'')+s}
 function sfBase(name){return(name||'').replace(/\.[a-z0-9]{1,6}$/i,'').trim()||'Untitled'}
+/* who uploaded a file (the first folder of its path), whether this person can play it (always their own; others' need Pro),
+   and a co-writer's name for "Sam added a demo" */
+function sfOwner(item){var p=item&&item.path||'';return/^local:/.test(p)||!p?(AUTH_USER&&AUTH_USER.id):p.split('/')[0]}
+function sfMine(item){return!AUTH_USER||!item||!item.path||/^local:/.test(item.path)||sfOwner(item)===AUTH_USER.id}
+function sfCanPlay(item){return isPro()||sfMine(item)}
+var UPNAMES={};
+function upName(uid){if(!uid)return Promise.resolve('');if(AUTH_USER&&uid===AUTH_USER.id)return Promise.resolve(myName()||'You');if(UPNAMES[uid]!=null)return Promise.resolve(UPNAMES[uid]);
+  var pc=profCacheGet(uid);if(pc&&(pc.display_name||pc.username))return Promise.resolve(UPNAMES[uid]=pc.display_name||pc.username);
+  var c=sbClient();if(!c)return Promise.resolve('');return c.from('profiles').select('display_name,username').eq('user_id',uid).maybeSingle().then(function(r){var d=r&&r.data;return UPNAMES[uid]=(d&&(d.display_name||(d.username?'@'+d.username:'')))||(cur&&cur.owner===uid&&cur.ownerEmail?cur.ownerEmail.split('@')[0]:'')},function(){return''})}
+function sfLocked(item){var aud=!!(cur&&(cur.audio||[]).indexOf(item)>=0);upName(sfOwner(item)).then(function(n){upsell('audio',(n||'Your co-writer')+' added '+(aud?'a recording':'a file')+'. Go Pro to '+(aud?'listen':'open it')+' and add your own.')})}
 function audCur(song){var a=(song&&song.audio)||[];return a.filter(function(x){return x.cur})[0]||a[a.length-1]||null}
 /* storage limit per account (supabase/storage-limit.sql): how much is used, checked before each new upload.
    If the SQL hasn't been run, my_storage doesn't exist and uploads carry on as before. */
@@ -18752,13 +18776,13 @@ $('#audin').onchange=function(){var f=[].slice.call(this.files||[]);this.value='
 $('#filein').onchange=function(){var f=[].slice.call(this.files||[]);this.value='';sfAdd(f,false)};
 /* quick listen to one version, right from its row */
 function sfStopPreview(){if(sfAu)try{sfAu.pause()}catch(e){}SF_PLAY=null}
-function sfPreview(item){
+function sfPreview(item){if(item&&!sfCanPlay(item))return sfLocked(item);
   if(!sfAu){sfAu=new Audio();sfAu.onended=function(){SF_PLAY=null;paintAudLive()}}
   if(SF_PLAY===item.id){sfStopPreview();paintAudLive();return}
   if(lpAu)try{lpAu.pause()}catch(e){}
   var go=function(u){if(sfAu.src!==u)sfAu.src=u;var p=sfAu.play();SF_PLAY=item.id;paintAudLive();if(p&&p.catch)p.catch(function(){SF_PLAY=null;paintAudLive();toast('Tap play again to listen')})};
   var now=sfUrlNow(item);if(now)go(now);else sfUrl(item).then(go,function(e){toast('Couldn’t play it: '+sfErr(e))})}
-function sfOpen(item){var now=sfUrlNow(item),c=item&&SF_URLS[item.path];
+function sfOpen(item){if(item&&!sfCanPlay(item))return sfLocked(item);var now=sfUrlNow(item),c=item&&SF_URLS[item.path];
   if(c&&c.cached&&sfCloud())return sbClient().storage.from(SF_BUCKET).createSignedUrl(item.path,3600).then(function(r){if(r.error)throw r.error;openLink(r.data.signedUrl)}).catch(function(e){toast('Couldn’t open it: '+sfErr(e))});
   if(now)return openLink(now);sfUrl(item).then(openLink,function(e){toast('Couldn’t open it: '+sfErr(e))})}
 /* remove a version or file: from the song, then from storage */
@@ -18800,7 +18824,7 @@ function renderAud(){var o=$('#aud-body');if(!o||!cur)return;var song=cur,keepTo
     var mid=document.createElement('button');mid.className='c2';mid.innerHTML='<b></b><span></span>';mid.firstChild.textContent=a.name;mid.lastChild.textContent=a._conv?'Converting to MP3…':[a.kind,a.dur?sfTime(a.dur):'',sfSize(a.size),a.orig&&/mpeg/.test(a.mime||'')?'MP3 from '+sfExt(a.orig.name,a.orig.mime).toUpperCase():''].filter(Boolean).join(' · ');if(a._conv)mid.lastChild.dataset.conv=a.id;
     mid.onclick=function(){audToggle(a.id,r,function(){return sfEditor(a,AUD_KINDS,delA)})};r.appendChild(mid);
     var delA=function(){song.audio=auds.filter(function(x){return x!==a});if(a===cu&&song.audio.length)song.audio[song.audio.length-1].cur=true;if(song.sync&&song.sync.audioId===a.id)delete song.sync};
-    var pb=document.createElement('button');pb.dataset.id=a.id;pb._on=SF_PLAY===a.id;pb.className='audplay'+(SF_PLAY===a.id?' on':'');pb.setAttribute('aria-label',SF_PLAY===a.id?'Pause':'Play '+a.name);pb.innerHTML=SF_PLAY===a.id?SVG_PAUSE:SVG_PLAY;pb.onclick=function(){sfPreview(a)};r.appendChild(pb);
+    var pb=document.createElement('button');pb.dataset.id=a.id;pb._on=SF_PLAY===a.id;pb.className='audplay'+(SF_PLAY===a.id?' on':'');pb.setAttribute('aria-label',SF_PLAY===a.id?'Pause':'Play '+a.name);pb.innerHTML=SF_PLAY===a.id?SVG_PAUSE:sfCanPlay(a)?SVG_PLAY:SVG_LOCK;if(!sfCanPlay(a))pb.classList.add('lockd');pb.onclick=function(){sfPreview(a)};r.appendChild(pb);
     vg.appendChild(r);
     if(AUD_OPEN===a.id)vg.appendChild(sfEditor(a,AUD_KINDS,delA))});
   /* lyric sync */
@@ -18824,7 +18848,7 @@ function renderAud(){var o=$('#aud-body');if(!o||!cur)return;var song=cur,keepTo
     var mid=document.createElement('button');mid.className='c2';mid.innerHTML='<b></b><span></span>';mid.firstChild.textContent=f.name;mid.lastChild.textContent=[f.kind,sfSize(f.size)].filter(Boolean).join(' · ');
     var delF=function(){song.files=files.filter(function(x){return x!==f})};
     mid.onclick=function(){audToggle(f.id,r,function(){return sfEditor(f,FILE_KINDS,delF)})};r.appendChild(mid);
-    var ob=document.createElement('button');ob.className='audplay';ob.setAttribute('aria-label','Open '+f.name);ob.innerHTML=SVG_OPEN;ob.onclick=function(){sfOpen(f)};r.appendChild(ob);
+    var ob=document.createElement('button');ob.className='audplay';ob.setAttribute('aria-label','Open '+f.name);ob.innerHTML=sfCanPlay(f)?SVG_OPEN:SVG_LOCK;if(!sfCanPlay(f))ob.classList.add('lockd');ob.onclick=function(){sfOpen(f)};r.appendChild(ob);
     fg.appendChild(r);
     if(AUD_OPEN===f.id)fg.appendChild(sfEditor(f,FILE_KINDS,delF))});
   var pa=$('#p-aud');if(pa)pa.scrollTop=keepTop}
@@ -18917,7 +18941,7 @@ function fnErr(err){var ctx=err&&err.context;
   if(ctx&&ctx.json)return ctx.json().then(function(b){return(b&&b.error)||err.message},function(){return err.message});
   var m=(err&&err.message)||'';return Promise.resolve(/failed to send|fetch/i.test(m)?'check your connection and try again.':m)}
 function runSync(){var song=cur,a=audCur(song);if(!song||!a)return;
-  if(!isPro())return upsell('audio');
+  if(!isPro())return upsell('sync');
   if(aiOk()!=='yes')return aiConsent(true).then(runSync,function(){});
   if(!sfCloud())return toast(DEV_MODE?'Lyric sync needs a signed-in account.':'Sign in to sync lyrics.');
   var lines=syncLinesOf(song.lyrics);if(lines.length<2)return toast('Write the lyrics first, then sync them to the audio.');
@@ -18944,7 +18968,7 @@ function songAu(){if(!lpAu){lpAu=new Audio();lpAu.preload='metadata';
 function npLoaded(item){var au=songAu();return au._id===item.id&&!!au.src}
 /* start (or resume) a version. iOS only lets audio start straight from a tap, so the link is fetched
    ahead of time (paintPlayer) and used synchronously here whenever it's ready. */
-function npPlay(item,song,fromTop){var au=songAu();
+function npPlay(item,song,fromTop){if(!sfCanPlay(item))return sfLocked(item);var au=songAu();
   if(lpAu&&sfAu)sfStopPreview();
   var go=function(u){if(au._id!==item.id||!au.src){au.src=u;au._id=item.id;au._song=song.id;if(fromTop)au._seek=null}var p=au.play();if(p&&p.catch)p.catch(function(){npPaint();lpPaint()});npPaint();lpPaint()};
   if(npLoaded(item))return go(au.src);var now=sfUrlNow(item);if(now)go(now);else sfUrl(item).then(go,function(e){toast('Couldn’t play it: '+sfErr(e))})}
@@ -18956,7 +18980,7 @@ function npPos(){var au=lpAu,it=npItem;if(!it)return 0;if(au&&au._id===it.id){if
 function npDur(){var au=lpAu,it=npItem;if(au&&it&&au._id===it.id&&isFinite(au.duration)&&au.duration)return au.duration;return(it&&it.dur)||0}
 function npStop(){if(lpAu&&!lpAu.paused)try{lpAu.pause()}catch(e){}}
 function npPaint(){var box=$('#np');if(!box||box.hidden||!npItem)return;
-  var playing=lpAu&&lpAu._id===npItem.id&&!lpAu.paused,pp=$('#np-pp');if(pp._on!==playing){pp._on=playing;pp.innerHTML=playing?SVG_PAUSE:SVG_PLAY;pp.setAttribute('aria-label',playing?'Pause':'Play')}
+  var playing=lpAu&&lpAu._id===npItem.id&&!lpAu.paused,pp=$('#np-pp'),lk=box.classList.contains('locked'),st=lk?'lock':playing;if(pp._on!==st){pp._on=st;pp.innerHTML=lk?SVG_LOCK:playing?SVG_PAUSE:SVG_PLAY;pp.setAttribute('aria-label',lk?'Pro: unlock to listen':playing?'Pause':'Play')}
   var d=npDur(),t=npScrub!=null?npScrub*d:npPos();$('#np-at').textContent=sfTime(t);$('#np-left').textContent='-'+sfTime(Math.max(0,d-t));
   $('#np-t').textContent=(playing||t>0.05)?'-'+sfTime(Math.max(0,d-t)):sfTime(d);box.style.setProperty('--p',(d?Math.min(100,t/d*100):0)+'%');
   var cv=$('#np-wave');cv.setAttribute('aria-valuemax',Math.round(d));cv.setAttribute('aria-valuenow',Math.round(t));cv.setAttribute('aria-valuetext',sfTime(t)+' of '+sfTime(d));
@@ -18995,13 +19019,15 @@ function peaksFromBuf(buf){return(function(){var P=180,len=buf.length,chs=[],out
   for(var c=0;c<buf.numberOfChannels;c++)chs.push(buf.getChannelData(c));
   for(var i=0;i<P;i++){var s=i*step,e=Math.min(len,s+step),m=0;for(var j=s;j<e;j+=stride)for(var c2=0;c2<chs.length;c2++){var v=chs[c2][j];if(v<0)v=-v;if(v>m)m=v}out.push(m)}
   var mx=0;out.forEach(function(v){if(v>mx)mx=v});mx=mx||1;return{peaks:out.map(function(v){return Math.round(Math.pow(v/mx,.7)*100)}),dur:buf.duration}})()}
-function ensurePeaks(item,song,blob){if(item.peaks||NP_PEAKS[item.id])return;NP_PEAKS[item.id]=1;
+function ensurePeaks(item,song,blob){if(item.peaks||NP_PEAKS[item.id]||(!blob&&!sfCanPlay(item)))return;NP_PEAKS[item.id]=1;
   (blob?Promise.resolve(blob):sfBlob(item)).then(peaksOf).then(function(r){item.peaks=r.peaks;if(!item.dur&&r.dur)item.dur=Math.round(r.dur*10)/10;sfTouch(song);if(npItem===item)npPaint()},function(){}).then(function(){delete NP_PEAKS[item.id]})}
-function paintPlayer(){var box=$('#np');if(!box)return;var song=cur,a=song&&isPro()?audCur(song):null;
+function paintPlayer(){var box=$('#np');if(!box)return;var song=cur,a=song?audCur(song):null;
   if(!a){if(!box.hidden){box.hidden=true;npItem=null;if(typeof refreshViews==='function')refreshViews()}return}
   var was=box.hidden;npItem=a;npSong=song;box.hidden=false;box.classList.toggle('open',NP_OPEN);
-  $('#np-name').textContent=a.name;$('#np-sub').textContent=[a.kind,(song.sync&&song.sync.audioId===a.id)?'Lyrics synced':''].filter(Boolean).join(' · ');
-  if(!sfUrlNow(a))sfUrl(a,true).catch(function(){});ensurePeaks(a,song);
+  var lk=!sfCanPlay(a);box.classList.toggle('locked',lk);
+  $('#np-name').textContent=a.name;$('#np-sub').textContent=lk?'Pro':'';if(lk)upName(sfOwner(a)).then(function(n){if(npItem===a)$('#np-sub').textContent=[n?'Added by '+n:'',a.kind,'Pro'].filter(Boolean).join(' · ')});
+  else $('#np-sub').textContent=[a.kind,(song.sync&&song.sync.audioId===a.id)?'Lyrics synced':''].filter(Boolean).join(' · ');
+  if(!lk){if(!sfUrlNow(a))sfUrl(a,true).catch(function(){});ensurePeaks(a,song)}
   npPaint();if(was&&typeof refreshViews==='function')refreshViews()}
 (function(){var cv=$('#np-wave');
   function fracAt(e){var r=cv.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))}
@@ -19038,7 +19064,7 @@ function lpTick(jump){if(!lpAu)return;var t=lpAu.currentTime||0,d=lpAu.duration|
     if(idx>=0&&(jump||Date.now()-lpUserScroll>3000)){var box=$('#lp-lines'),el=lpEls[idx],top=el.offsetTop-box.clientHeight*.32,calm=matchMedia('(prefers-reduced-motion: reduce)').matches;
       try{box.scrollTo({top:top,behavior:jump||calm?'auto':'smooth'})}catch(e){box.scrollTop=top}}}}
 function lpLoop(){cancelAnimationFrame(lpRaf);(function f(){if($('#lplay').hidden)return;lpTick();lpRaf=requestAnimationFrame(f)})()}
-function openPlay(){var song=cur,a=audCur(song);if(!song)return;if(!isPro())return upsell('audio');if(!a)return toast('Add audio in Details › Audio first');
+function openPlay(){var song=cur,a=audCur(song);if(!song)return;if(!isPro())return upsell('play');if(!a)return toast('Add audio in Details › Audio first');
   sfStopPreview();songAu();
   var sy=song.sync&&song.sync.audioId===a.id?song.sync:null;
   $('#lp-title').textContent=song.title||'Untitled';$('#lp-sub').textContent=[song.artist,a.name+(a.kind?' ('+a.kind+')':'')].filter(Boolean).join(' · ');
@@ -19321,7 +19347,7 @@ function shSet(song,rec){var uid=AUTH_USER.id;song.shares=song.shares||{};if(rec
   if(song.share&&(song.share.by===uid||!song.share.by&&(!song.shared||song.owner===uid)))delete song.share;if(!Object.keys(song.shares).length)delete song.shares;sfTouch(song)}
 /* tags an error with the step it happened in, so the message says what actually went wrong */
 function shStep(step){return function(e){if(e&&typeof e==='object'&&!e.step){try{e.step=step}catch(x){}}else if(!e||typeof e!=='object')e={message:String(e||''),step:step};throw e}}
-function shLinkMake(song,bg,withAudio,id,o2){var c=sbClient(),uid=AUTH_USER.id;id=id||shMine(song)||shId();var dir=uid+'/'+id+'/',v=Date.now().toString(36),st=c.storage.from(SHARE_BUCKET),a=withAudio?audCur(song):null,keep=[],prev=(function(r){return r&&r.id===id?r:null})(shRec(song)),aname=null;
+function shLinkMake(song,bg,withAudio,id,o2){var c=sbClient(),uid=AUTH_USER.id;id=id||shMine(song)||shId();var dir=uid+'/'+id+'/',v=Date.now().toString(36),st=c.storage.from(SHARE_BUCKET),a=withAudio&&isPro()?audCur(song):null,keep=[],prev=(function(r){return r&&r.id===id?r:null})(shRec(song)),aname=null;
   var url=function(name){return st.getPublicUrl(dir+name).data.publicUrl};
   var up=function(name,blob){keep.push(name);return sfRoom().then(function(){return st.upload(dir+name,blob,{upsert:true,contentType:blob.type||'application/octet-stream',cacheControl:'31536000'})}).then(function(r){if(r.error)throw r.error;STORE&&(STORE.used+=blob.size||0);return url(name)})};
   /* the audio is the slow part, so: reuse it when it's the same version as last time; otherwise copy it straight

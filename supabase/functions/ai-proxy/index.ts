@@ -2,7 +2,8 @@
 //
 // The app sends { prompt, modelTier } and gets back { text }, or { error } with a message it can show.
 //   modelTier "complex" (Rate, the voice profile) uses gpt-5; everything else uses gpt-5-mini.
-// Each request is counted against the account's daily limit first (supabase/ai-limits.sql, ai_take()).
+// Each request is counted against the account's plan limits first (supabase/plans.sql, ai_take()): Free gets a
+// few quick requests a day, Pro and Beta the full set, with a monthly cap on the heavy ones for Pro.
 // If that SQL hasn't been run yet, requests are allowed rather than broken.
 //
 // Deploy:  supabase functions deploy ai-proxy        (or paste this into Edge Functions > ai-proxy > Code)
@@ -48,7 +49,11 @@ Deno.serve(async (req) => {
   const { data: take, error: takeErr } = await sb.rpc("ai_take", { kind: "ai", units: complex ? 3 : 1 });
   if (!takeErr && take && take.ok === false) {
     if (take.reason === "minute") return json({ error: "That's a lot of requests at once. Give it a minute and try again." });
-    if (take.reason === "day") return json({ error: `You've reached today's AI limit. It resets in about ${hoursToReset()} hours.` });
+    if (take.reason === "pro") return json({ error: "Rate and writing voice are part of *[demo] Pro.", pro: true });
+    if (take.reason === "month") return json({ error: "You've used this month's 100 Rates and voice updates. They reset on the 1st." });
+    if (take.reason === "day") return json(take.tier === "free"
+      ? { error: `You've used today's ${take.limit} free AI requests. Go Pro for more, or try again in about ${hoursToReset()} hours.`, pro: true }
+      : { error: `You've reached today's AI limit. It resets in about ${hoursToReset()} hours.` });
     if (take.reason === "beta") return json({ error: "Your beta access hasn't been approved yet." }, 403);
     return json({ error: "Sign in to use AI features." }, 401);
   }

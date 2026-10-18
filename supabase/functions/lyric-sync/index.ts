@@ -39,11 +39,13 @@ Deno.serve(async (req) => {
   const { data: who, error: whoErr } = await sb.auth.getUser();
   if (whoErr || !who?.user) return json({ error: "Sign in to sync lyrics." }, 401);
 
-  // each one-minute piece counts against the account's daily lyric-sync allowance (supabase/ai-limits.sql);
+  // each one-minute piece counts against the account's lyric-sync allowance (supabase/plans.sql: Pro and Beta only);
   // if that isn't set up yet, syncing goes ahead
   const { data: take, error: takeErr } = await sb.rpc("ai_take", { kind: "sync", units: 1 });
   if (!takeErr && take && take.ok === false) {
     if (take.reason === "beta") return json({ error: "Your beta access hasn't been approved yet." }, 403);
+    if (take.reason === "pro") return json({ error: "Lyric sync is part of *[demo] Pro.", pro: true }, 403);
+    if (take.reason === "month") return json({ error: "You've used this month's 5 hours of lyric sync. It resets on the 1st." }, 429);
     return json({ error: take.reason === "minute" ? "Syncing a lot at once. Give it a minute and try again." : `You've reached today's lyric sync limit (about an hour of songs). It resets in about ${hoursToReset()} hours.` }, 429);
   }
 

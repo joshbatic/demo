@@ -42,9 +42,11 @@ begin
   end if;
   if public._has('public.shared_songs') then execute 'select count(*) from public.shared_songs' into n; o := o || jsonb_build_object('shared_songs', n); end if;
   if public._has('public.shares') then execute 'select count(*) from public.shares' into n; o := o || jsonb_build_object('share_links', n); end if;
-  if public._has('public.profiles') then
-    execute 'select count(distinct user_id) from public.profiles where pro' into n;
-    o := o || jsonb_build_object('plan_beta', n, 'plan_free', greatest(0, (o->>'users')::bigint - n));
+  if to_regprocedure('public.plan_for(uuid)') is not null then
+    execute $q$ select jsonb_build_object('plan_pro', count(*) filter (where t = 'pro'), 'plan_beta', count(*) filter (where t = 'beta'),
+      'plan_free', count(*) filter (where t = 'free'), 'beta_unlocks', coalesce((select beta_unlocks from public.plan_config where id = 1), true))
+      from (select public.plan_for(id) t from auth.users) x $q$ into j;
+    o := o || j;
   end if;
 
   select coalesce(sum((metadata->>'size')::bigint), 0) into n from storage.objects where bucket_id in ('song-files', 'shares');
@@ -96,7 +98,7 @@ begin
   from auth.users u
   order by u.created_at desc;
   if public._has('public.profiles') then
-    execute 'update _au a set username = p.username, display_name = p.display_name, plan = case when p.pro then ''beta'' else ''free'' end from public.profiles p where p.user_id = a.id';
+    execute 'update _au a set username = p.username, display_name = p.display_name from public.profiles p where p.user_id = a.id';
   end if;
   if public._has('public.cloud_library') then
     execute $q$ update _au a set
@@ -118,8 +120,8 @@ begin
   end if;
   update _au set beta = 'admin' where lower(email) in (select email from public.app_admins);
   update _au set beta = case when gate then 'none' else 'open' end where beta is null;
-  -- plan: 'beta' = everything unlocked (profiles.pro), 'free' = the limited plan. There are no payments yet;
-  -- when there are, set 'paid' here from the subscriptions table.
+  -- plan: 'pro', 'beta' or 'free', decided by plans.sql (plan_for); 'free' before plans.sql has been run
+  if to_regprocedure('public.plan_for(uuid)') is not null then execute 'update _au set plan = public.plan_for(id)'; end if;
   update _au set plan = 'free' where plan is null;
   select coalesce(jsonb_agg(to_jsonb(x) order by x.created_at desc), '[]'::jsonb) into r
     from (select * from _au

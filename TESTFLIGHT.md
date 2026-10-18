@@ -25,6 +25,7 @@ Run these in **SQL Editor** (New query → paste → Run), in this order. All ar
 12. `supabase/beta-access.sql`: the beta waitlist. Then run `supabase/ai-limits.sql` and `supabase/delete-account.sql` again (both changed for it).
 13. `supabase/admin-tools.sql`: the Admin sheet in [developer] (user counts, users, errors, settings).
 14. `supabase/service-status.sql`: the Status tab in [developer] › Admin. Turn on **pg_cron** and **pg_net** in Database › Extensions first; the file then sets up the 5-minute schedule itself (its token lives in Supabase Vault). Deploy `supabase/functions/status` as **status**. No secrets to add. (Done for cygfgurzvmbtcegkpnss.)
+15. `supabase/plans.sql`: Free and Pro. Each person's plan is decided on the server (Admin › Users can set Pro or Free; Admin › Settings › Beta Unlocks Everything keeps every tester on full access until payments go live). Run it again after `admin-tools.sql`. (Done for cygfgurzvmbtcegkpnss.)
 
 Settings:
 
