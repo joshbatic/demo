@@ -16004,10 +16004,10 @@ if(wideMQ.addEventListener)wideMQ.addEventListener('change',syncSideVisibility);
 $('#sbt').onclick=function(){sideOn(true)};$('#shide').onclick=function(){sideOn(false)};$('#scrim2').onclick=function(){sideOn(false)};
 $('#snew').onclick=function(){newSong();if(!wideMQ.matches)sideOn(false)};
 $('#sfolder').onclick=function(){createFolder(true)};
-/* the dev build of the Mac app ([demo] Dev.app, see mac-app/main.js) */
+/* the dev build of the Mac app ([developer].app, see mac-app/main.js) */
 var DEV_BUILD=!!(window.desktop&&window.desktop.devBuild),AUTH_SCHEME=(window.desktop&&window.desktop.authScheme)||'demo';
 $('#svault').onclick=function(){openIdeas()};$('#sbeta').onclick=openBetaRequests;$('#done10').onclick=function(){sheet(false)};$('#sadm').onclick=openAdmin;$('#done11').onclick=function(){sheet(false)};
-if(DEV_BUILD){document.body.classList.add('devbuild');setTimeout(function(){paintBetaSide();paintAdmSide()},0);['#logo','#vList .lhead h1'].forEach(function(q){var lg=$(q);if(lg&&!lg.querySelector('.devpill'))lg.insertAdjacentHTML('beforeend','<span class="devpill">DEV</span>')});try{document.title='*[demo] Dev'}catch(e){}
+if(DEV_BUILD){document.body.classList.add('devbuild');setTimeout(function(){paintBetaSide();paintAdmSide()},0);['#logo','#vList .lhead h1'].forEach(function(q){var lg=$(q);if(lg&&!lg.querySelector('.devpill'))lg.insertAdjacentHTML('beforeend','<span class="devpill">DEV</span>')});try{document.title='[developer]'}catch(e){}
   /* new requests show up without reopening the app */
   setInterval(function(){if(BETA.admin&&!document.hidden){betaAdminLoad(true);admLoadOverview(true)}},120000);document.addEventListener('visibilitychange',function(){if(!document.hidden&&BETA.admin){betaAdminLoad(true);admLoadOverview(true)}})}
 $('#ideaBack').onclick=function(){show('vList')};
@@ -17551,7 +17551,7 @@ var lastAuthUid=null;
    or 'pending' / 'declined' / 'none', which get the waitlist screen. If the check can't run (no connection,
    SQL not set up) the app opens as normal; the server still refuses AI and uploads for unapproved accounts. */
 var BETA={st:null,admin:false,sum:null,list:null,t:0,busy:{}};
-/* the dev build of the Mac app ([demo] Dev.app): Beta Requests on the home screen and the developer tools in Account */
+/* the dev build of the Mac app ([developer].app): Beta Requests on the home screen and the developer tools in Account */
 var BETA_ICO='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.7-3.4 3.3-5.5 6.5-5.5s5.8 2.1 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c2 .7 3.2 2.5 3.5 5.2"/></svg>';
 var BRQ_TAB='pending',BRQ_LISTS={};
 function betaRowSub(){if(!AUTH_USER)return'Sign in as the admin to review';if(!BETA.admin)return BETA.st?'This account isn’t the admin':'Checking…';var sm=BETA.sum;if(!sm)return'Loading…';
@@ -17639,7 +17639,7 @@ function betaDecide(rq,approve){var c=sbClient();if(!c||BETA.busy[rq.id])return;
     return c.rpc('beta_admin_decide',{p_id:rq.id,p_approve:approve}).then(function(r2){if(r2.error)throw r2.error;done({code:r2.data&&r2.data.code,emailed:false})})})
   .catch(function(e){delete BETA.busy[rq.id];renderAccount();toast('Couldn’t update the request: '+((e&&e.message)||'try again'))})}
 function betaRefreshViews(){paintBetaSide();paintAdmSide();if(DEV_BUILD&&typeof renderList==='function'&&!$('#q').value)renderList();var s10=$('#sheet10');if(s10&&s10.classList.contains('on'))renderBetaRequests()}
-/* ---------- Admin ([demo] Dev only): users, errors and settings (supabase/admin-tools.sql) ---------- */
+/* ---------- Admin ([developer] only): users, errors and settings (supabase/admin-tools.sql) ---------- */
 var ADM={tab:'overview',ov:null,users:null,q:'',errs:null,hours:24,open:null,uerr:{},busy:{},t:0,miss:false};
 var ADM_ICO='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>';
 var SB_DASH='https://supabase.com/dashboard/project/cygfgurzvmbtcegkpnss';
@@ -18483,7 +18483,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
   var gl=accSection(o,'About');
   gl.appendChild(accCell({tile:ACC_ICO.lock,grad:10,label:'Privacy Policy',chev:true,onclick:function(){openDoc('privacy')}}));
   gl.appendChild(accCell({tile:ACC_ICO.doc,grad:3,label:'Terms of Service',chev:true,onclick:function(){openDoc('terms')}}));
-  /* developer tools ([demo] Dev only), then the account actions last, where Settings keeps Sign Out */
+  /* developer tools ([developer] only), then the account actions last, where Settings keeps Sign Out */
   if(ga&&(devFake||DEV_BUILD)&&dvl){o.appendChild(dvl);o.appendChild(ga)}
   if(AUTH_USER||devFake){
     var ag=accSection(o,'');

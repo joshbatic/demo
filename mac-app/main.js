@@ -9,17 +9,18 @@ let win;
 let pendingAuthUrl = null;
 
 // ---- dev build ----
-// A copy of the app with a "dev-build" file next to main.js runs as "[demo] Dev": its own settings and
+// A copy of the app with a "dev-build" file next to main.js runs as "[developer]": its own settings and
 // sign-in (so it can stay signed in as the admin), its own songs folder, its own sign-in link
 // (demo-dev://, so callbacks never land in the regular app), and the admin tools on the home screen.
 const DEV_BUILD = fs.existsSync(path.join(__dirname, 'dev-build'));
 const SCHEME = DEV_BUILD ? 'demo-dev' : 'demo';
 if (DEV_BUILD) {
-  app.setName('[demo] Dev');
+  app.setName('[developer]');
+  // the settings folder keeps its first name, so the sign-in and settings carry over
   app.setPath('userData', path.join(app.getPath('appData'), '[demo] Dev'));
 }
 ipcMain.on('app:info', (e) => { e.returnValue = { devBuild: DEV_BUILD, scheme: SCHEME }; });
-const songsDir = () => path.join(app.getPath('documents'), DEV_BUILD ? '[demo] Dev Songs' : '[demo] Songs');
+const songsDir = () => path.join(app.getPath('documents'), DEV_BUILD ? '[developer] Songs' : '[demo] Songs');
 
 // ---- Google sign-in callback (demo://auth-callback, or demo-dev:// in the dev build) ----
 // macOS hands the app this custom-scheme URL after the system browser finishes the Google
