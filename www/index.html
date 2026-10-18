@@ -14766,7 +14766,11 @@ OY-B-AH-L	foible92
 EH-M-ER-IH-JH-D	hemorrhaged93
 AH-S-IH-N	bussin52s`;
 /* git commit this build came from, shown at the bottom of Account. Written by scripts/stamp-version.sh — don't edit by hand. */
+<<<<<<< HEAD
 var APP_COMMIT='c362ff7';
+=======
+var APP_COMMIT='93ef793';
+>>>>>>> main
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
 function currentKey(){if(typeof DEV_MODE!=='undefined'&&DEV_MODE&&!AUTH_USER)return K_DEV;if(typeof AUTH_USER!=='undefined'&&AUTH_USER&&AUTH_USER.id)return K+':'+AUTH_USER.id;return K}
 function load(){ACTIVE_KEY=currentKey();try{songs=JSON.parse(localStorage.getItem(ACTIVE_KEY))||[]}catch(e){songs=[]}seedGuide();loadIdeas()}
@@ -14914,7 +14918,7 @@ function ideaMemoSave(blob,dur){var ta=$('#ijot'),t=ta.value.trim(),mid=uuid4();
 function ideaMemoUpload(i){var m=i&&i.memo;if(!m||!m.pend||m.busy||!sfCloud())return;m.busy=true;
   audGet('f:'+m.id).then(function(b){if(!b)throw new Error('missing');var path=AUTH_USER.id+'/ideas/'+m.id+'.'+imExt(m.mime);
     return sfRoom().then(function(){return sbClient().storage.from(SF_BUCKET).upload(path,b,{contentType:m.mime||'audio/mp4',upsert:true})}).then(function(r){if(r.error)throw r.error;STORE&&(STORE.used+=b.size||0);
-      var old=m.path;m.path=path;delete m.pend;delete SF_URLS[old];i.updated=Date.now();saveIdeas();audDel('f:'+m.id)})})
+      var old=m.path;m.path=path;delete m.pend;delete SF_URLS[old];i.updated=Date.now();saveIdeas();acPut(path,b).then(function(){audDel('f:'+m.id)})})})
   .catch(function(){}).then(function(){delete m.busy})}
 function ideaMemosPending(){if(!sfCloud())return;ideas.forEach(function(i){if(i.memo&&i.memo.pend)ideaMemoUpload(i)})}
 function ideaMemoRemove(i){if(!i||!i.memo)return;var m=i.memo;if(IDA_ID===m.id&&IDA)try{IDA.pause()}catch(e){}sfRemove({id:m.id,path:m.path});delete i.memo}
@@ -17421,7 +17425,11 @@ function onAuthUser(){
   if(uid!==lastAuthUid){lastAuthUid=uid;cloudDidPull=false;PENDING_INVITES=[];MY_PROFILE=null;mzLoad();if(typeof pgReset==='function')pgReset()}
   var ag=$('#authgate');if(ag)ag.style.display=(AUTH_USER||DEV_MODE)?'none':'flex';
   ensureStorageForMode();
+<<<<<<< HEAD
   if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling();MZ.noTable=false;setTimeout(mzPull,1500);setTimeout(function(){pgLoad()},4000);setTimeout(sharedGoneCheck,5000)}
+=======
+  if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;setTimeout(function(){if(AUTH_USER)acPrune()},45000);cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling();MZ.noTable=false;setTimeout(mzPull,1500);setTimeout(sharedGoneCheck,5000)}
+>>>>>>> main
   if(AUTH_USER)setTimeout(function(){if(cur&&cur.shared)pullShared(cur);liveEnsure()},0);
   if(!AUTH_USER){stopInvitePolling();libStop()}
   refreshAccount();
@@ -17882,7 +17890,7 @@ function signInOAuth(provider,forceChooser,label){
 }
 function signInGoogle(forceChooser){signInOAuth('google',forceChooser,'Google')}
 function signInApple(forceChooser){signInOAuth('apple',forceChooser,'Apple')}
-function signOutGoogle(){libStop();liveLeave();var c=sbClient();if(c)c.auth.signOut();AUTH_USER=null;cloudDidPull=false;DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}stopInvitePolling();PENDING_INVITES=[];ensureStorageForMode();renderAccount();paintAcctIcons();sheet(false);var ag=$('#authgate');if(ag)ag.style.display='flex'}
+function signOutGoogle(){libStop();liveLeave();acClear();var c=sbClient();if(c)c.auth.signOut();AUTH_USER=null;cloudDidPull=false;DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}stopInvitePolling();PENDING_INVITES=[];ensureStorageForMode();renderAccount();paintAcctIcons();sheet(false);var ag=$('#authgate');if(ag)ag.style.display='flex'}
 $('#ag-google').onclick=function(){$('#ag-note').textContent='';signInGoogle(true)};
 $('#ag-apple').onclick=function(){$('#ag-note').textContent='';signInApple(true)};
 setTimeout(function(){if(!AUTH_USER&&!sbClient())$('#ag-note').textContent='Couldn’t reach the sign-in service. Check your connection and try again.'},4000);
@@ -18230,7 +18238,7 @@ function sfMediaDur(file){return new Promise(function(res){try{var a=document.cr
 function sfPut(song,file,id){
   if(!sfCloud())return audPut('f:'+id,file).then(function(){return'local:'+id});
   var path=AUTH_USER.id+'/'+song.id+'/'+id+'.'+sfExt(file.name,file.type);
-  return sfRoom().then(function(){return sbClient().storage.from(SF_BUCKET).upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false})}).then(function(r){if(r.error)throw r.error;STORE&&(STORE.used+=file.size||0);return path})}
+  return sfRoom().then(function(){return sbClient().storage.from(SF_BUCKET).upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false})}).then(function(r){if(r.error)throw r.error;STORE&&(STORE.used+=file.size||0);if(acAudio({path:path,mime:file.type,size:file.size}))acPut(path,file);return path})}
 /* playable/openable link for a stored file; cached so a later tap can start playback straight away
    (iOS only lets audio start from a tap, not after waiting on the network) */
 function sfUrlNow(item){var c=item&&SF_URLS[item.path];return c&&c.exp>Date.now()+60000?c.u:null}
@@ -18247,11 +18255,44 @@ function sfUrl(item,retried){return sfUrl1(item).catch(function(e){var m=(e&&(e.
     if(fresh&&fresh.path&&fresh.path!==item.path){if(fresh!==item){item.path=fresh.path;item.id=fresh.id;item.mime=fresh.mime;item.size=fresh.size}return sfUrl(fresh,true)}throw e})})}
 function sfUrl1(item){var now=sfUrlNow(item);if(now)return Promise.resolve(now);
   if(/^local:/.test(item.path))return audGet('f:'+item.id).then(function(b){if(!b)throw new Error('That file isn’t on this device.');var u=URL.createObjectURL(b);SF_URLS[item.path]={u:u,exp:Infinity};return u});
-  if(!sfCloud())return Promise.reject(new Error('Sign in to open files stored in your account.'));
-  return sbClient().storage.from(SF_BUCKET).createSignedUrl(item.path,3600).then(function(r){if(r.error)throw r.error;SF_URLS[item.path]={u:r.data.signedUrl,exp:Date.now()+3600e3};return r.data.signedUrl})}
+  var signed=function(){if(!sfCloud())return Promise.reject(new Error('Sign in to open files stored in your account.'));
+    return sbClient().storage.from(SF_BUCKET).createSignedUrl(item.path,3600).then(function(r){if(r.error)throw r.error;SF_URLS[item.path]={u:r.data.signedUrl,exp:Date.now()+3600e3};SF_SRC[r.data.signedUrl]=item;return r.data.signedUrl})};
+  if(acAudio(item)&&acHas(item.path))return acGet(item.path).then(function(b){if(!b)return signed();var u=URL.createObjectURL(b.type?b:new Blob([b],{type:item.mime||'audio/mpeg'}));SF_URLS[item.path]={u:u,exp:Infinity,cached:1};return u});
+  return signed()}
+/* ---------- audio kept on this device ----------
+   Plays used to stream the file from storage every time. Now audio is kept on this device: straight away for
+   anything this device uploads, and the first time anything else is played or downloaded. After that it plays
+   from here (instantly, and offline). Up to 500 MB; the least recently played go first. Keyed by storage path,
+   which is new whenever a file is replaced, so a cached copy is never stale. Cleared on sign-out. */
+var AC_MAX=500*1048576,AC_IX=null,AC_T=0,AC_BUSY={},SF_SRC={};
+function acIdb(mode,fn){return idb().then(function(db){return new Promise(function(res){try{var tx=db.transaction('audio',mode),r=fn(tx.objectStore('audio'));tx.oncomplete=function(){res(r&&'result'in r?r.result:true)};tx.onerror=tx.onabort=function(){res(null)}}catch(e){res(null)}})}).catch(function(){return null})}
+function acIx(){if(!AC_IX){try{AC_IX=JSON.parse(localStorage.getItem('songpad:acache')||'{}')||{}}catch(e){AC_IX={}}}return AC_IX}
+function acSave(){clearTimeout(AC_T);AC_T=0;try{localStorage.setItem('songpad:acache',JSON.stringify(acIx()))}catch(e){}}
+function acSaveSoon(){if(!AC_T)AC_T=setTimeout(acSave,4000)}
+function acAudio(item){return!!(item&&item.path&&!/^local:/.test(item.path)&&(/^audio\//.test(item.mime||'')||/\.(mp3|m4a|aac|wav|aif|aiff|flac|ogg|opus|webm|caf)$/i.test(item.path))&&!(item.size>60e6))}
+function acHas(path){return!!acIx()[path]}
+function acGet(path){var ix=acIx();if(!ix[path])return Promise.resolve(null);
+  return acIdb('readonly',function(st){return st.get('c:'+path)}).then(function(b){if(!b){if(ix[path]){delete ix[path];acSave()}return null}ix[path][1]=Date.now();acSaveSoon();return b})}
+function acPut(path,b){if(!path||/^local:/.test(path)||!b||!b.size||b.size>60e6)return Promise.resolve(false);
+  return acIdb('readwrite',function(st){st.put(b,'c:'+path)}).then(function(ok){if(!ok)return false;acIx()[path]=[b.size,Date.now()];acTrim();acSave();return true})}
+function acDel(path){if(!path)return;var ix=acIx();if(ix[path]){delete ix[path];acSave()}acIdb('readwrite',function(st){st.delete('c:'+path)})}
+function acTrim(){var ix=acIx(),ks=Object.keys(ix),tot=ks.reduce(function(n,k){return n+(ix[k][0]||0)},0);if(tot<=AC_MAX)return;
+  ks.sort(function(a,b){return ix[a][1]-ix[b][1]});while(tot>AC_MAX*0.85&&ks.length){var k=ks.shift();tot-=ix[k][0]||0;acDel(k)}}
+function acClear(){Object.keys(acIx()).forEach(function(k){acIdb('readwrite',function(st){st.delete('c:'+k)})});AC_IX={};acSave()}
+/* drop copies of files no song or idea refers to any more (deleted here, or by a co-writer) */
+function acPrune(){var keep={};songs.forEach(function(s){(s.audio||[]).concat(s.files||[]).forEach(function(x){if(x&&x.path)keep[x.path]=1})});
+  (typeof ideas!=='undefined'?ideas:[]).forEach(function(i){if(i.memo&&i.memo.path)keep[i.memo.path]=1});
+  Object.keys(acIx()).forEach(function(k){if(!keep[k])acDel(k)})}
+/* the first play of a file that isn't here yet streams as before, and a copy is saved alongside it */
+function acFill(item,url){if(!acAudio(item)||acHas(item.path)||AC_BUSY[item.path]||!/^https?:/.test(url||''))return;AC_BUSY[item.path]=1;
+  fetch(url).then(function(r){return r.ok?r.blob():null}).then(function(b){return b&&acPut(item.path,b)}).then(function(ok){
+    if(ok){var c=SF_URLS[item.path];if(!c||!c.cached)delete SF_URLS[item.path]}},function(){}).then(function(){delete AC_BUSY[item.path]})}
+(function(){var P=HTMLMediaElement.prototype,pl=P.play;P.play=function(){try{var it=SF_SRC[this.currentSrc||this.src];if(it)acFill(it,this.currentSrc||this.src)}catch(e){}return pl.apply(this,arguments)}})();
 function sfBlob(item){if(/^local:/.test(item.path))return audGet('f:'+item.id).then(function(b){if(!b)throw new Error('That file isn’t on this device.');return b});
-  return sfUrl(item).then(function(u){return fetch(u)}).then(function(r){if(!r.ok)throw new Error('Couldn’t download the audio ('+r.status+').');return r.blob()})}
-function sfRemove(item){if(!item||!item.path)return Promise.resolve();delete SF_URLS[item.path];if(/^local:/.test(item.path))return audDel('f:'+item.id);if(!sfCloud())return Promise.resolve();
+  var dl=function(){var c=SF_URLS[item.path];if(c&&c.cached)delete SF_URLS[item.path];
+    return sfUrl(item).then(function(u){return fetch(u)}).then(function(r){if(!r.ok)throw new Error('Couldn’t download the audio ('+r.status+').');return r.blob()}).then(function(b){if(acAudio(item))acPut(item.path,b);return b})};
+  return acAudio(item)&&acHas(item.path)?acGet(item.path).then(function(b){return b||dl()}):dl()}
+function sfRemove(item){if(!item||!item.path)return Promise.resolve();delete SF_URLS[item.path];acDel(item.path);if(/^local:/.test(item.path))return audDel('f:'+item.id);if(!sfCloud())return Promise.resolve();
   return sbClient().storage.from(SF_BUCKET).remove([item.path]).then(function(){},function(){})}
 function sfTouch(song){song=song||cur;if(!song)return;song.updated=Date.now();save();if(song.shared)liveFiles(song);if(typeof PG!=='undefined'&&PG.on&&PG.s.show&&PG.s.show[song.id])pgSoon()}
 /* ---------- deleted files stay deleted for everyone on a shared song ----------
@@ -18343,7 +18384,9 @@ function sfPreview(item){
   if(lpAu)try{lpAu.pause()}catch(e){}
   var go=function(u){if(sfAu.src!==u)sfAu.src=u;var p=sfAu.play();SF_PLAY=item.id;paintAudLive();if(p&&p.catch)p.catch(function(){SF_PLAY=null;paintAudLive();toast('Tap play again to listen')})};
   var now=sfUrlNow(item);if(now)go(now);else sfUrl(item).then(go,function(e){toast('Couldn’t play it: '+sfErr(e))})}
-function sfOpen(item){var now=sfUrlNow(item);if(now)return openLink(now);sfUrl(item).then(openLink,function(e){toast('Couldn’t open it: '+sfErr(e))})}
+function sfOpen(item){var now=sfUrlNow(item),c=item&&SF_URLS[item.path];
+  if(c&&c.cached&&sfCloud())return sbClient().storage.from(SF_BUCKET).createSignedUrl(item.path,3600).then(function(r){if(r.error)throw r.error;openLink(r.data.signedUrl)}).catch(function(e){toast('Couldn’t open it: '+sfErr(e))});
+  if(now)return openLink(now);sfUrl(item).then(openLink,function(e){toast('Couldn’t open it: '+sfErr(e))})}
 /* remove a version or file: from the song, then from storage */
 function sfDelete(it,onDel){if(SF_PLAY===it.id)sfStopPreview();if(lpAu&&lpAu._id===it.id)npStop();onDel();sfRemove(it);if(cur){cur.rmFiles=cur.rmFiles||{};cur.rmFiles[it.id]=Date.now()}AUD_OPEN=null;sfTouch();haptic('medium');renderAud();paintPlayB();toast('Deleted “'+it.name+'”')}
 /* expanded row: kind, rename, delete (tap twice) */
