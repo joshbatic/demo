@@ -605,6 +605,7 @@ body.ios .song{padding:13px 24px}
 .cm{justify-content:flex-start!important;gap:12px}.cm img{width:30px;height:30px;box-shadow:none}
 .cm .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cm em{font-style:normal;color:var(--mute);font-size:14px}
 .cm .x{color:var(--red);font-size:15px;padding:4px 8px}
+.invblock{background:none;border:0;padding:0;font:inherit;color:inherit;text-decoration:underline;cursor:pointer}
 .clempty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:22px 20px 20px}
 .clempty b{display:block;font-size:16px;margin-bottom:3px}.clempty span:not(.clav):not(.clstack){font-size:13.5px;color:var(--mute);line-height:1.4}
 .clempty .go2{margin-top:4px}
@@ -678,6 +679,7 @@ body.ios .song{padding:13px 24px}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7,#sheet9) .cell+.cell.notile::before{left:16px}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7,#sheet9) .cell .ct{flex:1;min-width:0;line-height:1.3;padding:13px 0}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7,#sheet9) .cell .cv{flex:none;max-width:52%;color:var(--mute);font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#acc .cell .cv.full{color:var(--red,#FF3B30)}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7,#sheet9) .cell .chev{flex:none;display:flex;color:var(--mute);opacity:.5;margin-left:-3px}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7,#sheet9) button.cell:active{background:var(--fill)}
 @media (hover:hover){:is(#acc,#p-aud,#p-rel,#sheet4,#sheet7,#sheet9) button.cell:hover{background:var(--fill)}}
@@ -14911,7 +14913,7 @@ function ideaMemoSave(blob,dur){var ta=$('#ijot'),t=ta.value.trim(),mid=uuid4();
 /* uploads a memo that's only on this device (now, or the next time Ideas opens with a connection) */
 function ideaMemoUpload(i){var m=i&&i.memo;if(!m||!m.pend||m.busy||!sfCloud())return;m.busy=true;
   audGet('f:'+m.id).then(function(b){if(!b)throw new Error('missing');var path=AUTH_USER.id+'/ideas/'+m.id+'.'+imExt(m.mime);
-    return sbClient().storage.from(SF_BUCKET).upload(path,b,{contentType:m.mime||'audio/mp4',upsert:true}).then(function(r){if(r.error)throw r.error;
+    return sfRoom().then(function(){return sbClient().storage.from(SF_BUCKET).upload(path,b,{contentType:m.mime||'audio/mp4',upsert:true})}).then(function(r){if(r.error)throw r.error;STORE&&(STORE.used+=b.size||0);
       var old=m.path;m.path=path;delete m.pend;delete SF_URLS[old];i.updated=Date.now();saveIdeas();audDel('f:'+m.id)})})
   .catch(function(){}).then(function(){delete m.busy})}
 function ideaMemosPending(){if(!sfCloud())return;ideas.forEach(function(i){if(i.memo&&i.memo.pend)ideaMemoUpload(i)})}
@@ -17000,6 +17002,25 @@ function declineInvite(inv){var c=sbClient();if(!c)return;
     PENDING_INVITES=PENDING_INVITES.filter(function(x){return x.id!==inv.id});renderInvites();toast('Invite declined')
   })
 }
+/* blocking (supabase/user-blocks.sql): their invites stop reaching you, and they aren't told.
+   BLOCKS is [{id,name}] for Account › Blocked; null until loaded. */
+var BLOCKS=null;
+function loadBlocks(){var c=sbClient();if(!c||!AUTH_USER||DEV_MODE)return;
+  c.from('user_blocks').select('blocked').then(function(r){if(!r||r.error)return;var ids=(r.data||[]).map(function(x){return x.blocked});
+    fetchProfiles(ids,function(pm){var nb=ids.map(function(id){var p=pm[id];return{id:id,name:p&&p.username?'@'+p.username:((p&&p.display_name)||'Someone')}});
+      var ch=JSON.stringify(nb)!==JSON.stringify(BLOCKS);BLOCKS=nb;if(ch)renderAccount()})})}
+function blockUser(id,name){var c=sbClient();if(!c||!AUTH_USER||!id)return;
+  if(!confirm('Block '+name+'?\n\nThey won’t be able to invite you to songs. They aren’t told.'))return;
+  c.from('user_blocks').insert({blocker:AUTH_USER.id,blocked:id}).then(function(r){
+    if(r&&r.error&&!/duplicate|23505/i.test(r.error.message||r.error.code||''))return toast('Couldn’t block: '+r.error.message);
+    var mine=PENDING_INVITES.filter(function(x){return x.owner_id===id});
+    mine.forEach(function(x){c.from('collab_invites').update({status:'declined',responded_at:new Date().toISOString()}).eq('id',x.id).then(function(){})});
+    PENDING_INVITES=PENDING_INVITES.filter(function(x){return x.owner_id!==id});renderInvites();paintAcctIcons();
+    BLOCKS=(BLOCKS||[]).filter(function(b){return b.id!==id}).concat([{id:id,name:name}]);renderAccount();
+    toast('Blocked '+name+'. To report them, email help@hellodemo.app')})}
+function unblockUser(b){var c=sbClient();if(!c||!AUTH_USER)return;
+  c.from('user_blocks').delete().eq('blocker',AUTH_USER.id).eq('blocked',b.id).then(function(r){if(r&&r.error)return toast('Couldn’t unblock: '+r.error.message);
+    BLOCKS=(BLOCKS||[]).filter(function(x){return x.id!==b.id});renderAccount();toast('Unblocked '+b.name)})}
 function renderInvites(){var b=$('#acc-invites');if(!b)return;b.innerHTML='';
   if(!PENDING_INVITES.length){b.hidden=true;return}b.hidden=false;
   var la=document.createElement('div');la.className='lab';la.textContent='Invitations';b.appendChild(la);
@@ -17011,6 +17032,7 @@ function renderInvites(){var b=$('#acc-invites');if(!b)return;b.innerHTML='';
       var sp=document.createElement('span');sp.style.cssText='display:flex;flex-direction:column;line-height:1.3;min-width:0;flex:1';
       var tt=document.createElement('b');tt.style.cssText='overflow:hidden;text-overflow:ellipsis;white-space:nowrap';tt.textContent=inv.song_title||'A song';sp.appendChild(tt);
       var fr=document.createElement('span');fr.style.cssText='color:var(--mute);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';fr.textContent='from '+((p&&(p.display_name||p.username))||inv.owner_name||inv.owner_email||'a collaborator');sp.appendChild(fr);
+      if(inv.owner_id){var bk=document.createElement('button');bk.className='invblock';bk.textContent='Block';bk.onclick=function(){blockUser(inv.owner_id,p&&p.username?'@'+p.username:((p&&p.display_name)||inv.owner_name||'this person'))};var fl=document.createElement('span');fl.style.cssText='display:flex;min-width:0;color:var(--mute);font-size:12.5px';sp.replaceChild(fl,fr);fr.style.minWidth='0';fl.appendChild(fr);var dt=document.createElement('span');dt.style.cssText='flex:none;white-space:pre';dt.textContent=' · ';fl.appendChild(dt);bk.style.flex='none';fl.appendChild(bk)}
       r.appendChild(sp);
       var bx=document.createElement('span');bx.style.cssText='display:flex;gap:8px;align-items:center;flex:none';
       var ok=document.createElement('button');ok.className='go';ok.textContent='Accept';ok.onclick=function(){acceptInvite(inv)};
@@ -17913,6 +17935,7 @@ function devProfileGet(){try{return JSON.parse(localStorage.getItem('songpad:dev
 function devProfileSet(p){try{localStorage.setItem('songpad:devprofile',JSON.stringify(p))}catch(e){}}
 /* ---------- Account sheet building blocks: Settings-style rows and section headers ---------- */
 var ACC_ICO={
+  disk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-.5-8.97A6 6 0 0 1 18 8.5a4.5 4.5 0 0 1-.5 9.5z"/></svg>',
   chev:'<svg viewBox="0 0 8 14" width="8" height="14"><path d="M1.5 1.5 6.5 7l-5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   ext:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>',
   person:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.2"/><path d="M3.8 20.2c0-4.3 3.7-6.9 8.2-6.9s8.2 2.6 8.2 6.9z"/></svg>',
@@ -18109,8 +18132,14 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
   var g2=accSection(o,'Your songs');
   g2.appendChild(accCell({tile:ACC_ICO.down,label:'Import Songs',chev:true,onclick:function(){sheet(false);$('#impin').click()}}));
   g2.appendChild(accCell({tile:ACC_ICO.up,label:'Export All Songs',chev:true,onclick:function(){sheet(false);$('#expb').click()}}));
+  /* storage used against the account's limit; fetched fresh each time Account opens, then shown */
+  if(AUTH_USER&&!DEV_MODE){var sv=STORE?(STORE.limit!=null?sfSize(STORE.used)+' of '+sfSize(STORE.limit):sfSize(STORE.used)||'0 KB'):'…';
+    g2.appendChild(accCell({tile:ACC_ICO.disk,label:'Storage',value:sv,valueCls:sfFull()?'full':''}));
+    if(!renderAccount.st||Date.now()-renderAccount.st>15000){renderAccount.st=Date.now();var was=sv;sfUsage(true).then(function(x){if(!x)return;var nv=x.limit!=null?sfSize(x.used)+' of '+sfSize(x.limit):sfSize(x.used)||'0 KB';if(nv!==was)renderAccount()})}}
   var g3=accSection(o,'Rate');
   g3.appendChild(accCell({tile:ACC_ICO.spark,label:'Forget What Rate Learned About My Style',onclick:function(){var n=0;songs.forEach(function(s){if(s.rating&&s.rating.personality){s.rating.personality='';s.updated=Date.now();n++}});if(n)save();toast('Rate will learn your style fresh')}}));
+  if(AUTH_USER&&!DEV_MODE){if(BLOCKS===null||!renderAccount.bl||Date.now()-renderAccount.bl>15000){renderAccount.bl=Date.now();loadBlocks()}
+    if(BLOCKS&&BLOCKS.length){var gb=accSection(o,'Blocked');BLOCKS.forEach(function(b){gb.appendChild(accCell({label:b.name,value:'Unblock',valueCls:'add',onclick:function(){unblockUser(b)}}))})}}
   var gl=accSection(o,'About');
   gl.appendChild(accCell({label:'Privacy Policy',chev:true,onclick:function(){openDoc('privacy')}}));
   gl.appendChild(accCell({label:'Terms of Service',chev:true,onclick:function(){openDoc('terms')}}));
@@ -18179,7 +18208,17 @@ function sfSize(n){if(!n)return'';return n<1048576?Math.max(1,Math.round(n/1024)
 function sfTime(sec){sec=Math.max(0,+sec||0);var m=Math.floor(sec/60),s=Math.floor(sec%60);return m+':'+(s<10?'0':'')+s}
 function sfBase(name){return(name||'').replace(/\.[a-z0-9]{1,6}$/i,'').trim()||'Untitled'}
 function audCur(song){var a=(song&&song.audio)||[];return a.filter(function(x){return x.cur})[0]||a[a.length-1]||null}
+/* storage limit per account (supabase/storage-limit.sql): how much is used, checked before each new upload.
+   If the SQL hasn't been run, my_storage doesn't exist and uploads carry on as before. */
+var STORE=null;
+function sfUsage(force){var c=AUTH_USER&&!DEV_MODE&&sbClient();if(!c||!c.rpc)return Promise.resolve(null);
+  if(!force&&STORE&&Date.now()-STORE.t<30000)return Promise.resolve(STORE);
+  return c.rpc('my_storage').then(function(r){if(r.error||!r.data)return null;var d=Array.isArray(r.data)?r.data[0]:r.data;if(!d)return null;
+    STORE={used:+d.used_bytes||0,limit:d.limit_bytes==null?null:+d.limit_bytes,t:Date.now()};return STORE}).catch(function(){return null})}
+function sfFull(){return!!(STORE&&STORE.limit!=null&&STORE.used>=STORE.limit)}
+function sfRoom(){return sfUsage().then(function(){if(sfFull()){var e=new Error('storage full');e.storageFull=true;throw e}})}
 function sfErr(e){var m=(e&&(e.message||e.error||e.statusText))||String(e||'');
+  if(/storage full|under limit/i.test(m)||(/row-level security/i.test(m)&&sfFull()))return'you’ve used all '+sfSize(STORE&&STORE.limit||524288000)+' of your storage. Delete some audio or files to make room.';
   if(/bucket not found/i.test(m))return'audio storage isn’t set up yet.';
   if(/object not found|not_found|404/i.test(m))return'that file isn’t in storage any more. It may have been replaced or deleted on another device, or it was shared by someone whose files you can’t open yet.';
   if(/payload too large|maximum allowed size|exceeded the maximum|too large/i.test(m))return'it’s bigger than the upload limit.';
@@ -18191,7 +18230,7 @@ function sfMediaDur(file){return new Promise(function(res){try{var a=document.cr
 function sfPut(song,file,id){
   if(!sfCloud())return audPut('f:'+id,file).then(function(){return'local:'+id});
   var path=AUTH_USER.id+'/'+song.id+'/'+id+'.'+sfExt(file.name,file.type);
-  return sbClient().storage.from(SF_BUCKET).upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false}).then(function(r){if(r.error)throw r.error;return path})}
+  return sfRoom().then(function(){return sbClient().storage.from(SF_BUCKET).upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false})}).then(function(r){if(r.error)throw r.error;STORE&&(STORE.used+=file.size||0);return path})}
 /* playable/openable link for a stored file; cached so a later tap can start playback straight away
    (iOS only lets audio start from a tap, not after waiting on the network) */
 function sfUrlNow(item){var c=item&&SF_URLS[item.path];return c&&c.exp>Date.now()+60000?c.u:null}
@@ -18777,11 +18816,11 @@ function shRender(d,o){o=o||{};var A=d.audio&&d.audio.src?d.audio:null,blocks=d.
   'h3{font-size:15px;font-weight:600;color:hsla(var(--k),.5);margin:34px 0 10px;letter-spacing:.01em}h3:first-child{margin-top:0}'+
   'p{font-size:clamp(25px,5.6vw,33px);line-height:1.22;font-weight:700;letter-spacing:-.012em;margin:0 0 12px;color:hsla(var(--k),.95);transition:color .35s,transform .35s;transform-origin:left center}.g{height:26px}.none{opacity:.5}'+
   (synced?'.sync p{color:hsla(var(--k),.34);cursor:pointer}.sync p.on{color:hsl(var(--k));transform:scale(1.025)}.sync p.past{color:hsla(var(--k),.5)}@media (hover:hover){.sync p:hover{color:hsla(var(--k),.7)}}':'')+
-  'footer{margin-top:72px;color:hsla(var(--k),.4);font-size:14px;font-weight:600}footer a{color:inherit;text-decoration:none;border-radius:6px;transition:color .15s}footer a:hover,footer a:focus-visible{color:hsla(var(--k),.7)}footer a:focus-visible{outline:2px solid hsla(var(--k),.4);outline-offset:3px}'+
+  'footer{margin-top:72px;color:hsla(var(--k),.4);font-size:14px;font-weight:600}footer .rp{margin-left:16px;font-weight:500}footer a{color:inherit;text-decoration:none;border-radius:6px;transition:color .15s}footer a:hover,footer a:focus-visible{color:hsla(var(--k),.7)}footer a:focus-visible{outline:2px solid hsla(var(--k),.4);outline-offset:3px}'+
   '@media (prefers-reduced-motion:reduce){p{transition:none}}</style></head><body><main'+(synced?' class="sync"':'')+'>'+
   '<div id="np"><div class="top"><img class="art" alt="" src="'+q(d.art||'')+'"><div class="meta"><b>'+shEsc(title)+'</b>'+(sub?'<span>'+shEsc(sub)+'</span>':'')+'</div>'+(A?'<button class="pp" id="pp" aria-label="Play"></button>':'')+'</div>'+
   (A?'<canvas id="wv" tabindex="0" role="slider" aria-label="Position in the song" data-d="'+(+A.dur||0)+'" data-p="'+q(JSON.stringify((A.peaks||[]).map(Number).filter(isFinite)))+'"></canvas><div class="bot"><span id="at">0:00</span><div class="sk"><button id="bk" aria-label="Back 15 seconds">'+(o.skB||'−15')+'</button><button id="fw" aria-label="Forward 15 seconds">'+(o.skF||'+15')+'</button></div><span id="du"></span></div>':'')+'</div>'+
-  '<div id="ly">'+body+'</div><footer><a href="https://hellodemo.app/" target="_blank" rel="noopener">Written in *[demo]</a></footer></main>'+
+  '<div id="ly">'+body+'</div><footer><a href="https://hellodemo.app/" target="_blank" rel="noopener">Written in *[demo]</a><a class="rp" href="mailto:help@hellodemo.app?subject=Report%20a%20shared%20song" onclick="this.href=this.href.split(\'&\')[0]+\'&body=\'+encodeURIComponent(\'Link: \'+location.href+\'\\n\\nWhat\\u2019s wrong:\\n\')">Report</a></footer></main>'+
   (A?'<audio id="au" preload="auto" src="'+q(A.src)+'" data-title="'+q(title)+'" data-artist="'+q(d.artist||'')+'"></audio><script>'+shWaveDraw.toString()+'('+shPlayerJS.toString()+')()<\/script>':'')+
   '</body></html>'}
 /*SHARE-RENDER:END*/
@@ -18845,6 +18884,7 @@ function shId(){var c='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789
 function shLinkErr(e){var m=(e&&(e.message||e.error||e.code))||String(e||''),st=e&&e.step;
   if(/relation .*shares|could not find the table|schema cache|42P01|PGRST20/i.test(m)||/bucket not found/i.test(m))return'share links aren’t set up on Supabase yet (run supabase/shares.sql).';
   if(st==='time')return m;
+  if(e&&e.storageFull||/storage full|under limit/i.test(m)||(/row-level security/i.test(m)&&sfFull()))return sfErr({message:'storage full'});
   var deny=/row-level security|unauthori[sz]ed|not allowed|permission|jwt|403/i.test(m),gone=/object not found|not_found|404/i.test(m);
   if(st==='read'&&(deny||gone))return SHR.song&&SHR.song.shared?'the audio was uploaded by a co-writer and your account can’t open their files yet (run supabase/song-files-shared.sql in Supabase).':'the audio file couldn’t be opened. Try playing it once, then make the link again.';
   if(st==='upload'&&/jwt|expired|unauthori[sz]ed/i.test(m))return'your sign-in expired during the upload. Try again.';
@@ -18866,7 +18906,7 @@ function shSet(song,rec){var uid=AUTH_USER.id;song.shares=song.shares||{};if(rec
 function shStep(step){return function(e){if(e&&typeof e==='object'&&!e.step){try{e.step=step}catch(x){}}else if(!e||typeof e!=='object')e={message:String(e||''),step:step};throw e}}
 function shLinkMake(song,bg,withAudio,id,o2){var c=sbClient(),uid=AUTH_USER.id;id=id||shMine(song)||shId();var dir=uid+'/'+id+'/',v=Date.now().toString(36),st=c.storage.from(SHARE_BUCKET),a=withAudio?audCur(song):null,keep=[],prev=(function(r){return r&&r.id===id?r:null})(shRec(song)),aname=null;
   var url=function(name){return st.getPublicUrl(dir+name).data.publicUrl};
-  var up=function(name,blob){keep.push(name);return st.upload(dir+name,blob,{upsert:true,contentType:blob.type||'application/octet-stream',cacheControl:'31536000'}).then(function(r){if(r.error)throw r.error;return url(name)})};
+  var up=function(name,blob){keep.push(name);return sfRoom().then(function(){return st.upload(dir+name,blob,{upsert:true,contentType:blob.type||'application/octet-stream',cacheControl:'31536000'})}).then(function(r){if(r.error)throw r.error;STORE&&(STORE.used+=blob.size||0);return url(name)})};
   /* the audio is the slow part, so: reuse it when it's the same version as last time; otherwise copy it straight
      across inside Supabase (nothing goes through the phone); only if that isn't possible, download and re-upload */
   var audio=function(){if(!a)return Promise.resolve(null);

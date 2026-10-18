@@ -20,6 +20,8 @@ Run these in **SQL Editor** (New query → paste → Run), in this order. All ar
 7. `supabase/app-errors.sql`: error reports from testers
 8. `supabase/delete-account.sql`: in-app account deletion (Apple requires this)
 9. `supabase/signup-limit.sql`: at most 25 new accounts a day. Then **Authentication › Hooks › Add hook › Before User Created › Postgres › `public.hook_signup_limit`**. Change the number in **Table Editor › signup_limit** (0 pauses sign-ups, empty means no limit).
+10. `supabase/storage-limit.sql`: 500 MB of audio and files per account. Change it in **Table Editor › storage_limit** (empty means no limit). On the free Supabase plan the whole project only gets 1 GB, so move to Pro before inviting more than a couple of testers.
+11. `supabase/user-blocks.sql`: lets people block someone from inviting them.
 
 Settings:
 
