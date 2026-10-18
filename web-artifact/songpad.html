@@ -76,7 +76,7 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 .imemo{display:flex;align-items:center;gap:10px;margin:0 0 8px}
 .imemo .imp{flex:none;width:32px;height:32px;border-radius:50%;background:var(--tint);color:var(--ontint);display:grid;place-items:center;transition:transform .12s}.imemo .imp:active{transform:scale(.9)}
 .imemo .imp svg{width:13px;height:13px}
-.imemo .imw{flex:1;min-width:0;height:28px;color:var(--ink);cursor:pointer}
+.imemo .imw{flex:1;min-width:0;height:28px;color:var(--ink);cursor:pointer;touch-action:pan-y;-webkit-user-select:none;user-select:none}
 .imemo .imt{flex:none;font-size:12.5px;color:var(--mute);font-variant-numeric:tabular-nums}
 .imemo.big{margin:0 20px 14px;padding:12px 14px;border-radius:16px;background:var(--fill)}
 .imemo.big .imp{width:38px;height:38px}.imemo.big .imp svg{width:15px;height:15px}.imemo.big .imw{height:34px}
@@ -14912,14 +14912,37 @@ function imRow(i,big){var m=i.memo,r=document.createElement('div');r.className='
   var b=document.createElement('button');b.className='imp';b.setAttribute('aria-label','Play voice memo');b.innerHTML=SVG_PLAY;b.onclick=function(e){e.stopPropagation();haptic('light');imPlay(i)};b.onmousedown=prevent;r.appendChild(b);
   var cv=document.createElement('canvas');cv.className='imw';cv.setAttribute('aria-hidden','true');r.appendChild(cv);
   var t=document.createElement('span');t.className='imt';t.textContent=sfTime(m.dur||0);r.appendChild(t);
-  /* tap or drag the waveform to move through it while it's playing */
-  cv.onclick=function(e){e.stopPropagation();if(IDA_ID!==m.id||!IDA||!IDA.duration)return imPlay(i);var rc=cv.getBoundingClientRect();IDA.currentTime=Math.max(0,Math.min(1,(e.clientX-rc.left)/rc.width))*IDA.duration;imPaintAll()};
+  imScrub(cv,r,i);
   imWarm(i);setTimeout(function(){imPaintRow(r,m)},0);return r}
-function imPaintRow(r,m){var on=IDA_ID===m.id&&IDA,playing=on&&!IDA.paused,f=on&&IDA.duration?IDA.currentTime/IDA.duration:0,b=r.querySelector('.imp');
+/* drag the waveform to scrub, like the in-song player: the bars swell under the finger (or the pointer, on a
+   Mac), with a light tick every second and a firmer one at either end; letting go moves playback there (and
+   starts it, if this memo wasn't playing yet). The touches stay on the waveform so the row doesn't swipe. */
+var IMS=null;
+function imScrub(cv,r,i){var m=i.memo,S=null;
+  var frac=function(e){var rc=cv.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-rc.left)/rc.width))},xAt=function(e){return e.clientX-cv.getBoundingClientRect().left};
+  var loop=function(S){cancelAnimationFrame(S.raf);var calm=matchMedia('(prefers-reduced-motion: reduce)').matches;(function f(){if(calm)S.mag=S.magT;else{S.mag+=(S.magT-S.mag)*.22;if(Math.abs(S.magT-S.mag)<.003)S.mag=S.magT}
+    imPaintRow(r,m);if(S.mag!==S.magT||S.on)S.raf=requestAnimationFrame(f);else if(!S.mag&&IMS===S)IMS=null})()};
+  var dur=function(){return(IDA_ID===m.id&&IDA&&isFinite(IDA.duration)&&IDA.duration)||m.dur||0};
+  ['touchstart','touchmove','touchend','touchcancel','click'].forEach(function(ev){cv.addEventListener(ev,function(e){e.stopPropagation()},{passive:true})});
+  cv.addEventListener('pointerdown',function(e){e.stopPropagation();try{cv.setPointerCapture(e.pointerId)}catch(_){}
+    S=IMS={m:m,on:true,f:frac(e),x:xAt(e),mag:IMS&&IMS.m===m?IMS.mag:0,magT:1,raf:0,sec:-1,edge:0};S.sec=Math.floor(S.f*dur());haptic('light');loop(S)});
+  cv.addEventListener('pointermove',function(e){
+    if(!S||!S.on){if(e.pointerType==='mouse'){if(!IMS||IMS.m!==m)IMS={m:m,on:false,f:0,x:xAt(e),mag:0,magT:.6,raf:0};IMS.magT=.6;IMS.x=xAt(e);S=IMS;loop(S)}return}
+    S.f=frac(e);S.x=xAt(e);var d=dur(),ed=S.f<=0?1:S.f>=1?2:0;if(ed&&ed!==S.edge)haptic('medium');S.edge=ed;
+    var sec=Math.floor(S.f*d);if(sec!==S.sec&&!ed){haptic('select');S.sec=sec}});
+  var end=function(e,cancel){if(!S||!S.on)return;var f=S.f;S.on=false;S.magT=e&&e.pointerType==='mouse'?.6:0;if(!cancel){haptic('light');imSeek(i,f)}loop(S)};
+  cv.addEventListener('pointerup',function(e){end(e,false)});cv.addEventListener('pointercancel',function(e){end(e,true)});
+  cv.addEventListener('pointerleave',function(){if(S&&!S.on){S.magT=0;loop(S)}})}
+function imSeek(i,f){var m=i.memo;
+  if(IDA_ID===m.id&&IDA&&IDA.src){var d=isFinite(IDA.duration)&&IDA.duration?IDA.duration:m.dur||0;if(d)IDA.currentTime=Math.min(d-.05,f*d);imPaintAll();return}
+  /* not loaded yet: start it from there */
+  var t=f*(m.dur||0);imPlay(i);if(IDA){var go=function(){try{IDA.currentTime=Math.min((IDA.duration||m.dur||0)-.05,t)}catch(e){}};if(IDA.readyState>=1)go();else IDA.addEventListener('loadedmetadata',go,{once:true})}}
+function imPaintRow(r,m){var on=IDA_ID===m.id&&IDA,playing=on&&!IDA.paused,f=on&&IDA.duration?IDA.currentTime/IDA.duration:0,b=r.querySelector('.imp'),S=IMS&&IMS.m===m?IMS:null;
+  if(S&&S.on)f=S.f;
   if(b._on!==playing){b._on=playing;b.innerHTML=playing?SVG_PAUSE:SVG_PLAY;b.setAttribute('aria-label',playing?'Pause voice memo':'Play voice memo')}
-  r.querySelector('.imt').textContent=on&&(playing||IDA.currentTime>0)?sfTime(IDA.currentTime)+' / '+sfTime(m.dur||IDA.duration||0):sfTime(m.dur||0);
+  var D=m.dur||(on&&IDA.duration)||0;r.querySelector('.imt').textContent=S&&S.on?sfTime(f*D)+' / '+sfTime(D):on&&(playing||IDA.currentTime>0)?sfTime(IDA.currentTime)+' / '+sfTime(D):sfTime(D);
   var cv=r.querySelector('.imw'),dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(!w)return;if(cv.width!==Math.round(w*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
-  var x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);shWaveDraw(x,m.peaks&&m.peaks.length?m.peaks:null,0,0,w,h,f,getComputedStyle(cv).color,0,-1)}
+  var x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);shWaveDraw(x,m.peaks&&m.peaks.length?m.peaks:null,0,0,w,h,f,getComputedStyle(cv).color,S?S.mag:0,S?S.x:-1)}
 function imPaintAll(){document.querySelectorAll('.imemo').forEach(function(r){var i=ideas.filter(function(x){return x.memo&&x.memo.id===r.dataset.mid})[0];if(i)imPaintRow(r,i.memo)})}
 /* a song started from a memo idea gets the recording as its first Voice memo version (copied, so deleting
    the idea later doesn't take the song's audio with it) */
