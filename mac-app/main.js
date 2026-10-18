@@ -1,5 +1,5 @@
 // [demo.] for macOS: a thin native shell around the lyric app in ./app
-const { app, BrowserWindow, Menu, shell, session, ipcMain, nativeTheme, dialog, safeStorage } = require('electron');
+const { app, BrowserWindow, Menu, shell, session, ipcMain, nativeTheme, dialog, safeStorage, systemPreferences } = require('electron');
 const { pathToFileURL } = require('url');
 const path = require('path');
 const fs = require('fs');
@@ -120,6 +120,16 @@ ipcMain.handle('songs:mirror', (e, songs) => {
   return true;
 });
 ipcMain.handle('songs:open', () => openSongsFolder());
+// microphone: macOS asks once per app; after that the answer lives in System Settings › Privacy & Security › Microphone
+ipcMain.handle('mic:access', async () => {
+  if (process.platform !== 'darwin') return 'granted';
+  try {
+    const st = systemPreferences.getMediaAccessStatus('microphone');
+    if (st === 'not-determined') return (await systemPreferences.askForMediaAccess('microphone')) ? 'granted' : 'denied';
+    return st;
+  } catch (_) { return 'granted'; }
+});
+ipcMain.handle('mic:settings', () => shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone'));
 
 // ---- OpenAI (experimental, desktop-only). The key is written to this app's own
 // local config folder and never leaves this machine; it is read only by this

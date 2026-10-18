@@ -9,6 +9,8 @@ contextBridge.exposeInMainWorld('desktop', {
   testOpenAI: () => ipcRenderer.invoke('openai:test'),
   aiJson: (prompt, modelTier) => ipcRenderer.invoke('openai:json', { prompt: prompt, modelTier: modelTier }),
   openExternal: (url) => ipcRenderer.invoke('shell:openExternal', url),
+  micAccess: () => ipcRenderer.invoke('mic:access'),
+  openMicSettings: () => ipcRenderer.invoke('mic:settings'),
   onAuthCallback: (fn) => ipcRenderer.on('auth-callback', (e, url) => fn(url)),
   getDevLimit: () => ipcRenderer.invoke('dev:getLimit'),
   setDevLimit: (n) => ipcRenderer.invoke('dev:setLimit', n)
