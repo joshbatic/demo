@@ -89,7 +89,7 @@ Rebuild in Xcode and run through these, ideally with a second account for the co
 >
 > Tell us anything that feels confusing, slow or broken. Take a screenshot in the app to send feedback through TestFlight.
 
-**Feedback email:** joshuadbatic@gmail.com
+**Feedback email:** help@hellodemo.app
 
 **Sign-in information (Beta App Review):** Turn off "Sign-in required" if it's offered, or write:
 
@@ -109,6 +109,15 @@ Rebuild in Xcode and run through these, ideally with a second account for the co
 | Diagnostics › Other Diagnostic Data | error reports |
 
 Answer **No** to "Do you or your third-party partners use data for tracking?".
+
+## Keeping your name private
+
+The website, policies and TestFlight text no longer show your name or Gmail. These places would still show them, and only you can change them:
+
+- **Your Apple developer name.** Apple shows the account holder's legal name as the seller on TestFlight and the App Store. To show "*[demo]" instead, enrol as an organisation. That needs a company (a Pty Ltd, not a sole trader ABN) and a free D-U-N-S number. Decide this before you pay, because switching later means a support request to Apple.
+- **Google sign-in screen.** In Google Cloud › APIs & Services › OAuth consent screen (Branding), the support email shows to people when they sign in. It can only be your own Google address or a Google Group you manage, so make a group like hellodemo-help@googlegroups.com and choose that.
+- **GitHub.** The repo is public at github.com/joshbatic/demo, and older commits carry your name. Rename your GitHub account, or move the repo to a new organisation (such as `hellodemo`). Pages and Vercel follow the move. Also run `git config --global user.name "*[demo]"` on your Mac.
+- **help@hellodemo.app** has to exist. Set up free forwarding to your Gmail with Cloudflare Email Routing or an iCloud+ custom domain.
 
 ## Later
 
