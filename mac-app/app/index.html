@@ -14766,11 +14766,7 @@ OY-B-AH-L	foible92
 EH-M-ER-IH-JH-D	hemorrhaged93
 AH-S-IH-N	bussin52s`;
 /* git commit this build came from, shown at the bottom of Account. Written by scripts/stamp-version.sh — don't edit by hand. */
-<<<<<<< HEAD
 var APP_COMMIT='c362ff7';
-=======
-var APP_COMMIT='93ef793';
->>>>>>> main
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
 function currentKey(){if(typeof DEV_MODE!=='undefined'&&DEV_MODE&&!AUTH_USER)return K_DEV;if(typeof AUTH_USER!=='undefined'&&AUTH_USER&&AUTH_USER.id)return K+':'+AUTH_USER.id;return K}
 function load(){ACTIVE_KEY=currentKey();try{songs=JSON.parse(localStorage.getItem(ACTIVE_KEY))||[]}catch(e){songs=[]}seedGuide();loadIdeas()}
@@ -17425,11 +17421,7 @@ function onAuthUser(){
   if(uid!==lastAuthUid){lastAuthUid=uid;cloudDidPull=false;PENDING_INVITES=[];MY_PROFILE=null;mzLoad();if(typeof pgReset==='function')pgReset()}
   var ag=$('#authgate');if(ag)ag.style.display=(AUTH_USER||DEV_MODE)?'none':'flex';
   ensureStorageForMode();
-<<<<<<< HEAD
-  if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling();MZ.noTable=false;setTimeout(mzPull,1500);setTimeout(function(){pgLoad()},4000);setTimeout(sharedGoneCheck,5000)}
-=======
-  if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;setTimeout(function(){if(AUTH_USER)acPrune()},45000);cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling();MZ.noTable=false;setTimeout(mzPull,1500);setTimeout(sharedGoneCheck,5000)}
->>>>>>> main
+  if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;setTimeout(function(){if(AUTH_USER)acPrune()},45000);cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling();MZ.noTable=false;setTimeout(mzPull,1500);setTimeout(function(){pgLoad()},4000);setTimeout(sharedGoneCheck,5000)}
   if(AUTH_USER)setTimeout(function(){if(cur&&cur.shared)pullShared(cur);liveEnsure()},0);
   if(!AUTH_USER){stopInvitePolling();libStop()}
   refreshAccount();
