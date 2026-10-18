@@ -60,7 +60,27 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 .ijrow{display:flex;align-items:flex-end;gap:8px}
 #ijot{flex:1;border:0;background:none;font:inherit;font-size:17px;line-height:1.35;color:var(--ink);outline:0;resize:none;padding:6px 0;min-height:34px;max-height:180px}
 #ijotgo{flex:none;width:34px;height:34px;border-radius:50%;background:var(--tint);color:var(--ontint);display:grid;place-items:center}
-#ijot:placeholder-shown+#ijotgo{opacity:.35}
+#ijot:placeholder-shown~#ijotgo{opacity:.35}
+.ijmic{flex:none;width:34px;height:34px;border-radius:50%;background:var(--fill);color:var(--ink);display:grid;place-items:center;transition:transform .12s,background-color .15s}.ijmic:active{transform:scale(.9)}
+.ijot.arming .ijmic{opacity:.5}
+.ijot.recording .ijrow,.ijot.recording #ijotk{display:none}
+.irec{display:flex;align-items:center;gap:10px;min-height:34px;animation:pop .2s ease-out}
+.irx{flex:none;font-size:15px;color:var(--mute);padding:6px 4px}
+.irdot{flex:none;width:9px;height:9px;border-radius:50%;background:var(--red);animation:irpulse 1.2s ease-in-out infinite}
+@keyframes irpulse{50%{opacity:.25}}
+.irt{flex:none;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;min-width:38px}
+.irw{flex:1;min-width:0;height:30px;color:var(--red)}
+.irs{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;box-shadow:inset 0 0 0 2.5px var(--red);transition:transform .12s}.irs:active{transform:scale(.9)}
+.irs i{width:14px;height:14px;border-radius:3.5px;background:var(--red)}
+@media (prefers-reduced-motion:reduce){.irdot{animation:none}}
+.imemo{display:flex;align-items:center;gap:10px;margin:0 0 8px}
+.imemo .imp{flex:none;width:32px;height:32px;border-radius:50%;background:var(--tint);color:var(--ontint);display:grid;place-items:center;transition:transform .12s}.imemo .imp:active{transform:scale(.9)}
+.imemo .imp svg{width:13px;height:13px}
+.imemo .imw{flex:1;min-width:0;height:28px;color:var(--ink);cursor:pointer}
+.imemo .imt{flex:none;font-size:12.5px;color:var(--mute);font-variant-numeric:tabular-nums}
+.imemo.big{margin:0 20px 14px;padding:12px 14px;border-radius:16px;background:var(--fill)}
+.imemo.big .imp{width:38px;height:38px}.imemo.big .imp svg{width:15px;height:15px}.imemo.big .imw{height:34px}
+.imemo .imrm{flex:none;font-size:14px;color:var(--red);padding:6px 2px 6px 6px}
 .ikind{margin:0 20px 12px;width:max-content}
 .ikd{font-size:12px;font-weight:600;color:var(--mute);flex:none}
 .idea p.iline{font-style:italic}
@@ -869,7 +889,7 @@ body.sprinting #rhy{display:none}
 </div>
 
 <div class="view" id="vIdeas">
-  <div class="scroll"><div class="ijot gf"><div class="seg ijk" id="ijotk"></div><div class="ijrow"><textarea id="ijot" rows="1" placeholder="A line or hook…" aria-label="Jot an idea" enterkeyhint="done"></textarea><button id="ijotgo" aria-label="Save idea"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div></div><div id="itagrow" class="sch" style="padding:0 24px 12px" hidden></div><div id="ilist"></div></div>
+  <div class="scroll"><div class="ijot gf"><div class="seg ijk" id="ijotk"></div><div class="ijrow"><textarea id="ijot" rows="1" placeholder="A line or hook…" aria-label="Jot an idea" enterkeyhint="done"></textarea><button id="ijmic" class="ijmic" aria-label="Record a voice memo" title="Record a voice memo"></button><button id="ijotgo" aria-label="Save idea"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div><div class="irec" id="irec" hidden><button class="irx" id="irecx" aria-label="Cancel recording">Cancel</button><span class="irdot" aria-hidden="true"></span><span class="irt" id="irect">0:00</span><canvas class="irw" id="irecw" aria-hidden="true"></canvas><button class="irs" id="irecs" aria-label="Stop and save"><i></i></button></div></div><div id="itagrow" class="sch" style="padding:0 24px 12px" hidden></div><div id="ilist"></div></div>
   <div class="abs fadeT lhf"></div>
   <div class="lhead"><div style="display:flex;align-items:center;gap:6px;padding-left:10px"><button class="gl ib" id="ideaBack" aria-label="Back"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h1 style="padding:0 0 0 10px">Ideas</h1></div></div>
   <div class="dock"><div class="gl sbox"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="iq" type="search" placeholder="Search ideas"></div>
@@ -931,7 +951,7 @@ body.sprinting #rhy{display:none}
 <div id="sheet5" role="dialog" aria-label="Clean up"><div class="sh"><b>Clean up</b><button id="done5">Done</button></div><div id="cu"></div></div>
 <div id="sheet6" role="dialog" aria-label="Account"><div class="sh"><b>Account</b><button id="done6">Done</button></div><div id="acc"></div></div>
 <div id="sheet8" role="dialog" aria-label="Share song"><div class="sh"><b>Share</b><button id="done8">Done</button></div><div id="shr"></div></div>
-<div id="sheet7" role="dialog" aria-label="Idea"><div class="sh"><b>Idea</b><button id="idel" hidden style="color:var(--red)">Delete</button></div><div class="seg ikind" id="ikind"></div><div style="padding:0 20px 12px"><textarea id="itext" rows="4" placeholder="A hook, a title, a stray line, a concept…" style="width:100%;border:0;background:var(--fill);border-radius:14px;padding:12px 14px;font-size:16px;line-height:1.35;color:var(--ink);resize:vertical;outline:0"></textarea></div><div style="padding:0 20px 6px;font-size:12.5px;color:var(--mute)">Tags — mood, theme, project, status, whatever helps you find it later</div><div style="padding:0 20px 18px"><input id="itags" placeholder="e.g. wistful, breakup, album 3, unused" style="width:100%;border:0;background:var(--fill);border-radius:12px;padding:10px 14px;font-size:15px;color:var(--ink);outline:0"></div><div style="display:flex;gap:10px;padding:0 20px 20px"><button class="go" id="isave" style="flex:1;justify-content:center">Save</button><button class="go2 ghost" id="ito" hidden>Start a Song</button><button class="go2 ghost" id="icancel">Cancel</button></div></div>
+<div id="sheet7" role="dialog" aria-label="Idea"><div class="sh"><b>Idea</b><button id="idel" hidden style="color:var(--red)">Delete</button></div><div class="seg ikind" id="ikind"></div><div id="imemow"></div><div style="padding:0 20px 12px"><textarea id="itext" rows="4" placeholder="A hook, a title, a stray line, a concept…" style="width:100%;border:0;background:var(--fill);border-radius:14px;padding:12px 14px;font-size:16px;line-height:1.35;color:var(--ink);resize:vertical;outline:0"></textarea></div><div style="padding:0 20px 6px;font-size:12.5px;color:var(--mute)">Tags — mood, theme, project, status, whatever helps you find it later</div><div style="padding:0 20px 18px"><input id="itags" placeholder="e.g. wistful, breakup, album 3, unused" style="width:100%;border:0;background:var(--fill);border-radius:12px;padding:10px 14px;font-size:15px;color:var(--ink);outline:0"></div><div style="display:flex;gap:10px;padding:0 20px 20px"><button class="go" id="isave" style="flex:1;justify-content:center">Save</button><button class="go2 ghost" id="ito" hidden>Start a Song</button><button class="go2 ghost" id="icancel">Cancel</button></div></div>
 <div id="dictSheet" role="dialog" aria-label="Dictionary">
   <div class="sh"><b>Dictionary</b><button id="dictdone">Done</button></div>
   <div class="dictbar"><svg class="dicon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="dictq" type="search" placeholder="Search any word" autocapitalize="off" autocomplete="off" spellcheck="false"></div>
@@ -14814,11 +14834,11 @@ var IKINDS=[['line','Line','A lyric line or hook'],['idea','Idea','A title, imag
 var ijotKind='line',ifilterKind='',IBULB='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.4 10.9c.6.4.9 1.1.9 1.8V16h5v-.3c0-.7.3-1.4.9-1.8A6 6 0 0 0 12 3z"/></svg>';
 /* the Ideas row at the top of the song list: built like a song row (tile, title, latest idea, count and time)
    so it sits in the list rather than on top of it, with a small + to jot one straight away */
-function paintVault(){var ct=$('#svaultct'),sb=$('#svaultsub');if(ct)ct.textContent=ideas.length||'';if(sb){var l=ideas.slice().sort(function(a,c){return c.updated-a.updated})[0];sb.textContent=l?l.text.split('\n')[0]:'A quick jot for lines and ideas'}}
+function paintVault(){var ct=$('#svaultct'),sb=$('#svaultsub');if(ct)ct.textContent=ideas.length||'';if(sb){var l=ideas.slice().sort(function(a,c){return c.updated-a.updated})[0];sb.textContent=l?(l.text?l.text.split('\n')[0]:'Voice memo · '+sfTime(l.memo&&l.memo.dur)):'A quick jot for lines and ideas'}}
 function ideasCard(){var last=ideas.slice().sort(function(a,c){return c.updated-a.updated})[0],n=ideas.length;
   var b=document.createElement('div');b.className='song irow0';b.setAttribute('role','button');b.tabIndex=0;b.setAttribute('aria-label','Ideas');
   b.innerHTML='<i class="th ith">'+IBULB+'</i><div class="tx"><b>Ideas</b><span></span><em></em></div><button class="ijb" aria-label="Jot an idea" title="Jot an idea"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>';
-  b.querySelector('span').textContent=last?last.text.split('\n')[0]:'A quick jot for lines, ideas and concepts';
+  b.querySelector('span').textContent=last?(last.text?last.text.split('\n')[0]:'Voice memo · '+sfTime(last.memo&&last.memo.dur)):'A quick jot for lines, ideas and concepts';
   b.querySelector('em').textContent=n?n+(n===1?' idea':' ideas')+' · '+fd(last.updated):'Tap + to jot one';
   b.onclick=function(e){if(e.target.closest('.ijb'))return;openIdeas()};b.onkeydown=function(e){if((e.key==='Enter'||e.key===' ')&&e.target===b){e.preventDefault();openIdeas()}};
   b.querySelector('.ijb').onclick=function(e){e.stopPropagation();openIdeas(true)};return b}
@@ -14826,17 +14846,93 @@ function ijotSave(){var ta=$('#ijot'),t=ta.value.trim();if(!t)return;
   ideas.unshift({id:uuid4(),text:t,kind:ijotKind,tags:[],created:Date.now(),updated:Date.now()});saveIdeas();ta.value='';ijotFit();haptic('light');renderIdeas();
   /* on iPhone the keyboard goes away once it's saved, like Done; on the Mac the box stays ready for the next one */
   if(document.body.classList.contains('ios')||matchMedia('(pointer:coarse)').matches)ta.blur();else ta.focus()}
+/* ---------- voice memo ideas: tap the mic in Ideas, hum or sing, and it's saved as an idea ----------
+   The recording is kept on this device first (so it plays straight away and survives a bad connection),
+   then uploaded to the account's private song-files folder under <uid>/ideas/ so every device can play it.
+   Anything typed in the box becomes its caption. Starting a song from it makes the memo the song's first
+   Voice memo version. */
+var IREC=null,IDA=null,IDA_ID=null,IREC_MAX=600;
+var IMIC='<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 17.5v3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+function imExt(mime){return/mp4|m4a|aac/i.test(mime)?'m4a':/ogg/i.test(mime)?'ogg':/wav/i.test(mime)?'wav':/mpeg|mp3/i.test(mime)?'mp3':'webm'}
+function imMime(){if(!window.MediaRecorder||!MediaRecorder.isTypeSupported)return'';var t=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus'];for(var i=0;i<t.length;i++)if(MediaRecorder.isTypeSupported(t[i]))return t[i];return''}
+function irecStart(){if(IREC)return;
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){toast('Recording isn’t available here.');return}
+  var box=$('.ijot');box.classList.add('arming');
+  navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}).then(function(st){
+    var mime=imMime(),mr;try{mr=new MediaRecorder(st,mime?{mimeType:mime,audioBitsPerSecond:128000}:undefined)}catch(e){mr=new MediaRecorder(st)}
+    var R=IREC={mr:mr,st:st,chunks:[],t0:Date.now(),save:false};
+    mr.ondataavailable=function(e){if(e.data&&e.data.size)R.chunks.push(e.data)};
+    mr.onstop=function(){st.getTracks().forEach(function(x){x.stop()});try{R.ac&&R.ac.close()}catch(e){}cancelAnimationFrame(R.raf);clearInterval(R.tick);
+      var dur=(Date.now()-R.t0)/1000,blob=new Blob(R.chunks,{type:(mr.mimeType||mime||'audio/webm').split(';')[0]});IREC=null;irecPaint();
+      if(R.save&&blob.size&&dur>=.6)ideaMemoSave(blob,dur);else if(R.save)toast('That was too short to keep.')};
+    mr.start(1000);
+    /* a live level meter, so it's obvious it's hearing you */
+    try{var AC=window.AudioContext||window.webkitAudioContext,ac=new AC(),src=ac.createMediaStreamSource(st),an=ac.createAnalyser();an.fftSize=512;src.connect(an);R.ac=ac;R.an=an;R.lv=[];
+      var buf=new Uint8Array(an.fftSize);(function draw(){if(IREC!==R)return;an.getByteTimeDomainData(buf);var m=0;for(var i=0;i<buf.length;i++){var v=Math.abs(buf[i]-128);if(v>m)m=v}
+        R.lv.push(Math.min(1,Math.pow(m/90,.7)));if(R.lv.length>240)R.lv.shift();irecMeter(R);R.raf=requestAnimationFrame(draw)})()}catch(e){}
+    R.tick=setInterval(function(){var s=(Date.now()-R.t0)/1000;var t=$('#irect');if(t)t.textContent=sfTime(s);if(s>=IREC_MAX){toast('Saved at 10 minutes, the longest a voice memo can be.');irecStop(true)}},250);
+    box.classList.remove('arming');irecPaint();haptic('medium')
+  },function(){box.classList.remove('arming');toast(document.body.classList.contains('ios')?'Allow microphone access for *[demo] in Settings to record.':'Microphone access is blocked. Allow it to record.')})}
+function irecStop(save){if(!IREC)return;IREC.save=!!save;haptic(save?'success':'light');try{IREC.mr.stop()}catch(e){IREC=null;irecPaint()}}
+function irecPaint(){var box=$('.ijot');if(!box)return;var on=!!IREC;box.classList.toggle('recording',on);$('#irec').hidden=!on;var t=$('#irect');if(t)t.textContent='0:00'}
+function irecMeter(R){var cv=$('#irecw');if(!cv)return;var dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(!w)return;if(cv.width!==Math.round(w*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
+  var x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);x.fillStyle=getComputedStyle(cv).color;var bw=3,gap=2.4,n=Math.floor((w+gap)/(bw+gap)),L=R.lv;
+  for(var i=0;i<n;i++){var v=L[L.length-n+i];if(v==null)v=0;var bh=Math.max(3,v*h);x.globalAlpha=v?1:.3;var X=w-(n-i)*(bw+gap)+gap,Y=(h-bh)/2;if(x.roundRect){x.beginPath();x.roundRect(X,Y,bw,bh,1.5);x.fill()}else x.fillRect(X,Y,bw,bh)}x.globalAlpha=1}
+function ideaMemoSave(blob,dur){var ta=$('#ijot'),t=ta.value.trim(),mid=uuid4();
+  var memo={id:mid,path:'local:'+mid,mime:blob.type||'',size:blob.size,dur:Math.round(dur*10)/10,peaks:[],pend:true};
+  var i={id:uuid4(),text:t,kind:t?ijotKind:'memo',tags:[],created:Date.now(),updated:Date.now(),memo:memo};
+  ta.value='';ijotFit();
+  audPut('f:'+mid,blob).then(function(){ideas.unshift(i);saveIdeas();renderIdeas();toast('Voice memo saved');
+    decodeBlob(blob).then(function(buf){var pk=peaksFromBuf(buf).peaks,out=[];for(var k=0;k<60;k++)out.push(pk[Math.floor(k*pk.length/60)]||0);memo.peaks=out;if(buf.duration)memo.dur=Math.round(buf.duration*10)/10;saveIdeas()}).catch(function(){});
+    ideaMemoUpload(i)},function(){toast('Couldn’t save the recording on this device.')})}
+/* uploads a memo that's only on this device (now, or the next time Ideas opens with a connection) */
+function ideaMemoUpload(i){var m=i&&i.memo;if(!m||!m.pend||m.busy||!sfCloud())return;m.busy=true;
+  audGet('f:'+m.id).then(function(b){if(!b)throw new Error('missing');var path=AUTH_USER.id+'/ideas/'+m.id+'.'+imExt(m.mime);
+    return sbClient().storage.from(SF_BUCKET).upload(path,b,{contentType:m.mime||'audio/mp4',upsert:true}).then(function(r){if(r.error)throw r.error;
+      var old=m.path;m.path=path;delete m.pend;delete SF_URLS[old];i.updated=Date.now();saveIdeas();audDel('f:'+m.id)})})
+  .catch(function(){}).then(function(){delete m.busy})}
+function ideaMemosPending(){if(!sfCloud())return;ideas.forEach(function(i){if(i.memo&&i.memo.pend)ideaMemoUpload(i)})}
+function ideaMemoRemove(i){if(!i||!i.memo)return;var m=i.memo;if(IDA_ID===m.id&&IDA)try{IDA.pause()}catch(e){}sfRemove({id:m.id,path:m.path});delete i.memo}
+/* playback: one audio element for all memos; links are fetched ahead so a tap starts at once on iPhone */
+function imWarm(i){var m=i.memo;if(m&&!sfUrlNow(m))sfUrl1(m).catch(function(){})}
+function imPlay(i){var m=i&&i.memo;if(!m)return;if(!IDA){IDA=new Audio();IDA.preload='auto';['play','pause','ended','timeupdate'].forEach(function(ev){IDA.addEventListener(ev,imPaintAll)})}
+  if(IDA_ID===m.id&&IDA.src){if(IDA.paused)IDA.play().catch(function(){});else IDA.pause();return}
+  try{if(lpAu&&!lpAu.paused)lpAu.pause()}catch(e){}if(typeof sfStopPreview==='function')sfStopPreview();
+  var go=function(u){IDA_ID=m.id;IDA.src=u;IDA.play().catch(function(){imPaintAll()});imPaintAll()};
+  var now=sfUrlNow(m);if(now)return go(now);
+  sfUrl1(m).then(go,function(e){toast(/^local:/.test(m.path)?'This voice memo is still uploading from the device it was recorded on.':'Couldn’t play it: '+sfErr(e))})}
+function imRow(i,big){var m=i.memo,r=document.createElement('div');r.className='imemo'+(big?' big':'');r.dataset.mid=m.id;
+  var b=document.createElement('button');b.className='imp';b.setAttribute('aria-label','Play voice memo');b.innerHTML=SVG_PLAY;b.onclick=function(e){e.stopPropagation();haptic('light');imPlay(i)};b.onmousedown=prevent;r.appendChild(b);
+  var cv=document.createElement('canvas');cv.className='imw';cv.setAttribute('aria-hidden','true');r.appendChild(cv);
+  var t=document.createElement('span');t.className='imt';t.textContent=sfTime(m.dur||0);r.appendChild(t);
+  /* tap or drag the waveform to move through it while it's playing */
+  cv.onclick=function(e){e.stopPropagation();if(IDA_ID!==m.id||!IDA||!IDA.duration)return imPlay(i);var rc=cv.getBoundingClientRect();IDA.currentTime=Math.max(0,Math.min(1,(e.clientX-rc.left)/rc.width))*IDA.duration;imPaintAll()};
+  imWarm(i);setTimeout(function(){imPaintRow(r,m)},0);return r}
+function imPaintRow(r,m){var on=IDA_ID===m.id&&IDA,playing=on&&!IDA.paused,f=on&&IDA.duration?IDA.currentTime/IDA.duration:0,b=r.querySelector('.imp');
+  if(b._on!==playing){b._on=playing;b.innerHTML=playing?SVG_PAUSE:SVG_PLAY;b.setAttribute('aria-label',playing?'Pause voice memo':'Play voice memo')}
+  r.querySelector('.imt').textContent=on&&(playing||IDA.currentTime>0)?sfTime(IDA.currentTime)+' / '+sfTime(m.dur||IDA.duration||0):sfTime(m.dur||0);
+  var cv=r.querySelector('.imw'),dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(!w)return;if(cv.width!==Math.round(w*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
+  var x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);shWaveDraw(x,m.peaks&&m.peaks.length?m.peaks:null,0,0,w,h,f,getComputedStyle(cv).color,0,-1)}
+function imPaintAll(){document.querySelectorAll('.imemo').forEach(function(r){var i=ideas.filter(function(x){return x.memo&&x.memo.id===r.dataset.mid})[0];if(i)imPaintRow(r,i.memo)})}
+/* a song started from a memo idea gets the recording as its first Voice memo version (copied, so deleting
+   the idea later doesn't take the song's audio with it) */
+function ideaMemoToSong(i,s){var m=i&&i.memo;if(!m)return;var nid=uuid4(),ext=imExt(m.mime);
+  var add=function(path){s.audio=[{id:nid,name:i.text?i.text.split('\n')[0].slice(0,60):'Voice memo',path:path,size:m.size||0,mime:m.mime||'',added:Date.now(),kind:'Voice memo',dur:m.dur||0,cur:true}];sfTouch(s);if(cur===s){renderAud();paintPlayB()}};
+  if(/^local:/.test(m.path))return audGet('f:'+m.id).then(function(b){if(b)return sfPut(s,new File([b],'Voice memo.'+ext,{type:m.mime||'audio/mp4'}),nid).then(add)}).catch(function(e){toast('Couldn’t add the voice memo to the song: '+sfErr(e))});
+  if(!sfCloud())return;var dst=AUTH_USER.id+'/'+s.id+'/'+nid+'.'+ext;
+  sbClient().storage.from(SF_BUCKET).copy(m.path,dst).then(function(r){if(r.error)throw r.error;add(dst)}).catch(function(e){toast('Couldn’t add the voice memo to the song: '+sfErr(e))})}
+
 function ijotFit(){var ta=$('#ijot');if(!ta)return;ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,180)+'px'}
 function ideaToSong(i){if(!i)return;if(!isPro()&&songs.filter(function(x){return!x.shared}).length>=FREE_SONGS)return upsell('songs');
-  var k=i.kind||'idea',nm=myName(),t=i.text.trim(),first=t.split('\n')[0];
+  var k=i.kind==='memo'?'idea':(i.kind||'idea'),nm=myName(),t=(i.text||'').trim(),first=t.split('\n')[0];
   var s={pf:mkPF({}),id:uuid4(),title:k==='line'?'':first.length<=60&&k==='idea'?first:'',lyrics:k==='line'?t+'\n':'',chords:'',key:'',bpm:'',capo:'',time:'',tuning:'',status:'Idea',folder:'',notes:k==='line'?'':t,artist:nm,_autoArtist:nm,updated:Date.now()};
   if(k==='concept')s.brief={more:t.slice(0,600)};
-  songs.push(s);i.used=s.id;i.updated=Date.now();saveIdeas();save();sheet(false);openSong(s.id);toast('New song from your '+(IKL[k]||'idea').toLowerCase())}
-function renderIdeas(){
+  songs.push(s);i.used=s.id;i.updated=Date.now();saveIdeas();save();sheet(false);openSong(s.id);if(i.memo)ideaMemoToSong(i,s);toast('New song from your '+(i.memo&&!t?'voice memo':(IKL[k]||'idea').toLowerCase()))}
+function renderIdeas(){ideaMemosPending();
   var q=($('#iq').value||'').toLowerCase(),L=$('#ilist');L.innerHTML='';
   var seg=$('#ijotk');if(seg&&!seg.childNodes.length)IKINDS.forEach(function(k){var b=document.createElement('button');b.textContent=k[1];b.dataset.k=k[0];b.title=k[2];b.onmousedown=prevent;b.onclick=function(){ijotKind=k[0];renderIdeas();$('#ijot').focus()};seg.appendChild(b)});
   if(seg){[].forEach.call(seg.children,function(b){b.className=b.dataset.k===ijotKind?'on':''});$('#ijot').placeholder=ijotKind==='line'?'A line or hook…':ijotKind==='concept'?'What could a song be about?':'A title, an image, a phrase…'}
-  var tagRow=$('#itagrow');tagRow.innerHTML='';var tags=allIdeaTags(),kinds=IKINDS.filter(function(k){return ideas.some(function(i){return(i.kind||'idea')===k[0]})});
+  var tagRow=$('#itagrow');tagRow.innerHTML='';var tags=allIdeaTags(),kinds=IKINDS.filter(function(k){return ideas.some(function(i){return i.text&&(i.kind||'idea')===k[0]})});if(ideas.some(function(i){return i.memo}))kinds=kinds.concat([['memo','Voice memo']]);
   tagRow.hidden=!(tags.length||kinds.length>1);
   if(!tagRow.hidden){
     var all=document.createElement('button');all.className='r'+(!ifilterTag&&!ifilterKind?' f':'');all.textContent='All';all.onmousedown=prevent;all.onclick=function(){ifilterTag='';ifilterKind='';renderIdeas()};tagRow.appendChild(all);
@@ -14845,21 +14941,23 @@ function renderIdeas(){
   }
   var rows=ideas.filter(function(i){
     if(ifilterTag&&(i.tags||[]).indexOf(ifilterTag)<0)return false;
-    if(ifilterKind&&(i.kind||'idea')!==ifilterKind)return false;
+    if(ifilterKind==='memo'){if(!i.memo)return false}else if(ifilterKind&&(!i.text||(i.kind||'idea')!==ifilterKind))return false;
     if(!q)return true;
     return((i.text||'')+' '+(i.tags||[]).join(' ')).toLowerCase().indexOf(q)>=0;
   }).sort(function(a,b){return b.updated-a.updated});
-  if(!rows.length){var e=document.createElement('div');e.className='empty';e.textContent=ideas.length?'No ideas match.':'Nothing here yet. Type above and press Return: a line you heard in your head, a title, what a song could be about.';L.appendChild(e);return}
+  if(!rows.length){var e=document.createElement('div');e.className='empty';e.textContent=ideas.length?'No ideas match.':'Nothing here yet. Type above and press Return, or tap the mic and hum it: a line you heard in your head, a melody, a title, what a song could be about.';L.appendChild(e);return}
   rows.forEach(function(i){
     var b=document.createElement('div');b.className='idea';b.setAttribute('role','button');b.tabIndex=0;var bx=document.createElement('div');bx.className='ibody';
-    var p=document.createElement('p');p.textContent=i.text;bx.appendChild(p);if((i.kind||'idea')==='line')p.className='iline';
-    var row=document.createElement('div');row.className='irow';var kd=document.createElement('span');kd.className='ikd';kd.textContent=IKL[i.kind||'idea']+(i.used?' · in a song':'');row.appendChild(kd);
+    if(i.text){var p=document.createElement('p');p.textContent=i.text;bx.appendChild(p);if((i.kind||'idea')==='line')p.className='iline'}
+    if(i.memo)bx.appendChild(imRow(i));
+    var row=document.createElement('div');row.className='irow';var kd=document.createElement('span');kd.className='ikd';kd.textContent=(i.memo&&!i.text?'Voice memo':IKL[i.kind||'idea']+(i.memo?' · voice memo':''))+(i.used?' · in a song':'');row.appendChild(kd);
     var tg=document.createElement('div');tg.className='itags';(i.tags||[]).forEach(function(t){var s=document.createElement('span');s.textContent=t;tg.appendChild(s)});row.appendChild(tg);
     var dt=document.createElement('span');dt.className='idt';dt.textContent=fd(i.updated);row.appendChild(dt);
     bx.appendChild(row);b.appendChild(bx);swipeDelete(b,'idea',function(){deleteIdea(i)});b.onclick=function(){editIdea(i)};b.onkeydown=function(e){if((e.key==='Enter'||e.key===' ')&&e.target===b){e.preventDefault();editIdea(i)}};L.appendChild(b)
   });
 }
-function editIdea(i){curIdea=i||null;$('#itext').value=i?i.text:'';ikindPaint(i?(i.kind||'idea'):ijotKind);$('#ito').hidden=!i;$('#itags').value=i&&i.tags?i.tags.join(', '):'';$('#idel').hidden=!i;sheet(true,'sheet7');setTimeout(function(){$('#itext').focus()},350)}
+function editIdea(i){curIdea=i||null;$('#itext').value=i?i.text:'';var mw=$('#imemow');mw.innerHTML='';if(i&&i.memo){var mr=imRow(i,true),rm=document.createElement('button');rm.className='imrm';rm.textContent='Remove';
+    rm.onclick=function(){ideaMemoRemove(i);if(!i.text){ideas=ideas.filter(function(x){return x!==i});sheet(false);toast('Voice memo deleted')}else{i.updated=Date.now();toast('Recording removed');editIdea(i)}saveIdeas()};mr.appendChild(rm);mw.appendChild(mr)}ikindPaint(i?(i.kind||'idea'):ijotKind);$('#ito').hidden=!i;$('#itags').value=i&&i.tags?i.tags.join(', '):'';$('#idel').hidden=!i;sheet(true,'sheet7');setTimeout(function(){$('#itext').focus()},350)}
 function openIdeas(jot){sheet(false);if(document.body.classList.contains('side'))sideOn(false);show('vIdeas');ifilterTag='';ifilterKind='';$('#iq').value='';renderIdeas();if(jot)setTimeout(function(){$('#ijot').focus()},320)}
 function ikindPaint(k){var w=$('#ikind');w.dataset.k=k;[].forEach.call(w.children,function(b){b.className=b.dataset.k===k?'on':''})}
 function ensureStorageForMode(){var k=currentKey();if(k!==ACTIVE_KEY){ACTIVE_KEY=k;cur=null;load();if(typeof show==='function')show('vList');renderList();renderSide()}}
@@ -15709,21 +15807,21 @@ $('#iq').addEventListener('input',renderIdeas);
 setTimeout(fitHeads,0);window.addEventListener('load',fitHeads);
 $('#ijot').addEventListener('input',ijotFit);
 $('#ijot').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229){e.preventDefault();ijotSave()}});
-$('#ijotgo').onmousedown=prevent;$('#ijotgo').onclick=ijotSave;
+$('#ijotgo').onmousedown=prevent;$('#ijotgo').onclick=ijotSave;$('#ijmic').innerHTML=IMIC;$('#ijmic').onmousedown=prevent;$('#ijmic').onclick=function(){haptic('light');irecStart()};$('#irecs').onclick=function(){irecStop(true)};$('#irecx').onclick=function(){irecStop(false);toast('Recording discarded')};
 IKINDS.forEach(function(k){var b=document.createElement('button');b.textContent=k[1];b.dataset.k=k[0];b.onmousedown=prevent;b.onclick=function(){ikindPaint(k[0])};$('#ikind').appendChild(b)});
 $('#ito').onmousedown=prevent;$('#ito').onclick=function(){var t=$('#itext').value.trim();if(curIdea&&t){curIdea.text=t;curIdea.kind=$('#ikind').dataset.k||curIdea.kind}ideaToSong(curIdea)};
 $('#isave').onmousedown=prevent;
 $('#isave').onclick=function(){
-  var text=$('#itext').value.trim();if(!text){toast('Write something first');return}
+  var text=$('#itext').value.trim();if(!text&&!(curIdea&&curIdea.memo)){toast('Write something first');return}
   var tags=$('#itags').value.split(',').map(function(s){return s.trim()}).filter(Boolean);
   var kind=$('#ikind').dataset.k||'idea';
-  if(curIdea){curIdea.text=text;curIdea.tags=tags;curIdea.kind=kind;curIdea.updated=Date.now()}
+  if(curIdea){curIdea.text=text;curIdea.tags=tags;curIdea.kind=text?kind:(curIdea.memo?'memo':kind);curIdea.updated=Date.now()}
   else ideas.unshift({id:uuid4(),text:text,kind:kind,tags:tags,created:Date.now(),updated:Date.now()});
   saveIdeas();sheet(false);toast('Saved');if($('#vIdeas').classList.contains('on'))renderIdeas();else renderList()
 };
 $('#icancel').onmousedown=prevent;$('#icancel').onclick=function(){sheet(false)};
 $('#idel').onmousedown=prevent;
-$('#idel').onclick=function(){if(!curIdea)return;ideas=ideas.filter(function(x){return x!==curIdea});saveIdeas();sheet(false);toast('Deleted')};
+$('#idel').onclick=function(){if(!curIdea)return;ideaMemoRemove(curIdea);ideas=ideas.filter(function(x){return x!==curIdea});saveIdeas();sheet(false);toast('Deleted')};
 $('#sq').oninput=renderSide;
 $('#cr-app').onclick=function(){$('#back').click()};$('#cr-fold').onclick=function(){collapsed={};sideOn(true)};
 function renderSide(){setTimeout(function(){addNewZone($('#slist'))},0);
@@ -17051,7 +17149,7 @@ function clearHeld(){if(HELDROW){unholdRow(HELDROW);HELDROW=null}}
 document.addEventListener('touchstart',function(e){if(HELDROW&&!(e.target.closest&&e.target.closest('.held')))clearHeld()},{capture:true,passive:true});
 document.addEventListener('scroll',function(){if(HELDROW)clearHeld()},{capture:true,passive:true});
 /* swipe left (or hover, on a Mac) to show a delete button; one tap arms it, a second deletes. Same feel as songs */
-function deleteIdea(i){ideas=ideas.filter(function(x){return x!==i&&x.id!==i.id});saveIdeas();haptic('medium');toast('Idea deleted');renderIdeas();paintVault()}
+function deleteIdea(i){ideaMemoRemove(i);ideas=ideas.filter(function(x){return x!==i&&x.id!==i.id});saveIdeas();haptic('medium');toast('Idea deleted');renderIdeas();paintVault()}
 function swipeDelete(b,what,onDel){var d=document.createElement('button');d.className='rdel';d.setAttribute('aria-label','Delete '+what);d.title='Delete '+what;d.innerHTML=TRASH;
   function arm(){document.querySelectorAll('.rdel.arm').forEach(function(x){x.classList.remove('arm');x.innerHTML=TRASH});d.classList.add('arm');d.textContent='Delete';clearTimeout(d._t);d._t=setTimeout(function(){d.classList.remove('arm');d.innerHTML=TRASH},3000)}
   d.onclick=function(e){e.stopPropagation();if(!d.classList.contains('arm')){arm();return}onDel()};
