@@ -77,7 +77,7 @@ project (`cygfgurzvmbtcegkpnss`):
    `supabase secrets set OPENAI_API_KEY=sk-... --project-ref cygfgurzvmbtcegkpnss`.
 
 Until step 1 is done, uploads fail with a clear message; until step 3, "Sync Lyrics" does.
-In Dev Mode (no account) audio is kept on the device instead, and lyric sync is unavailable.
+Everyone signs in (Google or Apple), so audio always lives in the account.
 Files are visible to their uploader only; collaborators on a shared song see the list but can't
 play another person's files yet.
 
