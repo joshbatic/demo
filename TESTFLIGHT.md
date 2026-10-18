@@ -41,8 +41,7 @@ Backstop:
 
 How it works: people ask for a spot at hellodemo.app/beta.html. You approve or decline them in the app under **Account › Beta Requests**. Approving emails them the TestFlight link and a personal invite code. With **Waitlist Lock** on, anyone who signs in without approval sees "You're on the waitlist", and the server refuses their AI requests and uploads.
 
-1. **Make yourself an admin.** In SQL Editor, run this with the email you sign in with:
-   `insert into public.app_admins (email) values (lower('you@example.com')) on conflict do nothing;`
+1. **The admin is dev@hellodemo.app**, added by the SQL file. To see Beta Requests, sign in to the app with an Apple ID or Google account that uses that email, and don't choose "Hide My Email". If dev@hellodemo.app doesn't have one yet, you can create a Google account with it at accounts.google.com › Create account › "Use your existing email".
 2. **Resend** (resend.com):
    - **Domains › Add domain › hellodemo.app.** Add the DNS records it shows at your domain provider, then wait for "Verified".
    - **API Keys › Create** (Sending access).
@@ -53,7 +52,7 @@ How it works: people ask for a spot at hellodemo.app/beta.html. You approve or d
    - `RESEND_API_KEY`: the key from step 2
    - `BETA_FROM`: `*[demo] <beta@hellodemo.app>`
    - `TESTFLIGHT_URL`: your public TestFlight link (step 5 below)
-   - `ADMIN_EMAIL`: where you want "new request" emails
+   - `ADMIN_EMAIL`: `dev@hellodemo.app` (where "new request" emails go)
 5. **Let your current testers in** (optional), so they aren't locked out. In SQL Editor:
    `insert into public.beta_requests (email, status, user_id, decided_at) select lower(email), 'approved', id, now() from auth.users where email is not null on conflict (email) do update set status = 'approved', user_id = excluded.user_id, decided_at = now();`
 6. **Turn the lock on:** Account › Beta Requests › Waitlist Lock.
