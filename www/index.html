@@ -15021,7 +15021,20 @@ function setSaveState(s){var el=$('#savestate');if(!el)return;clearTimeout(saveS
    toolbar once the keyboard was up. Comparing two getBoundingClientRect() results directly avoids
    that mismatch altogether, whatever the toolbar's height/state — multi-row chips, keyboard
    open/closed, safe area. */
-function toast(m){var t=$('#toast');t.textContent=m;
+/* ---------- error reports (supabase/app-errors.sql) ----------
+   Script errors and every "Couldn't ..." message someone sees go to the app_errors table with the build,
+   platform and screen, so problems on testers' phones show up. Each distinct message is sent once a
+   session, at most 25 a session, only when signed in; nothing is sent if the table isn't set up. */
+var ERR_SENT={},ERR_N=0,ERR_OFF=false;
+function errPlatform(){return document.body.classList.contains('ios')||(typeof NATIVE_IOS!=='undefined'&&NATIVE_IOS)?'ios':window.desktop?'mac':'web'}
+function errScreen(){var v=document.querySelector('.view.on'),sh=document.querySelector('[role=dialog].on');return((v&&v.id)||'')+(sh?'/'+(sh.getAttribute('aria-label')||sh.id):'')}
+function reportErr(kind,msg,detail){try{msg=String(msg||'').slice(0,600);if(!msg||ERR_OFF||ERR_N>=25||ERR_SENT[kind+msg])return;
+  if(typeof AUTH_USER==='undefined'||!AUTH_USER||(typeof DEV_MODE!=='undefined'&&DEV_MODE))return;var c=sbClient();if(!c)return;ERR_SENT[kind+msg]=1;ERR_N++;
+  c.from('app_errors').insert({build:typeof APP_COMMIT!=='undefined'?APP_COMMIT:'',platform:errPlatform(),kind:kind,screen:errScreen().slice(0,40),message:msg,detail:detail?String(detail).slice(0,2000):null})
+   .then(function(r){if(r&&r.error&&/relation|does not exist|schema cache|42P01|PGRST20/i.test(r.error.message||''))ERR_OFF=true},function(){})}catch(e){}}
+window.addEventListener('error',function(e){reportErr('crash',(e&&e.message)||'Script error',e&&e.error&&e.error.stack||((e&&e.filename)||'')+':'+((e&&e.lineno)||''))});
+window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;reportErr('crash',(r&&r.message)||String(r||'Unhandled rejection'),r&&r.stack)});
+function toast(m){if(/^Couldn[’']t /.test(String(m||'')))reportErr('shown',m);var t=$('#toast');t.textContent=m;
   var rhy=$('#rhy'),r=rhy&&rhy.getBoundingClientRect();
   if(r&&r.width&&r.height){var th=t.getBoundingClientRect().height||40;t.style.bottom='auto';t.style.top=(r.top-th-14)+'px'}
   else{t.style.top='';t.style.bottom=''}
