@@ -54,15 +54,16 @@ const p = (t: string) => `<p style="font-size:15.5px;line-height:1.5;margin:0 0 
 
 async function send(to: string, subject: string, html: string) {
   const key = env("RESEND_API_KEY"), from = env("BETA_FROM") || "*[demo] <beta@hellodemo.app>";
-  if (!key || !to) return false;
+  if (!key || !to) { console.error(`Not sending "${subject}": ${key ? "no recipient" : "RESEND_API_KEY isn't set"}`); return false; }
   try {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({ from, to: [to], subject, html, reply_to: "help@hellodemo.app" }),
     });
+    if (!r.ok) console.error(`Resend refused the email to ${to}: ${r.status} ${await r.text()}`);
     return r.ok;
-  } catch { return false; }
+  } catch (e) { console.error("Couldn't reach Resend:", e); return false; }
 }
 
 Deno.serve(async (req) => {
@@ -78,13 +79,15 @@ Deno.serve(async (req) => {
     const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "?";
     if (tooMany(ip)) return json({ error: "Too many tries. Wait a minute and try again." }, 429);
     // bots: pretend it worked
-    if (str(body.website, 200) || (typeof body.t === "number" && body.t < 2500)) return json({ ok: true });
+    const hp = str(body.hp_field, 200) || str(body.website, 200);
+    if (hp || (typeof body.t === "number" && body.t < 1200)) { console.log(`Dropped as a bot (${hp ? "hidden field filled" : `submitted in ${body.t} ms`})`); return json({ ok: true }); }
     const email = str(body.email, 254).toLowerCase(), name = str(body.name, 100);
     const { data, error } = await sb.rpc("beta_request", {
       p_email: email, p_name: name, p_role: str(body.role, 60), p_heard: str(body.heard, 200),
       p_link: str(body.link, 300), p_note: str(body.note, 1000),
     });
     if (error) return json({ error: /valid email/i.test(error.message) ? "Enter a valid email address." : /a lot of requests/i.test(error.message) ? error.message : "Couldn't save your request. Try again in a moment." }, 400);
+    console.log(`Request from ${email}: ${data}`);
     if (data === "new") {
       const first = esc(name.split(/\s+/)[0] || "there");
       await send(email, "We got your request for the *[demo] beta", page("You're on the list",
