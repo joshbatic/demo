@@ -662,6 +662,9 @@ body.ios .song{padding:13px 24px}
 .proav:active img,.proav:active .proavph{filter:brightness(.88)}
 .proname{font-size:26px;font-weight:700;line-height:1.2;letter-spacing:-.4px}
 .prosub{display:flex;flex-direction:column;gap:3px;margin-top:6px;font-size:15px;color:var(--mute)}
+.prbeta{display:inline-block;margin-top:12px;padding:4px 11px;border-radius:99px;font-size:12px;font-weight:650;color:#3b2f52;background:linear-gradient(140deg,#D7C4FF,#9CC8FF)}
+#acc .cell.open .chev{transform:rotate(90deg)}#acc .cell .chev{transition:transform .2s}
+#acc .cell.sub{padding-left:59px;min-height:46px;font-size:15.5px}
 .prosub .dim{font-size:13.5px}
 :is(#acc) .crstat{display:grid;grid-template-columns:repeat(3,1fr);padding:16px 8px 14px;border-bottom:.5px solid var(--sep)}
 :is(#acc) .crstat div{display:flex;flex-direction:column;align-items:center;gap:1px}
@@ -690,6 +693,8 @@ body.ios .song{padding:13px 24px}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .cell.danger{justify-content:center}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .cell.danger .ct{flex:none;color:var(--red);text-align:center}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile{width:30px;height:30px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--tint);color:var(--ontint)}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.gr{color:#fff;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.06)}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.gr svg{filter:drop-shadow(0 .5px 1.5px rgba(0,0,0,.3))}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile svg{width:17px;height:17px}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-spotify{background:#1ED760;color:#000}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-spotify svg{width:20px;height:20px}
@@ -15018,7 +15023,7 @@ function editIdea(i){curIdea=i||null;$('#ititle').textContent=i?'Idea':'New Idea
   var mw=$('#imemow');mw.innerHTML='';if(i&&i.memo){var mr=imRow(i,true),rm=document.createElement('button');rm.className='imrm';rm.textContent='Remove';
     rm.onclick=function(){ideaMemoRemove(i);if(!i.text){ideas=ideas.filter(function(x){return x!==i});sheet(false);toast('Voice memo deleted')}else{i.updated=Date.now();toast('Recording removed');editIdea(i)}saveIdeas()};mr.appendChild(rm);mw.appendChild(mr)}
   var ac=$('#iacts');ac.innerHTML='';ac.hidden=!i;
-  if(i){ac.appendChild(accCell({tile:ACC_ICO.spark,label:'Start a Song',chev:true,onclick:function(){var t=ta.value.trim();if(t){i.text=t;if(i.kind==='memo')i.kind='line'}ideaToSong(i)}}));
+  if(i){ac.appendChild(accCell({tile:ACC_ICO.spark,grad:8,label:'Start a Song',chev:true,onclick:function(){var t=ta.value.trim();if(t){i.text=t;if(i.kind==='memo')i.kind='line'}ideaToSong(i)}}));
     ac.appendChild(accCell({label:'Delete Idea',cls:'danger notile',onclick:function(){ideaMemoRemove(i);ideas=ideas.filter(function(x){return x!==i});saveIdeas();sheet(false);toast('Idea deleted')}}))}
   itextFit();$('#ibd').scrollTop=0;sheet(true,'sheet7');if(!i)setTimeout(function(){ta.focus()},350)}
 function itextFit(){var ta=$('#itext');ta.style.height='auto';ta.style.height=Math.max(96,ta.scrollHeight+2)+'px'}
@@ -17985,6 +17990,10 @@ function devProfileGet(){try{return JSON.parse(localStorage.getItem('songpad:dev
 function devProfileSet(p){try{localStorage.setItem('songpad:devprofile',JSON.stringify(p))}catch(e){}}
 /* ---------- Account sheet building blocks: Settings-style rows and section headers ---------- */
 var ACC_ICO={
+  lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9.5" rx="2.2"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg>',
+  doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>',
+  block:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M6 6l12 12"/></svg>',
+  reset:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>',
   disk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-.5-8.97A6 6 0 0 1 18 8.5a4.5 4.5 0 0 1-.5 9.5z"/></svg>',
   chev:'<svg viewBox="0 0 8 14" width="8" height="14"><path d="M1.5 1.5 6.5 7l-5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   ext:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>',
@@ -17997,7 +18006,9 @@ var ACC_ICO={
 };
 function accCell(o){
   var b=document.createElement(o.onclick?'button':'div');b.className='cell'+(o.tile?'':' notile')+(o.cls?' '+o.cls:'');
-  if(o.tile){var t=document.createElement('span');t.className='tile'+(o.tileCls?' '+o.tileCls:'');t.innerHTML=o.tile;b.appendChild(t)}
+  if(o.tile){var t=document.createElement('span');t.className='tile'+(o.tileCls?' '+o.tileCls:'')+(o.grad!=null?' gr':'');t.innerHTML=o.tile;
+    /* the same pastel washes as the song covers, so Account looks like part of the library */
+    if(o.grad!=null){var gp=COV_PAL[o.grad%COV_PAL.length];t.style.background='linear-gradient(rgba(40,20,60,.12),rgba(40,20,60,.12)),linear-gradient(140deg,'+gp[0]+','+gp[1]+')'}b.appendChild(t)}
   var l=document.createElement('span');l.className='ct';l.textContent=o.label;b.appendChild(l);
   if(o.value!=null&&o.value!==''){var v=document.createElement('span');v.className='cv'+(o.valueCls?' '+o.valueCls:'');v.textContent=o.value;b.appendChild(v)}
   if(o.chev){var c=document.createElement('span');c.className='chev';c.innerHTML=o.chev==='ext'?ACC_ICO.ext:ACC_ICO.chev;b.appendChild(c)}
@@ -18062,7 +18073,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
         else saveUsername(rawUser,dn).then(function(){renameMyArtistCredit(oldName,myName());ACC_EDIT=null;ACC_DRAFT={};toast('Saved');renderAccount()},function(err){if(btn)btn.disabled=false;toast(err.message)})}
     }else{
       var pg2=accSection(o,'');
-      pg2.appendChild(accCell({tile:ACC_ICO.person,label:'Name & Username',value:handle?'@'+handle:'Not set',valueCls:handle?'':'add',chev:true,onclick:function(){ACC_EDIT='profile';ACC_DRAFT={};ACC_AUTOFOCUS='profile';renderAccount()}}));
+      pg2.appendChild(accCell({tile:ACC_ICO.person,grad:1,label:'Name & Username',value:handle?'@'+handle:'Not set',valueCls:handle?'':'add',chev:true,onclick:function(){ACC_EDIT='profile';ACC_DRAFT={};ACC_AUTOFOCUS='profile';renderAccount()}}));
     }
     /* ---- links: one row per network with its own icon, showing the handle, like contact details ---- */
     var linking=ACC_EDIT==='links';
@@ -18130,6 +18141,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
     ab.onclick=function(){signInApple(true)};ga.appendChild(ab);
   }
   if(accWhy&&!pro){var w=document.createElement('div');w.className='accwhy';w.textContent=accWhy==='songs'?'The restricted preview keeps up to '+FREE_SONGS+' songs. Turn Beta back on for unlimited.':(FEAT[accWhy]||'That')+' is a Beta feature.';o.appendChild(w)}
+  if(pro&&!devFake){if(typeof hero!=='undefined'&&hero){var bb=document.createElement('div');bb.className='prbeta';bb.textContent='Beta · everything unlocked';hero.appendChild(bb)}}else{
   var card=document.createElement('div');card.className='plancard'+(pro?' pro':'');
   card.innerHTML='<span class="plic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5l1.6 4.4c.3.8.9 1.4 1.7 1.7l4.4 1.6-4.4 1.6c-.8.3-1.4.9-1.7 1.7L10 18.9l-1.6-4.4c-.3-.8-.9-1.4-1.7-1.7L2.3 11.2l4.4-1.6c.8-.3 1.4-.9 1.7-1.7z"/></svg></span><span class="pltx"><b></b><p></p></span>';
   card.querySelector('b').textContent=pro?'Beta':'Free';
@@ -18150,7 +18162,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
   function flipBeta(){setPlan(pro?'free':'beta');accWhy='';renderAccount();toast(pro?'Switched to the restricted preview':'Beta unlocked — everything’s available again')}
   sw.onclick=function(e){e.stopPropagation();flipBeta()};trow.onclick=flipBeta;
   trow.appendChild(sw);box.appendChild(trow);
-  var n=document.createElement('div');n.className='note';n.style.paddingTop='8px';n.textContent='A testing switch for the upcoming beta tier.';o.appendChild(n);
+  var n=document.createElement('div');n.className='note';n.style.paddingTop='8px';n.textContent='A testing switch for the upcoming beta tier.';o.appendChild(n);}
   if(!pro){var lt=document.createElement('div');lt.className='lab';lt.textContent='Unlocks when Beta is on';o.appendChild(lt);
   var fbox=document.createElement('div');fbox.className='gf';o.appendChild(fbox);
   ['Unlimited songs','Lines: rhyming lines in your voice','Rate: honest notes on your song','Whole-song context for every suggestion','Writing voice & Perform mode','Muse: more cards, and sharing songs','Audio versions, synced lyrics, credits & release details'].forEach(function(t){
@@ -18176,27 +18188,30 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
         r.onclick=function(){sheet(false);openSong(s.id)};g4.appendChild(r)})}
   }
   var g2=accSection(o,'Your songs');
-  g2.appendChild(accCell({tile:ACC_ICO.down,label:'Import Songs',chev:true,onclick:function(){sheet(false);$('#impin').click()}}));
-  g2.appendChild(accCell({tile:ACC_ICO.up,label:'Export All Songs',chev:true,onclick:function(){sheet(false);$('#expb').click()}}));
+  g2.appendChild(accCell({tile:ACC_ICO.down,grad:2,label:'Import Songs',chev:true,onclick:function(){sheet(false);$('#impin').click()}}));
+  g2.appendChild(accCell({tile:ACC_ICO.up,grad:7,label:'Export All Songs',chev:true,onclick:function(){sheet(false);$('#expb').click()}}));
   /* storage used against the account's limit; fetched fresh each time Account opens, then shown */
   if(AUTH_USER&&!DEV_MODE){var sv=STORE?(STORE.limit!=null?sfSize(STORE.used)+' of '+sfSize(STORE.limit):sfSize(STORE.used)||'0 KB'):'…';
-    g2.appendChild(accCell({tile:ACC_ICO.disk,label:'Storage',value:sv,valueCls:sfFull()?'full':''}));
+    g2.appendChild(accCell({tile:ACC_ICO.disk,grad:5,label:'Storage',value:sv,valueCls:sfFull()?'full':''}));
     if(!renderAccount.st||Date.now()-renderAccount.st>15000){renderAccount.st=Date.now();var was=sv;sfUsage(true).then(function(x){if(!x)return;var nv=x.limit!=null?sfSize(x.used)+' of '+sfSize(x.limit):sfSize(x.used)||'0 KB';if(nv!==was)renderAccount()})}}
-  var g3=accSection(o,'Rate');
-  g3.appendChild(accCell({tile:ACC_ICO.spark,label:'Forget What Rate Learned About My Style',onclick:function(){var n=0;songs.forEach(function(s){if(s.rating&&s.rating.personality){s.rating.personality='';s.updated=Date.now();n++}});if(n)save();toast('Rate will learn your style fresh')}}));
-  if(AUTH_USER&&!DEV_MODE){if(BLOCKS===null||!renderAccount.bl||Date.now()-renderAccount.bl>15000){renderAccount.bl=Date.now();loadBlocks()}
-    if(BLOCKS&&BLOCKS.length){var gb=accSection(o,'Blocked');BLOCKS.forEach(function(b){gb.appendChild(accCell({label:b.name,value:'Unblock',valueCls:'add',onclick:function(){unblockUser(b)}}))})}}
-  var gai=accSection(o,'AI Features');
-  gai.appendChild(accCell({tile:ACC_ICO.spark,label:'Send to '+aiWho(),value:aiOk()==='yes'?'On':'Off',valueCls:aiOk()==='yes'?'':'add',onclick:function(){
+  /* Muse & Privacy: what's sent to AI, what Rate has learned, and who you've blocked, together */
+  var g3=accSection(o,'Muse & Privacy');
+  g3.appendChild(accCell({tile:ACC_ICO.spark,grad:4,label:'AI Features',value:aiOk()==='yes'?'On':'Off',valueCls:aiOk()==='yes'?'':'add',onclick:function(){
     if(aiOk()==='yes'){aiSet('no');toast('AI features are off');renderAccount()}else{aiSet('');aiConsent(true).then(function(){toast('AI features are on');renderAccount()},function(){renderAccount()})}}}));
+  g3.appendChild(accCell({tile:ACC_ICO.reset,grad:0,label:'Reset What Rate Learned',onclick:function(){var n=0;songs.forEach(function(s){if(s.rating&&s.rating.personality){s.rating.personality='';s.updated=Date.now();n++}});if(n)save();toast('Rate will learn your style fresh')}}));
+  if(AUTH_USER&&!DEV_MODE){if(BLOCKS===null||!renderAccount.bl||Date.now()-renderAccount.bl>15000){renderAccount.bl=Date.now();loadBlocks()}
+    if(BLOCKS&&BLOCKS.length){var bOpen=ACC_EDIT==='blocked';
+      g3.appendChild(accCell({tile:ACC_ICO.block,grad:6,label:'Blocked',value:String(BLOCKS.length),chev:true,cls:bOpen?'open':'',onclick:function(){ACC_EDIT=bOpen?null:'blocked';renderAccount()}}));
+      if(bOpen)BLOCKS.forEach(function(b){g3.appendChild(accCell({label:b.name,value:'Unblock',valueCls:'add',cls:'sub',onclick:function(){unblockUser(b)}}))})}}
+  var nAI=document.createElement('div');nAI.className='note';nAI.style.paddingTop='8px';nAI.textContent='AI features send what you’re working on to '+aiWho()+'.';o.appendChild(nAI);
   var gl=accSection(o,'About');
-  gl.appendChild(accCell({label:'Privacy Policy',chev:true,onclick:function(){openDoc('privacy')}}));
-  gl.appendChild(accCell({label:'Terms of Service',chev:true,onclick:function(){openDoc('terms')}}));
+  gl.appendChild(accCell({tile:ACC_ICO.lock,grad:10,label:'Privacy Policy',chev:true,onclick:function(){openDoc('privacy')}}));
+  gl.appendChild(accCell({tile:ACC_ICO.doc,grad:3,label:'Terms of Service',chev:true,onclick:function(){openDoc('terms')}}));
   /* developer tools (Dev Mode only), then the account actions last, where Settings keeps Sign Out */
   if(ga&&devFake){o.appendChild(dvl);o.appendChild(ga)}
   if(AUTH_USER||devFake){
     var ag=accSection(o,'');
-    ag.appendChild(accCell({tile:ACC_ICO.swap,label:'Switch Account',chev:true,onclick:function(){signInGoogle(true)}}));
+    ag.appendChild(accCell({tile:ACC_ICO.swap,grad:9,label:'Switch Account',chev:true,onclick:function(){signInGoogle(true)}}));
     var og=accSection(o,'');
     og.appendChild(accCell({label:devFake?'Exit Dev Mode':'Sign Out',cls:'danger',onclick:devFake?function(){setDevMode(false)}:signOutGoogle}));
     /* deleting the account: a second, deliberate step that says exactly what goes */
