@@ -42,6 +42,10 @@ begin
   end if;
   if public._has('public.shared_songs') then execute 'select count(*) from public.shared_songs' into n; o := o || jsonb_build_object('shared_songs', n); end if;
   if public._has('public.shares') then execute 'select count(*) from public.shares' into n; o := o || jsonb_build_object('share_links', n); end if;
+  if public._has('public.profiles') then
+    execute 'select count(distinct user_id) from public.profiles where pro' into n;
+    o := o || jsonb_build_object('plan_beta', n, 'plan_free', greatest(0, (o->>'users')::bigint - n));
+  end if;
 
   select coalesce(sum((metadata->>'size')::bigint), 0) into n from storage.objects where bucket_id in ('song-files', 'shares');
   o := o || jsonb_build_object('storage_bytes', n);
@@ -84,7 +88,7 @@ begin
   perform public._admin_check();
   if public._has('public.beta_config') then execute 'select coalesce(gate, false) from public.beta_config where id = 1' into gate; end if;
   create temp table if not exists _au (id uuid, email text, provider text, created_at timestamptz, last_sign_in_at timestamptz,
-    username text, display_name text, songs int, ideas int, storage_bytes bigint, ai_today int, errors_7d int, beta text) on commit drop;  -- new and empty for each request
+    username text, display_name text, songs int, ideas int, storage_bytes bigint, ai_today int, errors_7d int, beta text, plan text) on commit drop;  -- new and empty for each request
   insert into _au (id, email, provider, created_at, last_sign_in_at, storage_bytes)
   select u.id, u.email, u.raw_app_meta_data->>'provider', u.created_at, u.last_sign_in_at,
     (select coalesce(sum((o.metadata->>'size')::bigint), 0) from storage.objects o
@@ -92,7 +96,7 @@ begin
   from auth.users u
   order by u.created_at desc;
   if public._has('public.profiles') then
-    execute 'update _au a set username = p.username, display_name = p.display_name from public.profiles p where p.user_id = a.id';
+    execute 'update _au a set username = p.username, display_name = p.display_name, plan = case when p.pro then ''beta'' else ''free'' end from public.profiles p where p.user_id = a.id';
   end if;
   if public._has('public.cloud_library') then
     execute $q$ update _au a set
@@ -114,6 +118,9 @@ begin
   end if;
   update _au set beta = 'admin' where lower(email) in (select email from public.app_admins);
   update _au set beta = case when gate then 'none' else 'open' end where beta is null;
+  -- plan: 'beta' = everything unlocked (profiles.pro), 'free' = the limited plan. There are no payments yet;
+  -- when there are, set 'paid' here from the subscriptions table.
+  update _au set plan = 'free' where plan is null;
   select coalesce(jsonb_agg(to_jsonb(x) order by x.created_at desc), '[]'::jsonb) into r
     from (select * from _au
       where q = '%%' or lower(coalesce(email, '')) like q or lower(coalesce(username, '')) like q or lower(coalesce(display_name, '')) like q
