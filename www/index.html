@@ -339,12 +339,9 @@ body.side #side{transform:none}
 #authgate .go{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;border-radius:999px;background:var(--tint);color:var(--ontint);font-size:16px}
 #authgate .go+.go{margin-top:10px}
 #authgate .go.ag-apple{background:#000;color:#fff}
-#authgate .ag-or{display:flex;align-items:center;gap:12px;margin:18px 0;color:var(--mute);font-size:13px}
-#authgate .ag-or::before,#authgate .ag-or::after{content:'';flex:1;height:.5px;background:var(--sep)}
-#authgate .ag-email{display:flex;flex-direction:column;gap:10px}
-#authgate .ag-email input{width:100%;padding:13px 14px;border-radius:12px;border:.5px solid var(--sep);background:var(--row);color:var(--ink);font-size:16px}
-#authgate .ag-switch{margin:4px 0 0;font-size:13px;color:var(--mute)}
-#authgate .ag-switch a{color:var(--tint);text-decoration:none;font-weight:600}
+/* dark mode: Apple's button is white on dark backgrounds (its guidelines), and Google steps back to grey */
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #authgate .go.ag-apple{background:#fff;color:#000}:root:not([data-theme="light"]) #authgate #ag-google{background:#2C2C2E;color:#fff}}
+:root[data-theme="dark"] #authgate .go.ag-apple{background:#fff;color:#000}:root[data-theme="dark"] #authgate #ag-google{background:#2C2C2E;color:#fff}
 #authgate .note{margin-top:16px;font-size:12.5px}
 #authgate .devlink{margin-top:18px;background:none;border:0;color:var(--mute);font-size:13px;text-decoration:underline;padding:4px}
 #authgate .devrow{display:none;margin-top:12px;gap:8px}
@@ -1295,7 +1292,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     <div id="lp-ctl"><button id="lp-back" aria-label="Back 10 seconds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button><button id="lp-pp" aria-label="Play"></button><button id="lp-fwd" aria-label="Forward 10 seconds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg></button></div></div>
 </div>
 <div id="perf" hidden><b id="pf-title"></b><div id="pf-txt"></div><div class="pbar gl"><button id="pf-x">Done</button><button id="pf-sm" aria-label="Smaller text">A−</button><button id="pf-lg" aria-label="Larger text">A+</button><button id="pf-sl" aria-label="Slower">−</button><span id="pf-sp">1×</span><button id="pf-fa" aria-label="Faster">+</button><button id="pf-play">Play</button></div></div>
-<div id="authgate"><div class="ag-card"><h1>*[demo]</h1><p>Sign in to use *[demo]. Your songs sync to your account and stay backed up.</p><button class="go" id="ag-google"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg><span>Sign in with Google</span></button><button class="go ag-apple" id="ag-apple"><svg width="17" height="17" viewBox="0 0 170 170" aria-hidden="true" fill="currentColor"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.197-2.12-9.973-3.17-14.34-3.17-4.58 0-9.492 1.05-14.746 3.17-5.262 2.13-9.501 3.24-12.742 3.35-4.929.21-9.842-1.96-14.746-6.52-3.13-2.73-7.045-7.41-11.735-14.04-5.032-7.08-9.169-15.29-12.41-24.65-3.471-10.11-5.211-19.9-5.211-29.378 0-10.857 2.345-20.221 7.045-28.068 3.693-6.303 8.606-11.275 14.755-14.925 6.149-3.65 12.792-5.51 19.946-5.629 3.915 0 9.045 1.211 15.42 3.591 6.356 2.388 10.44 3.599 12.238 3.599 1.342 0 5.877-1.416 13.57-4.239 7.275-2.618 13.415-3.702 18.445-3.275 13.63 1.1 23.87 6.473 30.68 16.153-12.19 7.386-18.22 17.731-18.1 31.002.11 10.337 3.86 18.939 11.23 25.769 3.34 3.17 7.07 5.62 11.22 7.36-.9 2.61-1.85 5.11-2.86 7.51zM119.11 7.24c0 8.102-2.96 15.667-8.86 22.669-7.12 8.324-15.732 13.134-25.071 12.375a25.21 25.21 0 0 1-.188-3.07c0-7.772 3.384-16.089 9.399-22.877 3.002-3.43 6.82-6.282 11.45-8.56 4.62-2.245 8.99-3.486 13.1-3.685.12 1.056.17 2.111.17 3.148z"/></svg><span>Sign in with Apple</span></button><div class="ag-or"><span>or</span></div><div class="ag-email"><input type="email" id="ag-email" placeholder="Email" autocomplete="email" autocapitalize="off" spellcheck="false"><input type="password" id="ag-pw" placeholder="Password" autocomplete="current-password"><button class="go" id="ag-email-go">Sign in</button><p class="ag-switch">New here? <a href="#" id="ag-toggle">Create an account</a></p></div><p class="note" id="ag-note"></p><button class="devlink" id="ag-devlink">Dev Mode</button><div class="devrow" id="ag-devrow"><input type="password" id="ag-devpw" placeholder="Dev password" autocomplete="off"><button id="ag-devgo">Enter</button></div></div></div>
+<div id="authgate"><div class="ag-card"><h1>*[demo]</h1><p>Sign in to use *[demo]. Your songs sync to your account and stay backed up.</p><button class="go" id="ag-google"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg><span>Sign in with Google</span></button><button class="go ag-apple" id="ag-apple"><svg width="17" height="17" viewBox="0 0 170 170" aria-hidden="true" fill="currentColor"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.197-2.12-9.973-3.17-14.34-3.17-4.58 0-9.492 1.05-14.746 3.17-5.262 2.13-9.501 3.24-12.742 3.35-4.929.21-9.842-1.96-14.746-6.52-3.13-2.73-7.045-7.41-11.735-14.04-5.032-7.08-9.169-15.29-12.41-24.65-3.471-10.11-5.211-19.9-5.211-29.378 0-10.857 2.345-20.221 7.045-28.068 3.693-6.303 8.606-11.275 14.755-14.925 6.149-3.65 12.792-5.51 19.946-5.629 3.915 0 9.045 1.211 15.42 3.591 6.356 2.388 10.44 3.599 12.238 3.599 1.342 0 5.877-1.416 13.57-4.239 7.275-2.618 13.415-3.702 18.445-3.275 13.63 1.1 23.87 6.473 30.68 16.153-12.19 7.386-18.22 17.731-18.1 31.002.11 10.337 3.86 18.939 11.23 25.769 3.34 3.17 7.07 5.62 11.22 7.36-.9 2.61-1.85 5.11-2.86 7.51zM119.11 7.24c0 8.102-2.96 15.667-8.86 22.669-7.12 8.324-15.732 13.134-25.071 12.375a25.21 25.21 0 0 1-.188-3.07c0-7.772 3.384-16.089 9.399-22.877 3.002-3.43 6.82-6.282 11.45-8.56 4.62-2.245 8.99-3.486 13.1-3.685.12 1.056.17 2.111.17 3.148z"/></svg><span>Sign in with Apple</span></button><p class="note" id="ag-note"></p><button class="devlink" id="ag-devlink">Dev Mode</button><div class="devrow" id="ag-devrow"><input type="password" id="ag-devpw" placeholder="Dev password" autocomplete="off"><button id="ag-devgo">Enter</button></div></div></div>
 <div id="toast" class="gl"></div>
 <div id="invbanner" class="gl" role="alertdialog" aria-label="Song invitation" aria-live="polite">
   <button id="ib-x" aria-label="Not now">×</button>
@@ -15063,7 +15060,7 @@ var kbEst=false,kbT,kbSeen=false,lastH=-1,lastT=-1,kbWasOpen=false;
    pane, and must never trigger the page snap-back below. */
 function isTextField(el){return!!(el&&(el.tagName==='TEXTAREA'||(el.tagName==='INPUT'&&!/^(button|checkbox|radio|range|file|submit|color|reset|image)$/i.test(el.type||''))||el.isContentEditable))}
 function inFormPane(el){return isTextField(el)&&el.id!=='lyr'&&el.id!=='title'&&el.id!=='q'&&!!(el.closest&&el.closest('#authgate,#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7'))}
-function fit(){var d=document,r=d.documentElement,vv=window.visualViewport,ih=window.innerHeight,h=vv?vv.height:ih,t=vv?vv.offsetTop:0,kb=Math.max(0,ih-h-t),ae=d.activeElement,foc=ae&&(ae.id==='lyr'||ae.id==='title'||ae.id==='q'||ae.id==='ag-devpw'||ae.id==='ag-email'||ae.id==='ag-pw');
+function fit(){var d=document,r=d.documentElement,vv=window.visualViewport,ih=window.innerHeight,h=vv?vv.height:ih,t=vv?vv.offsetTop:0,kb=Math.max(0,ih-h-t),ae=d.activeElement,foc=ae&&(ae.id==='lyr'||ae.id==='title'||ae.id==='q'||ae.id==='ag-devpw');
   /* Typing in a sheet: sheets aren't sized off --vvh/--vvt, so there's nothing here to adjust - and
      feeding iOS's jittery mid-keyboard viewport readings into the layout behind the (see-through)
      sheet was making it jump on every keystroke. Leave everything where it is until focus leaves. */
@@ -17856,36 +17853,6 @@ function signInApple(forceChooser){signInOAuth('apple',forceChooser,'Apple')}
 function signOutGoogle(){libStop();liveLeave();var c=sbClient();if(c)c.auth.signOut();AUTH_USER=null;cloudDidPull=false;DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}stopInvitePolling();PENDING_INVITES=[];ensureStorageForMode();renderAccount();paintAcctIcons();sheet(false);var ag=$('#authgate');if(ag)ag.style.display='flex'}
 $('#ag-google').onclick=function(){$('#ag-note').textContent='';signInGoogle(true)};
 $('#ag-apple').onclick=function(){$('#ag-note').textContent='';signInApple(true)};
-/* ---------- account sign-in (email/password): a self-contained fallback that doesn't depend on
-   any OAuth provider or console configuration, so it keeps working even if Google or Apple sign-in
-   is misconfigured or temporarily down. Same Supabase user either way — whichever method someone
-   used first is just how that account happens to log in. */
-var AG_MODE='signin';
-function paintAGMode(){
-  var btn=$('#ag-email-go'),tg=$('#ag-toggle'),sw=tg&&tg.parentElement;
-  if(btn)btn.textContent=AG_MODE==='signup'?'Create account':'Sign in';
-  if(sw&&sw.firstChild)sw.firstChild.textContent=AG_MODE==='signup'?'Already have an account? ':'New here? ';
-  if(tg)tg.textContent=AG_MODE==='signup'?'Sign in':'Create an account';
-}
-function emailAuth(){
-  var c=sbClient();if(!c){toast('Sign-in isn’t available right now.');return}
-  var email=$('#ag-email').value.trim(),pw=$('#ag-pw').value,note=$('#ag-note'),btn=$('#ag-email-go');
-  if(note)note.textContent='';
-  if(!email||!pw){if(note)note.textContent='Enter an email and password.';return}
-  if(AG_MODE==='signup'&&pw.length<6){if(note)note.textContent='Password must be at least 6 characters.';return}
-  var orig=btn.textContent;btn.disabled=true;btn.textContent=AG_MODE==='signup'?'Creating account…':'Signing in…';
-  var p=AG_MODE==='signup'?c.auth.signUp({email:email,password:pw}):c.auth.signInWithPassword({email:email,password:pw});
-  p.then(function(r){
-    btn.disabled=false;btn.textContent=orig;
-    if(r&&r.error){if(note)note.textContent=r.error.message||'Something went wrong.';return}
-    if(AG_MODE==='signup'&&r&&r.data&&r.data.user&&!r.data.session){if(note)note.textContent='Check your email to confirm your account, then sign in.';AG_MODE='signin';paintAGMode();return}
-  },function(){btn.disabled=false;btn.textContent=orig;if(note)note.textContent='Something went wrong. Try again.'});
-}
-$('#ag-email-go').onclick=emailAuth;
-$('#ag-pw').onkeydown=function(e){if(e.key==='Enter')emailAuth()};
-$('#ag-email').onkeydown=function(e){if(e.key==='Enter')$('#ag-pw').focus()};
-$('#ag-toggle').onclick=function(e){e.preventDefault();AG_MODE=AG_MODE==='signup'?'signin':'signup';var note=$('#ag-note');if(note)note.textContent='';paintAGMode()};
-paintAGMode();
 setTimeout(function(){if(!AUTH_USER&&!sbClient())$('#ag-note').textContent='Couldn’t reach the sign-in service. Check your connection and try again.'},4000);
 $('#ag-devlink').onclick=function(){var r=$('#ag-devrow');r.classList.toggle('on');if(r.classList.contains('on'))$('#ag-devpw').focus()};
 function tryDevMode(){var v=$('#ag-devpw').value;if(v==='demo'){$('#ag-devpw').value='';setDevMode(true);toast('Dev Mode — local testing only, nothing syncs')}else{var ip=$('#ag-devpw');ip.classList.remove('shake');void ip.offsetWidth;ip.classList.add('shake')}}
