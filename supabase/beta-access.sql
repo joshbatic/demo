@@ -8,8 +8,9 @@
 -- invite code (for people who sign in with "Hide My Email", or a different email).
 --
 -- After running this file (safe to run again):
---   a) Make yourself an admin (use the email you sign in with):
---        insert into public.app_admins (email) values (lower('you@example.com')) on conflict do nothing;
+--   a) dev@hellodemo.app is the admin (added below). Sign in to the app with an account that uses that email
+--      (not "Hide My Email"). To add another admin:
+--        insert into public.app_admins (email) values (lower('someone@example.com')) on conflict do nothing;
 --   b) Optional, before turning the lock on: approve everyone who already has an account:
 --        insert into public.beta_requests (email, status, user_id, decided_at)
 --        select lower(email), 'approved', id, now() from auth.users where email is not null
@@ -26,6 +27,7 @@ insert into public.beta_config (id, gate) values (1, false) on conflict (id) do 
 create table if not exists public.app_admins (
   email text primary key check (email = lower(email))
 );
+insert into public.app_admins (email) values ('dev@hellodemo.app') on conflict do nothing;
 
 create table if not exists public.beta_requests (
   id         uuid primary key default gen_random_uuid(),
