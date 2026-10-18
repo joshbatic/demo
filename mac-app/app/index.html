@@ -51,6 +51,22 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 #svault{flex:none;margin:2px 0 8px}
 #svault em{font-style:normal;font-size:13px;color:var(--mute);margin-left:auto;padding-left:8px}
 .irow0{margin-top:10px}
+/* the dev build: a Dev badge, and Beta Requests on the home screen */
+.devpill{display:inline-flex;align-items:center;height:20px;padding:0 8px;margin-left:8px;border-radius:99px;font-size:11px;font-weight:800;letter-spacing:.4px;vertical-align:middle;color:#fff;background:linear-gradient(140deg,#FFAA7F,#FF8FA3)}
+.bth{color:#fff;background:linear-gradient(140deg,#FFE9A8,#FFAA7F)!important}.bth svg{filter:drop-shadow(0 .5px 1.5px rgba(0,0,0,.25))}
+.brow0 em{font-style:normal}.brow0 .bct{min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:#FF3B30;color:#fff;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-left:auto}
+#sbeta[hidden]{display:none!important}#sbeta{flex:none;margin:-4px 0 8px}#sbeta em{font-style:normal;margin-left:auto}#sbeta em:empty{display:none}#sbeta em{min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:#FF3B30;color:#fff;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+#brq{padding:4px 16px 8px}
+#vList .lhead h1 .devpill{height:24px;font-size:13px;padding:0 10px;margin-left:10px;transform:translateY(-4px)}
+#brq .bseg{display:flex;gap:4px;padding:3px;margin:4px 0 14px;border-radius:12px;background:var(--fill)}
+#brq .bseg button{flex:1;padding:8px 4px;border-radius:9px;font-size:14px;font-weight:600;color:var(--ink);background:none}
+#brq .bseg button.on{background:var(--bg);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+#brq .bbox{border-radius:18px;background:var(--row);box-shadow:0 0 0 .5px var(--ring)}
+#brq .bempty{padding:28px 18px;text-align:center;color:var(--mute);font-size:15px}
+#brq .block{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;margin-bottom:14px;border-radius:16px;background:var(--row);box-shadow:0 0 0 .5px var(--ring)}
+#brq .block b{font-size:15.5px}#brq .block span{display:block;font-size:13px;color:var(--mute);margin-top:2px}
+#brq .bcode{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:6px 12px;border-radius:10px;background:var(--fill);font:700 15px/1.2 ui-monospace,Menlo,monospace;letter-spacing:1.5px}
+#brq .bnote{font-size:13px;color:var(--mute);padding:12px 4px 0;line-height:1.45}
 .th.ith{background:linear-gradient(150deg,#FFE9A8,#FFD3BE 60%,#F6C6E4);color:#fff;box-shadow:0 0 0 .5px var(--ring)}
 .th.ith svg{position:relative;z-index:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.18))}
 .th.ith{position:relative}.th.ith::after{content:'';position:absolute;inset:0;border-radius:inherit;background:#000;opacity:0;pointer-events:none}
@@ -145,9 +161,9 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 /* sheet */
 #scrim{position:fixed;inset:0;background:rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .2s;z-index:4}
 #scrim.on{opacity:1;pointer-events:auto}
-#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet9{position:fixed;left:0;right:0;bottom:0;height:88%;max-width:720px;margin:0 auto;background:var(--sheet);-webkit-backdrop-filter:blur(40px) saturate(190%);backdrop-filter:blur(40px) saturate(190%);box-shadow:none;border-radius:38px 38px 0 0;transform:translateY(105%);transition:transform .32s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;z-index:5;padding-bottom:env(safe-area-inset-bottom,0px)}
-#sheet.on,#sheet2.on,#sheet3.on,#sheet4.on,#sheet5.on,#sheet6.on,#sheet7.on,#sheet8.on,#sheet9.on{transform:none;box-shadow:0 0 0 .5px var(--ring),0 -4px 24px var(--sh2),inset 0 1px 0 var(--hl)}
-#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet9{height:auto;max-height:84%;overflow-y:auto;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet9,#sheet10{position:fixed;left:0;right:0;bottom:0;height:88%;max-width:720px;margin:0 auto;background:var(--sheet);-webkit-backdrop-filter:blur(40px) saturate(190%);backdrop-filter:blur(40px) saturate(190%);box-shadow:none;border-radius:38px 38px 0 0;transform:translateY(105%);transition:transform .32s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;z-index:5;padding-bottom:env(safe-area-inset-bottom,0px)}
+#sheet.on,#sheet2.on,#sheet3.on,#sheet4.on,#sheet5.on,#sheet6.on,#sheet7.on,#sheet8.on,#sheet9.on,#sheet10.on{transform:none;box-shadow:0 0 0 .5px var(--ring),0 -4px 24px var(--sh2),inset 0 1px 0 var(--hl)}
+#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet9,#sheet10{height:auto;max-height:84%;overflow-y:auto;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 /* Account scrolls differently from the other auto-height sheets above: the whole sheet (including
    its .sh title/Done header) was the scroll container, so the header scrolled away with the content
    instead of staying put like it does in Details (#sheet), where only the inner pane scrolls and the
@@ -167,7 +183,7 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
    motion stutter; on top of the sheet's own blur the cards look the same without their own. */
 [role=dialog] :is(.gf,.sh button,#stk-out,.vsum,.vmore,.cupv,.plancard,.devcard,#chd,.dictwm button){-webkit-backdrop-filter:none;backdrop-filter:none}
 /* Muse, Rate, Clean up and Share: the same fixed header, with only the body below it scrolling */
-#sheet3,#sheet4,#sheet5,#sheet8,#sheet9{overflow-y:hidden}
+#sheet3,#sheet4,#sheet5,#sheet8,#sheet9,#sheet10{overflow-y:hidden}
 .sbd{flex:1;min-height:0;overflow-y:auto}
 /* the idea sheet: same fixed header, only the body scrolls */
 #sheet7{overflow-y:hidden;display:flex;flex-direction:column}
@@ -376,11 +392,11 @@ body.side #side{transform:none}
 #betagate .bglab{font-size:13px;color:var(--mute);margin:26px 0 0}
 #betagate .bgerr{color:var(--red);font-size:13.5px;margin-top:8px;min-height:18px}
 #betagate .bgout{margin-top:30px;font-size:13px;color:var(--mute)}#betagate .bgout button{background:none;border:0;color:inherit;text-decoration:underline;font-size:13px;padding:4px}
-#acc .brq{padding:14px 16px;position:relative}#acc .brq+.brq::before{content:'';position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--sep)}
-#acc .brq b{display:block;font-size:16px}#acc .brq .bm{font-size:13.5px;color:var(--mute);margin-top:2px;overflow-wrap:anywhere}
-#acc .brq .bn{font-size:14.5px;margin-top:8px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
-#acc .brq .bacts{display:flex;gap:8px;margin-top:12px}#acc .brq .bacts button{flex:1;padding:10px;border-radius:12px;font-size:15px;font-weight:600;background:var(--fill);color:var(--ink)}
-#acc .brq .bacts .ok{background:var(--tint);color:var(--ontint)}#acc .brq .bacts button:disabled{opacity:.5}
+#acc .brq,#brq .brq{padding:14px 16px;position:relative}#acc .brq+.brq::before,#brq .brq+.brq::before{content:'';position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--sep)}
+#acc .brq b,#brq .brq b{display:block;font-size:16px}#acc .brq .bm,#brq .brq .bm{font-size:13.5px;color:var(--mute);margin-top:2px;overflow-wrap:anywhere}
+#acc .brq .bn,#brq .brq .bn{font-size:14.5px;margin-top:8px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
+#acc .brq .bacts,#brq .brq .bacts{display:flex;gap:8px;margin-top:12px}#acc .brq .bacts button,#brq .brq .bacts button{flex:1;padding:10px;border-radius:12px;font-size:15px;font-weight:600;background:var(--fill);color:var(--ink)}
+#acc .brq .bacts .ok,#brq .brq .bacts .ok{background:var(--tint);color:var(--ontint)}#acc .brq .bacts button:disabled,#brq .brq .bacts button:disabled{opacity:.5}
 #authgate .devrow.on{display:flex}
 #authgate .devrow input{flex:1;padding:10px 12px;border-radius:10px;border:.5px solid var(--sep);background:var(--row);color:var(--ink);font-size:16px}
 #authgate .devrow button{padding:0 16px;border-radius:10px;background:var(--fill);font-size:14px}
@@ -973,6 +989,7 @@ body.sprinting #rhy{display:none}
 <aside id="side" aria-label="Songs">
   <div class="sdh"><b id="logo" role="button" tabindex="0" aria-label="Songs overview">*[demo]</b><div class="gl grp2"><button class="ib2" id="sacct" aria-label="Account"><img id="sacctav" class="sacctav" alt="" hidden><svg id="sacctsvg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.9-3.6 3.7-5.6 7-5.6s6.1 2 7 5.6"/></svg><i class="invdot" id="invdot2" hidden></i></button><button class="ib2" id="snew" aria-label="New song"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6"/><path d="M18.5 3.5l2 2L11 15l-3 1 1-3z"/></svg></button><button class="ib2" id="sfolder" aria-label="New folder" title="New folder"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5a2 2 0 0 1 2-2h4.5l1.8 2H19a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 12.3v4.4M9.8 14.5h4.4"/></svg></button><button class="ib2" id="shide" aria-label="Hide sidebar"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M9.5 4v16"/></svg></button></div></div>
   <button id="svault" class="si"><i class="th ith"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.4 10.9c.6.4.9 1.1.9 1.8V16h5v-.3c0-.7.3-1.4.9-1.8A6 6 0 0 0 12 3z"/></svg></i><div class="tx"><b>Ideas</b><span id="svaultsub">A quick jot for lines and ideas</span></div><em id="svaultct"></em></button>
+  <button id="sbeta" class="si" hidden><i class="th bth"></i><div class="tx"><b>Beta Requests</b><span id="sbetasub">Sign in as the admin to review</span></div><em id="sbetact"></em></button>
   <input id="sq" type="search" placeholder="Search">
   <div id="slist"></div>
 </aside>
@@ -1010,6 +1027,7 @@ body.sprinting #rhy{display:none}
 <div id="sheet4" role="dialog" aria-label="Rate song"><div class="sh"><b>Rate</b><button id="done4">Done</button></div><div class="sbd" id="rtbd"><div id="rt-head"></div><div id="rt-out"></div></div></div>
 <div id="sheet5" role="dialog" aria-label="Clean up"><div class="sh"><b>Clean up</b><button id="done5">Done</button></div><div id="cu" class="sbd"></div></div>
 <div id="sheet6" role="dialog" aria-label="Account"><div class="sh"><b>Account</b><button id="done6">Done</button></div><div id="acc"></div></div>
+<div id="sheet10" role="dialog" aria-label="Beta Requests"><div class="sh"><b>Beta Requests</b><button id="done10">Done</button></div><div id="brq" class="sbd"></div></div>
 <div id="sheet8" role="dialog" aria-label="Share song"><div class="sh"><b>Share</b><button id="done8">Done</button></div><div id="shr" class="sbd"></div></div>
 <div id="sheet9" role="dialog" aria-label="Your page"><div class="sh"><b>Your Page</b><button id="done9">Done</button></div><div id="pgx" class="sbd"></div></div>
 <div id="sheet7" role="dialog" aria-label="Idea"><div class="sh ish"><button id="icancel">Cancel</button><b id="ititle">Idea</b><button id="isave" class="pri">Done</button></div><div class="ibd" id="ibd"><div id="imemow"></div><div class="ifield"><textarea id="itext" rows="3" placeholder="A line, a title, an idea…" aria-label="Idea"></textarea></div><div class="gf accg" id="iacts"></div></div></div>
@@ -15558,7 +15576,7 @@ function llines(s){return(s.lyrics||'').split('\n').filter(function(x){return x.
 function renderList(){setTimeout(function(){addNewZone($('#list'))},0);
   var q=$('#q').value.toLowerCase(),L=$('#list');L.innerHTML='';
   var rows=songs.filter(function(s){return!q||(s.title+' '+s.lyrics).toLowerCase().indexOf(q)>=0}).sort(function(a,b){return b.updated-a.updated});
-  if(!q)L.appendChild(ideasCard());
+  if(!q){if(DEV_BUILD)L.appendChild(betaCard());L.appendChild(ideasCard())}
   if(!rows.length){L.insertAdjacentHTML('beforeend',songs.length?'<div class="empty">No Results</div>':'<div class="empty"><b>No songs yet</b><p>Tap the pencil to write your first line.</p></div>');return}
   var g={},pin=[];rows.forEach(function(s){if(isPinned(s)){pin.push(s);return}var f=s.folder||'Songs';(g[f]=g[f]||[]).push(s)});
   if(pin.length)g['\u0000pin']=pin;
@@ -15600,7 +15618,7 @@ $('#logo').onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefau
 var delArm=0;$('#del').onclick=function(){var b=this;if(Date.now()-delArm>3000){delArm=Date.now();b.textContent='Tap Again to Delete';setTimeout(function(){b.textContent='Delete Song'},3000);return}delArm=0;b.textContent='Delete Song';removeSong(cur)};
 function sheet(on,w){if(on&&!wideMQ.matches&&document.body.classList.contains('side'))sideOn(false);
   if(on){var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'||ae.id==='q'))ae.blur()}
-  if(!on){var fa=document.activeElement;if(fa&&fa.blur&&fa.closest&&fa.closest('[role=dialog]'))fa.blur();$('#sheet').classList.remove('on');$('#sheet2').classList.remove('on');$('#sheet3').classList.remove('on');$('#sheet4').classList.remove('on');$('#sheet5').classList.remove('on');$('#sheet6').classList.remove('on');$('#sheet7').classList.remove('on');$('#sheet8').classList.remove('on');$('#sheet9').classList.remove('on')}else $('#'+(w||'sheet')).classList.add('on');$('#scrim').classList.toggle('on',on)}
+  if(!on){var fa=document.activeElement;if(fa&&fa.blur&&fa.closest&&fa.closest('[role=dialog]'))fa.blur();$('#sheet').classList.remove('on');$('#sheet2').classList.remove('on');$('#sheet3').classList.remove('on');$('#sheet4').classList.remove('on');$('#sheet5').classList.remove('on');$('#sheet6').classList.remove('on');$('#sheet7').classList.remove('on');$('#sheet8').classList.remove('on');$('#sheet9').classList.remove('on');var s10=$('#sheet10');if(s10)s10.classList.remove('on')}else $('#'+(w||'sheet')).classList.add('on');$('#scrim').classList.toggle('on',on)}
 $('#det').onclick=function(){dtab('inf');renderVers();renderCollab();sheet(true)};$('#done').onclick=function(){sheet(false)};$('#scrim').onclick=function(){sheet(false);closeDict()};
 function dtab(t){if(t==='mel'&&!isPro()){upsell('melody');t='inf'}if((t==='aud'||t==='rel')&&!isPro()){upsell('audio');t='inf'}document.querySelectorAll('#dseg button').forEach(function(x){x.classList.toggle('on',x.dataset.t===t)});['chd','inf','mel','aud','rel'].forEach(function(p){$('#p-'+p).classList.toggle('on',p===t)});if(t==='mel')renderMel();if(t==='aud')renderAud();if(t==='rel')renderRel()}
 document.querySelectorAll('#dseg button').forEach(function(b){b.onclick=function(){dtab(b.dataset.t)}});
@@ -15961,7 +15979,12 @@ if(wideMQ.addEventListener)wideMQ.addEventListener('change',syncSideVisibility);
 $('#sbt').onclick=function(){sideOn(true)};$('#shide').onclick=function(){sideOn(false)};$('#scrim2').onclick=function(){sideOn(false)};
 $('#snew').onclick=function(){newSong();if(!wideMQ.matches)sideOn(false)};
 $('#sfolder').onclick=function(){createFolder(true)};
-$('#svault').onclick=function(){openIdeas()};
+/* the dev build of the Mac app ([demo] Dev.app, see mac-app/main.js) */
+var DEV_BUILD=!!(window.desktop&&window.desktop.devBuild),AUTH_SCHEME=(window.desktop&&window.desktop.authScheme)||'demo';
+$('#svault').onclick=function(){openIdeas()};$('#sbeta').onclick=openBetaRequests;$('#done10').onclick=function(){sheet(false)};
+if(DEV_BUILD){document.body.classList.add('devbuild');setTimeout(paintBetaSide,0);['#logo','#vList .lhead h1'].forEach(function(q){var lg=$(q);if(lg&&!lg.querySelector('.devpill'))lg.insertAdjacentHTML('beforeend','<span class="devpill">DEV</span>')});try{document.title='*[demo] Dev'}catch(e){}
+  /* new requests show up without reopening the app */
+  setInterval(function(){if(BETA.admin&&!document.hidden)betaAdminLoad(true)},120000);document.addEventListener('visibilitychange',function(){if(!document.hidden&&BETA.admin)betaAdminLoad(true)})}
 $('#ideaBack').onclick=function(){show('vList')};
 $('#inew').onclick=function(){editIdea(null)};
 $('#iq').addEventListener('input',renderIdeas);
@@ -17502,6 +17525,43 @@ var lastAuthUid=null;
    or 'pending' / 'declined' / 'none', which get the waitlist screen. If the check can't run (no connection,
    SQL not set up) the app opens as normal; the server still refuses AI and uploads for unapproved accounts. */
 var BETA={st:null,admin:false,sum:null,list:null,t:0,busy:{}};
+/* the dev build of the Mac app ([demo] Dev.app): Beta Requests on the home screen and the developer tools in Account */
+var BETA_ICO='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.7-3.4 3.3-5.5 6.5-5.5s5.8 2.1 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c2 .7 3.2 2.5 3.5 5.2"/></svg>';
+var BRQ_TAB='pending',BRQ_LISTS={};
+function betaRowSub(){if(!AUTH_USER)return'Sign in as the admin to review';if(!BETA.admin)return BETA.st?'This account isn’t the admin':'Checking…';var sm=BETA.sum;if(!sm)return'Loading…';
+  return(sm.pending?sm.pending+' waiting':'Nobody waiting')+' · '+(sm.approved||0)+' approved · lock '+(sm.gate?'on':'off')}
+function paintBetaSide(){var b=$('#sbeta');if(!b)return;b.hidden=!DEV_BUILD;if(!DEV_BUILD)return;var th=b.querySelector('.bth');if(th&&!th.innerHTML)th.innerHTML=BETA_ICO;
+  $('#sbetasub').textContent=betaRowSub();$('#sbetact').textContent=BETA.admin&&BETA.sum&&BETA.sum.pending?String(BETA.sum.pending):''}
+function betaCard(){var b=document.createElement('div');b.className='song irow0 brow0';b.setAttribute('role','button');b.tabIndex=0;b.setAttribute('aria-label','Beta Requests');
+  b.innerHTML='<i class="th bth">'+BETA_ICO+'</i><div class="tx"><b>Beta Requests</b><span></span><em></em></div>';
+  b.querySelector('span').textContent=betaRowSub();
+  if(BETA.admin&&BETA.sum&&BETA.sum.pending){var c=document.createElement('span');c.className='bct';c.textContent=BETA.sum.pending;b.appendChild(c)}
+  b.onclick=openBetaRequests;b.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openBetaRequests()}};return b}
+function openBetaRequests(){if(!AUTH_USER){toast('Sign in as dev@hellodemo.app to review beta requests');return}
+  if(!BETA.admin){toast('Beta requests are only for the admin account (dev@hellodemo.app)');return}
+  renderBetaRequests();sheet(true,'sheet10');betaAdminLoad(true);betaTabLoad(BRQ_TAB,true)}
+function betaTabLoad(tab,force){var c=sbClient();if(!c||!BETA.admin)return;if(!force&&BRQ_LISTS[tab])return;
+  c.rpc('beta_admin_list',{p_status:tab}).then(function(r){if(r.error)return;BRQ_LISTS[tab]=r.data||[];if(tab==='pending')BETA.list=BRQ_LISTS[tab];renderBetaRequests()})}
+function renderBetaRequests(){var o=$('#brq');if(!o)return;o.innerHTML='';var sm=BETA.sum||{};
+  var lk=document.createElement('div');lk.className='block';lk.innerHTML='<div><b>Waitlist Lock</b><span></span></div>';lk.querySelector('span').textContent=sm.gate?'On: only approved accounts can use *[demo]':'Off: anyone who signs in can use *[demo]';
+  var sw=document.createElement('button');sw.className='swtch'+(sm.gate?' on':'');sw.setAttribute('role','switch');sw.setAttribute('aria-checked',sm.gate?'true':'false');sw.setAttribute('aria-label','Waitlist Lock');sw.innerHTML='<i></i>';sw.onclick=function(){if(BETA.sum)betaSetGate(!sm.gate)};lk.appendChild(sw);o.appendChild(lk);
+  var seg=document.createElement('div');seg.className='bseg';
+  [['pending','Waiting',sm.pending],['approved','Approved',sm.approved],['declined','Declined',sm.declined]].forEach(function(t){var b=document.createElement('button');b.className=BRQ_TAB===t[0]?'on':'';b.textContent=t[1]+(t[2]!=null?' '+t[2]:'');b.onclick=function(){BRQ_TAB=t[0];renderBetaRequests();betaTabLoad(t[0],true)};seg.appendChild(b)});o.appendChild(seg);
+  var list=BRQ_TAB==='pending'?BETA.list:BRQ_LISTS[BRQ_TAB],box=document.createElement('div');box.className='bbox';o.appendChild(box);
+  if(!list){box.innerHTML='<div class="bempty">Loading…</div>';return}
+  if(!list.length){box.innerHTML='<div class="bempty"></div>';box.firstChild.textContent=BRQ_TAB==='pending'?'Nobody waiting. New requests from hellodemo.app/beta show up here.':BRQ_TAB==='approved'?'Nobody approved yet.':'Nobody declined.';return}
+  list.forEach(function(rq){var d=document.createElement('div');d.className='brq';d.innerHTML='<b></b><div class="bm"></div>';
+    d.querySelector('b').textContent=rq.name||rq.email;
+    var dt=new Date(rq.decided_at||rq.created_at);
+    d.querySelector('.bm').textContent=[rq.name?rq.email:'',rq.role,rq.heard,(rq.decided_at?(BRQ_TAB==='approved'?'approved ':'declined '):'')+dt.toLocaleDateString(undefined,{day:'numeric',month:'short'})].filter(Boolean).join(' · ');
+    if(rq.link){var a=document.createElement('div');a.className='bm';var la=document.createElement('a');la.href='#';la.textContent=rq.link;la.style.color='inherit';la.onclick=function(e){e.preventDefault();if(/^https?:\/\//i.test(rq.link))openLink(rq.link)};a.appendChild(la);d.appendChild(a)}
+    if(rq.note){var nn=document.createElement('div');nn.className='bn';nn.textContent=rq.note;d.appendChild(nn)}
+    if(BRQ_TAB==='approved'){var cd=String(rq.code||'').replace(/^(.{4})/,'$1-');var cc=document.createElement('button');cc.className='bcode';cc.title='Copy invite code';cc.textContent=cd+(rq.user_id?'  ·  joined':rq.emailed_at?'  ·  emailed':'');cc.onclick=function(){try{navigator.clipboard.writeText(cd).then(function(){toast('Copied '+cd)},function(){})}catch(e){}};d.appendChild(cc)}
+    var busy=!!BETA.busy[rq.id],ac=document.createElement('div');ac.className='bacts';
+    if(BRQ_TAB!=='approved'){var ok=document.createElement('button');ok.className='ok';ok.textContent=busy?'…':(BRQ_TAB==='declined'?'Approve Instead':'Approve');ok.disabled=busy;ok.onclick=function(){betaDecide(rq,true)};ac.appendChild(ok)}
+    if(BRQ_TAB==='pending'){var no=document.createElement('button');no.textContent='Decline';no.disabled=busy;no.onclick=function(){betaDecide(rq,false)};ac.appendChild(no)}
+    if(ac.children.length)d.appendChild(ac);box.appendChild(d)});
+  var nt=document.createElement('div');nt.className='bnote';nt.textContent='Approving emails the TestFlight link and an invite code. Declining sends a short, kind note.';o.appendChild(nt)}
 var BG_ICO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l11-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg>';
 function betaKey(){return'songpad:beta:'+(AUTH_USER&&AUTH_USER.id)}
 function betaCheck(){var c=sbClient();if(!c||!c.rpc||!AUTH_USER||DEV_MODE){betaGate(null);return}
@@ -17512,7 +17572,7 @@ function betaCheck(){var c=sbClient();if(!c||!c.rpc||!AUTH_USER||DEV_MODE){betaG
     var st=r.data,was=BETA.admin;BETA.st=st;BETA.admin=st==='admin';
     if(st==='open'||st==='admin'||st==='approved'){try{localStorage.setItem(betaKey(),'ok')}catch(e){}betaGate(null)}
     else{try{localStorage.removeItem(betaKey())}catch(e){}betaGate(st)}
-    if(BETA.admin!==was)renderAccount()},function(){betaGate(null)})}
+    if(BETA.admin!==was)renderAccount();if(DEV_BUILD){if(BETA.admin)betaAdminLoad(true);betaRefreshViews()}},function(){betaGate(null)})}
 function betaGate(st){var g=$('#betagate');if(!g)return;if(!st){g.hidden=true;return}
   var em=(AUTH_USER&&AUTH_USER.email)||'',relay=/privaterelay\.appleid\.com$/i.test(em),c=$('#bg-card');
   var T={checking:['*[demo]','Checking your access…'],
@@ -17537,7 +17597,7 @@ document.addEventListener('visibilitychange',function(){var g=$('#betagate');if(
 /* admins: Account › Beta Requests */
 function betaAdminLoad(force){var c=sbClient();if(!c||!BETA.admin)return;if(!force&&Date.now()-BETA.t<15000)return;BETA.t=Date.now();
   Promise.all([c.rpc('beta_admin_summary'),c.rpc('beta_admin_list',{p_status:'pending'})]).then(function(rs){
-    if(rs[0].error||rs[1].error)return;BETA.sum=rs[0].data;BETA.list=rs[1].data||[];renderAccount()})}
+    if(rs[0].error||rs[1].error)return;BETA.sum=rs[0].data;BETA.list=rs[1].data||[];BRQ_LISTS.pending=BETA.list;renderAccount();betaRefreshViews()})}
 function betaDecide(rq,approve){var c=sbClient();if(!c||BETA.busy[rq.id])return;BETA.busy[rq.id]=1;renderAccount();
   var who=rq.name||rq.email;
   var done=function(res){delete BETA.busy[rq.id];BETA.list=(BETA.list||[]).filter(function(x){return x.id!==rq.id});
@@ -17546,13 +17606,14 @@ function betaDecide(rq,approve){var c=sbClient();if(!c||BETA.busy[rq.id])return;
       else{var code=res.code?String(res.code).replace(/^(.{4})/,'$1-'):'';try{navigator.clipboard.writeText(code).catch(function(){})}catch(e){}
         toast('Approved. The email isn’t set up yet, so send '+rq.email+' the TestFlight link and code '+code+' (copied)')}}
     else toast('Declined'+(res.emailed?'. They’ve been let know':''));
-    haptic('success');renderAccount()};
+    BRQ_LISTS={};haptic('success');renderAccount();betaRefreshViews()};
   c.functions.invoke('beta',{body:{action:'decide',id:rq.id,approve:approve}}).then(function(r){
     if(r&&!r.error&&r.data&&r.data.ok)return done(r.data);
     /* no beta function deployed yet: decide straight in the database, without the email */
     return c.rpc('beta_admin_decide',{p_id:rq.id,p_approve:approve}).then(function(r2){if(r2.error)throw r2.error;done({code:r2.data&&r2.data.code,emailed:false})})})
   .catch(function(e){delete BETA.busy[rq.id];renderAccount();toast('Couldn’t update the request: '+((e&&e.message)||'try again'))})}
-function betaSetGate(on){var c=sbClient();if(!c)return;c.rpc('beta_admin_set_gate',{p_on:on}).then(function(r){if(r.error)return toast('Couldn’t change it: '+r.error.message);if(BETA.sum)BETA.sum.gate=!!r.data;toast(r.data?'Waitlist lock is on. Only approved accounts can use *[demo]':'Waitlist lock is off. Anyone who signs in can use *[demo]');renderAccount()})}
+function betaRefreshViews(){paintBetaSide();if(DEV_BUILD&&typeof renderList==='function'&&!$('#q').value)renderList();var s10=$('#sheet10');if(s10&&s10.classList.contains('on'))renderBetaRequests()}
+function betaSetGate(on){var c=sbClient();if(!c)return;c.rpc('beta_admin_set_gate',{p_on:on}).then(function(r){if(r.error)return toast('Couldn’t change it: '+r.error.message);if(BETA.sum)BETA.sum.gate=!!r.data;toast(r.data?'Waitlist lock is on. Only approved accounts can use *[demo]':'Waitlist lock is off. Anyone who signs in can use *[demo]');renderAccount();betaRefreshViews()})}
 function onAuthUser(){
   if(AUTH_USER&&DEV_MODE){DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}}
   var uid=AUTH_USER&&AUTH_USER.id;
@@ -17988,7 +18049,7 @@ function signInOAuth(provider,forceChooser,label){
   function fail(e){toast('Sign-in failed. Please try again.');oauthDbg('error: '+((e&&e.message)||(e&&e.error&&e.error.message)||JSON.stringify(e)))}
   if(onDesktop){
     oauthInFlight=true;oauthDbg('desktop branch: calling signInWithOAuth');
-    (function(){try{localStorage.setItem('songpad:oauthpend',String(Date.now()))}catch(e){}})(),c.auth.signInWithOAuth({provider:provider,options:{redirectTo:'demo://auth-callback',skipBrowserRedirect:true,queryParams:qp}}).then(function(r){
+    (function(){try{localStorage.setItem('songpad:oauthpend',String(Date.now()))}catch(e){}})(),c.auth.signInWithOAuth({provider:provider,options:{redirectTo:AUTH_SCHEME+'://auth-callback',skipBrowserRedirect:true,queryParams:qp}}).then(function(r){
       oauthInFlight=false;
       if(r&&r.data&&r.data.url){oauthDbg('got url, opening external');window.desktop.openExternal(r.data.url)}
       else if(r&&r.error)fail(r);
@@ -18188,8 +18249,8 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
       ip.addEventListener('input',function(){ACC_DRAFT[dk]=ip.value});
       ip.addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();var sb=o.querySelector('.labact .strong');if(sb)sb.click()}else if(ev.key==='Escape'){ACC_EDIT=null;ACC_DRAFT={};renderAccount()}});
       r.appendChild(ip);g.appendChild(r);return ip}
-    if(devFake){var dvl=document.createElement('div');dvl.className='lab';dvl.textContent='Developer';ga=document.createElement('div');ga.className='devwrap'}
-    if(devFake&&window.desktop&&window.desktop.getDevLimit){
+    if(devFake||DEV_BUILD){var dvl=document.createElement('div');dvl.className='lab';dvl.textContent='Developer';ga=document.createElement('div');ga.className='devwrap'}
+    if((devFake||DEV_BUILD)&&window.desktop&&window.desktop.getDevLimit){
       var dc=document.createElement('div');dc.className='devcard';
       var dl=document.createElement('div');dl.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:12px';
       var dll=document.createElement('span');dll.style.color='var(--mute)';dll.style.fontSize='13px';dll.textContent='Daily request limit';dl.appendChild(dll);
@@ -18203,7 +18264,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
       dc.appendChild(dlp);
       ga.appendChild(dc)
     }
-    if(devFake){
+    if(devFake||DEV_BUILD){
       /* fires the exact same toast + OS-notification path a real invite uses (notifyInvite), after
          a 3s delay so there's time to background the app/switch windows first and see the OS banner
          actually arrive, not just the toast - without needing a second account or a real invite row */
@@ -18232,7 +18293,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
     ab.onclick=function(){signInApple(true)};ga.appendChild(ab);
   }
   if(accWhy&&!pro){var w=document.createElement('div');w.className='accwhy';w.textContent=accWhy==='songs'?'The restricted preview keeps up to '+FREE_SONGS+' songs. Turn Beta back on for unlimited.':(FEAT[accWhy]||'That')+' is a Beta feature.';o.appendChild(w)}
-  if(pro&&!devFake){if(typeof hero!=='undefined'&&hero){var bb=document.createElement('div');bb.className='prbeta';bb.textContent='Beta · everything unlocked';hero.appendChild(bb)}}else{
+  if(pro&&!devFake&&!DEV_BUILD){if(typeof hero!=='undefined'&&hero){var bb=document.createElement('div');bb.className='prbeta';bb.textContent='Beta · everything unlocked';hero.appendChild(bb)}}else{
   var card=document.createElement('div');card.className='plancard'+(pro?' pro':'');
   card.innerHTML='<span class="plic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5l1.6 4.4c.3.8.9 1.4 1.7 1.7l4.4 1.6-4.4 1.6c-.8.3-1.4.9-1.7 1.7L10 18.9l-1.6-4.4c-.3-.8-.9-1.4-1.7-1.7L2.3 11.2l4.4-1.6c.8-.3 1.4-.9 1.7-1.7z"/></svg></span><span class="pltx"><b></b><p></p></span>';
   card.querySelector('b').textContent=pro?'Beta':'Free';
@@ -18315,7 +18376,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
   gl.appendChild(accCell({tile:ACC_ICO.lock,grad:10,label:'Privacy Policy',chev:true,onclick:function(){openDoc('privacy')}}));
   gl.appendChild(accCell({tile:ACC_ICO.doc,grad:3,label:'Terms of Service',chev:true,onclick:function(){openDoc('terms')}}));
   /* developer tools (Dev Mode only), then the account actions last, where Settings keeps Sign Out */
-  if(ga&&devFake){o.appendChild(dvl);o.appendChild(ga)}
+  if(ga&&(devFake||DEV_BUILD)&&dvl){o.appendChild(dvl);o.appendChild(ga)}
   if(AUTH_USER||devFake){
     var ag=accSection(o,'');
     ag.appendChild(accCell({tile:ACC_ICO.swap,grad:9,label:'Switch Account',chev:true,onclick:function(){signInGoogle(true)}}));

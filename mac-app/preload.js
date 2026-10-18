@@ -1,6 +1,10 @@
 // The only bridge between the page and the Mac: save files, open the folder, hear menu commands.
 const { contextBridge, ipcRenderer } = require('electron');
+let info = {};
+try { info = ipcRenderer.sendSync('app:info') || {}; } catch (_) {}
 contextBridge.exposeInMainWorld('desktop', {
+  devBuild: !!info.devBuild,
+  authScheme: info.scheme || 'demo',
   mirror: (songs) => ipcRenderer.invoke('songs:mirror', songs),
   openFolder: () => ipcRenderer.invoke('songs:open'),
   onMenu: (fn) => ipcRenderer.on('menu', (e, action) => fn(action)),
