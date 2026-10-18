@@ -143,9 +143,9 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 .sch{display:flex;gap:6px;overflow-x:auto;flex:none;scrollbar-width:none;padding-bottom:2px}
 .sch .r{height:32px;font-size:14px;padding:0 13px}
 /* sheet */
-#scrim{position:fixed;inset:0;background:rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .25s;z-index:4}
+#scrim{position:fixed;inset:0;background:rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .2s;z-index:4}
 #scrim.on{opacity:1;pointer-events:auto}
-#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8{position:fixed;left:0;right:0;bottom:0;height:88%;max-width:720px;margin:0 auto;background:var(--sheet);-webkit-backdrop-filter:blur(40px) saturate(190%);backdrop-filter:blur(40px) saturate(190%);box-shadow:none;border-radius:38px 38px 0 0;transform:translateY(105%);transition:transform .38s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;z-index:5;padding-bottom:env(safe-area-inset-bottom,0px)}
+#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8{position:fixed;left:0;right:0;bottom:0;height:88%;max-width:720px;margin:0 auto;background:var(--sheet);-webkit-backdrop-filter:blur(40px) saturate(190%);backdrop-filter:blur(40px) saturate(190%);box-shadow:none;border-radius:38px 38px 0 0;transform:translateY(105%);transition:transform .32s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;z-index:5;padding-bottom:env(safe-area-inset-bottom,0px)}
 #sheet.on,#sheet2.on,#sheet3.on,#sheet4.on,#sheet5.on,#sheet6.on,#sheet7.on,#sheet8.on{transform:none;box-shadow:0 0 0 .5px var(--ring),0 -4px 24px var(--sh2),inset 0 1px 0 var(--hl)}
 #sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8{height:auto;max-height:84%;overflow-y:auto;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 /* Account scrolls differently from the other auto-height sheets above: the whole sheet (including
@@ -158,6 +158,10 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 /* Writing Voice (#sheet2) had the same issue — same fix, scoped to its own content pane (#opts)
    instead of #acc so its "Writing voice"/Done header stays put while the settings list scrolls. */
 #sheet2{overflow-y:hidden}
+/* performance: a sheet already blurs what's behind it, so the cards and buttons inside it don't blur again.
+   Stacked backdrop blurs are re-rendered every frame while a sheet slides or scrolls, which is what made the
+   motion stutter; on top of the sheet's own blur the cards look the same without their own. */
+[role=dialog] :is(.gf,.sh button,#stk-out,.vsum,.vmore,.cupv,.plancard,.devcard,#chd,.dictwm button){-webkit-backdrop-filter:none;backdrop-filter:none}
 /* Muse, Rate, Clean up and Share: the same fixed header, with only the body below it scrolling */
 #sheet3,#sheet4,#sheet5,#sheet8{overflow-y:hidden}
 .sbd{flex:1;min-height:0;overflow-y:auto}
