@@ -19,6 +19,7 @@ Run these in **SQL Editor** (New query → paste → Run), in this order. All ar
 6. `supabase/ai-limits.sql`: daily AI limits per account
 7. `supabase/app-errors.sql`: error reports from testers
 8. `supabase/delete-account.sql`: in-app account deletion (Apple requires this)
+9. `supabase/signup-limit.sql`: at most 25 new accounts a day. Then **Authentication › Hooks › Add hook › Before User Created › Postgres › `public.hook_signup_limit`**. Change the number in **Table Editor › signup_limit** (0 pauses sign-ups, empty means no limit).
 
 Settings:
 

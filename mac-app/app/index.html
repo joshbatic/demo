@@ -17605,7 +17605,7 @@ function sbClient(){
     if(!err){var em=url.match(/[?&#](?:error_description|error)=([^&#]+)/);if(em)err=decodeURIComponent(em[1].replace(/\+/g,' '))}
     if(err){
       oauthDbg('oauth error: '+err);
-      toast('Sign-in failed: '+err);
+      toast(/spots are full|sign-ups are paused/i.test(err)?err:'Sign-in failed: '+err);
       var ag=$('#ag-note');if(ag)ag.textContent=err;
       return;
     }
