@@ -16000,9 +16000,14 @@ $('#sfolder').onclick=function(){createFolder(true)};
 /* the dev build of the Mac app ([developer].app, see mac-app/main.js) */
 var DEV_BUILD=!!(window.desktop&&window.desktop.devBuild),AUTH_SCHEME=(window.desktop&&window.desktop.authScheme)||'demo';
 $('#svault').onclick=function(){openIdeas()};$('#sbeta').onclick=openBetaRequests;$('#done10').onclick=function(){sheet(false)};$('#sadm').onclick=openAdmin;$('#done11').onclick=function(){sheet(false)};
-if(DEV_BUILD){document.body.classList.add('devbuild');setTimeout(function(){paintBetaSide();paintAdmSide()},0);['#logo','#vList .lhead h1'].forEach(function(q){var lg=$(q);if(lg&&!lg.querySelector('.devpill'))lg.insertAdjacentHTML('beforeend','<span class="devpill">DEV</span>')});try{document.title='[developer]'}catch(e){}
+/* the dev build: [developer] on the Mac (window.desktop.devBuild) or on iPhone (app ID ending in .dev, read below) */
+function devBuildStart(){if(devBuildStart.on)return;devBuildStart.on=1;DEV_BUILD=true;document.body.classList.add('devbuild');
+  setTimeout(function(){paintBetaSide();paintAdmSide();if(BETA.admin){betaAdminLoad(true);admLoadOverview(true)}if(typeof renderList==='function'&&!$('#q').value)renderList()},0);['#logo','#vList .lhead h1'].forEach(function(q){var lg=$(q);if(lg&&!lg.querySelector('.devpill'))lg.insertAdjacentHTML('beforeend','<span class="devpill">DEV</span>')});try{document.title='[developer]'}catch(e){}
   /* new requests show up without reopening the app */
   setInterval(function(){if(BETA.admin&&!document.hidden){betaAdminLoad(true);admLoadOverview(true)}},120000);document.addEventListener('visibilitychange',function(){if(!document.hidden&&BETA.admin){betaAdminLoad(true);admLoadOverview(true)}})}
+if(DEV_BUILD)devBuildStart();
+(function(){try{var C=window.Capacitor,A=C&&C.Plugins&&C.Plugins.App;if(!DEV_BUILD&&A&&A.getInfo&&C.isNativePlatform&&C.isNativePlatform())
+  A.getInfo().then(function(i){if(i&&/\.dev$/.test(i.id||'')){AUTH_SCHEME='demo-dev';devBuildStart()}}).catch(function(){})}catch(e){}})();
 $('#ideaBack').onclick=function(){show('vList')};
 $('#inew').onclick=function(){editIdea(null)};
 $('#iq').addEventListener('input',renderIdeas);
@@ -17974,7 +17979,7 @@ function sbClient(){
      mirroring the desktop onAuthCallback bridge above. */
   if(NATIVE_IOS&&window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App&&window.Capacitor.Plugins.App.addListener){
     window.Capacitor.Plugins.App.addListener('appUrlOpen',function(data){
-      var url=data&&data.url;if(!url||url.indexOf('demo://auth-callback')!==0)return;
+      var url=data&&data.url;if(!url||url.indexOf(AUTH_SCHEME+'://auth-callback')!==0)return;
       if(window.Capacitor.Plugins.Browser&&window.Capacitor.Plugins.Browser.close)try{window.Capacitor.Plugins.Browser.close()}catch(e){}
       handleAuthUrl(url);
     });
@@ -18166,7 +18171,7 @@ function signInOAuth(provider,forceChooser,label){
   }
   if(onNativeIOS){
     oauthInFlight=true;oauthDbg('iOS branch: calling signInWithOAuth');
-    (function(){try{localStorage.setItem('songpad:oauthpend',String(Date.now()))}catch(e){}})(),c.auth.signInWithOAuth({provider:provider,options:{redirectTo:'demo://auth-callback',skipBrowserRedirect:true,queryParams:qp}}).then(function(r){
+    (function(){try{localStorage.setItem('songpad:oauthpend',String(Date.now()))}catch(e){}})(),c.auth.signInWithOAuth({provider:provider,options:{redirectTo:AUTH_SCHEME+'://auth-callback',skipBrowserRedirect:true,queryParams:qp}}).then(function(r){
       oauthInFlight=false;
       if(r&&r.data&&r.data.url){
         oauthDbg('got url, opening via Browser plugin');
