@@ -62,7 +62,7 @@ Rebuild in Xcode and run through these, ideally with a second account for the co
    - Primary language: English (Australia)
    - Bundle ID: `com.joshbatic.songpad`
    - SKU: `songpad`
-2. **App Privacy.** Fill this in using the answers below. It's needed before outside testers.
+2. **App Privacy.** Fill this in using the answers below. It's needed before outside testers. Privacy Policy URL: `https://hellodemo.app/privacy.html`.
 3. **TestFlight tab.**
    - The upload shows as "Processing" for 10–30 minutes.
    - The encryption question is answered automatically.
