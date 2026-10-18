@@ -26,7 +26,8 @@ const CORS = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 
-const env = (k: string) => (Deno.env.get(k) || "").trim();
+// tolerant of the usual paste slips: spaces, quotes around the value, or a "Bearer " prefix
+const env = (k: string) => (Deno.env.get(k) || "").trim().replace(/^["'`]|["'`]$/g, "").replace(/^Bearer\s+/i, "").trim();
 const esc = (s: unknown) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 const str = (v: unknown, n: number) => (typeof v === "string" ? v.trim().slice(0, n) : "");
 
