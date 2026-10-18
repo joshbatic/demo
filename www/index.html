@@ -15809,6 +15809,33 @@ syncSideVisibility();
   rhy.addEventListener('touchend',release,{passive:true});
   rhy.addEventListener('touchcancel',release,{passive:true});
 })();
+/* drag any sheet down to close it, like an iOS sheet: from its header, or from anywhere once its content is
+   scrolled to the top. It follows the finger 1:1 and the dimmed background fades with it; letting go past
+   about a third of its height (or with a quick flick) closes it through its own Done / Cancel, so closing
+   this way does exactly what tapping that would; otherwise it springs back. With the keyboard up the swipe
+   puts the keyboard away first (gesture above), and waveforms, sliders and canvases keep their own drags. */
+(function(){
+  var S=null;
+  function sheetOf(el){var n=el;while(n&&n!==document.body){if(n.id&&/^sheet\d?$/.test(n.id))return n;n=n.parentElement}return null}
+  function paneAtTop(el,sh){var n=el;while(n&&n!==sh){if(n.scrollHeight>n.clientHeight+1&&/(auto|scroll)/.test(getComputedStyle(n).overflowY)&&n.scrollTop>0)return false;n=n.parentElement}return sh.scrollTop<=0}
+  function closeIt(sh){var b=sh.querySelector('.sh #icancel')||sh.querySelector('.sh button[id^="done"]');if(b)b.click();else sheet(false)}
+  document.addEventListener('touchstart',function(e){S=null;if(e.touches.length!==1)return;var t=e.target,sh=sheetOf(t);if(!sh||!sh.classList.contains('on'))return;
+    if(isTextField(document.activeElement))return;
+    if(t.closest('canvas,input[type=range],.imw,.np-wave,.rdel,select'))return;
+    var head=!!t.closest('.sh');if(!head&&!paneAtTop(t,sh))return;
+    var p=e.touches[0];S={sh:sh,y0:p.clientY,x0:p.clientX,dy:0,drag:false,ly:p.clientY,lt:performance.now(),v:0,h:sh.getBoundingClientRect().height}},{passive:true});
+  document.addEventListener('touchmove',function(e){if(!S)return;var p=e.touches[0],dy=p.clientY-S.y0,dx=p.clientX-S.x0;
+    if(!S.drag){if(Math.abs(dx)>Math.abs(dy)||dy<0){S=null;return}if(dy<8)return;
+      if(!paneAtTop(e.target,S.sh)){S=null;return}S.drag=true;S.sh.style.transition='none';$('#scrim').style.transition='none'}
+    if(e.cancelable)e.preventDefault();
+    var now=performance.now(),dt=now-S.lt;if(dt>0)S.v=(p.clientY-S.ly)/dt;S.ly=p.clientY;S.lt=now;
+    S.dy=Math.max(0,dy);S.sh.style.transform='translateY('+S.dy+'px)';$('#scrim').style.opacity=String(Math.max(0,1-S.dy/(S.h*.9)))},{passive:false});
+  function end(){if(!S)return;var s=S;S=null;if(!s.drag)return;var sh=s.sh,commit=s.dy>Math.min(220,s.h*.33)||(s.v>.6&&s.dy>30);
+    sh.style.transition='';$('#scrim').style.transition='';
+    if(commit){haptic('light');sh.style.transform='';$('#scrim').style.opacity='';closeIt(sh)}
+    else{sh.style.transition='transform .34s cubic-bezier(.32,.72,0,1)';sh.style.transform='';$('#scrim').style.opacity='';setTimeout(function(){sh.style.transition=''},360)}}
+  document.addEventListener('touchend',end,{passive:true});document.addEventListener('touchcancel',end,{passive:true});
+})();
 /* swipe down on the dictionary sheet's header to dismiss it, the same native-feeling drag the
    sidebar and bottom-toolbar gestures above use — scoped to the header bar only (not the whole
    sheet) so dragging there never fights scrolling the results list or typing in the search field. */
