@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>try{if((window.desktop&&window.desktop.devBuild)||localStorage.getItem('songpad:devbuild')==='1')document.documentElement.classList.add('devbuild')}catch(e){}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>*[demo]</title>
@@ -17,6 +18,9 @@
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000;--row:rgba(255,255,255,.1);--ink:#fff;--mute:rgba(235,235,245,.6);--sep:rgba(84,84,88,.6);--tint:#F2F2F7;--ontint:#000;--cv1:#3A3A3E;--cv2:#2A2A2D;--cvln:rgba(235,235,245,.55);--cvhl:rgba(255,255,255,.08);--fill:rgba(118,118,128,.28);--segon:#636366;--red:#FF453A;--sheet:rgba(28,28,30,.86);--gl:rgba(58,58,62,.58);--ring:rgba(255,255,255,.09);--sh:rgba(0,0,0,.7);--sh2:rgba(0,0,0,.45);--hl:rgba(255,255,255,.14);--hl2:rgba(255,255,255,.03);--spec:rgba(255,255,255,.06);--bgz:rgba(0,0,0,0);--proclr:#F2F2F7;--proon:#000;--protagbg:rgba(255,255,255,.16)}}
 :root[data-theme="dark"]{--bg:#000;--row:rgba(255,255,255,.1);--ink:#fff;--mute:rgba(235,235,245,.6);--sep:rgba(84,84,88,.6);--tint:#F2F2F7;--ontint:#000;--cv1:#3A3A3E;--cv2:#2A2A2D;--cvln:rgba(235,235,245,.55);--cvhl:rgba(255,255,255,.08);--fill:rgba(118,118,128,.28);--segon:#636366;--red:#FF453A;--sheet:rgba(28,28,30,.86);--gl:rgba(58,58,62,.58);--ring:rgba(255,255,255,.09);--sh:rgba(0,0,0,.7);--sh2:rgba(0,0,0,.45);--hl:rgba(255,255,255,.14);--hl2:rgba(255,255,255,.03);--spec:rgba(255,255,255,.06);--bgz:rgba(0,0,0,0);--proclr:#F2F2F7;--proon:#000;--protagbg:rgba(255,255,255,.16)}
+/* [developer] builds: the Graphite theme, so the dev app is never mistaken for the public one (both light and dark mode) */
+html.devbuild:root,html.devbuild:root:not([data-theme="light"]),html.devbuild:root[data-theme]{--bg:#5B5B61;--row:rgba(255,255,255,.09);--ink:#fff;--mute:rgba(255,255,255,.66);--sep:rgba(255,255,255,.16);--tint:#fff;--ontint:#000;--cv1:#6D6D73;--cv2:#525258;--cvln:rgba(255,255,255,.5);--cvhl:rgba(255,255,255,.1);--fill:rgba(255,255,255,.13);--segon:#7C7C82;--sheet:rgba(74,74,80,.94);--gl:rgba(98,98,104,.7);--ring:rgba(255,255,255,.1);--sh:rgba(0,0,0,.35);--sh2:rgba(0,0,0,.2);--hl:rgba(255,255,255,.14);--hl2:rgba(255,255,255,.04);--spec:rgba(255,255,255,.08);--bgz:rgba(91,91,97,0);--proclr:#fff;--proon:#000;--protagbg:rgba(255,255,255,.16);color-scheme:dark;background:#5B5B61}
+html.devbuild .devpill{background:#fff;color:#000}html.devbuild input::placeholder,html.devbuild textarea::placeholder{color:rgba(255,255,255,.55)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{touch-action:manipulation}
 /* touch-action doesn't reach inside scrolling panes (each starts its own), so double-tap zoom came back in
@@ -16010,7 +16014,7 @@ $('#sfolder').onclick=function(){createFolder(true)};
 var DEV_BUILD=!!(window.desktop&&window.desktop.devBuild),AUTH_SCHEME=(window.desktop&&window.desktop.authScheme)||'demo';
 $('#svault').onclick=function(){openIdeas()};$('#sbeta').onclick=openBetaRequests;$('#done10').onclick=function(){sheet(false)};$('#sadm').onclick=openAdmin;$('#done11').onclick=function(){sheet(false)};
 /* the dev build: [developer] on the Mac (window.desktop.devBuild) or on iPhone (app ID ending in .dev, read below) */
-function devBuildStart(){if(devBuildStart.on)return;devBuildStart.on=1;DEV_BUILD=true;document.body.classList.add('devbuild');
+function devBuildStart(){if(devBuildStart.on)return;devBuildStart.on=1;DEV_BUILD=true;document.body.classList.add('devbuild');document.documentElement.classList.add('devbuild');try{localStorage.setItem('songpad:devbuild','1')}catch(e){}
   setTimeout(function(){paintBetaSide();paintAdmSide();if(BETA.admin){betaAdminLoad(true);admLoadOverview(true)}if(typeof renderList==='function'&&!$('#q').value)renderList()},0);['#logo','#vList .lhead h1'].forEach(function(q){var lg=$(q);if(lg&&!lg.querySelector('.devpill'))lg.insertAdjacentHTML('beforeend','<span class="devpill">DEV</span>')});try{document.title='[developer]'}catch(e){}
   /* new requests show up without reopening the app */
   setInterval(function(){if(BETA.admin&&!document.hidden){betaAdminLoad(true);admLoadOverview(true)}},120000);document.addEventListener('visibilitychange',function(){if(!document.hidden&&BETA.admin){betaAdminLoad(true);admLoadOverview(true)}})}
