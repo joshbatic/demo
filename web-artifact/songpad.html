@@ -347,6 +347,16 @@ body.side #side{transform:none}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #authgate .go.ag-apple{background:#fff;color:#000}:root:not([data-theme="light"]) #authgate #ag-google{background:#2C2C2E;color:#fff}}
 :root[data-theme="dark"] #authgate .go.ag-apple{background:#fff;color:#000}:root[data-theme="dark"] #authgate #ag-google{background:#2C2C2E;color:#fff}
 #authgate .note{margin-top:16px;font-size:12.5px}
+#aiask{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.32);opacity:0;transition:opacity .2s}
+#aiask.on{opacity:1}
+#aiask .aiask{width:100%;max-width:340px;background:var(--bg);color:var(--ink);border-radius:22px;padding:22px 20px 14px;box-shadow:0 20px 60px rgba(0,0,0,.3);transform:scale(.96);transition:transform .2s cubic-bezier(.32,.72,0,1);text-align:center}
+#aiask.on .aiask{transform:none}
+#aiask b{display:block;font-size:18px;margin-bottom:8px}
+#aiask p{font-size:14.5px;line-height:1.45;margin:0 0 10px;color:var(--ink)}
+#aiask .aiask-s{font-size:12.5px;color:var(--mute)}#aiask .aiask-s a{color:inherit;text-decoration:underline}
+#aiask button{display:block;width:100%;padding:13px;border-radius:999px;font-size:16px;font-weight:600;margin-top:8px}
+#aiask .go{background:var(--tint);color:var(--ontint)}
+#aiask #aiask-n{background:none;color:var(--mute)}
 #authgate .aglegal{margin-top:10px;font-size:11.5px;opacity:.75}#authgate .aglegal a{color:inherit;text-decoration:underline}#authgate .note:empty{display:none}
 #authgate .devlink{margin-top:18px;background:none;border:0;color:var(--mute);font-size:13px;text-decoration:underline;padding:4px}
 #authgate .devrow{display:none;margin-top:12px;gap:8px}
@@ -16057,7 +16067,33 @@ function parseAIJson(text){
   if(s>=0&&en>s){try{return JSON.parse(text.slice(s,en+1))}catch(e){}}
   throw new Error('Could not parse response as JSON');
 }
-function aiJson(prompt,opts){
+/* ---------- permission before anything goes to an AI provider (App Store guideline 5.1.2(i)) ----------
+   The first time someone taps an AI feature, a card names the provider and what's sent, with Allow / Not Now.
+   Background requests (the muse learning your style, judging candidates) never ask: they only run once allowed.
+   Turn it on or off any time in Account › AI Features. Stored per device. */
+var AI_ASK=null,AI_TAP=0;
+['pointerup','keydown'].forEach(function(ev){document.addEventListener(ev,function(){AI_TAP=Date.now()},true)});
+function aiOk(){try{return localStorage.getItem('songpad:aiconsent')||''}catch(e){return''}}
+function aiSet(v){try{if(v)localStorage.setItem('songpad:aiconsent',v);else localStorage.removeItem('songpad:aiconsent')}catch(e){}}
+function aiWho(){return sampleFn&&!oaiReady?'Anthropic (Claude)':'OpenAI'}
+function aiOffErr(){var e=new Error('AI features are off. Turn them on in Account › AI Features.');e.aiOff=true;return e}
+function aiConsent(ask){var v=aiOk();if(v==='yes')return Promise.resolve();
+  if(v==='no'){if(ask)toast('AI features are off. Turn them on in Account › AI Features.');return Promise.reject(aiOffErr())}
+  if(!ask&&Date.now()-AI_TAP>2500)return Promise.reject(aiOffErr());
+  if(AI_ASK)return AI_ASK;
+  AI_ASK=new Promise(function(res,rej){
+    var ov=document.createElement('div');ov.id='aiask';ov.setAttribute('role','alertdialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-labelledby','aiask-t');
+    ov.innerHTML='<div class="aiask"><b id="aiask-t">Use AI features?</b><p></p><p class="aiask-s">Nothing is sent unless you allow it. <a href="#" data-doc="privacy">Privacy Policy</a></p><button class="go" id="aiask-y">Allow</button><button id="aiask-n">Not Now</button></div>';
+    ov.querySelector('p').textContent='Lines, Muse, Rate, Writing voice and lyric sync send what you’re working on (your lyrics, the song brief and, for lyric sync, a low-quality copy of the audio) to '+aiWho()+' to write suggestions. It’s used only to answer each request, not to train models.';
+    var done=function(ok){ov.classList.remove('on');setTimeout(function(){ov.remove()},220);AI_ASK=null;
+      if(ok){aiSet('yes');res()}else{aiSet('no');toast('AI features are off. Turn them on any time in Account › AI Features.');rej(aiOffErr())}};
+    ov.querySelector('#aiask-y').onclick=function(){done(true)};ov.querySelector('#aiask-n').onclick=function(){done(false)};
+    ov.querySelector('[data-doc]').onclick=function(e){e.preventDefault();openDoc('privacy')};
+    try{document.activeElement&&document.activeElement.blur&&document.activeElement.blur()}catch(e){}
+    document.body.appendChild(ov);requestAnimationFrame(function(){ov.classList.add('on')})});
+  return AI_ASK}
+function aiJson(prompt,opts){return aiConsent().then(function(){return aiJson0(prompt,opts)},function(e){if(Date.now()-AI_TAP<2500&&aiOk()==='no'&&!aiJson.told){aiJson.told=1;setTimeout(function(){aiJson.told=0},4000);toast(e.message)}throw e})}
+function aiJson0(prompt,opts){
   opts=opts||{};
   if(oaiReady&&window.desktop&&window.desktop.aiJson){
     return window.desktop.aiJson(prompt,opts.modelTier).then(function(r){
@@ -17887,6 +17923,8 @@ $('#ag-google').onclick=function(){$('#ag-note').textContent='';signInGoogle(tru
 $('#ag-apple').onclick=function(){$('#ag-note').textContent='';signInApple(true)};
 setTimeout(function(){if(!AUTH_USER&&!sbClient())$('#ag-note').textContent='Couldn’t reach the sign-in service. Check your connection and try again.'},4000);
 document.querySelectorAll('#authgate [data-doc]').forEach(function(x){x.onclick=function(e){e.preventDefault();openDoc(x.dataset.doc)}});
+/* Dev Mode is for testing on the Mac and web; the iPhone app (TestFlight / App Store) doesn't show it */
+(function(){try{var C=window.Capacitor;if(C&&C.isNativePlatform&&C.isNativePlatform()){$('#ag-devlink').style.display='none';$('#ag-devrow').style.display='none'}}catch(e){}})();
 $('#ag-devlink').onclick=function(){var r=$('#ag-devrow');r.classList.toggle('on');if(r.classList.contains('on'))$('#ag-devpw').focus()};
 function tryDevMode(){var v=$('#ag-devpw').value;if(v==='demo'){$('#ag-devpw').value='';setDevMode(true);toast('Dev Mode — local testing only, nothing syncs')}else{var ip=$('#ag-devpw');ip.classList.remove('shake');void ip.offsetWidth;ip.classList.add('shake')}}
 $('#ag-devgo').onclick=tryDevMode;$('#ag-devpw').onkeydown=function(e){if(e.key==='Enter')tryDevMode()};
@@ -18140,6 +18178,9 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
   g3.appendChild(accCell({tile:ACC_ICO.spark,label:'Forget What Rate Learned About My Style',onclick:function(){var n=0;songs.forEach(function(s){if(s.rating&&s.rating.personality){s.rating.personality='';s.updated=Date.now();n++}});if(n)save();toast('Rate will learn your style fresh')}}));
   if(AUTH_USER&&!DEV_MODE){if(BLOCKS===null||!renderAccount.bl||Date.now()-renderAccount.bl>15000){renderAccount.bl=Date.now();loadBlocks()}
     if(BLOCKS&&BLOCKS.length){var gb=accSection(o,'Blocked');BLOCKS.forEach(function(b){gb.appendChild(accCell({label:b.name,value:'Unblock',valueCls:'add',onclick:function(){unblockUser(b)}}))})}}
+  var gai=accSection(o,'AI Features');
+  gai.appendChild(accCell({tile:ACC_ICO.spark,label:'Send to '+aiWho(),value:aiOk()==='yes'?'On':'Off',valueCls:aiOk()==='yes'?'':'add',onclick:function(){
+    if(aiOk()==='yes'){aiSet('no');toast('AI features are off');renderAccount()}else{aiSet('');aiConsent(true).then(function(){toast('AI features are on');renderAccount()},function(){renderAccount()})}}}));
   var gl=accSection(o,'About');
   gl.appendChild(accCell({label:'Privacy Policy',chev:true,onclick:function(){openDoc('privacy')}}));
   gl.appendChild(accCell({label:'Terms of Service',chev:true,onclick:function(){openDoc('terms')}}));
@@ -18537,6 +18578,7 @@ function fnErr(err){var ctx=err&&err.context;
   var m=(err&&err.message)||'';return Promise.resolve(/failed to send|fetch/i.test(m)?'check your connection and try again.':m)}
 function runSync(){var song=cur,a=audCur(song);if(!song||!a)return;
   if(!isPro())return upsell('audio');
+  if(aiOk()!=='yes')return aiConsent(true).then(runSync,function(){});
   if(!sfCloud())return toast(DEV_MODE?'Lyric sync needs a signed-in account.':'Sign in to sync lyrics.');
   var lines=syncLinesOf(song.lyrics);if(lines.length<2)return toast('Write the lyrics first, then sync them to the audio.');
   if(a.dur>720)return toast('That track is too long to sync (over 12 minutes).');
