@@ -5,23 +5,11 @@
 -- builds up even when no app is open. Rows older than 30 days are removed by the function.
 --
 -- Setup (safe to run again):
---   1. Run this file.
---   2. Deploy supabase/functions/status as a function named "status", and add the secret
---      STATUS_CRON_TOKEN = any long random text (e.g. from a password generator).
---   3. Database › Extensions: turn on pg_cron and pg_net.
---   4. Run the schedule below, with your token pasted in place of PASTE-YOUR-STATUS_CRON_TOKEN:
+--   1. Database › Extensions: turn on pg_cron and pg_net.
+--   2. Run this file. It makes a random token in Supabase Vault and schedules the check every 5 minutes.
+--   3. Deploy supabase/functions/status as a function named "status". No secrets to add.
 --
---   select cron.schedule('service-status', '*/5 * * * *', $$
---     select net.http_post(
---       url := 'https://cygfgurzvmbtcegkpnss.supabase.co/functions/v1/status',
---       headers := jsonb_build_object(
---         'Content-Type', 'application/json',
---         'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5Z2ZndXJ6dm1idGNlZ2twbnNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODk0MTIsImV4cCI6MjEwNzI2NTQxMn0.kJhE1V8V_W1BIuu0iSVaLqa5GyxeOrUy0lrqylq4_Cs',
---         'x-cron-token', 'PASTE-YOUR-STATUS_CRON_TOKEN'),
---       body := '{"action":"cron"}'::jsonb)
---   $$);
---
---   (To stop it later:  select cron.unschedule('service-status');)
+--   (To stop the schedule:  select cron.unschedule('service-status');)
 
 create table if not exists public.service_checks (
   id      bigserial primary key,
@@ -76,5 +64,39 @@ end $$;
 revoke execute on function public.admin_status() from public, anon;
 grant execute on function public.admin_status() to authenticated;
 
--- make the API see the new function straight away
+-- The schedule's password: a random token kept in Supabase Vault. The status function reads it with the
+-- service role key and only runs for a request carrying it (or for a signed-in admin).
+do $$ begin
+  if not exists (select 1 from vault.secrets where name = 'status_cron_token') then
+    perform vault.create_secret(encode(extensions.gen_random_bytes(32), 'hex'), 'status_cron_token', 'Lets the 5-minute schedule run the status function');
+  end if;
+end $$;
+
+create or replace function public._status_cron_token() returns text
+language sql stable security definer set search_path = public as $$
+  select decrypted_secret from vault.decrypted_secrets where name = 'status_cron_token' limit 1
+$$;
+revoke execute on function public._status_cron_token() from public, anon, authenticated;
+grant execute on function public._status_cron_token() to service_role;
+
+-- Every 5 minutes (needs pg_cron and pg_net). The anon key is public (it's in the app); the token is what lets it in.
+do $$ begin
+  if exists (select 1 from pg_extension where extname = 'pg_cron') and exists (select 1 from pg_extension where extname = 'pg_net') then
+    perform cron.unschedule(jobid) from cron.job where jobname = 'service-status';
+    perform cron.schedule('service-status', '*/5 * * * *', $job$
+      select net.http_post(
+        url := 'https://cygfgurzvmbtcegkpnss.supabase.co/functions/v1/status',
+        headers := jsonb_build_object(
+          'Content-Type', 'application/json',
+          'Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5Z2ZndXJ6dm1idGNlZ2twbnNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2ODk0MTIsImV4cCI6MjEwNzI2NTQxMn0.kJhE1V8V_W1BIuu0iSVaLqa5GyxeOrUy0lrqylq4_Cs',
+          'x-cron-token', (select decrypted_secret from vault.decrypted_secrets where name = 'status_cron_token' limit 1)),
+        body := '{"action":"cron"}'::jsonb,
+        timeout_milliseconds := 30000)
+    $job$);
+  else
+    raise notice 'Turn on pg_cron and pg_net (Database › Extensions), then run this file again to start the 5-minute schedule.';
+  end if;
+end $$;
+
+-- make the API see the new functions straight away
 notify pgrst, 'reload schema';
