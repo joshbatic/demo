@@ -121,7 +121,7 @@ begin
   update _au set beta = 'admin' where lower(email) in (select email from public.app_admins);
   update _au set beta = case when gate then 'none' else 'open' end where beta is null;
   -- plan: 'pro', 'beta' or 'free', decided by plans.sql (plan_for); 'free' before plans.sql has been run
-  if to_regprocedure('public.plan_for(uuid)') is not null then execute 'update _au set plan = public.plan_for(id)'; end if;
+  if to_regprocedure('public.plan_for(uuid)') is not null then execute 'update _au set plan = public.plan_for(id) where id is not null'; end if;  -- Supabase refuses an UPDATE with no WHERE
   update _au set plan = 'free' where plan is null;
   select coalesce(jsonb_agg(to_jsonb(x) order by x.created_at desc), '[]'::jsonb) into r
     from (select * from _au
