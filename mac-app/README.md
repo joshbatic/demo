@@ -21,6 +21,12 @@ with everything, including chords, notes, melodies, versions and ratings.
     npm run package
     codesign --force --deep --sign - "dist/[demo]-darwin-arm64/[demo].app"
 
+## Build a download for your website
+    bash scripts/build-download.sh
+Makes `dist/demo-<version>-mac.dmg` (one app for Apple Silicon and Intel Macs). Without an Apple Developer ID
+people approve it once in System Settings › Privacy & Security › Open Anyway; with one, the script signs and
+notarises it so it opens cleanly. The steps are at the top of the script.
+
 ## Not in this version
 Claude features (Lines, Rate, ranking, Unstick me's Read/Four doors/Flip it) and
 collaboration need claude.ai or your own server, so they're hidden here.
