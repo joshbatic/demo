@@ -83,6 +83,14 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 #adm .aset input{width:90px;padding:8px 10px;border-radius:10px;border:.5px solid var(--sep);background:var(--bg);color:var(--ink);font-size:16px;text-align:right}
 #adm .alink{display:block;width:100%;text-align:left;padding:13px 16px;font-size:15.5px;color:var(--ink);background:none;position:relative}#adm .alink+.alink::before{content:'';position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--sep)}
 #adm .anote{font-size:12.5px;color:var(--mute);padding:10px 4px 0;line-height:1.45}
+#adm .srow{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;position:relative}#adm .srow+.srow::before{content:'';position:absolute;top:0;left:40px;right:0;border-top:.5px solid var(--sep)}
+#adm .sdot{width:12px;height:12px;border-radius:6px;flex:none;margin-top:4px;background:#8E8E93}#adm .sdot.up{background:#34C759}#adm .sdot.slow{background:#FF9F0A}#adm .sdot.down{background:#FF3B30}
+#adm .srow .sx{flex:1;min-width:0}#adm .srow b{display:block;font-size:15.5px}#adm .srow .am{font-size:13px;color:var(--mute);margin-top:2px;overflow-wrap:anywhere}
+#adm .srow .sd{font-size:13px;margin-top:3px;color:#d92d20;overflow-wrap:anywhere}#adm .srow .sd.slow{color:#b26a00}
+#adm .sbars{display:flex;gap:2px;margin-top:8px;height:16px}#adm .sbars i{flex:1;border-radius:2px;background:var(--fill)}
+#adm .sbars i.up{background:#34C759;opacity:.75}#adm .sbars i.slow{background:#FF9F0A}#adm .sbars i.down{background:#FF3B30}#adm .sbars i.unknown{background:#8E8E93;opacity:.4}
+#adm .shead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0 14px;padding:14px 16px;border-radius:16px;background:var(--row);box-shadow:0 0 0 .5px var(--ring)}
+#adm .shead b{font-size:17px}#adm .shead span{display:block;font-size:13px;color:var(--mute);margin-top:2px}#adm .shead button{padding:9px 14px;border-radius:10px;font-size:14px;font-weight:600;background:var(--tint);color:var(--ontint);flex:none}#adm .shead button:disabled{opacity:.5}
 #adm pre{white-space:pre-wrap;font:12px/1.45 ui-monospace,Menlo,monospace;color:var(--mute);margin:8px 0 0;max-height:160px;overflow:auto}#sbeta{flex:none;margin:-4px 0 8px}#sbeta em{font-style:normal;margin-left:auto}#sbeta em:empty{display:none}#sbeta em{min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:#FF3B30;color:#fff;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
 #brq{padding:4px 16px 8px}
 #vList .lhead h1 .devpill{height:24px;font-size:13px;padding:0 10px;margin-left:10px;transform:translateY(-4px)}
@@ -17638,29 +17646,38 @@ function betaDecide(rq,approve){var c=sbClient();if(!c||BETA.busy[rq.id])return;
   .catch(function(e){delete BETA.busy[rq.id];renderAccount();toast('Couldn’t update the request: '+((e&&e.message)||'try again'))})}
 function betaRefreshViews(){paintBetaSide();paintAdmSide();if(DEV_BUILD&&typeof renderList==='function'&&!$('#q').value)renderList();var s10=$('#sheet10');if(s10&&s10.classList.contains('on'))renderBetaRequests()}
 /* ---------- Admin ([developer] only): users, errors and settings (supabase/admin-tools.sql) ---------- */
-var ADM={tab:'overview',ov:null,users:null,q:'',errs:null,hours:24,open:null,uerr:{},busy:{},t:0,miss:false};
+var ADM={st:null,stBusy:false,tab:'overview',ov:null,users:null,q:'',errs:null,hours:24,open:null,uerr:{},busy:{},t:0,miss:false};
 var ADM_ICO='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>';
 var SB_DASH='https://supabase.com/dashboard/project/cygfgurzvmbtcegkpnss';
+/* service status (supabase/service-status.sql + the status function): names and groups for the Status tab */
+var SVC=[['Your app',[['website','Website','hellodemo.app'],['share','Share pages','listen.hellodemo.app'],['auth','Sign-in','Supabase Auth'],['database','Database','Supabase'],['storage','File storage','Supabase Storage'],['fn:ai-proxy','AI function','ai-proxy'],['fn:lyric-sync','Lyric sync function','lyric-sync'],['fn:beta','Beta function','beta']]],
+  ['Your providers',[['openai','OpenAI','API key works'],['resend','Resend','email key works'],['datamuse','Datamuse','rhymes']]],
+  ['Platform status',[['supabase-status','Supabase','status.supabase.com'],['vercel-status','Vercel','share-page hosting'],['github-status','GitHub','website hosting'],['openai-status','OpenAI','status.openai.com'],['apple','Apple developer','TestFlight, App Store Connect']]]];
+function svcDown(){var l=(ADM.st&&ADM.st.services)||[];return{down:l.filter(function(x){return x.ok==='down'}).length,slow:l.filter(function(x){return x.ok==='slow'}).length,n:l.length}}
+function admLoadStatus(){admRpc('admin_status').then(function(r){ADM.st=r||{services:[]};ADM.stMiss=false;paintAdmSide();renderAdmin()},function(){ADM.stMiss=true;renderAdmin()})}
+function admCheckNow(){var c=sbClient();if(!c||ADM.stBusy)return;ADM.stBusy=true;renderAdmin();
+  c.functions.invoke('status',{body:{action:'check'}}).then(function(r){ADM.stBusy=false;if(r.error||!r.data||!r.data.results){toast('Couldn’t run the checks. Is the status function deployed?');renderAdmin();return}
+    var d=r.data.results.filter(function(x){return x.ok==='down'}).length;toast(d?d+' service'+(d===1?' is':'s are')+' down':'Everything’s up');admLoadStatus()},function(){ADM.stBusy=false;toast('Couldn’t reach the status function');renderAdmin()})}
 function admAgo(t){if(!t)return'never';var s=(Date.now()-new Date(t).getTime())/1000;if(s<90)return'just now';if(s<3600)return Math.round(s/60)+' min ago';if(s<86400)return Math.round(s/3600)+' h ago';if(s<86400*30)return Math.round(s/86400)+' d ago';return new Date(t).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})}
-function admSub(){if(!AUTH_USER||!BETA.admin)return'Users, errors and settings';var o=ADM.ov;if(!o)return'Loading…';return(o.users||0)+' users · '+(o.new_today||0)+' new today'+(o.errors_24h?' · '+o.errors_24h+' errors today':'')}
-function paintAdmSide(){var b=$('#sadm');if(!b)return;b.hidden=!DEV_BUILD;if(!DEV_BUILD)return;var th=b.querySelector('.ath');if(th&&!th.innerHTML)th.innerHTML=ADM_ICO;$('#sadmsub').textContent=admSub();$('#sadmct').textContent=BETA.admin&&ADM.ov&&ADM.ov.errors_24h?String(ADM.ov.errors_24h):''}
+function admSub(){if(!AUTH_USER||!BETA.admin)return'Users, errors and settings';var o=ADM.ov;if(!o)return'Loading…';var sd=svcDown();return(sd.down?sd.down+(sd.down===1?' service down · ':' services down · '):'')+(o.users||0)+' users · '+(o.new_today||0)+' new today'+(o.errors_24h?' · '+o.errors_24h+' errors today':'')}
+function paintAdmSide(){var b=$('#sadm');if(!b)return;b.hidden=!DEV_BUILD;if(!DEV_BUILD)return;var th=b.querySelector('.ath');if(th&&!th.innerHTML)th.innerHTML=ADM_ICO;$('#sadmsub').textContent=admSub();var sd=svcDown();$('#sadmct').textContent=BETA.admin?(sd.down?String(sd.down):ADM.ov&&ADM.ov.errors_24h?String(ADM.ov.errors_24h):''):''}
 function admCard(){var b=document.createElement('div');b.className='song irow0 brow0';b.setAttribute('role','button');b.tabIndex=0;b.setAttribute('aria-label','Admin');
   b.innerHTML='<i class="th ath">'+ADM_ICO+'</i><div class="tx"><b>Admin</b><span></span><em></em></div>';b.querySelector('span').textContent=admSub();
   b.onclick=openAdmin;b.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openAdmin()}};return b}
 function admRpc(fn,args){var c=sbClient();if(!c)return Promise.reject(new Error('Not connected'));return c.rpc(fn,args||{}).then(function(r){if(r.error){if(/admin_|function .* does not exist|PGRST202/i.test(r.error.message||'')&&!/Admins only/.test(r.error.message)){ADM.miss=true}throw r.error}return r.data})}
 function admLoadOverview(force){if(!BETA.admin)return;if(!force&&ADM.ov&&Date.now()-ADM.t<30000)return;ADM.t=Date.now();
-  admRpc('admin_overview').then(function(o){ADM.ov=o;ADM.miss=false;paintAdmSide();if(DEV_BUILD&&!$('#q').value)renderList();renderAdmin()},function(){renderAdmin()})}
+  admLoadStatus();admRpc('admin_overview').then(function(o){ADM.ov=o;ADM.miss=false;paintAdmSide();if(DEV_BUILD&&!$('#q').value)renderList();renderAdmin()},function(){renderAdmin()})}
 function admLoadUsers(){admRpc('admin_users',{p_q:ADM.q,p_limit:200}).then(function(u){ADM.users=u||[];renderAdmin()},function(e){ADM.users=[];renderAdmin();if(!ADM.miss)toast('Couldn’t load users: '+(e.message||e))})}
 function admLoadErrors(){admRpc('admin_errors',{p_hours:ADM.hours}).then(function(r){ADM.errs=r||{groups:[],latest:[]};renderAdmin()},function(){ADM.errs={groups:[],latest:[]};renderAdmin()})}
 function openAdmin(){if(!AUTH_USER){toast('Sign in as dev@hellodemo.app to use Admin');return}if(!BETA.admin){toast('Admin is only for the admin account (dev@hellodemo.app)');return}
   renderAdmin();sheet(true,'sheet11');admLoadOverview(true);if(ADM.tab==='users')admLoadUsers();if(ADM.tab==='errors')admLoadErrors()}
-function admTab(t){ADM.tab=t;renderAdmin();if(t==='overview')admLoadOverview(true);if(t==='users')admLoadUsers();if(t==='errors')admLoadErrors()}
+function admTab(t){ADM.tab=t;renderAdmin();if(t==='status')admLoadStatus();if(t==='overview')admLoadOverview(true);if(t==='users')admLoadUsers();if(t==='errors')admLoadErrors()}
 function admStat(g,num,label,extra,warn,bar){var d=document.createElement('div');d.className='astat'+(warn?' warn':'');d.innerHTML='<b></b><span></span>';d.querySelector('b').textContent=num;d.querySelector('span').textContent=label;
   if(bar!=null){var br=document.createElement('div');br.className='abar';br.innerHTML='<i></i>';br.firstChild.style.width=Math.max(2,Math.min(100,bar))+'%';d.appendChild(br)}
   if(extra){var e=document.createElement('em');e.textContent=extra;d.appendChild(e)}g.appendChild(d)}
 function admCopy(t,what){try{navigator.clipboard.writeText(t).then(function(){toast('Copied '+(what||''))},function(){})}catch(e){}}
 function renderAdmin(){var o=$('#adm');if(!o)return;o.innerHTML='';
-  var seg=document.createElement('div');seg.className='bseg';[['overview','Overview'],['users','Users'],['errors','Errors'],['settings','Settings']].forEach(function(t){var b=document.createElement('button');b.className=ADM.tab===t[0]?'on':'';b.textContent=t[1];b.onclick=function(){admTab(t[0])};seg.appendChild(b)});o.appendChild(seg);
+  var seg=document.createElement('div');seg.className='bseg';[['overview','Overview'],['status','Status'],['users','Users'],['errors','Errors'],['settings','Settings']].forEach(function(t){var b=document.createElement('button');b.className=ADM.tab===t[0]?'on':'';b.textContent=t[1];b.onclick=function(){admTab(t[0])};seg.appendChild(b)});o.appendChild(seg);
   if(ADM.miss){var m=document.createElement('div');m.className='aempty';m.textContent='Run supabase/admin-tools.sql in Supabase › SQL Editor to turn on the admin tools.';o.appendChild(m);return}
   var ov=ADM.ov||{},lab=function(t){var l=document.createElement('div');l.className='alab';l.textContent=t;o.appendChild(l)};
   if(ADM.tab==='overview'){
@@ -17673,11 +17690,29 @@ function renderAdmin(){var o=$('#adm');if(!o)return;o.innerHTML='';
     var plan=1073741824;admStat(g,sfSize(ov.storage_bytes||0)||'0 KB','Storage used','of 1 GB on the free plan'+(ov.storage_mb!=null?' · '+ov.storage_mb+' MB each':''),(ov.storage_bytes||0)>plan*.8,(ov.storage_bytes||0)/plan*100);
     if(ov.ai_units_today!=null)admStat(g,ov.ai_units_today,'AI units today',(ov.ai_users_today||0)+' people · '+(ov.sync_today||0)+' syncs');
     if(ov.errors_24h!=null)admStat(g,ov.errors_24h,'Errors today',(ov.error_users_24h||0)+' people affected',ov.errors_24h>0);
+    if(ADM.st&&ADM.st.services&&ADM.st.services.length){var sd=svcDown();admStat(g,sd.down?sd.down+' down':sd.slow?sd.slow+' slow':'All up','Services',sd.n+' checked · '+admAgo(ADM.st.checked_at),sd.down>0)}
     if(ov.songs!=null)admStat(g,ov.songs,'Songs',(ov.ideas||0)+' ideas · '+(ov.share_links||0)+' share links · '+(ov.shared_songs||0)+' co-written');
     var nt=document.createElement('div');nt.className='anote';nt.textContent='Updated '+admAgo(ov.at)+'. Day counts reset at midnight Adelaide time; AI counts at midnight UTC.';o.appendChild(nt);
     lab('Shortcuts');var bx=document.createElement('div');bx.className='abox';o.appendChild(bx);
     [['Beta Requests',function(){sheet(false);setTimeout(openBetaRequests,200)}],['Supabase dashboard',function(){openLink(SB_DASH)}],['Supabase users',function(){openLink(SB_DASH+'/auth/users')}],['Edge Function logs',function(){openLink(SB_DASH+'/functions')}],['Resend emails',function(){openLink('https://resend.com/emails')}],['OpenAI usage',function(){openLink('https://platform.openai.com/usage')}]].forEach(function(x){var b=document.createElement('button');b.className='alink';b.textContent=x[0];b.onclick=x[1];bx.appendChild(b)});
     return}
+  if(ADM.tab==='status'){
+    if(ADM.stMiss){var m2=document.createElement('div');m2.className='aempty';m2.textContent='Run supabase/service-status.sql and deploy the status function to start tracking your services.';o.appendChild(m2);return}
+    var st=ADM.st,list=(st&&st.services)||[],byId={};list.forEach(function(x){byId[x.service]=x});var sd=svcDown();
+    var hd=document.createElement('div');hd.className='shead';hd.innerHTML='<div><b></b><span></span></div>';
+    hd.querySelector('b').textContent=!st?'Loading…':!list.length?'No checks yet':sd.down?sd.down+(sd.down===1?' service down':' services down'):sd.slow?'Up, '+sd.slow+' slow':'Everything’s up';
+    hd.querySelector('span').textContent=list.length?'Checked '+admAgo(st.checked_at)+' · every 5 minutes once the schedule is on':'Press Check Now, and set up the 5-minute schedule (supabase/service-status.sql)';
+    var cn=document.createElement('button');cn.textContent=ADM.stBusy?'Checking…':'Check Now';cn.disabled=ADM.stBusy;cn.onclick=admCheckNow;hd.appendChild(cn);o.appendChild(hd);
+    if(!list.length)return;
+    SVC.forEach(function(gr){lab(gr[0]);var bx=document.createElement('div');bx.className='abox';o.appendChild(bx);
+      gr[1].forEach(function(sv){var x=byId[sv[0]],r=document.createElement('div');r.className='srow';
+        r.innerHTML='<i class="sdot"></i><div class="sx"><b></b><div class="am"></div></div>';if(x)r.querySelector('.sdot').classList.add(x.ok);
+        r.querySelector('b').textContent=sv[1];
+        r.querySelector('.am').textContent=x?[sv[2],{up:'Up',slow:'Slow',down:'Down',unknown:'Unknown'}[x.ok],x.ms!=null&&x.ok!=='unknown'?x.ms+' ms':'',x.up_24h!=null?x.up_24h+'% today':'',x.up_7d!=null?x.up_7d+'% 7 days':'',x.last_down&&x.ok!=='down'?'last down '+admAgo(x.last_down):''].filter(Boolean).join(' · '):sv[2]+' · not checked yet';
+        if(x&&x.detail&&x.ok!=='up'){var dd=document.createElement('div');dd.className='sd'+(x.ok==='slow'?' slow':'');dd.textContent=x.detail;r.querySelector('.sx').appendChild(dd)}
+        if(x&&x.bars){var bars=document.createElement('div');bars.className='sbars';bars.title='Last 24 hours, oldest on the left';x.bars.forEach(function(bv){var i=document.createElement('i');if(bv)i.className=bv;bars.appendChild(i)});r.querySelector('.sx').appendChild(bars)}
+        bx.appendChild(r)})});
+    var n5=document.createElement('div');n5.className='anote';n5.textContent='Bars show the last 24 hours in half-hour steps, oldest on the left. "Platform status" comes from each company’s own status page.';o.appendChild(n5);return}
   if(ADM.tab==='users'){
     var sr=document.createElement('input');sr.className='asearch';sr.type='search';sr.placeholder='Search email, username or name';sr.value=ADM.q;
     sr.oninput=function(){ADM.q=sr.value;clearTimeout(ADM.qt);ADM.qt=setTimeout(admLoadUsers,300)};o.appendChild(sr);

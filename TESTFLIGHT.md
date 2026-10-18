@@ -24,6 +24,7 @@ Run these in **SQL Editor** (New query → paste → Run), in this order. All ar
 11. `supabase/user-blocks.sql`: lets people block someone from inviting them.
 12. `supabase/beta-access.sql`: the beta waitlist. Then run `supabase/ai-limits.sql` and `supabase/delete-account.sql` again (both changed for it).
 13. `supabase/admin-tools.sql`: the Admin sheet in [developer] (user counts, users, errors, settings).
+14. `supabase/service-status.sql`: the Status tab in [developer] › Admin. Then deploy `supabase/functions/status` as **status**, add the secret `STATUS_CRON_TOKEN` (any long random text), turn on **pg_cron** and **pg_net** in Database › Extensions, and run the schedule from the top of the SQL file with your token pasted in. It checks every service every 5 minutes.
 
 Settings:
 
