@@ -4,7 +4,7 @@
 
 ## Branches and releases
 - `main`: the released 4.x line. Pushing it redeploys hellodemo.app (GitHub Pages) and listen.hellodemo.app (Vercel), so it gets fixes for the current release.
-- `next`: work toward the next major release (started from 4.0.0). New features go here unless Josh says they're for the current release; bring fixes across from `main` with a merge.
+- `next`: work toward the next major release (started from 4.0.0). On hold: Josh isn't using it for a while, so don't merge `main` into it or report its build number until he says otherwise. Work goes on `main`.
 - `stable-1` … `stable-4`: frozen snapshots of past milestones; never commit to them.
 - Releases are tagged `vX.Y.Z` on `main`, with notes in `RELEASE-NOTES-vX.Y.Z.md`.
 
