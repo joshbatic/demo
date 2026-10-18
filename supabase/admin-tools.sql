@@ -85,7 +85,7 @@ begin
   if public._has('public.beta_config') then execute 'select coalesce(gate, false) from public.beta_config where id = 1' into gate; end if;
   create temp table if not exists _au (id uuid, email text, provider text, created_at timestamptz, last_sign_in_at timestamptz,
     username text, display_name text, songs int, ideas int, storage_bytes bigint, ai_today int, errors_7d int, beta text) on commit drop;
-  delete from _au;
+  delete from _au where true;  -- Supabase refuses a DELETE without WHERE from the API
   insert into _au (id, email, provider, created_at, last_sign_in_at, storage_bytes)
   select u.id, u.email, u.raw_app_meta_data->>'provider', u.created_at, u.last_sign_in_at,
     (select coalesce(sum((o.metadata->>'size')::bigint), 0) from storage.objects o
