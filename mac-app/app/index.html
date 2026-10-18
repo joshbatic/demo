@@ -960,7 +960,7 @@ body.sprinting #rhy{display:none}
   </div>
 </div>
 <div id="sheet2" role="dialog" aria-label="Rhyme settings"><div class="sh"><b>Writing voice</b><button id="done2">Done</button></div><div id="opts"></div></div>
-<div id="sheet3" role="dialog" aria-label="Muse"><div class="sh"><b>Muse</b><button id="done3">Done</button></div><div class="sbd" id="stkbd"><div class="note stk-intro">Blank page winning? Call the muse. Pick one, none of them take long.</div><div id="stk-out"></div><div class="stg" id="stg"></div></div></div>
+<div id="sheet3" role="dialog" aria-label="Muse"><div class="sh"><b>Muse</b><button id="done3">Done</button></div><div class="sbd" id="stkbd"><div id="stk-out"></div><div class="stg" id="stg"></div></div></div>
 <div id="sheet4" role="dialog" aria-label="Rate song"><div class="sh"><b>Rate</b><button id="done4">Done</button></div><div class="sbd" id="rtbd"><div id="rt-head"></div><div id="rt-out"></div></div></div>
 <div id="sheet5" role="dialog" aria-label="Clean up"><div class="sh"><b>Clean up</b><button id="done5">Done</button></div><div id="cu" class="sbd"></div></div>
 <div id="sheet6" role="dialog" aria-label="Account"><div class="sh"><b>Account</b><button id="done6">Done</button></div><div id="acc"></div></div>
@@ -15470,7 +15470,7 @@ function buildSettings(){
   var vb=document.createElement('button');vb.className='go2 ghost';vb.textContent=MZ.prof&&MZ.prof.text?'Relearn':'Learn my voice';vb.disabled=MZ.building||mzCatalog().length<8;
   vb.onclick=function(){if(!isPro())return upsell('voice');if(!aiAvailable())return toast('Needs a connection');vb.disabled=true;vm.textContent='Learning from your songs…';mzProfBuild(true).then(function(t){if(!t){vb.disabled=false;vm.textContent='Couldn’t learn it this time. Try again in a moment.';return}haptic('success');buildSettings()})};
   vr.appendChild(vm);vr.appendChild(vb);o.appendChild(vr);
-  var nt=document.createElement('div');nt.className='note';nt.style.paddingTop='14px';nt.textContent='Saved with this song. It shapes the lines written for you and the word suggestions, and quietly blends in your own style from past songs and favorite lines wherever you haven’t set something specific above.';o.appendChild(nt);
+  var nt=document.createElement('div');nt.className='note';nt.style.paddingTop='14px';nt.textContent='Saved with this song. Shapes the lines and words suggested for it.';o.appendChild(nt);
   $('#sheet2').scrollTop=sc;
 }
 /* ---------- song list ---------- */
@@ -16100,7 +16100,7 @@ function rhyme(){
   renderWM();
   function hint(x,busy){var h=document.createElement('div');h.className='hint';if(busy){h.appendChild(aidotsEl());h.appendChild(document.createTextNode(' '+x))}else h.appendChild(document.createTextNode(x));rc.appendChild(h)}
   /* a whole verse isn't a phrase to rhyme: say so briefly rather than quoting it back or asking the AI */
-  if(selWords>8||/\n/.test(selPhrase)){if(wmode==='rhy'||wmode==='per'||wmode==='near')return hint('Select a word or a short phrase to see rhymes. Big selections are for formatting, moving or rating.')}
+  if(selWords>8||/\n/.test(selPhrase)){if(wmode==='rhy'||wmode==='per'||wmode==='near')return hint('Select a word or short phrase to see rhymes.')}
   else if(selWords>1&&(wmode==='rhy'||wmode==='per'||wmode==='near'))return phrRhyme();
   function phrRhyme(){
     var endw=lastW(selPhrase),n=lsyl(selPhrase),k='PHR#'+nw(selPhrase)+'#'+n+pfk(),v=MC[k];
@@ -16361,7 +16361,7 @@ function mzProfBuild(manual){if(MZ.building)return Promise.resolve(null);MZ.buil
 
 /* ---------- song brief: a few true things about this song, asked once, used everywhere ---------- */
 function briefForm(){var o=stkOut(''),b=(cur&&cur.brief)||{};
-  o.innerHTML='<h4>Tell the muse about this song</h4><p class="bfi">Real names, places and things make every suggestion more yours. Skip anything.</p>';
+  o.innerHTML='<h4>Tell the muse about this song</h4><p class="bfi">Fill in what you like.</p>';
   var F=[['who','Who’s singing','e.g. me at 19, my dad, a bartender closing up'],['to','Singing to','e.g. my ex, my brother, nobody'],['where','Where and when','e.g. Glenelg, the night before I moved'],['thing','One real detail from it','e.g. her blue Corolla with the cracked windscreen'],['more','Anything else that’s true','what actually happened, what you can’t say out loud']],inp={};
   F.forEach(function(f){var l=document.createElement('label');l.className='bfl';l.textContent=f[1];var i=document.createElement(f[0]==='more'?'textarea':'input');i.className='bfin';i.placeholder=f[2];i.value=b[f[0]]||'';i.maxLength=f[0]==='more'?600:160;l.appendChild(i);o.appendChild(l);inp[f[0]]=i});
   act(o,'Save',function(){if(!cur)return;var nb={},any=false;F.forEach(function(f){var v=inp[f[0]].value.trim();if(v){nb[f[0]]=v;any=true}});if(any)cur.brief=nb;else delete cur.brief;cur.updated=Date.now();save();haptic('success');toast(any?'The muse knows this song now':'Song brief cleared');buildStuck();$('#stk-out').innerHTML=''});
@@ -16604,9 +16604,9 @@ function aidots(){return '<span class="aidots"><i></i><i></i><i></i></span>'}
 function aidotsEl(){var s=document.createElement('span');s.className='aidots';s.innerHTML='<i></i><i></i><i></i>';return s}
 function buildStuck(){
   var g=$('#stg');g.innerHTML='';
-  if(cur){var bs=briefSummary(cur),bb=document.createElement('button');bb.className='stc brief'+(bs?' set':'');bb.innerHTML='<b></b><span></span>';bb.children[0].textContent=bs?'About this song':'Tell the muse about this song';bb.children[1].textContent=bs||'Who’s singing, to whom, where, and one real detail. Every suggestion gets more yours.';bb.onclick=briefForm;g.appendChild(bb)}
+  if(cur){var bs=briefSummary(cur),bb=document.createElement('button');bb.className='stc brief'+(bs?' set':'');bb.innerHTML='<b></b><span></span>';bb.children[0].textContent=bs?'About this song':'Tell the muse about this song';bb.children[1].textContent=bs||'Who’s singing, to whom, where, one real detail.';bb.onclick=briefForm;g.appendChild(bb)}
   [['big','Read my song','What this is really about, where it stalls, and a few doors out',readSong,1],
-   ['rate'+(rateMode?' on':''),rateMode?'Rate mode is on':'Rate my song',rateMode?'Notes are marked in your lyrics. Tap to turn them off.':'Scores and notes on what’s landing and what isn’t',function(){if(rateMode){setRateMode(false);toast('Rate mode off');buildStuck();return}if(!isPro())return upsell('rate');sheet(false);setTimeout(openRate,isPro()?60:0)},1],
+   ['rate'+(rateMode?' on':''),rateMode?'Rate mode is on':'Rate my song',rateMode?'Notes are marked in your lyrics. Tap to hide them.':'Scores and notes on what’s landing and what isn’t',function(){if(rateMode){setRateMode(false);toast('Rate mode off');buildStuck();return}if(!isPro())return upsell('rate');sheet(false);setTimeout(openRate,isPro()?60:0)},1],
    ['','Four doors','Four completely different next lines. Walk through one.',fourWays,1],
    ['','Stare at a thing','90 seconds on one object. Every sense. No rhyming.',zoomIn],
    ['','Word collision','Three random words. Jam them in somehow.',collide],
@@ -16639,9 +16639,9 @@ function flipIt(){if(!needAI())return;var k=ctx(),last=(k.cur.trim()?k.cur:k.ref
   aiJson('Songwriting partner.'+pfx()+'\n\n'+songCtx({at:k.le})+'\n\nTake this line: "'+last+'". Write 6 alternatives that flip it: from the other person\'s point of view, the opposite feeling, years later, as a question, as an understatement, and as an exaggeration. Keep about '+lsyl(last)+' syllables. Return JSON: [{"flip": short label, "line": "..."}].',{cache:false}).then(function(r){
     if(!Array.isArray(r)||!r.length){aiErr(o);return}o.innerHTML='<h4>Flips of your last line. Tap to add as the next line</h4>';r.forEach(function(x){if(x&&x.line)lineBtn(o,x.line,(x.flip||'')+' · '+lsyl(x.line)+' syl')});act(o,'Flip again',flipIt)},function(){aiErr(o)})}
 function zoomIn(){var tp=topics().split(',').filter(Boolean),n=tp.length&&Math.random()<.5?pick(tp):pick(NOUNS),o=stkOut('');
-  o.innerHTML='<h4>Zoom in on</h4><p class="big"></p><p>For 90 seconds, write only about this. What it looks like up close, what it sounds like, smells like, feels like in your hand, and what it’s doing. No rhyming, no judging. It goes in a scratch section you can mine later.</p>';o.querySelector('.big').textContent=n;
+  o.innerHTML='<h4>Zoom in on</h4><p class="big"></p><p>90 seconds on just this: how it looks, sounds, smells and feels. No rhyming. It goes in a scratch section.</p>';o.querySelector('.big').textContent=n;
   act(o,'Start 90 seconds',function(){scratch('Scratch: '+n);sprintGo(90)});act(o,'Another object',zoomIn)}
-function collide(){var w=[pick(ADJS),pick(NOUNS),pick(VERBS)],o=stkOut('');o.innerHTML='<h4>Get all three into the next two lines</h4><p class="big"></p><p>Bend them, rhyme them, hide them. The point is to knock your brain off the track it’s stuck on.</p>';o.querySelector('.big').textContent=w.join(' · ');act(o,'New words',collide)}
+function collide(){var w=[pick(ADJS),pick(NOUNS),pick(VERBS)],o=stkOut('');o.innerHTML='<h4>Get all three into the next two lines</h4><p class="big"></p><p>Bend them, rhyme them, hide them.</p>';o.querySelector('.big').textContent=w.join(' · ');act(o,'New words',collide)}
 function card(){var o=stkOut('');o.innerHTML='<h4>Strategy card</h4><p class="big"></p>';o.querySelector('.big').textContent=pick(CARDS);act(o,'Another card',card)}
 function scratch(label){var v=getText();lyr.focus();lyr.setSelectionRange(v.length,v.length);ins(lyr,(v.trim()?(/\n\s*$/.test(v)?'\n':'\n\n'):'')+'['+label+']\n');tagBold()}
 var spT=null,spEnd=0,spW=0;
@@ -17029,7 +17029,7 @@ function renderCollab(){var g=$('#collab'),n=$('#collab-note');g.innerHTML='';n.
   if(!AUTH_USER||!cur.shared){
     var e=document.createElement('div');e.className='clempty';
     var st=document.createElement('span');st.className='clstack';st.appendChild(clAvatar(MY_PROFILE,myName()||'You',AUTH_USER&&AUTH_USER.id));var plus=document.createElement('span');plus.className='clav clplus';plus.textContent='+';st.appendChild(plus);e.appendChild(st);
-    var tx=document.createElement('div');tx.innerHTML='<b>Write this one together</b><span></span>';tx.lastChild.textContent=AUTH_USER?'Share the song, invite co-writers by username, and you’ll both edit it live.':'Sign in with Google to share songs and write with other people.';e.appendChild(tx);
+    var tx=document.createElement('div');tx.innerHTML='<b>Write this one together</b><span></span>';tx.lastChild.textContent=AUTH_USER?'Invite co-writers by username and write it together, live.':'Sign in to write with other people.';e.appendChild(tx);
     if(AUTH_USER){var sb=document.createElement('button');sb.className='go2';sb.innerHTML='Share Song'+(isPro()?'':' <i class="protag">Beta</i>');sb.onclick=function(){if(!isPro())return upsell('share');shareSong()};e.appendChild(sb)}
     g.appendChild(e);return}
   var owner=isOwnerOf(cur),known={},list=document.createElement('div');list.className='cllist';g.appendChild(list);
@@ -17065,7 +17065,7 @@ function renderCollab(){var g=$('#collab'),n=$('#collab-note');g.innerHTML='';n.
     c.from('collab_members').select('user_id,email').eq('song_id',songId).then(function(r){mem=(r&&r.data)||[];done()},done);
     if(owner)c.from('collab_invites').select('invitee_user_id,invitee_username,invitee_email,status').eq('song_id',songId).eq('status','pending').then(function(r){invs=(r&&r.data)||[];done()},done)}
   g.appendChild(owner?clArmed('Stop Sharing',stopSharing,'red'):clArmed('Leave Song',function(){leaveOrDelete(cur)},'red'));
-  n.textContent=owner?'Co-writers need *[demo], a Google sign-in and a username. While you’re both in the song, edits show up live.':'While you’re both in the song, edits show up live. Leaving removes the song from your library.'
+  n.textContent=owner?'Co-writers need *[demo] and a username.':'Leaving removes the song from your library.'
 }
 function sendPres(){}
 function renderPres(){var here=$('#here');if(here)here.hidden=true}
@@ -17171,7 +17171,7 @@ function renderRating(){var o=$('#rt-out'),R=cur&&cur.rating;o.innerHTML='';if(!
   if(cur.intents&&cur.intents.length){var kg=group('Kept as intended');cur.intents.forEach(function(x,i){var c=document.createElement('div');c.className='cell notile rtx';var m=document.createElement('div');m.className='c2';
     m.appendChild(text('',x.quote,'q'));m.appendChild(text('t',x.why||'No reason given'));c.appendChild(m);
     var u=document.createElement('button');u.className='rtundo';u.textContent='Undo';u.onclick=function(){cur.intents.splice(i,1);cur.updated=Date.now();save();renderRating();toast('Removed. Rate again to include it.')};c.appendChild(u);kg.appendChild(c)})}
-  o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:[({song:'Whole song',sec:'Section',sel:'Selection'}[R.scope]||''),(TONE[R.tone]||{}).label,fd(R.t)].filter(Boolean).join(' · ')+'. Taste is subjective: this is one ear’s read, not a verdict.'}));
+  o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:[({song:'Whole song',sec:'Section',sel:'Selection'}[R.scope]||''),(TONE[R.tone]||{}).label,fd(R.t)].filter(Boolean).join(' · ')}));
   var eg=group('');var ex=accCell({label:'Exit Rate Mode',onclick:function(){setRateMode(false);sheet(false)}});ex.className+=' notile rtexit';eg.appendChild(ex)}
 function rateMarks(){if(!window.CSS||!CSS.highlights||!window.Highlight)return;CSS.highlights.delete('rkbad');CSS.highlights.delete('rkgood');var R=cur&&cur.rating;if(!R||!rateMode)return;
   [['rkgood',R.strengths],['rkbad',R.issues]].forEach(function(p){var h=new Highlight(),n=0;(p[1]||[]).forEach(function(it){var r=findQuote(it.quote);if(!r)return;var a=locate(r[0]),b=locate(r[1]),rg=document.createRange();try{rg.setStart(a[0],a[1]);rg.setEnd(b[0],b[1]);h.add(rg);n++}catch(e){}});if(n)CSS.highlights.set(p[0],h)})}
@@ -17373,14 +17373,14 @@ function renderCleanup(){var o=$('#cu'),v=getText();o.innerHTML='';
   seg([['sentence','Sentence case'],['caps','ALL CAPS'],['lower','lowercase']],CU.caseMode,function(v){CU.caseMode=v});
   lab('Style');seg([[false,'Tidy'],[true,'Streaming-ready']],CU.stream,function(v){CU.stream=v});
   lab('Section tags');seg([[true,'Keep'],[false,'Remove']],CU.tags,function(v){CU.tags=v});
-  var d=document.createElement('div');d.className='note cudesc';d.textContent=CU.stream?'Streaming-ready: every line starts with a capital, no commas or full stops at line ends, repeats like (x2) written out in full, tidy spacing. These follow common lyric-site conventions; check your platform’s own guidelines before submitting.':'Tidy: consistent capitals, “i” fixed to “I”, straight apostrophes, single spaces, one blank line between sections, tags like [Verse 1] and [Pre-Chorus] made consistent.';o.appendChild(d);
+  var d=document.createElement('div');d.className='note cudesc';d.textContent=CU.stream?'Capitals at line starts, no end punctuation, repeats written out, tidy spacing.':'Consistent capitals and section tags, “I” fixed, single spaces.';o.appendChild(d);
   lab(n?n+' line'+(n>1?'s':'')+' will change':'Already clean');var pv=document.createElement('pre');pv.className='cupv';pv.textContent=cleaned;o.appendChild(pv);
   var a=document.createElement('div');a.className='cuacts';var ap=document.createElement('button');ap.className='go';ap.textContent='Apply to Song';ap.disabled=!n;
   ap.onclick=function(){snap('Before clean-up');cur.lyrics=cleaned;cur.rich='';cur.updated=Date.now();setLyr(cur);tagBold();cur.rich=lyr.innerHTML;save();sheet(false);LSK=null;rhyme();refreshViews();toast('Cleaned up. The original is saved in Versions.')};
   var cp=document.createElement('button');cp.className='go2 ghost';cp.textContent='Copy Cleaned Text';
   cp.onclick=function(){try{navigator.clipboard.writeText(cleaned).then(function(){toast('Copied cleaned lyrics')},function(){toast('Copy blocked here')})}catch(e){toast('Copy not available')}};
   a.appendChild(ap);a.appendChild(cp);o.appendChild(a);
-  var nt=document.createElement('div');nt.className='note';nt.textContent='Applying replaces colours, bold and highlights with plain text. Section tags stay bold.';o.appendChild(nt)}
+  var nt=document.createElement('div');nt.className='note';nt.textContent='Removes colours, bold and highlights.';o.appendChild(nt)}
 $('#done5').onclick=function(){sheet(false)};
 /* ---------- plans: Free by default, Pro unlocked with a code (payments not connected yet) ---------- */
 /* ---------- account sign-in (Google, via Supabase) ---------- */
@@ -18099,7 +18099,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
   function flipBeta(){setPlan(pro?'free':'beta');accWhy='';renderAccount();toast(pro?'Switched to the restricted preview':'Beta unlocked — everything’s available again')}
   sw.onclick=function(e){e.stopPropagation();flipBeta()};trow.onclick=flipBeta;
   trow.appendChild(sw);box.appendChild(trow);
-  var n=document.createElement('div');n.className='note';n.style.paddingTop='8px';n.textContent='This is a testing switch for the beta-tester tier that’s rolling out soon — not a real plan.';o.appendChild(n);
+  var n=document.createElement('div');n.className='note';n.style.paddingTop='8px';n.textContent='A testing switch for the upcoming beta tier.';o.appendChild(n);
   if(!pro){var lt=document.createElement('div');lt.className='lab';lt.textContent='Unlocks when Beta is on';o.appendChild(lt);
   var fbox=document.createElement('div');fbox.className='gf';o.appendChild(fbox);
   ['Unlimited songs','Lines: rhyming lines in your voice','Rate: honest notes on your song','Whole-song context for every suggestion','Writing voice & Perform mode','Muse: more cards, and sharing songs','Audio versions, synced lyrics, credits & release details'].forEach(function(t){
@@ -18111,7 +18111,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
     /* Credits: a small discography of finished songs you wrote or co-wrote */
     var credited=songs.filter(function(s){return s.title&&s.status==='Finished'&&(s.owner===AUTH_USER.id||(s.members||[]).indexOf(AUTH_USER.id)>=0||(!s.shared&&!s.owner))}).sort(function(a,b){return b.updated-a.updated});
     var g4=accSection(o,'Credits'),me=(myName()||'').toLowerCase();
-    if(!credited.length){var ce=document.createElement('div');ce.className='crempty';ce.innerHTML='<b>No credits yet</b><span>Mark a song Finished in Details and it shows up here, with your role and split.</span>';g4.appendChild(ce)}
+    if(!credited.length){var ce=document.createElement('div');ce.className='crempty';ce.innerHTML='<b>No credits yet</b><span>Mark a song Finished and it shows up here.</span>';g4.appendChild(ce)}
     else{var isMe=function(c){return c&&c.name&&me&&String(c.name).toLowerCase()===me},coOf=function(s){return(s.shared&&s.owner!==AUTH_USER.id)||(s.credits||[]).some(function(c){return c&&c.name&&!isMe(c)})};
       var nW=credited.filter(function(s){return!coOf(s)}).length;
       var st=document.createElement('div');st.className='crstat';[[credited.length,credited.length===1?'Song':'Songs'],[nW,'Written'],[credited.length-nW,'Co-written']].forEach(function(x){var d=document.createElement('div');d.innerHTML='<b></b><span></span>';d.firstChild.textContent=x[0];d.lastChild.textContent=x[1];st.appendChild(d)});g4.appendChild(st);
@@ -18336,14 +18336,13 @@ function renderAud(){var o=$('#aud-body');if(!o||!cur)return;var song=cur,keepTo
     var pb=document.createElement('button');pb.dataset.id=a.id;pb._on=SF_PLAY===a.id;pb.className='audplay'+(SF_PLAY===a.id?' on':'');pb.setAttribute('aria-label',SF_PLAY===a.id?'Pause':'Play '+a.name);pb.innerHTML=SF_PLAY===a.id?SVG_PAUSE:SVG_PLAY;pb.onclick=function(){sfPreview(a)};r.appendChild(pb);
     vg.appendChild(r);
     if(AUD_OPEN===a.id)vg.appendChild(sfEditor(a,AUD_KINDS,delA))});
-  if(auds.length)o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:'The ticked version is the current one: it’s what plays with your lyrics and what they’re synced to. WAV, AIFF and FLAC files become 256 kbps MP3s on this device before they upload.'}));
   /* lyric sync */
   if(cu){var sg=accSection(o,'Lyric sync'),bx=document.createElement('div');bx.className='syncbox';sg.appendChild(bx);
     var p=document.createElement('p'),sy=song.sync,ok=!!(sy&&sy.audioId===cu.id),stale=ok&&sy.sig!==lyricSig(song);
     if(SYNC_BUSY===song.id){p.innerHTML='<b>Listening…</b> <span id="syncprog"></span>';p.querySelector('#syncprog').textContent=syncProgText(cu.name)}
-    else if(ok)p.innerHTML='<b>Synced</b> to “'+esc(cu.name)+'”: '+sy.timed+' of '+sy.total+' lines heard.'+(stale?' The lyrics have changed since, so sync again to update the timings.':'');
-    else if(sy)p.textContent='The lyrics are synced to another version. Sync again to time them to “'+cu.name+'”.';
-    else p.textContent='Times every lyric line to “'+cu.name+'” automatically, so the words light up as the song plays.';
+    else if(ok)p.innerHTML='<b>Synced</b> to “'+esc(cu.name)+'”: '+sy.timed+' of '+sy.total+' lines heard.'+(stale?' Lyrics changed since. Sync again to update.':'');
+    else if(sy)p.textContent='Synced to another version.';
+    else p.textContent='Time every line to “'+cu.name+'”.';
     bx.appendChild(p);var acts=document.createElement('div');acts.className='acts';
     var sb=document.createElement('button');sb.className='go2';sb.textContent=ok?'Sync Again':'Sync Lyrics';sb.disabled=SYNC_BUSY===song.id;sb.onclick=runSync;acts.appendChild(sb);
     var pl=document.createElement('button');pl.className='go2 ghost';pl.textContent='Play with Lyrics';pl.onclick=function(){sheet(false);openPlay()};acts.appendChild(pl);
@@ -18361,7 +18360,7 @@ function renderAud(){var o=$('#aud-body');if(!o||!cur)return;var song=cur,keepTo
     var ob=document.createElement('button');ob.className='audplay';ob.setAttribute('aria-label','Open '+f.name);ob.innerHTML=SVG_OPEN;ob.onclick=function(){sfOpen(f)};r.appendChild(ob);
     fg.appendChild(r);
     if(AUD_OPEN===f.id)fg.appendChild(sfEditor(f,FILE_KINDS,delF))});
-  if(!sfCloud())o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:'Dev Mode: files stay on this device. Sign in to store them in your account and sync them.'}));
+  if(!sfCloud())o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:'Dev Mode: files stay on this device.'}));
   var pa=$('#p-aud');if(pa)pa.scrollTop=keepTop}
 
 /* ---------- automatic lyric sync: hear the track, time each lyric line ---------- */
@@ -18578,8 +18577,8 @@ function openPlay(){var song=cur,a=audCur(song);if(!song)return;if(!isPro())retu
   $('#lp-title').textContent=song.title||'Untitled';$('#lp-sub').textContent=[song.artist,a.name+(a.kind?' ('+a.kind+')':'')].filter(Boolean).join(' · ');
   var box=$('#lp-lines');box.innerHTML='';lpIdx=-1;lpEls=[];
   lpLines=sy?sy.lines:syncLinesOf(song.lyrics).map(function(t){return{text:t,t:null}});
-  if(!sy){var n=document.createElement('p');n.className='lpnote';n.textContent='These lyrics aren’t synced to this version yet. Open Details › Audio and tap Sync Lyrics to follow along line by line.';box.appendChild(n)}
-  else if(sy.sig!==lyricSig(song)){var n2=document.createElement('p');n2.className='lpnote';n2.textContent='The lyrics have changed since they were synced, so this follows the synced version.';box.appendChild(n2)}
+  if(!sy){var n=document.createElement('p');n.className='lpnote';n.textContent='Not synced yet. Tap Sync Lyrics in Details › Audio.';box.appendChild(n)}
+  else if(sy.sig!==lyricSig(song)){var n2=document.createElement('p');n2.className='lpnote';n2.textContent='Lyrics changed since syncing. Showing the synced version.';box.appendChild(n2)}
   lpLines.forEach(function(l){var p=document.createElement('p');p.textContent=l.text;if(l.t!=null)p.onclick=function(){lpAu.currentTime=l.t;if(lpAu.paused)lpAu.play().catch(function(){});lpTick(true)};box.appendChild(p);lpEls.push(p)});
   $('#lplay').hidden=false;box.scrollTop=0;$('#lp-at').textContent='0:00';$('#lp-len').textContent=a.dur?sfTime(a.dur):'0:00';
   /* carries on from wherever the in-song player is; starts from the top if this version isn't loaded yet */
@@ -18825,7 +18824,7 @@ function renderShare(){var o=$('#shr'),song=SHR.song;if(!o||!song)return;var bg=
     la.appendChild(ls);la.appendChild(lx);o.appendChild(la)}
   if(sh)bi.classList.add('ghost')
   acts.appendChild(bi);acts.appendChild(bt);o.appendChild(acts);
-  o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:(sh?'The link shows the song as it was when you last updated it. ':'')+'The image is a lyric card for messages and socials.'}));
+  if(sh)o.appendChild(Object.assign(document.createElement('div'),{className:'relnote',textContent:'The link shows the song as of your last update.'}));
   paintShareBtns()}
 /* ---- share links: a copy of the song anyone can open at listen.hellodemo.app/<id>, no account needed ----
    The snapshot (lyrics, timings, colours, waveform) goes in the 'shares' table; the artwork and audio go in the
@@ -18919,7 +18918,7 @@ function renderRel(){var o=$('#rel-body');if(!o||!cur)return;var song=cur,keepTo
     cg.appendChild(r)});
   var note=document.createElement('div');o.appendChild(note);
   function paintSplit(){var ws=(song.credits||[]).filter(function(c){return SPLIT_ROLES[c.role]});note.className='relnote';
-    if(!ws.length){note.textContent='Writer splits are each writer’s share of the song. They should add up to 100%.';return}
+    if(!ws.length){note.textContent='Splits should add up to 100%.';return}
     var tot=Math.round(ws.reduce(function(s,c){return s+(parseFloat(c.split)||0)},0)*100)/100;
     if(Math.abs(tot-100)<.01)note.textContent='Writer splits total 100%.';else{note.className='relnote warn';note.textContent='Writer splits add up to '+tot+'%. They should total 100%.'}}
   paintSplit();
@@ -18936,7 +18935,7 @@ function renderRel(){var o=$('#rel-body');if(!o||!cur)return;var song=cur,keepTo
   function paintRel(){var rr=song.release||{},bad=[];
     if(rr.isrc&&!/^[A-Z]{2}-?[A-Z0-9]{3}-?\d{2}-?\d{5}$/.test(rr.isrc))bad.push('An ISRC looks like CC-XXX-YY-NNNNN (12 characters).');
     if(rr.upc&&!/^\d{12,13}$/.test(rr.upc))bad.push('A UPC is 12 digits (13 for an EAN).');
-    rnote.className='relnote'+(bad.length?' warn':'');rnote.textContent=bad.length?bad.join(' '):'Kept with the song, ready for when you submit it to a distributor.'}
+    rnote.className='relnote'+(bad.length?' warn':'');rnote.textContent=bad.length?bad.join(' '):'';rnote.hidden=!bad.length}
   paintRel();
   var pr=$('#p-rel');if(pr)pr.scrollTop=keepTop}
 
