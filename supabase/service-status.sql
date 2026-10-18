@@ -75,3 +75,6 @@ end $$;
 
 revoke execute on function public.admin_status() from public, anon;
 grant execute on function public.admin_status() to authenticated;
+
+-- make the API see the new function straight away
+notify pgrst, 'reload schema';
