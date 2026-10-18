@@ -30,7 +30,7 @@ begin
   if to_regclass('public.shares')         is not null then delete from public.shares         where owner = me; end if;
   if to_regclass('public.muse_events')    is not null then delete from public.muse_events    where user_id = me; end if;
   if to_regclass('public.muse_profile')   is not null then delete from public.muse_profile   where user_id = me; end if;
-  if to_regclass('public.ai_usage')       is not null then delete from public.ai_usage       where user_id = me; end if;
+  if to_regclass('public.ai_calls')       is not null then delete from public.ai_calls       where user_id = me; end if;
   if to_regclass('public.app_errors')     is not null then delete from public.app_errors     where user_id = me; end if;
   if to_regclass('public.artist_fans')    is not null then delete from public.artist_fans    where artist_id = me; end if;
   if to_regclass('public.artist_pages')   is not null then delete from public.artist_pages   where user_id = me; end if;

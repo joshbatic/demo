@@ -18424,7 +18424,7 @@ function syncPiece(pcm,sr,k,prompt){var a=Math.max(0,k*SYNC_CHUNK-SYNC_OVER),b=M
       if(res&&res.error)return fnErr(res.error).then(function(m){throw new Error(m)});return(res&&res.data)||{}},function(e){clearTimeout(t);throw e})};
   var fileP=mp3FromBuf(fake,null,48).then(function(bl){return new File([bl],'part'+k+'.mp3',{type:'audio/mpeg'})},
     function(){return new File([wav16(part,sr)],'part'+k+'.wav',{type:'audio/wav'})});
-  return fileP.then(function(file){return send(file).catch(function(e){if(/sign in|deployed|too long to sync|isn.t set up/i.test(e.message))throw e;return send(file)})})
+  return fileP.then(function(file){return send(file).catch(function(e){if(/sign in|deployed|too long to sync|isn.t set up|limit|a minute/i.test(e.message))throw e;return send(file)})})
     .then(function(d){var lo=k*SYNC_CHUNK,hi=(k+1)*SYNC_CHUNK,len=b-a;
       /* (once the updated function is deployed) leave out stretches Whisper itself thinks were not singing:
          over music it can otherwise "hear" the lyrics it was given as a hint */
