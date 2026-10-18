@@ -11,7 +11,7 @@ rm -rf "$DEV"
 cp -a "$SRC" "$DEV"
 PB=/usr/libexec/PlistBuddy; PL="$DEV/Contents/Info.plist"
 $PB -c "Set :CFBundleIdentifier com.demo.songwriting.dev" "$PL"
-$PB -c "Set :CFBundleName [demo] Dev" "$PL"
+# CFBundleName stays "[demo]": Electron finds its helper apps by it ("[demo] Helper.app") and crashes if it changes
 $PB -c "Set :CFBundleDisplayName [demo] Dev" "$PL" 2>/dev/null || $PB -c "Add :CFBundleDisplayName string [demo] Dev" "$PL"
 $PB -c "Delete :CFBundleURLTypes" "$PL" 2>/dev/null || true
 $PB -c "Add :CFBundleURLTypes array" -c "Add :CFBundleURLTypes:0 dict" \
