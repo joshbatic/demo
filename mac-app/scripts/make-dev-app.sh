@@ -18,6 +18,8 @@ $PB -c "Add :CFBundleURLTypes array" -c "Add :CFBundleURLTypes:0 dict" \
     -c "Add :CFBundleURLTypes:0:CFBundleURLName string com.demo.songwriting.dev.auth" \
     -c "Add :CFBundleURLTypes:0:CFBundleTypeRole string Editor" \
     -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string demo-dev" "$PL"
+# Electron's helper apps must carry the main app's ID + ".helper", or it crashes on launch
+for h in "$DEV"/Contents/Frameworks/*Helper*.app; do $PB -c "Set :CFBundleIdentifier com.demo.songwriting.dev.helper" "$h/Contents/Info.plist"; done
 cp "$HERE/build/icon-dev.icns" "$DEV/Contents/Resources/electron.icns"
 echo "This copy runs as [demo] Dev (see main.js)." > "$DEV/Contents/Resources/app/dev-build"
 # fresh seals for both, so macOS keeps their microphone permission
