@@ -82,7 +82,7 @@ function mail(o: { preheader: string; cover: keyof typeof COVERS; title: string;
   }
 </style></head>
 <body class="bg" style="margin:0;padding:0;background:#F2F2F7">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">${esc(o.preheader)}&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">${esc(o.preheader)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#F2F2F7">
 <tr><td align="center" style="padding:28px 12px 36px">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px">
@@ -130,6 +130,21 @@ const codeTile = (code: string) => `<table role="presentation" width="100%" cell
   <div class="ink" style="font:700 28px/1 ui-monospace,'SF Mono',Menlo,Consolas,monospace;color:#000000;letter-spacing:5px">${esc(code)}</div></td></tr></table>`;
 const detail = (k: string, v: string) => v ? `<tr><td class="mute" width="96" valign="top" style="padding:7px 0;font:400 14px/1.45 ${FONT};color:#8E8E93">${k}</td><td class="body" style="padding:7px 0;font:400 15px/1.45 ${FONT};color:#1C1C1E">${v}</td></tr>` : "";
 
+// plain-text version of an email: the words, with each link's address written after it
+function toText(html: string) {
+  return html
+    .replace(/<head[\s\S]*?<\/head>/i, "").replace(/<div style="display:none[\s\S]*?<\/div>/i, "")
+    .replace(/<a [^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (_m, href, label) => {
+      const l = label.replace(/<[^>]+>/g, "").trim();
+      return /^mailto:/i.test(href) || l === href ? l : `${l}: ${href}`;
+    })
+    .replace(/<br\s*\/?>/gi, "\n").replace(/<\/(p|h1)>/gi, "\n\n").replace(/<\/(tr|div|table)>/gi, "\n").replace(/<td[^>]*>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#\d+;/g, "")
+    .split("\n").map((l) => l.replace(/[ \t]+/g, " ").trim()).filter((l, i, a) => l || (a[i - 1] ?? "") !== "")
+    .join("\n").replace(/^(\d+)\n+(?=\S)/gm, "$1. ").replace(/ ·$/gm, "").replace(/\n{3,}/g, "\n\n").trim();
+}
+
 async function send(to: string, subject: string, html: string) {
   const key = env("RESEND_API_KEY"), from = env("BETA_FROM") || "*[demo] <beta@hellodemo.app>";
   if (!key || !to) { console.error(`Not sending "${subject}": ${key ? "no recipient" : "RESEND_API_KEY isn't set"}`); return false; }
@@ -137,7 +152,11 @@ async function send(to: string, subject: string, html: string) {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to: [to], subject, html, reply_to: "help@hellodemo.app" }),
+      // a plain-text version alongside the HTML, and an unsubscribe address: both count towards landing in the inbox
+      body: JSON.stringify({
+        from, to: [to], subject, html, text: toText(html), reply_to: "help@hellodemo.app",
+        headers: { "List-Unsubscribe": "<mailto:help@hellodemo.app?subject=unsubscribe>" },
+      }),
     });
     if (!r.ok) console.error(`Resend refused the email to ${to}: ${r.status} ${await r.text()}`);
     return r.ok;
