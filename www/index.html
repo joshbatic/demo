@@ -16499,11 +16499,26 @@ function museCtx(sec){var a=[];
   return'\n\n'+a.join('\n\n')}
 /* keep the candidates that pass: no stock phrases, no rejected words, nothing already in the song or
    already thrown out. If that would leave too few, the rest come back at the end instead of vanishing. */
-function mzFilter(items,get,min){var av={},have={},rej={};mzAvoid().forEach(function(w){av[w]=1});
-  (getText()||'').split('\n').forEach(function(l){var k=mzNorm(l);if(k)have[k]=1});
+function mzFilter(items,get,min){var av={},have={},rej={},prior=[];mzAvoid().forEach(function(w){av[w]=1});
+  (getText()||'').split('\n').forEach(function(l){var k=mzNorm(l);if(k&&l.trim()[0]!=='['){have[k]=1;prior.push(k)}});
   MZ.ev.forEach(function(e){if(e.o==='reject'||e.o==='deleted')rej[mzNorm(e.shown)]=1});
-  var ok=[],weak=[];items.forEach(function(x){var t=get(x),k=mzNorm(t);if(!k||have[k]||rej[k])return;var bad=mzCliche(t)||k.split(' ').some(function(w){return av[w]});(bad?weak:ok).push(x)});
-  return ok.length>=(min||1)?ok:ok.concat(weak)}
+  var ok=[],weak=[],echo=[];items.forEach(function(x){var t=get(x),k=mzNorm(t);if(!k||have[k]||rej[k])return;
+    if(mzEcho(k,prior)){echo.push(x);return}
+    var bad=mzCliche(t)||k.split(' ').some(function(w){return av[w]});(bad?weak:ok).push(x)});
+  /* near-copies of lines already in the song only come back if there's truly nothing else */
+  var out=ok.length>=(min||1)?ok:ok.concat(weak);return out.length?out:echo}
+/* does this suggestion just repeat a line that's already written? Two tests against every line in the song:
+   it reuses a run of 4 words, or most of its words are that line's words (only the rhyme should match, not the line) */
+function mzEcho(k,prior){var w=k.split(' ').filter(Boolean);if(w.length<3)return false;
+  var grams={};for(var i=0;i+4<=w.length;i++)grams[w.slice(i,i+4).join(' ')]=1;
+  var set={};w.forEach(function(x){set[x]=1});
+  return prior.some(function(p){var pw=p.split(' ').filter(Boolean);if(pw.length<3)return false;
+    for(var j=0;j+4<=pw.length;j++)if(grams[pw.slice(j,j+4).join(' ')])return true;
+    /* same end word as an existing line plus another of its key words: a reworded copy ("came up and met me halfway") */
+    if(pw[pw.length-1]===w[w.length-1]&&w.slice(0,-1).some(function(x){return x.length>=4&&pw.slice(0,-1).indexOf(x)>=0}))return true;
+    var ps={},inter=0,uni={};pw.forEach(function(x){ps[x]=1;uni[x]=1});w.forEach(function(x){uni[x]=1});
+    Object.keys(set).forEach(function(x){if(ps[x])inter++});
+    return inter/Object.keys(uni).length>=0.5&&inter>=3})}
 /* second pass: a hard-to-please judge scores every candidate. Falls back to null (caller keeps its own
    order) if it takes too long or fails, so suggestions never get stuck behind it. */
 function mzJudge(cands,o){if(!cands||cands.length<3)return Promise.resolve(null);
@@ -16512,7 +16527,7 @@ function mzJudge(cands,o){if(!cands||cands.length<3)return Promise.resolve(null)
     aiJson('You are a hard-to-please co-writer judging lyric lines for a specific writer. Score each candidate from 1 to 10.\n\n'+
       (MZ.prof&&MZ.prof.text?'The writer\'s voice:\n'+MZ.prof.text.slice(0,900)+'\n\n':'')+(mine.length?'Lines the writer wrote themselves:\n'+mine.map(mzQ).join('\n')+'\n\n':'')+(br?'Background on this song (a line that forces these details in where they don\'t fit scores lower):\n'+br+'\n\n':'')+
       (o.section&&o.section.length?'The section they\'re writing:\n'+o.section.join('\n')+'\n\n':'')+'Task: '+o.what+'\n\nCandidates:\n'+cands.map(function(c,i){return i+'. '+c}).join('\n')+
-      '\n\nScore on: specific and concrete rather than generic; sounds like this writer, not like a generic songwriter; fresh rather than a stock phrase or cliché; natural to sing out loud; belongs in this song at this moment. Be harsh: a line any songwriter could have written scores 4 or less, a stock phrase scores 2. Return ONLY JSON: [{"i":0,"s":7}, ...] with one entry for every candidate.',{cache:false})
+      '\n\nScore on: specific and concrete rather than generic; sounds like this writer, not like a generic songwriter; fresh rather than a stock phrase or cliché; natural to sing out loud; belongs in this song at this moment. Be harsh: a line any songwriter could have written scores 4 or less, a stock phrase scores 2. A line that repeats, rewords or closely echoes a line already in the section scores 1. Return ONLY JSON: [{"i":0,"s":7}, ...] with one entry for every candidate.',{cache:false})
       .then(function(r){var out={},n=0;(Array.isArray(r)?r:[]).forEach(function(x){if(x&&isFinite(x.i)&&isFinite(x.s)){out[+x.i]=+x.s;n++}});fin(n?out:null)},function(){fin(null)})})}
 
 /* ---------- voice profile: a short description of how this writer writes ----------
@@ -16588,7 +16603,7 @@ function runGen(o){
     var P=S.p.slice(0,70),Nr=PF.strict?[]:S.n.slice(0,24),ps={},ns={};P.forEach(function(x){ps[x]=1});Nr.forEach(function(x){ns[x]=1});if(o.keep&&o.lw)ps[o.lw]=1;
     var rule=o.lw?(P.length||Nr.length?'3. Prefer ending on one of these perfect rhymes for "'+o.lw+'": '+P.join(', ')+(Nr.length?'\n   If none fits naturally, end on one of these near/slant rhymes: '+Nr.join(', '):'')+'\n   If neither list works, rhyme by ear.':'3. Rhyme with "'+o.lw+'" by ear.'):'3. End on a word with plenty of rhymes.';
     var skip=GENHIST[o.k]&&GENHIST[o.k].length?'\n5. These were already suggested here and passed over — do not repeat them or near-identical rewordings of them, and vary the approach (different imagery, structure or end word) from all of them: '+GENHIST[o.k].map(function(x){return'"'+x+'"'}).join(' / ')+'.':'';
-    aiJson('You write song lyrics.'+pfx()+'\n\n'+songCtx(o)+museCtx(o.section)+'\n\n'+o.task+'\n\nPriorities:\n1. Match the tone, writing style and imagery you just read in the section above — this comes before rhyme or syllable count.\n2. Aim for exactly '+o.n+' syllables, as close as you can.\n'+rule+'\n4. Twenty different options, and spread them across several different end words rather than reusing the same one or two rhyming words over and over. Mix exact/perfect rhymes with slant or near rhymes (words that share the vowel sound or final consonant sound but aren\'t identical) so the set offers real variety, not twenty ways to land on the same sound. Natural phrasing, no filler. Each string is just the lyric line itself — never follow it with its rhyme or end word repeated in parentheses or any other annotation.'+skip+'\n\nReturn ONLY a JSON array of 20 strings.',{cache:!o.again}).then(function(r){
+    aiJson('You write song lyrics.'+pfx()+'\n\n'+songCtx(o)+museCtx(o.section)+'\n\n'+o.task+'\n\nPriorities:\n1. Match the tone, writing style and imagery you just read in the section above — this comes before rhyme or syllable count.\n2. Aim for exactly '+o.n+' syllables, as close as you can.\n'+rule+'\n4. Twenty different options, and spread them across several different end words rather than reusing the same one or two rhyming words over and over. Mix exact/perfect rhymes with slant or near rhymes (words that share the vowel sound or final consonant sound but aren\'t identical) so the set offers real variety, not twenty ways to land on the same sound. Natural phrasing, no filler. Each string is just the lyric line itself — never follow it with its rhyme or end word repeated in parentheses or any other annotation.\n6. Every line must say something new. Never repeat, reword or reorder a line that is already in the song, especially the line it rhymes with: only the end sound should match that line, not its words, images or structure. Move the song forward.'+skip+'\n\nReturn ONLY a JSON array of 20 strings.',{cache:!o.again}).then(function(r){
       /* Belt-and-braces: even with the prompt now telling it not to, the model occasionally still
          echoes the end/rhyme word back in parentheses, e.g. "i walk in your room (room)". Strip a
          trailing "(word)" whenever it just repeats the line's own last word or the target rhyme
