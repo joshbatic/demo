@@ -15,6 +15,8 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
 fi
 
 hash=$(git rev-parse --short HEAD)
+# APP_SEQ counts commits, so newer builds always have bigger numbers (Admin › Settings › Minimum Build uses it)
+seq=$(git rev-list --count HEAD)
 files=(www/index.html web-artifact/songpad.html mac-app/app/index.html)
 
 for f in "${files[@]}"; do
@@ -22,6 +24,7 @@ for f in "${files[@]}"; do
   n=$(grep -c "^var APP_COMMIT='[^']*';$" "$f" || true)
   if [ "$n" != "1" ]; then echo "$f: expected exactly one APP_COMMIT line, found $n" >&2; exit 1; fi
   sed -i.bak "s/^var APP_COMMIT='[^']*';\$/var APP_COMMIT='$hash';/" "$f" && rm -f "$f.bak"
+  if grep -q "^var APP_SEQ=[0-9]*;$" "$f"; then sed -i.bak "s/^var APP_SEQ=[0-9]*;\$/var APP_SEQ=$seq;/" "$f" && rm -f "$f.bak"; fi
 done
 
 # the share-link viewer carries a copy of the page renderer; rebuild it so it never drifts from the app
@@ -29,4 +32,4 @@ if command -v python3 >/dev/null; then python3 scripts/build-share-viewer.py >/d
 
 git add "${files[@]}"
 git commit -q -m "Stamp version $hash"
-echo "Stamped $hash"
+echo "Stamped $hash (build $seq)"

@@ -95,6 +95,10 @@ begin
   if to_regprocedure('public.beta_ok()') is not null then
     if not public.beta_ok() then return jsonb_build_object('ok', false, 'reason', 'beta'); end if;
   end if;
+  -- remote controls (helpdesk.sql): AI or lyric sync paused for everyone
+  if to_regprocedure('public.feature_off(text)') is not null and public.feature_off(case when k = 'sync' then 'sync' else 'ai' end) then
+    return jsonb_build_object('ok', false, 'reason', 'off');
+  end if;
   tier := public.plan_for(me);
   -- Free: a taste of the quick AI; Rate, writing voice and lyric sync are Pro
   if tier = 'free' and (k = 'sync' or u >= 3) then return jsonb_build_object('ok', false, 'reason', 'pro'); end if;

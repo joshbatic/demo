@@ -48,6 +48,7 @@ Deno.serve(async (req) => {
   // the account's daily allowance
   const { data: take, error: takeErr } = await sb.rpc("ai_take", { kind: "ai", units: complex ? 3 : 1 });
   if (!takeErr && take && take.ok === false) {
+    if (take.reason === "off") return json({ error: "AI features are paused for maintenance. They'll be back shortly.", off: true });
     if (take.reason === "minute") return json({ error: "That's a lot of requests at once. Give it a minute and try again." });
     if (take.reason === "pro") return json({ error: "Rate and writing voice are part of *[demo] Pro.", pro: true });
     if (take.reason === "month") return json({ error: "You've used this month's 100 Rates and voice updates. They reset on the 1st." });

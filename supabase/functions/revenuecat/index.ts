@@ -2,6 +2,7 @@
 //
 // Two callers:
 //   RevenueCat webhook   POST with  Authorization: <REVENUECAT_WEBHOOK_AUTH>   (set the same value in RevenueCat › Webhooks)
+//   An admin             POST { action: "admin_sync", user } re-checks someone else (Admin › Users)
 //   The app              POST { action: "sync" } with the signed-in user's token, straight after a purchase or restore,
 //                        so Pro switches on without waiting for the webhook.
 //
@@ -100,6 +101,15 @@ Deno.serve(async (req) => {
     const uid = data?.user?.id;
     if (!uid) return json({ error: "Sign in first." }, 401);
     const result = await sync(uid);
+    return json({ ok: !result.error, ...result }, result.error ? 502 : 200);
+  }
+
+  // 3. An admin re-checking someone's subscription (Admin › Users › a user › Re-check Subscription)
+  if (body?.action === "admin_sync" && typeof body.user === "string" && UUID.test(body.user)) {
+    const userClient = createClient(env("SUPABASE_URL"), env("SUPABASE_ANON_KEY"), { global: { headers: { Authorization: auth } } });
+    const { data: isAdmin } = await userClient.rpc("is_admin");
+    if (isAdmin !== true) return json({ error: "Admins only." }, 403);
+    const result = await sync(body.user.toLowerCase());
     return json({ ok: !result.error, ...result }, result.error ? 502 : 200);
   }
 

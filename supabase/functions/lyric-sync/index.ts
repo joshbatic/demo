@@ -43,6 +43,7 @@ Deno.serve(async (req) => {
   // if that isn't set up yet, syncing goes ahead
   const { data: take, error: takeErr } = await sb.rpc("ai_take", { kind: "sync", units: 1 });
   if (!takeErr && take && take.ok === false) {
+    if (take.reason === "off") return json({ error: "Lyric sync is paused for maintenance. It'll be back shortly.", off: true }, 503);
     if (take.reason === "beta") return json({ error: "Your beta access hasn't been approved yet." }, 403);
     if (take.reason === "pro") return json({ error: "Lyric sync is part of *[demo] Pro.", pro: true }, 403);
     if (take.reason === "month") return json({ error: "You've used this month's 5 hours of lyric sync. It resets on the 1st." }, 429);

@@ -154,3 +154,12 @@ Do these when the app is approved and you're ready to release it:
 3. **Supabase › Table Editor › signup_limit:** raise it or clear it.
 4. **Supabase › Billing:** move to the Pro plan (US$25 a month). The free plan pauses after a week without activity and has only 1 GB of storage.
 5. **App Store Connect:** press **Release**. **(Claude)** Then I'll update hellodemo.app with the App Store button.
+6. **(Claude)** Point "Time to update" at the App Store: in `www/index.html`, `UPDATE_URL.ios` is TestFlight (`itms-beta://`) until then.
+
+## Help desk and remote controls (in place since 19 Oct 2026)
+
+- **Contact Support** (Account › About) files a ticket through the `support` edge function and emails ADMIN_EMAIL. Answer in [developer] › Admin › Help; replies are emailed from help@hellodemo.app and people answer to that inbox.
+- **Admin › Users › someone** shows their devices, builds, sessions, usage, tickets and errors, with Pro for 30 days, Re-check Subscription, Sign Out Everywhere, Suspend and Email.
+- **Admin › Settings** has a banner for everyone, Pause AI / Lyric Sync / Uploads, and a Minimum Build (older builds see "Time to update"; [developer] builds never do).
+- **Admin › Debug** shows this device's state and log, with Copy Report and Send to Help Desk.
+- Server side: `supabase/helpdesk.sql` (applied), `supabase/functions/support` (Verify JWT on).

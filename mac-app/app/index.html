@@ -112,6 +112,33 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 #adm .sbars i.up{background:#34C759;opacity:.75}#adm .sbars i.slow{background:#FF9F0A}#adm .sbars i.down{background:#FF3B30}#adm .sbars i.unknown{background:#8E8E93;opacity:.4}
 #adm .shead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0 14px;padding:14px 16px;border-radius:16px;background:var(--row);box-shadow:0 0 0 .5px var(--ring)}
 #adm .shead b{font-size:17px}#adm .shead span{display:block;font-size:13px;color:var(--mute);margin-top:2px}#adm .shead button{padding:9px 14px;border-radius:10px;font-size:14px;font-weight:600;background:var(--tint);color:var(--ontint);flex:none}#adm .shead button:disabled{opacity:.5}
+#adm>.bseg{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}#adm>.bseg::-webkit-scrollbar{display:none}#adm>.bseg button{flex:1 0 auto;padding:8px 11px;white-space:nowrap}
+#adm .bseg.small{margin:10px 0 0;background:var(--fill)}#adm .bseg.small button{font-size:13px;padding:6px 10px}
+#adm .ata,#adm .ain{display:block;width:100%;padding:10px 12px;border-radius:12px;border:.5px solid var(--sep);background:var(--bg);color:var(--ink);font:inherit;font-size:16px;line-height:1.4;margin-top:10px}
+#adm .ata{min-height:88px;resize:vertical}#adm .ata.note{min-height:52px;font-size:14.5px}
+#adm .apad{padding:12px 16px 14px}#adm .apad>.aacts{margin-top:10px}#adm .apad>.am{font-size:13px;color:var(--mute)}
+#adm .tkp{font-size:14.5px;margin-top:6px;white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}#adm .tkp.full{display:block}
+#adm .tkr{margin-top:10px;padding:8px 12px;border-left:3px solid var(--tint);background:var(--fill);border-radius:4px 10px 10px 4px;font-size:14.5px;white-space:pre-wrap;overflow-wrap:anywhere}#adm .tkr em{display:block;font-style:normal;font-size:12.5px;color:var(--mute);margin-bottom:2px}
+#adm .tkd{margin-top:10px;font-size:13px;color:var(--mute)}#adm .tkd button{margin-left:6px;color:var(--tint);background:none;font-size:13px;font-weight:600}
+#adm .aback{display:inline-block;padding:2px 2px 12px;font-size:16px;font-weight:600;color:var(--tint);background:none}
+#adm .shead .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+#adm .akv{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:10px 16px;position:relative;font-size:14.5px}#adm .akv+.akv::before{content:'';position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--sep)}
+#adm .akv span{color:var(--mute);flex:none}#adm .akv b{font-weight:500;text-align:right;overflow-wrap:anywhere;min-width:0;-webkit-user-select:text;user-select:text}#adm .akv.warn b{color:#d92d20}
+#adm .apad pre{max-height:260px}
+#cfgban{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:50%;transform:translateX(-50%);z-index:58;display:flex;align-items:center;gap:10px;width:max-content;max-width:calc(100% - 24px);padding:8px 8px 8px 16px;border-radius:16px;background:var(--row);color:var(--ink);box-shadow:0 6px 24px rgba(0,0,0,.16),0 0 0 .5px var(--ring);font-size:14px;line-height:1.35}
+#cfgban[hidden]{display:none}#cfgban.warn{background:#FFF1D6;color:#6B4200}#cfgban button{flex:none;width:28px;height:28px;border-radius:14px;background:var(--fill);color:inherit;font-size:18px;line-height:1}
+@media (prefers-color-scheme:dark){#cfgban.warn{background:#3B2A0C;color:#FFD99A}}
+#cfgupd{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg);color:var(--ink)}#cfgupd[hidden]{display:none}
+#cfgupd .cu{max-width:340px;text-align:center}#cfgupd b{display:block;font-size:24px;font-weight:750;letter-spacing:-.02em}#cfgupd p{margin:10px 0 22px;color:var(--mute);font-size:16px;line-height:1.45}
+#cfgupd button{padding:13px 26px;border-radius:14px;background:var(--tint);color:var(--ontint);font-size:16px;font-weight:650}#cfgupd em{display:block;margin-top:18px;font-style:normal;font-size:12.5px;color:var(--mute)}
+.supf{padding:12px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.supf select,.supf textarea{width:100%;padding:10px 12px;border-radius:12px;border:.5px solid var(--sep);background:var(--bg);color:var(--ink);font:inherit;font-size:16px}
+.supf textarea{min-height:120px;resize:vertical;line-height:1.4}
+.supd{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;cursor:pointer}.supd input{margin:2px 0 0;width:18px;height:18px;flex:none;accent-color:var(--tint)}.supd b{display:block;font-weight:600}.supd i{display:block;font-style:normal;color:var(--mute);font-size:12.5px;margin-top:1px;line-height:1.35}
+.supgo{align-self:flex-start;padding:10px 24px;border-radius:12px;background:var(--tint);color:var(--ontint);font-size:15px;font-weight:650}.supgo:disabled{opacity:.55}
+.supn{font-size:12.5px;color:var(--mute);line-height:1.4}.suph{font-size:13px;color:var(--mute);margin-top:10px}
+.supt{padding:10px 12px;border-radius:12px;background:var(--fill)}.supt b{font-size:14.5px}.supt .sm i{display:block;font-style:normal;font-size:12.5px;color:var(--mute)}.supt p{margin:6px 0 0;font-size:14.5px;white-space:pre-wrap;overflow-wrap:anywhere}
+.supr{margin-top:8px;padding-left:10px;border-left:3px solid var(--tint);font-size:14.5px;white-space:pre-wrap;overflow-wrap:anywhere}.supr em{display:block;font-style:normal;font-size:12.5px;color:var(--mute)}
 #adm pre{white-space:pre-wrap;font:12px/1.45 ui-monospace,Menlo,monospace;color:var(--mute);margin:8px 0 0;max-height:160px;overflow:auto}#sbeta{flex:none;margin:-4px 0 8px}#sbeta em{font-style:normal;margin-left:auto}#sbeta em:empty{display:none}#sbeta em{min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:#FF3B30;color:#fff;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
 #brq{padding:4px 16px 8px}
 #vList .lhead h1 .devpill{height:24px;font-size:13px;padding:0 10px;margin-left:10px;transform:translateY(-4px)}
@@ -14871,6 +14898,7 @@ EH-M-ER-IH-JH-D	hemorrhaged93
 AH-S-IH-N	bussin52s`;
 /* git commit this build came from, shown at the bottom of Account. Written by scripts/stamp-version.sh — don't edit by hand. */
 var APP_COMMIT='e996c85';
+var APP_SEQ=0;
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
 function currentKey(){if(typeof DEV_MODE!=='undefined'&&DEV_MODE&&!AUTH_USER)return K_DEV;if(typeof AUTH_USER!=='undefined'&&AUTH_USER&&AUTH_USER.id)return K+':'+AUTH_USER.id;return K}
 function load(){ACTIVE_KEY=currentKey();try{songs=JSON.parse(localStorage.getItem(ACTIVE_KEY))||[]}catch(e){songs=[]}seedGuide();loadIdeas()}
@@ -15165,9 +15193,15 @@ function reportErr(kind,msg,detail){try{msg=String(msg||'').replace(/“[^”]*�
   if(typeof AUTH_USER==='undefined'||!AUTH_USER||(typeof DEV_MODE!=='undefined'&&DEV_MODE))return;var c=sbClient();if(!c)return;ERR_SENT[kind+msg]=1;ERR_N++;
   c.from('app_errors').insert({build:typeof APP_COMMIT!=='undefined'?APP_COMMIT:'',platform:errPlatform(),kind:kind,screen:errScreen().slice(0,40),message:msg,detail:detail?String(detail).slice(0,2000):null})
    .then(function(r){if(r&&r.error&&/relation|does not exist|schema cache|42P01|PGRST20/i.test(r.error.message||''))ERR_OFF=true},function(){})}catch(e){}}
-window.addEventListener('error',function(e){reportErr('crash',(e&&e.message)||'Script error',e&&e.error&&e.error.stack||((e&&e.filename)||'')+':'+((e&&e.lineno)||''))});
-window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;reportErr('crash',(r&&r.message)||String(r||'Unhandled rejection'),r&&r.stack)});
-function toast(m){if(/^Couldn[’']t /.test(String(m||'')))reportErr('shown',m);var t=$('#toast');t.textContent=m;
+/* the last 80 warnings, errors and messages shown, for Admin › Debug and the diagnostics sent with Contact Support.
+   Stays on the device unless someone sends it; quoted song and file names are removed. */
+var DBG_LOG=[];
+function dbgLog(k,m){try{m=String(m==null?'':m).replace(/“[^”]*”/g,'“…”').slice(0,300);if(!m)return;DBG_LOG.push({t:Date.now(),k:k,m:m});if(DBG_LOG.length>80)DBG_LOG.shift()}catch(e){}}
+(function(){['warn','error'].forEach(function(k){var f=console[k];if(typeof f!=='function')return;
+  console[k]=function(){try{dbgLog(k,[].map.call(arguments,function(a){if(a&&a.message)return a.message;if(a&&typeof a==='object'){try{return JSON.stringify(a)}catch(e){}}return String(a)}).join(' '))}catch(e){}return f.apply(console,arguments)}})})();
+window.addEventListener('error',function(e){dbgLog('crash',(e&&e.message)||'Script error');reportErr('crash',(e&&e.message)||'Script error',e&&e.error&&e.error.stack||((e&&e.filename)||'')+':'+((e&&e.lineno)||''))});
+window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;dbgLog('crash',(r&&r.message)||String(r||'Unhandled rejection'));reportErr('crash',(r&&r.message)||String(r||'Unhandled rejection'),r&&r.stack)});
+function toast(m){dbgLog('toast',m);if(/^Couldn[’']t /.test(String(m||'')))reportErr('shown',m);var t=$('#toast');t.textContent=m;
   var rhy=$('#rhy'),r=rhy&&rhy.getBoundingClientRect();
   if(r&&r.width&&r.height){var th=t.getBoundingClientRect().height||40;t.style.bottom='auto';t.style.top=(r.top-th-14)+'px'}
   else{t.style.top='';t.style.bottom=''}
@@ -16152,6 +16186,7 @@ function bakedOpenAICall(prompt,modelTier){
   if(!prompt)return Promise.reject(new Error('Empty prompt.'));
   if(prompt.length>24000)return Promise.reject(new Error('That request is too large to send ('+prompt.length+' characters, limit 24000).'));
   var g=bakedGuardCall();if(!g.ok)return Promise.reject(new Error(g.error));
+  if(typeof CFG!=='undefined'&&CFG.ai_off)return Promise.reject(new Error(CFG_PAUSED.ai));
   var s=sbClient();
   if(s&&s.functions){
     return s.functions.invoke('ai-proxy',{body:{prompt:prompt,modelTier:modelTier}}).then(function(res){
@@ -17704,20 +17739,35 @@ function admCard(){var b=document.createElement('div');b.className='song irow0 b
   b.onclick=openAdmin;b.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openAdmin()}};return b}
 function admRpc(fn,args){var c=sbClient();if(!c)return Promise.reject(new Error('Not connected'));return c.rpc(fn,args||{}).then(function(r){if(r.error){if(/admin_|function .* does not exist|PGRST202/i.test(r.error.message||'')&&!/Admins only/.test(r.error.message)){ADM.miss=true}throw r.error}return r.data})}
 function admLoadOverview(force){if(!BETA.admin)return;if(!force&&ADM.ov&&Date.now()-ADM.t<30000)return;ADM.t=Date.now();
-  admLoadStatus();admRpc('admin_overview').then(function(o){ADM.ov=o;ADM.miss=false;paintAdmSide();if(DEV_BUILD&&!$('#q').value)renderList();renderAdmin()},function(){renderAdmin()})}
+  admLoadStatus();tkLoad();admRpc('admin_overview').then(function(o){ADM.ov=o;ADM.miss=false;paintAdmSide();if(DEV_BUILD&&!$('#q').value)renderList();renderAdmin()},function(){renderAdmin()})}
 function admLoadUsers(){admRpc('admin_users',{p_q:ADM.q,p_limit:200}).then(function(u){ADM.users=u||[];renderAdmin()},function(e){ADM.users=[];renderAdmin();if(!ADM.miss)toast('Couldn’t load users: '+(e.message||e))})}
 function admLoadErrors(){admRpc('admin_errors',{p_hours:ADM.hours}).then(function(r){ADM.errs=r||{groups:[],latest:[]};renderAdmin()},function(){ADM.errs={groups:[],latest:[]};renderAdmin()})}
 function openAdmin(){if(!AUTH_USER){toast('Sign in as dev@hellodemo.app to use Admin');return}if(!BETA.admin){toast('Admin is only for the admin account (dev@hellodemo.app)');return}
-  renderAdmin();sheet(true,'sheet11');admLoadOverview(true);if(ADM.tab==='users')admLoadUsers();if(ADM.tab==='errors')admLoadErrors()}
-function admTab(t){ADM.tab=t;renderAdmin();if(t==='status')admLoadStatus();if(t==='overview')admLoadOverview(true);if(t==='users')admLoadUsers();if(t==='errors')admLoadErrors()}
+  renderAdmin();sheet(true,'sheet11');admLoadOverview(true);if(ADM.tab==='users'){if(UD.id)admLoadUser();else admLoadUsers()}if(ADM.tab==='errors')admLoadErrors();if(ADM.tab==='debug')dbgPrep();if(ADM.tab==='settings'){cfgLoad();admLoadBuilds()}}
+function admTab(t){ADM.tab=t;var ao=$('#adm');if(ao)ao.scrollTop=0;renderAdmin();if(t==='status')admLoadStatus();if(t==='overview')admLoadOverview(true);if(t==='users'){if(UD.id)admLoadUser();else admLoadUsers()}if(t==='errors')admLoadErrors();if(t==='help')tkLoad();if(t==='debug')dbgPrep();if(t==='settings'){cfgLoad();admLoadBuilds()}}
 function admStat(g,num,label,extra,warn,bar){var d=document.createElement('div');d.className='astat'+(warn?' warn':'');d.innerHTML='<b></b><span></span>';d.querySelector('b').textContent=num;d.querySelector('span').textContent=label;
   if(bar!=null){var br=document.createElement('div');br.className='abar';br.innerHTML='<i></i>';br.firstChild.style.width=Math.max(2,Math.min(100,bar))+'%';d.appendChild(br)}
   if(extra){var e=document.createElement('em');e.textContent=extra;d.appendChild(e)}g.appendChild(d)}
 function admCopy(t,what){try{navigator.clipboard.writeText(t).then(function(){toast('Copied '+(what||''))},function(){})}catch(e){}}
-function renderAdmin(){var o=$('#adm');if(!o)return;o.innerHTML='';
-  var seg=document.createElement('div');seg.className='bseg';[['overview','Overview'],['status','Status'],['users','Users'],['errors','Errors'],['settings','Settings']].forEach(function(t){var b=document.createElement('button');b.className=ADM.tab===t[0]?'on':'';b.textContent=t[1];b.onclick=function(){admTab(t[0])};seg.appendChild(b)});o.appendChild(seg);
+/* a background refresh waits while you're typing in a text box here, so a half-written reply isn't lost;
+   other fields (search, numbers) keep their focus and cursor across the redraw */
+function renderAdmin(){var o=$('#adm');if(!o)return;var ae=document.activeElement;
+  if(ae&&ae.tagName==='TEXTAREA'&&o.contains(ae)){ADM.pend=true;return}ADM.pend=false;
+  var kf=ae&&o.contains(ae)&&ae.dataset&&ae.dataset.ak?{ak:ae.dataset.ak,s:ae.selectionStart,e:ae.selectionEnd}:null;
+  var top=o.scrollTop;o.innerHTML='';admRender(o);o.scrollTop=top;
+  if(kf){var el=o.querySelector('[data-ak="'+kf.ak+'"]');if(el){try{el.focus({preventScroll:true});if(kf.s!=null)el.setSelectionRange(kf.s,kf.e)}catch(e){}}}}
+document.addEventListener('focusout',function(){if(!ADM.pend)return;setTimeout(function(){var ae=document.activeElement,o=$('#adm');if(ADM.pend&&!(ae&&ae.tagName==='TEXTAREA'&&o&&o.contains(ae)))renderAdmin()},150)});
+/* buttons next to text boxes: keep the press from moving focus (so a redraw can't swallow the click), then let go of the box */
+function admBtn(lbl,fn,cls,dis){var b=document.createElement('button');b.type='button';b.textContent=lbl;if(cls)b.className=cls;b.disabled=!!dis;b.onmousedown=prevent;
+  b.onclick=function(e){e.stopPropagation();var ae=document.activeElement;if(ae&&ae.blur&&$('#adm').contains(ae))ae.blur();ADM.pend=false;fn()};return b}
+function admRender(o){
+  var nOpen=TK.data&&TK.data.counts&&TK.data.counts.open||0;
+  var seg=document.createElement('div');seg.className='bseg';[['overview','Overview'],['help','Help'+(nOpen?' '+nOpen:'')],['users','Users'],['errors','Errors'],['status','Status'],['debug','Debug'],['settings','Settings']].forEach(function(t){var b=document.createElement('button');b.className=ADM.tab===t[0]?'on':'';b.textContent=t[1];b.onclick=function(){if(t[0]==='users'&&ADM.tab==='users')UD.id=null;admTab(t[0])};seg.appendChild(b)});o.appendChild(seg);
+  if(ADM.tab==='debug')return admDebug(o);
   if(ADM.miss){var m=document.createElement('div');m.className='aempty';m.textContent='Run supabase/admin-tools.sql in Supabase › SQL Editor to turn on the admin tools.';o.appendChild(m);return}
   var ov=ADM.ov||{},lab=function(t){var l=document.createElement('div');l.className='alab';l.textContent=t;o.appendChild(l)};
+  if(ADM.tab==='help')return admHelp(o);
+  if(ADM.tab==='users'&&UD.id)return admUser(o,lab);
   if(ADM.tab==='overview'){
     if(!ADM.ov){var ld=document.createElement('div');ld.className='aempty';ld.textContent='Loading…';o.appendChild(ld);return}
     var g=document.createElement('div');g.className='agrid';o.appendChild(g);
@@ -17728,6 +17778,7 @@ function renderAdmin(){var o=$('#adm');if(!o)return;o.innerHTML='';
     var plan=1073741824;admStat(g,sfSize(ov.storage_bytes||0)||'0 KB','Storage used','of 1 GB on the free plan'+(ov.storage_mb!=null?' · '+ov.storage_mb+' MB each':''),(ov.storage_bytes||0)>plan*.8,(ov.storage_bytes||0)/plan*100);
     if(ov.ai_units_today!=null)admStat(g,ov.ai_units_today,'AI units today',(ov.ai_users_today||0)+' people · '+(ov.sync_today||0)+' syncs');
     if(ov.errors_24h!=null)admStat(g,ov.errors_24h,'Errors today',(ov.error_users_24h||0)+' people affected',ov.errors_24h>0);
+    if(TK.data&&TK.data.counts&&!TK.data.err){var tc=TK.data.counts;admStat(g,tc.open||0,'Help desk',(tc.open?'waiting for a reply · ':'')+(tc.replied||0)+' answered',tc.open>0);g.lastChild.style.cursor='pointer';g.lastChild.onclick=function(){admTab('help')}}
     if(ADM.st&&ADM.st.services&&ADM.st.services.length){var sd=svcDown();admStat(g,sd.down?sd.down+' down':sd.slow?sd.slow+' slow':'All up','Services',sd.n+' checked · '+admAgo(ADM.st.checked_at),sd.down>0)}
     if(ov.songs!=null)admStat(g,ov.songs,'Songs',(ov.ideas||0)+' ideas · '+(ov.share_links||0)+' share links · '+(ov.shared_songs||0)+' co-written');
     var nt=document.createElement('div');nt.className='anote';nt.textContent='Updated '+admAgo(ov.at)+'. Day counts reset at midnight Adelaide time; AI counts at midnight UTC.';o.appendChild(nt);
@@ -17753,7 +17804,7 @@ function renderAdmin(){var o=$('#adm');if(!o)return;o.innerHTML='';
     var n5=document.createElement('div');n5.className='anote';n5.textContent='Bars show the last 24 hours in half-hour steps, oldest on the left. "Platform status" comes from each company’s own status page.';o.appendChild(n5);return}
   if(ADM.tab==='users'){
     var sr=document.createElement('input');sr.className='asearch';sr.type='search';sr.placeholder='Search email, username or name';sr.value=ADM.q;
-    sr.oninput=function(){ADM.q=sr.value;clearTimeout(ADM.qt);ADM.qt=setTimeout(admLoadUsers,300)};o.appendChild(sr);
+    sr.dataset.ak='q';sr.oninput=function(){ADM.q=sr.value;clearTimeout(ADM.qt);ADM.qt=setTimeout(admLoadUsers,300)};o.appendChild(sr);
     var bx2=document.createElement('div');bx2.className='abox';o.appendChild(bx2);
     if(!ADM.users){bx2.innerHTML='<div class="aempty">Loading…</div>';return}
     if(!ADM.users.length){bx2.innerHTML='<div class="aempty">No accounts match.</div>';return}
@@ -17764,18 +17815,8 @@ function renderAdmin(){var o=$('#adm');if(!o)return;o.innerHTML='';
       var pl={pro:['Pro','ok'],paid:['Paid','ok'],beta:['Beta · all features','plan'],free:['Free','free']}[u.plan];if(pl)chip(pl[0],pl[1]);
       var bs={admin:['Admin','ok'],approved:['Approved','ok'],open:['Open access',''],pending:['Waiting','wait'],declined:['Declined','bad'],none:['No access','bad']}[u.beta]||[u.beta,''];chip(bs[0],bs[1]);
       chip((u.songs||0)+' songs');if(u.ideas)chip(u.ideas+' ideas');chip(sfSize(u.storage_bytes||0)||'0 KB');if(u.ai_today)chip(u.ai_today+' AI today');if(u.errors_7d)chip(u.errors_7d+' errors this week','bad');
-      if(ADM.open===u.id){var busy=!!ADM.busy[u.id],ac=document.createElement('div');ac.className='aacts';
-        var add=function(lbl,fn,cls){var b=document.createElement('button');b.textContent=lbl;if(cls)b.className=cls;b.disabled=busy;b.onclick=function(e){e.stopPropagation();fn()};ac.appendChild(b)};
-        if(u.beta!=='admin'&&u.beta!=='approved')add('Give Access',function(){admAccess(u,true)},'ok');
-        if(u.beta==='approved')add('Remove Access',function(){if(confirm('Remove beta access for '+u.email+'? With the waitlist lock on, they’ll see the waitlist screen.'))admAccess(u,false)});
-        if(u.ai_today)add('Reset Today’s AI',function(){admRpc('admin_reset_ai',{p_user:u.id}).then(function(){toast('AI limit reset for today');admLoadUsers()},function(e){toast('Couldn’t reset: '+(e.message||e))})});
-        if(u.plan!=='pro')add('Make Pro',function(){admPlan(u,'pro')},'ok');if(u.plan!=='free')add('Make Free',function(){admPlan(u,'free')});if(u.plan!=='beta')add('Reset Plan',function(){admPlan(u,'beta')});
-        add('Copy Email',function(){admCopy(u.email,'email')});add('Copy ID',function(){admCopy(u.id,'account ID')});
-        add('Open in Supabase',function(){openLink(SB_DASH+'/auth/users?search='+encodeURIComponent(u.email||u.id))});d.appendChild(ac);
-        var ue=ADM.uerr[u.id];if(u.errors_7d){if(!ue){ADM.uerr[u.id]='…';admRpc('admin_user_errors',{p_user:u.id}).then(function(l){ADM.uerr[u.id]=l||[];renderAdmin()},function(){ADM.uerr[u.id]=[]})}
-          else if(Array.isArray(ue)&&ue.length){var pr=document.createElement('pre');pr.textContent=ue.slice(0,8).map(function(x){return admAgo(x.at)+' · '+[x.platform,x.build,x.screen].filter(Boolean).join(' ')+'\n  '+x.message}).join('\n');d.appendChild(pr)}}}
-      d.onclick=function(){ADM.open=ADM.open===u.id?null:u.id;renderAdmin()};bx2.appendChild(d)});
-    var n2=document.createElement('div');n2.className='anote';n2.textContent=ADM.users.length+(ADM.users.length>=200?'+':'')+' accounts. Tap one for actions. Delete accounts in Supabase › Authentication.';o.appendChild(n2);return}
+      d.onclick=function(){admOpenUser(u.id)};bx2.appendChild(d)});
+    var n2=document.createElement('div');n2.className='anote';n2.textContent=ADM.users.length+(ADM.users.length>=200?'+':'')+' accounts. Tap one for everything about it and what you can do. Delete accounts in Supabase › Authentication.';o.appendChild(n2);return}
   if(ADM.tab==='errors'){
     var sg=document.createElement('div');sg.className='bseg';[[24,'Last 24 hours'],[168,'Last 7 days'],[720,'Last 30 days']].forEach(function(t){var b=document.createElement('button');b.className=ADM.hours===t[0]?'on':'';b.textContent=t[1];b.onclick=function(){ADM.hours=t[0];ADM.errs=null;renderAdmin();admLoadErrors()};sg.appendChild(b)});o.appendChild(sg);
     var bx3=document.createElement('div');bx3.className='abox';o.appendChild(bx3);
@@ -17804,13 +17845,305 @@ function renderAdmin(){var o=$('#adm');if(!o)return;o.innerHTML='';
       var save=function(){var v=ip.value.trim(),n=v===''?null:Math.max(0,Math.round(+v));if(v!==''&&!isFinite(+v))return;if((x[3]==null?null:+x[3])===n)return;
         admRpc('admin_set_setting',{p_key:x[0],p_value:n}).then(function(){toast(x[1]+': '+(n==null?'no limit':n));admLoadOverview(true)},function(e){toast('Couldn’t save: '+(e.message||e));ip.value=x[3]==null?'':x[3]})};
       ip.onchange=save;ip.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();ip.blur()}};r.appendChild(ip);bx4.appendChild(r)});
-    var n4=document.createElement('div');n4.className='anote';n4.textContent='Changes apply straight away for everyone.';o.appendChild(n4)}}
+    var n4=document.createElement('div');n4.className='anote';n4.textContent='Changes apply straight away for everyone.';o.appendChild(n4);
+    admRemote(o,lab)}}
 function admPlan(u,t){ADM.busy[u.id]=1;renderAdmin();admRpc('admin_set_plan',{p_user:u.id,p_tier:t,p_days:null}).then(function(r){delete ADM.busy[u.id];
   toast((u.display_name||u.email)+' is now on '+({pro:'Pro',beta:'Beta',free:'Free'}[r]||r));admLoadUsers();admLoadOverview(true);if(AUTH_USER&&u.id===AUTH_USER.id)planRefresh()},
   function(e){delete ADM.busy[u.id];renderAdmin();toast('Couldn’t change the plan: '+(e.message||e))})}
 function admAccess(u,on){ADM.busy[u.id]=1;renderAdmin();admRpc('admin_set_access',{p_user:u.id,p_approved:on}).then(function(r){delete ADM.busy[u.id];
   toast(on?'Access given to '+u.email+(r&&r.code?' · invite code '+String(r.code).replace(/^(.{4})/,'$1-'):''):'Access removed for '+u.email);admLoadUsers();admLoadOverview(true);BRQ_LISTS={};betaAdminLoad(true)},function(e){delete ADM.busy[u.id];renderAdmin();toast('Couldn’t change access: '+(e.message||e))})}
 function betaSetGate(on){var c=sbClient();if(!c)return;c.rpc('beta_admin_set_gate',{p_on:on}).then(function(r){if(r.error)return toast('Couldn’t change it: '+r.error.message);if(BETA.sum)BETA.sum.gate=!!r.data;toast(r.data?'Waitlist lock is on. Only approved accounts can use *[demo]':'Waitlist lock is off. Anyone who signs in can use *[demo]');if(ADM.ov)ADM.ov.gate=!!r.data;renderAccount();betaRefreshViews();renderAdmin()})}
+/* ---------- remote controls (supabase/helpdesk.sql): a banner for everyone, pausing features, and a minimum build.
+   Set in Admin › Settings. Every app reads them on launch, when it comes back to the front and every 10 minutes;
+   the last copy is kept so they still apply offline. [developer] builds are never told to update. ---------- */
+var CFG={};try{CFG=JSON.parse(localStorage.getItem('songpad:cfg'))||{}}catch(e){CFG={}}
+var CFG_PAUSED={ai:'AI features are paused for maintenance. They’ll be back shortly.',sync:'Lyric sync is paused for maintenance. It’ll be back shortly.',uploads:'Adding music and files is paused for maintenance. Try again shortly.'};
+/* where "Time to update" sends people: TestFlight for now on iPhone (switch to the App Store page once *[demo] is listed) */
+var UPDATE_URL={ios:'itms-beta://',mac:'https://hellodemo.app/mac.html'};
+function cfgIsDev(){return!!DEV_BUILD||document.documentElement.classList.contains('devbuild')}
+function cfgKeep(r){CFG=r||{};CFG.at=Date.now();try{localStorage.setItem('songpad:cfg',JSON.stringify(CFG))}catch(e){}cfgPaint()}
+function cfgLoad(){var c=sbClient();if(!c)return Promise.resolve();
+  return c.rpc('app_config_public').then(function(r){if(r.error||!r.data)return;cfgKeep(r.data);
+    var s=$('#sheet11');if(s&&s.classList.contains('on')&&ADM.tab==='settings')renderAdmin()},function(){})}
+function cfgPaint(){
+  var b=$('#cfgban');
+  if(!b){b=document.createElement('div');b.id='cfgban';b.setAttribute('role','status');b.hidden=true;b.innerHTML='<span></span><button type="button" aria-label="Dismiss">×</button>';document.body.appendChild(b);
+    b.querySelector('button').onclick=function(){try{localStorage.setItem('songpad:banner-x',CFG.banner_id||'')}catch(e){}cfgPaint()}}
+  var gone='';try{gone=localStorage.getItem('songpad:banner-x')||''}catch(e){}
+  var show=!!CFG.banner&&gone!==(CFG.banner_id||'');b.hidden=!show;b.classList.toggle('warn',CFG.banner_kind==='warn');if(show)b.querySelector('span').textContent=CFG.banner;
+  var old=!cfgIsDev()&&APP_SEQ>0&&(CFG.min_seq||0)>APP_SEQ,u=$('#cfgupd');
+  if(old&&!u){u=document.createElement('div');u.id='cfgupd';u.setAttribute('role','alertdialog');u.setAttribute('aria-label','Update required');
+    u.innerHTML='<div class="cu"><b>Time to update</b><p></p><button type="button"></button><em></em></div>';document.body.appendChild(u)}
+  if(u){u.hidden=!old;if(old){var pl=errPlatform(),bt=u.querySelector('button');
+    u.querySelector('p').textContent=CFG.update_note||'This version of *[demo] is out of date. Update to keep writing. Your songs are safe and will be right here.';
+    bt.textContent=pl==='web'?'Reload':'Get the Update';bt.onclick=function(){if(UPDATE_URL[pl])openLink(UPDATE_URL[pl]);else location.reload()};
+    u.querySelector('em').textContent='Version '+APP_COMMIT+' · build '+APP_SEQ}}}
+function cfgSet(p,msg){return admRpc('admin_set_config',{p:p}).then(function(r){cfgKeep(r);renderAdmin();if(msg)toast(msg);return true},function(e){toast('Couldn’t change it: '+((e&&e.message)||e));renderAdmin();return false})}
+cfgPaint();setTimeout(cfgLoad,700);setInterval(function(){if(!document.hidden)cfgLoad()},600000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&Date.now()-(CFG.at||0)>120000)cfgLoad()});
+/* which build each device is on (Admin › Users › someone › Devices, and Builds in Use) */
+function seenPing(){var c=sbClient();if(!c||!AUTH_USER||DEV_MODE||seenPing.uid===AUTH_USER.id)return;seenPing.uid=AUTH_USER.id;
+  c.rpc('app_seen_ping',{p_device:LIB_DEV,p_platform:errPlatform()+(cfgIsDev()?'-dev':''),p_build:APP_COMMIT,p_seq:APP_SEQ,p_ua:String(navigator.userAgent||'').slice(0,300)}).then(function(){},function(){})}
+/* an edge function's own error message, when it sent one */
+function fnMsg(err){var ctx=err&&err.context;if(ctx&&typeof ctx.json==='function')return ctx.json().then(function(b){return(b&&b.error)||err.message},function(){return err.message});
+  var m=(err&&err.message)||'';return Promise.resolve(/failed to send|fetch/i.test(m)?'check your connection and try again':m||'try again')}
+function fnCall(name,body){var c=sbClient();if(!c)return Promise.reject(new Error('not connected'));
+  return c.functions.invoke(name,{body:body}).then(function(r){if(r.error)return fnMsg(r.error).then(function(m){throw new Error(m)});if(r.data&&r.data.error)throw new Error(r.data.error);return r.data||{}})}
+/* ---------- diagnostics: what Contact Support can include and Admin › Debug shows. Never lyrics, song text or keys. ---------- */
+function dbgScrub(s){return String(s==null?'':s).replace(/((?:access_|refresh_|id_)?token|code|nonce|apikey|key)=[^&\s"]+/gi,'$1=…').replace(/eyJ[\w-]{10,}\.[\w-]+\.[\w-]+/g,'(token)')}
+function diagLocal(){var sz={},tot=0;try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i),n=((localStorage.getItem(k)||'').length+k.length)*2;tot+=n;sz[k]=n}}catch(e){}
+  return{total:tot,keys:Object.keys(sz).length,largest:Object.keys(sz).sort(function(a,b){return sz[b]-sz[a]}).slice(0,8).map(function(k){return[k,sz[k]]})}}
+function diagReport(full){var lc=diagLocal(),C=window.Capacitor;
+  var d={build:APP_COMMIT,seq:APP_SEQ,platform:errPlatform(),dev:cfgIsDev(),native:!!(C&&C.isNativePlatform&&C.isNativePlatform()),ua:String(navigator.userAgent||'').slice(0,220),
+    screen:(screen.width||0)+'×'+(screen.height||0)+' @'+(window.devicePixelRatio||1)+'x, window '+innerWidth+'×'+innerHeight,lang:navigator.language||'',
+    tz:(function(){try{return Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){return''}})(),online:navigator.onLine!==false,
+    signed_in:!!AUTH_USER,provider:(AUTH_USER&&AUTH_USER.app_metadata&&AUTH_USER.app_metadata.provider)||'',
+    plan:PLAN.tier,plan_checked:PLAN.at?new Date(PLAN.at).toISOString():null,
+    iap:{device:!!iapPlugin(),key:!!RC_KEY,ready:!!IAP.ready,products:!!IAP.pkgs,error:IAP.err||''},
+    sync:{on:libReady(),busy:!!libBusy,last:libSeenAt||null},songs:songs.length,ideas:ideas.length,
+    storage:STORE?{used:STORE.used,limit:STORE.limit}:null,local:{total:sfSize(lc.total)||'0 KB',keys:lc.keys,largest:lc.largest.map(function(x){return x[0]+' '+(sfSize(x[1])||'0 KB')})},
+    paused:{ai:!!CFG.ai_off,sync:!!CFG.sync_off,uploads:!!CFG.uploads_off},
+    log:DBG_LOG.slice(full?-40:-25).map(function(x){return new Date(x.t).toISOString().slice(5,19).replace('T',' ')+' '+x.k+': '+dbgScrub(x.m).slice(0,220)})};
+  if(full)d.signin=OAUTH_DEBUG.slice(-20).map(dbgScrub);
+  while(JSON.stringify(d).length>11500&&d.log.length)d.log.shift();
+  return d}
+/* ---------- Contact Support (Account): a message to the help desk, and the replies ---------- */
+var SUP={topic:'bug',msg:'',diag:true,busy:false,list:null,t:0};
+var SUP_TOPICS=[['bug','Something’s not working'],['account','Account or sign-in'],['billing','Subscription or billing'],['idea','Idea or request'],['other','Something else']];
+function topicName(k){var t=SUP_TOPICS.filter(function(x){return x[0]===k})[0];return t?t[1]:'Something else'}
+function supLoad(force){var c=sbClient();if(!c||!AUTH_USER||DEV_MODE)return;if(!force&&SUP.list&&Date.now()-SUP.t<30000)return;SUP.t=Date.now();
+  c.rpc('my_tickets').then(function(r){if(r.error)return;SUP.list=r.data||[];refreshAccount()},function(){})}
+function supSend(){if(SUP.busy)return;var m=SUP.msg.trim();if(m.length<3){toast('Write a little more so we can help.');return}
+  SUP.busy=true;renderAccount();
+  fnCall('support',{action:'submit',topic:SUP.topic,message:m,diag:SUP.diag?diagReport(false):null}).then(function(){
+    SUP.msg='';SUP.busy=false;toast('Sent. We’ll reply by email.');supLoad(true);renderAccount()
+  }).catch(function(e){SUP.busy=false;renderAccount();toast('Couldn’t send your message: '+((e&&e.message)||'try again'))})}
+function supForm(g){var f=document.createElement('div');f.className='supf';
+  var sel=document.createElement('select');sel.setAttribute('aria-label','What it’s about');SUP_TOPICS.forEach(function(t){var op=document.createElement('option');op.value=t[0];op.textContent=t[1];sel.appendChild(op)});
+  sel.value=SUP.topic;sel.onchange=function(){SUP.topic=sel.value};f.appendChild(sel);
+  var ta=document.createElement('textarea');ta.rows=5;ta.maxLength=4000;ta.dataset.dk='sup';ta.setAttribute('aria-label','Your message');ta.placeholder='What’s happening? What were you doing when it went wrong? The more detail, the faster we can help.';
+  ta.value=SUP.msg;ta.oninput=function(){SUP.msg=ta.value};f.appendChild(ta);
+  var cb=document.createElement('label');cb.className='supd';cb.innerHTML='<input type="checkbox"><span><b>Include diagnostics</b><i>Your app version, device, plan, sync status and recent error messages. Never your lyrics or songs.</i></span>';
+  var ck=cb.querySelector('input');ck.checked=SUP.diag;ck.onchange=function(){SUP.diag=ck.checked};f.appendChild(cb);
+  var go=document.createElement('button');go.type='button';go.className='supgo';go.textContent=SUP.busy?'Sending…':'Send';go.disabled=SUP.busy;go.onmousedown=prevent;go.onclick=function(){var ae=document.activeElement;if(ae&&ae.blur)ae.blur();supSend()};f.appendChild(go);
+  var nt=document.createElement('div');nt.className='supn';nt.textContent='We reply by email to '+(AUTH_USER.email||'your account’s address')+', usually within a day.';f.appendChild(nt);
+  if(SUP.list&&SUP.list.length){var h=document.createElement('div');h.className='suph';h.textContent='Your messages';f.appendChild(h);
+    SUP.list.forEach(function(t){var d=document.createElement('div');d.className='supt';d.innerHTML='<div class="sm"><b></b><i></i></div><p></p>';
+      var msg=String(t.message||''),ours=/^\(You wrote to them\) /.test(msg);
+      d.querySelector('b').textContent=ours?'From *[demo]':topicName(t.topic);
+      d.querySelector('i').textContent=[ours?'':{open:'Waiting for a reply',replied:'Answered',closed:'Closed'}[t.status],admAgo(t.created_at)].filter(Boolean).join(' · ');
+      d.querySelector('p').textContent=ours?msg.replace(/^\(You wrote to them\) /,''):msg;
+      (Array.isArray(t.replies)?t.replies:[]).forEach(function(r){var q=document.createElement('div');q.className='supr';q.innerHTML='<em></em><span></span>';q.firstChild.textContent='*[demo] · '+admAgo(r.at);q.lastChild.textContent=r.text;d.appendChild(q)});
+      f.appendChild(d)})}
+  g.appendChild(f)}
+/* ---------- Admin › Help: the help desk inbox ---------- */
+var TK={st:'open',data:null,open:null,draft:{},diag:{},busy:{}};
+function tkLoad(){if(!BETA.admin)return;var st=TK.st;admRpc('admin_tickets',{p_status:st}).then(function(r){if(TK.st!==st)return;TK.data=r||{counts:{},list:[]};renderAdmin()},
+  function(e){TK.data={counts:{},list:[],err:(e&&e.message)||String(e)};renderAdmin()})}
+function tkReply(t){var txt=(TK.draft[t.id]||'').trim();if(txt.length<2){toast('Write a reply first');return}if(TK.busy[t.id])return;TK.busy[t.id]=1;renderAdmin();
+  fnCall('support',{action:'reply',id:t.id,text:txt}).then(function(r){delete TK.busy[t.id];TK.draft[t.id]='';
+    toast(r.emailed?'Reply emailed to '+t.email:'Reply saved, but the email didn’t send'+(r.emailReady===false?' (RESEND_API_KEY isn’t set)':''));tkLoad()},
+  function(e){delete TK.busy[t.id];renderAdmin();toast('Couldn’t send the reply: '+((e&&e.message)||e))})}
+function tkSet(t,status,note){admRpc('admin_ticket_update',{p_id:t.id,p_status:status||null,p_note:note==null?null:note}).then(function(){
+  if(status)toast(status==='closed'?'Closed #'+t.id:'Reopened #'+t.id);else toast('Note saved');tkLoad()},function(e){toast('Couldn’t update #'+t.id+': '+((e&&e.message)||e))})}
+function tkDiagLine(g){if(!g||typeof g!=='object')return'';return[g.platform,g.build?'build '+g.build+(g.seq?' ('+g.seq+')':''):'',g.plan?'plan '+g.plan:'',g.online===false?'offline':'',g.sync&&g.sync.on===false?'sync off':'',g.iap&&g.iap.error?'purchases: '+g.iap.error:'',g.log&&g.log.length?g.log.length+' log lines':''].filter(Boolean).join(' · ')}
+function admHelp(o){var c=(TK.data&&TK.data.counts)||{};
+  var sg=document.createElement('div');sg.className='bseg small';[['open','Open',c.open],['replied','Answered',c.replied],['closed','Closed',c.closed],['all','All']].forEach(function(x){
+    var b=document.createElement('button');b.className=TK.st===x[0]?'on':'';b.textContent=x[1]+(x[2]?' '+x[2]:'');b.onclick=function(){TK.st=x[0];TK.open=null;if(TK.data)TK.data.list=null;renderAdmin();tkLoad()};sg.appendChild(b)});
+  o.appendChild(sg);sg.style.marginBottom='12px';
+  var bx=document.createElement('div');bx.className='abox';o.appendChild(bx);
+  var empty=function(t){var e=document.createElement('div');e.className='aempty';e.textContent=t;bx.appendChild(e)};
+  if(!TK.data||!TK.data.list)return empty(TK.data&&TK.data.err?'Couldn’t load the help desk: '+TK.data.err:'Loading…');
+  if(TK.data.err)return empty(/admin_tickets|does not exist|PGRST202/i.test(TK.data.err)?'Run supabase/helpdesk.sql to turn on the help desk.':'Couldn’t load the help desk: '+TK.data.err);
+  if(!TK.data.list.length)return empty(TK.st==='open'?'Nothing waiting. People write in from Account › Contact Support.':'Nothing here.');
+  TK.data.list.forEach(function(t){var op=TK.open===t.id,d=document.createElement('div');d.className='arow';d.innerHTML='<b></b><div class="am"></div><div class="tkp"></div>';
+    var who=t.display_name||t.name||t.email,reps=Array.isArray(t.replies)?t.replies:[],ours=/^\(You wrote to them\) /.test(t.message||'');
+    d.querySelector('b').textContent=who+' · '+(ours?'You wrote to them':topicName(t.topic));
+    d.querySelector('.am').textContent=['#'+t.id,who!==t.email?t.email:'',t.username?'@'+t.username:'',admAgo(t.created_at),{open:'Open',replied:'Answered',closed:'Closed'}[t.status],reps.length?reps.length+(reps.length===1?' reply':' replies'):''].filter(Boolean).join(' · ');
+    var p=d.querySelector('.tkp');p.textContent=ours?String(t.message).replace(/^\(You wrote to them\) /,''):t.message;
+    if(op){p.classList.add('full');
+      if(t.diag){var dg=document.createElement('div');dg.className='tkd';dg.textContent='Diagnostics: '+(tkDiagLine(t.diag)||'included');
+        var tg=document.createElement('button');tg.type='button';tg.textContent=TK.diag[t.id]?'Hide':'Show';tg.onclick=function(e){e.stopPropagation();TK.diag[t.id]=!TK.diag[t.id];renderAdmin()};dg.appendChild(tg);d.appendChild(dg);
+        if(TK.diag[t.id]){var pr=document.createElement('pre');pr.textContent=JSON.stringify(t.diag,null,2);pr.onclick=function(e){e.stopPropagation()};d.appendChild(pr)}}
+      reps.forEach(function(r){var q=document.createElement('div');q.className='tkr';q.innerHTML='<em></em><span></span>';q.firstChild.textContent='You · '+admAgo(r.at)+(r.emailed===false?' · email didn’t send':'');q.lastChild.textContent=r.text;d.appendChild(q)});
+      var ta=document.createElement('textarea');ta.className='ata';ta.dataset.ak='r'+t.id;ta.placeholder='Reply to '+(String(who).split(/[\s@]/)[0]||'them')+'. It’s emailed from help@hellodemo.app, and their answer comes back to that inbox.';
+      ta.value=TK.draft[t.id]||'';ta.oninput=function(){TK.draft[t.id]=ta.value};ta.onclick=function(e){e.stopPropagation()};d.appendChild(ta);
+      var ac=document.createElement('div');ac.className='aacts';var busy=!!TK.busy[t.id];
+      ac.appendChild(admBtn(busy?'Sending…':'Send Reply',function(){tkReply(t)},'ok',busy));
+      ac.appendChild(t.status==='closed'?admBtn('Reopen',function(){tkSet(t,'open')}):admBtn('Close',function(){tkSet(t,'closed')}));
+      if(t.user_id)ac.appendChild(admBtn('View Account',function(){admOpenUser(t.user_id)}));
+      ac.appendChild(admBtn('Copy Email',function(){admCopy(t.email,'email')}));
+      if(t.diag)ac.appendChild(admBtn('Copy Diagnostics',function(){admCopy(JSON.stringify(t.diag,null,2),'diagnostics')}));
+      d.appendChild(ac);
+      var nt=document.createElement('textarea');nt.className='ata note';nt.dataset.ak='n'+t.id;nt.placeholder='Private note, only you see it';nt.value=t.note||'';nt.onclick=function(e){e.stopPropagation()};
+      nt.onchange=function(){if((nt.value||'')!==(t.note||''))tkSet(t,null,nt.value)};d.appendChild(nt)}
+    d.onclick=function(){TK.open=op?null:t.id;renderAdmin()};bx.appendChild(d)});
+  var n=document.createElement('div');n.className='anote';n.textContent='Tap a message to read it and reply. Replies are emailed and saved here; when they answer by email it lands in the help@hellodemo.app inbox.';o.appendChild(n)}
+/* ---------- Admin › Users › someone: everything about one account, and what you can do about it ---------- */
+var UD={id:null,d:null,err:'',busy:false,ms:'',mt:'',errs:false};
+function admOpenUser(id){UD={id:id,d:null,err:'',busy:false,ms:'',mt:'',errs:false};ADM.tab='users';var o=$('#adm');if(o)o.scrollTop=0;renderAdmin();admLoadUser()}
+function admLoadUser(){var id=UD.id;if(!id)return;admRpc('admin_user_detail',{p_user:id}).then(function(d){if(UD.id!==id)return;UD.d=d;UD.err='';renderAdmin()},
+  function(e){if(UD.id!==id)return;UD.err=(e&&e.message)||String(e);renderAdmin()})}
+function udDo(what,p,ok){UD.busy=true;renderAdmin();Promise.resolve(p).then(function(r){UD.busy=false;toast(typeof ok==='function'?ok(r):ok);admLoadUser();admLoadOverview(true)},
+  function(e){UD.busy=false;renderAdmin();toast('Couldn’t '+what+': '+((e&&e.message)||e))})}
+function admKV(bx,k,v,warn){var r=document.createElement('div');r.className='akv'+(warn?' warn':'');r.innerHTML='<span></span><b></b>';r.firstChild.textContent=k;r.lastChild.textContent=v==null||v===''?'None':String(v);bx.appendChild(r);return r}
+function admDate(t){return t?new Date(t).toLocaleString(undefined,{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'}):''}
+function admUser(o,lab){var d=UD.d;
+  var bk=document.createElement('button');bk.type='button';bk.className='aback';bk.textContent='‹ All Users';bk.onclick=function(){UD.id=null;renderAdmin();admLoadUsers()};o.appendChild(bk);
+  if(!d){var w=document.createElement('div');w.className='aempty';w.textContent=UD.err?(/admin_user_detail|does not exist|PGRST202/i.test(UD.err)?'Run supabase/helpdesk.sql to turn on account pages.':'Couldn’t load the account: '+UD.err):'Loading…';o.appendChild(w);return}
+  var me=AUTH_USER&&d.id===AUTH_USER.id,first=String(d.display_name||d.meta_name||d.username||'them').split(/\s+/)[0];
+  var hd=document.createElement('div');hd.className='shead';hd.innerHTML='<div><b></b><span></span><div class="chips"></div></div>';o.appendChild(hd);
+  hd.querySelector('b').textContent=d.display_name||d.meta_name||(d.username?'@'+d.username:d.email);
+  hd.querySelector('span').textContent=[d.email,d.username&&(d.display_name||d.meta_name)?'@'+d.username:''].filter(Boolean).join(' · ');
+  var ch=hd.querySelector('.chips'),chip=function(t,c){var sp=document.createElement('span');sp.textContent=t;if(c)sp.className=c;ch.appendChild(sp)};
+  var pl={pro:['Pro','ok'],beta:['Beta · all features','plan'],free:['Free','free']}[d.plan];if(pl)chip(pl[0],pl[1]);
+  if(d.admin)chip('Admin','ok');else if(d.beta)chip({approved:'Approved',pending:'Waiting for beta',declined:'Declined'}[d.beta.status]||d.beta.status,d.beta.status==='approved'?'ok':d.beta.status==='pending'?'wait':'bad');
+  if(d.suspended)chip('Suspended','bad');if(me)chip('You');
+  var g=document.createElement('div');g.className='agrid';o.appendChild(g);var ss=d.sessions||{};
+  admStat(g,d.songs||0,'Songs',(d.ideas||0)+' ideas'+(d.library_at?' · synced '+admAgo(d.library_at):' · never synced'));
+  admStat(g,sfSize(d.storage_used||0)||'0 KB','Storage',d.storage_limit?'of '+sfSize(d.storage_limit):'no limit',d.storage_limit&&d.storage_used>d.storage_limit*.9,d.storage_limit?d.storage_used/d.storage_limit*100:null);
+  admStat(g,d.ai_today||0,'AI units today',(d.heavy_month||0)+' of 100 Rates this month'+(d.ai_last?' · last '+admAgo(d.ai_last):''));
+  admStat(g,(d.sync_month||0)+' min','Lyric sync this month',(d.sync_today||0)+' min today · Pro gets 300');
+  admStat(g,ss.active||0,'Signed in',(ss.active===1?'session':'sessions')+(ss.last_refresh?' · active '+admAgo(ss.last_refresh):''));
+  if(d.errors_7d!=null)admStat(g,d.errors_7d,'Errors this week',(d.errors||[]).length?'last '+admAgo(d.errors[0].at):'none recently',d.errors_7d>0);
+  /* what you can do */
+  lab('Actions');var ab=document.createElement('div');ab.className='abox apad';o.appendChild(ab);var ac=document.createElement('div');ac.className='aacts';ac.style.marginTop='0';ab.appendChild(ac);
+  var add=function(l,fn,cls){ac.appendChild(admBtn(l,fn,cls,UD.busy))},planTo=function(t,days,lbl){udDo('change the plan',admRpc('admin_set_plan',{p_user:d.id,p_tier:t,p_days:days}),function(){if(me)planRefresh();return first+' is now on '+lbl})};
+  add('Pro for 30 Days',function(){planTo('pro',30,'Pro for 30 days')},'ok');
+  if(d.plan!=='pro'||(d.plan_row&&d.plan_row.expires_at))add('Make Pro',function(){planTo('pro',null,'Pro')});
+  if(d.plan!=='free')add('Make Free',function(){planTo('free',null,'Free')});
+  if(d.plan_row&&d.plan_row.tier!=='auto')add('Reset Plan',function(){planTo('beta',null,'their usual plan')});
+  if(d.ai_today||d.sync_today)add('Reset Today’s AI',function(){udDo('reset the AI limit',admRpc('admin_reset_ai',{p_user:d.id}),'Today’s AI and sync limits reset for '+first)});
+  add('Re-check Subscription',function(){udDo('check the subscription',fnCall('revenuecat',{action:'admin_sync',user:d.id}),function(r){
+    return r.plan==='pro'?'Apple subscription active: Pro'+(r.expires?' until '+new Date(r.expires).toLocaleDateString():''):r.plan==='cleared'?'Their Apple subscription has ended, so Pro is off':'No Apple subscription to change'})});
+  if(!d.admin&&(!d.beta||d.beta.status!=='approved'))add('Give Access',function(){udDo('give access',admRpc('admin_set_access',{p_user:d.id,p_approved:true}),'Access given to '+d.email)});
+  if(!d.admin&&d.beta&&d.beta.status==='approved')add('Remove Access',function(){if(confirm('Remove beta access for '+d.email+'? With the waitlist lock on, they’ll see the waitlist screen.'))udDo('remove access',admRpc('admin_set_access',{p_user:d.id,p_approved:false}),'Access removed for '+d.email)});
+  if(!me){add('Sign Out Everywhere',function(){if(confirm('Sign '+first+' out on every device? Each one asks them to sign in again within the hour. Their songs stay put.'))udDo('sign them out',admRpc('admin_signout_user',{p_user:d.id}),function(n){return'Ended '+(n||0)+(n===1?' session':' sessions')})});
+    if(!d.admin)add(d.suspended?'Unsuspend':'Suspend',function(){if(d.suspended)udDo('unsuspend',admRpc('admin_suspend',{p_user:d.id,p_on:false}),first+' can sign in again');
+      else if(confirm('Suspend '+d.email+'? They’re signed out everywhere and can’t sign in until you unsuspend them. Their songs are kept.'))udDo('suspend',admRpc('admin_suspend',{p_user:d.id,p_on:true}),first+' is suspended')},d.suspended?'ok':'')}
+  add('Copy Email',function(){admCopy(d.email,'email')});add('Copy ID',function(){admCopy(d.id,'account ID')});
+  add('Open in Supabase',function(){openLink(SB_DASH+'/auth/users?search='+encodeURIComponent(d.email||d.id))});
+  /* email them: sent from help@ and kept in Help */
+  lab('Email '+first);var mb=document.createElement('div');mb.className='abox apad';o.appendChild(mb);
+  var si=document.createElement('input');si.className='ain';si.style.marginTop='0';si.dataset.ak='ms';si.placeholder='Subject';si.value=UD.ms;si.oninput=function(){UD.ms=si.value};mb.appendChild(si);
+  var mt=document.createElement('textarea');mt.className='ata';mt.dataset.ak='mt';mt.placeholder='Message. It’s sent from help@hellodemo.app and starts with “Hi '+first+',”.';mt.value=UD.mt;mt.oninput=function(){UD.mt=mt.value};mb.appendChild(mt);
+  var ma=document.createElement('div');ma.className='aacts';ma.appendChild(admBtn(UD.busy?'One moment…':'Send Email',function(){var tx=UD.mt.trim();if(tx.length<2){toast('Write a message first');return}
+    udDo('send the email',fnCall('support',{action:'email',user:d.id,subject:UD.ms.trim(),text:tx}),function(r){UD.ms='';UD.mt='';return r.emailed?'Email sent to '+d.email:'Saved to Help, but the email didn’t send'})},'ok',UD.busy));mb.appendChild(ma);
+  /* the account itself */
+  lab('Account');var kb=document.createElement('div');kb.className='abox';o.appendChild(kb);var pr=d.plan_row||{};
+  admKV(kb,'Joined',admDate(d.created_at));admKV(kb,'Last sign-in',d.last_sign_in_at?admAgo(d.last_sign_in_at):'Never');
+  admKV(kb,'Signs in with',(Array.isArray(d.providers)?d.providers:[d.provider]).filter(Boolean).map(function(x){return x.replace(/^./,function(c){return c.toUpperCase()})}).join(', '));
+  admKV(kb,'Plan',[({pro:'Pro',beta:'Beta',free:'Free'})[d.plan]||d.plan,pr.source?'from '+(pr.source==='apple'?'App Store':pr.source):'',pr.expires_at?'until '+new Date(pr.expires_at).toLocaleDateString():''].filter(Boolean).join(' · '));
+  if(d.beta)admKV(kb,'Beta request',[d.beta.status,admAgo(d.beta.created_at)].join(' · '));
+  if(d.suspended)admKV(kb,'Suspended','Until you unsuspend them',true);
+  if(d.owns_shared!=null||d.member_of!=null)admKV(kb,'Co-writing',[(d.owns_shared||0)+' shared by them',(d.member_of||0)+' joined',d.invites_sent?d.invites_sent+' invites out':'',d.invites_waiting?d.invites_waiting+' invites to answer':''].filter(Boolean).join(' · '));
+  if(d.share_links!=null)admKV(kb,'Share links',d.share_links);
+  if(d.blocking||d.blocked_by)admKV(kb,'Blocks','blocking '+(d.blocking||0)+' · blocked by '+(d.blocked_by||0),d.blocked_by>0);
+  admKV(kb,'Account ID',d.id);
+  /* devices and builds */
+  lab('Devices');var db=document.createElement('div');db.className='abox';o.appendChild(db);var dv=d.devices||[];
+  if(!dv.length){var de=document.createElement('div');de.className='aempty';de.textContent='No devices yet. They show up the next time '+first+' opens a new build.';db.appendChild(de)}
+  dv.forEach(function(x){var r=document.createElement('div');r.className='arow';r.style.cursor='default';r.innerHTML='<b></b><div class="am"></div>';
+    var plat={ios:'iPhone',mac:'Mac',web:'Web','ios-dev':'iPhone [developer]','mac-dev':'Mac [developer]','web-dev':'Web [developer]'}[x.platform]||x.platform||'Unknown';
+    r.querySelector('b').textContent=plat+' · '+(x.build||'?')+(x.seq?' (build '+x.seq+')':'');
+    r.querySelector('.am').textContent=['seen '+admAgo(x.last_seen),'first '+admAgo(x.first_seen),CFG.min_seq&&x.seq&&x.seq<CFG.min_seq?'below the minimum build':''].filter(Boolean).join(' · ');
+    if(x.ua){var u=document.createElement('div');u.className='am';u.textContent=x.ua;r.appendChild(u)}db.appendChild(r)});
+  if(ss.agents&&ss.agents.length){var sa=document.createElement('div');sa.className='anote';sa.textContent='Signed in on: '+ss.agents.join(' | ');o.appendChild(sa)}
+  /* help desk messages */
+  if((d.tickets||[]).length){lab('Help desk');var tb=document.createElement('div');tb.className='abox';o.appendChild(tb);
+    d.tickets.forEach(function(t){var r=document.createElement('div');r.className='arow';r.innerHTML='<b></b><div class="am"></div>';
+      r.querySelector('b').textContent=/^\(You wrote to them\) /.test(t.message)?String(t.message).replace(/^\(You wrote to them\) /,'You wrote: '):t.message;
+      r.querySelector('.am').textContent=['#'+t.id,topicName(t.topic),{open:'Open',replied:'Answered',closed:'Closed'}[t.status],admAgo(t.created_at)].join(' · ');
+      r.onclick=function(){TK.st='all';TK.open=t.id;if(TK.data)TK.data.list=null;admTab('help')};tb.appendChild(r)})}
+  /* recent errors */
+  if((d.errors||[]).length){lab('Recent errors');var eb=document.createElement('div');eb.className='abox apad';o.appendChild(eb);
+    var pe=document.createElement('pre');pe.style.marginTop='0';pe.textContent=d.errors.map(function(x){return admAgo(x.at)+' · '+[x.platform,x.build,x.screen,x.kind].filter(Boolean).join(' ')+'\n  '+x.message}).join('\n');eb.appendChild(pe);
+    var ec=document.createElement('div');ec.className='aacts';ec.appendChild(admBtn('Copy Errors',function(){admCopy(pe.textContent,'errors')}));eb.appendChild(ec)}
+  var nn=document.createElement('div');nn.className='anote';nn.textContent='Times are on this device’s clock. Delete accounts in Supabase › Authentication.';o.appendChild(nn)}
+/* ---------- Admin › Settings › Remote controls ---------- */
+ADM.builds=null;ADM.bn=null;
+function admLoadBuilds(){if(!BETA.admin)return;admRpc('admin_builds').then(function(l){ADM.builds=l||[];if(ADM.tab==='settings')renderAdmin()},function(){ADM.builds=ADM.builds||[]})}
+function admSw(bx,title,desc,on,fn){var r=document.createElement('div');r.className='aset';r.innerHTML='<div><b></b><span></span></div>';r.querySelector('b').textContent=title;r.querySelector('span').textContent=desc;
+  var sw=document.createElement('button');sw.type='button';sw.className='swtch'+(on?' on':'');sw.setAttribute('role','switch');sw.setAttribute('aria-checked',on?'true':'false');sw.setAttribute('aria-label',title);sw.innerHTML='<i></i>';sw.onclick=fn;r.appendChild(sw);bx.appendChild(r)}
+function admRemote(o,lab){
+  lab('Banner for everyone');var bb=document.createElement('div');bb.className='abox apad';o.appendChild(bb);
+  var now=document.createElement('div');now.className='am';now.textContent=CFG.banner?'Showing now'+(CFG.banner_kind==='warn'?' as a warning':'')+': “'+CFG.banner+'”':'No banner showing.';bb.appendChild(now);
+  var ta=document.createElement('textarea');ta.className='ata note';ta.maxLength=300;ta.placeholder='For example: Sync is slow right now. We’re on it.';ta.value=ADM.bn!=null?ADM.bn:(CFG.banner||'');ta.oninput=function(){ADM.bn=ta.value};bb.appendChild(ta);
+  var kind=ADM.bk||CFG.banner_kind||'info',ks=document.createElement('div');ks.className='bseg small';[['info','Note'],['warn','Warning']].forEach(function(x){var b=document.createElement('button');b.type='button';b.className=kind===x[0]?'on':'';b.textContent=x[1];b.onmousedown=prevent;b.onclick=function(){ADM.bk=x[0];var ae=document.activeElement;if(ae&&ae.blur)ae.blur();renderAdmin()};ks.appendChild(b)});bb.appendChild(ks);
+  var ba=document.createElement('div');ba.className='aacts';bb.appendChild(ba);
+  ba.appendChild(admBtn('Publish Banner',function(){var t=(ADM.bn!=null?ADM.bn:(CFG.banner||'')).trim();if(!t){toast('Write the banner first');return}cfgSet({banner:t,banner_kind:ADM.bk||CFG.banner_kind||'info'},'Banner is showing for everyone').then(function(ok){if(!ok)return;ADM.bn=null;ADM.bk=null;try{localStorage.removeItem('songpad:banner-x')}catch(e){}cfgPaint();renderAdmin()})},'ok'));
+  if(CFG.banner)ba.appendChild(admBtn('Remove Banner',function(){cfgSet({banner:''},'Banner removed').then(function(ok){if(ok){ADM.bn=null;renderAdmin()}})}));
+  lab('Pause features');var pb=document.createElement('div');pb.className='abox';o.appendChild(pb);
+  [['ai_off','Pause AI','Lines, Muse, Rate and writing voice say they’re paused for maintenance.'],['sync_off','Pause Lyric Sync','Syncing lyrics to audio says it’s paused. Play with Lyrics still works.'],['uploads_off','Pause Uploads','Adding music, files and share-link audio says it’s paused. Playing what’s there still works.']].forEach(function(x){
+    var on=!!CFG[x[0]];admSw(pb,x[1],x[2],on,function(){if(!on&&!confirm(x[1]+' for everyone now?'))return;var p={};p[x[0]]=!on;cfgSet(p,on?x[1].replace('Pause','')+' is back on':x[1].replace('Pause ','')+' is paused for everyone')})});
+  lab('Minimum build');var mb=document.createElement('div');mb.className='abox';o.appendChild(mb);
+  var r=document.createElement('div');r.className='aset';r.innerHTML='<div><b>Minimum Build</b><span></span></div>';
+  r.querySelector('span').textContent='Older builds see “Time to update” and can’t be used until they update. 0 turns it off. This build is '+(APP_SEQ||'not stamped')+'; [developer] builds are never blocked.';
+  var ip=document.createElement('input');ip.type='number';ip.min='0';ip.inputMode='numeric';ip.dataset.ak='minseq';ip.value=CFG.min_seq||0;
+  ip.onchange=function(){var n=Math.max(0,Math.round(+ip.value||0));if(n===(CFG.min_seq||0))return;
+    var hit=(ADM.builds||[]).filter(function(b){return b.seq&&b.seq<n&&!/-dev$/.test(b.platform||'')}).reduce(function(s,b){return s+(b.people||0)},0);
+    if(n&&!confirm('Set the minimum build to '+n+'?'+(hit?' About '+hit+(hit===1?' person is':' people are')+' on an older build and will be asked to update.':'')+(n>APP_SEQ&&APP_SEQ?' That’s newer than this build ('+APP_SEQ+').':''))){ip.value=CFG.min_seq||0;return}
+    cfgSet({min_seq:n},n?'Builds older than '+n+' must update':'Minimum build is off')};
+  ip.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();ip.blur()}};r.appendChild(ip);mb.appendChild(r);
+  var r2=document.createElement('div');r2.className='aset';r2.style.display='block';r2.innerHTML='<div><b>Update Message</b><span>Shown on the update screen. Leave it empty for the standard one.</span></div>';
+  var ui=document.createElement('input');ui.className='ain';ui.dataset.ak='unote';ui.maxLength=300;ui.placeholder='This version is out of date…';ui.value=CFG.update_note||'';
+  ui.onchange=function(){if(ui.value.trim()!==(CFG.update_note||''))cfgSet({update_note:ui.value.trim()},'Update message saved')};ui.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();ui.blur()}};r2.appendChild(ui);mb.appendChild(r2);
+  lab('Builds in use, last 30 days');var bl=document.createElement('div');bl.className='abox';o.appendChild(bl);
+  if(!ADM.builds){bl.innerHTML='<div class="aempty">Loading…</div>'}
+  else if(!ADM.builds.length){bl.innerHTML='<div class="aempty">None yet. Each device reports its build the first time it opens this version or later.</div>'}
+  else ADM.builds.forEach(function(b){var rr=document.createElement('div');rr.className='arow';rr.style.cursor='default';rr.innerHTML='<b></b><div class="am"></div>';
+    rr.querySelector('b').textContent=(b.seq?'Build '+b.seq+' · ':'')+(b.build||'?');
+    rr.querySelector('.am').textContent=[{ios:'iPhone',mac:'Mac',web:'Web','ios-dev':'iPhone [developer]','mac-dev':'Mac [developer]','web-dev':'Web [developer]'}[b.platform]||b.platform,b.people+(b.people===1?' person':' people'),'seen '+admAgo(b.last_seen),CFG.min_seq&&b.seq&&b.seq<CFG.min_seq?'below the minimum':''].filter(Boolean).join(' · ');bl.appendChild(rr)});
+  var n=document.createElement('div');n.className='anote';n.textContent='Apps check these on launch, when they come back to the front, and every 10 minutes. Pauses also apply on the server, so older builds are covered too.';o.appendChild(n)}
+/* ---------- Admin › Debug: this device, right now ---------- */
+var DBG={est:null,sess:null};
+function dbgPrep(){try{if(navigator.storage&&navigator.storage.estimate)navigator.storage.estimate().then(function(e){DBG.est=e;if(ADM.tab==='debug')renderAdmin()},function(){})}catch(e){}
+  var c=sbClient();if(c)c.auth.getSession().then(function(r){var s=r&&r.data&&r.data.session;DBG.sess=s?{exp:s.expires_at}:{none:true};if(ADM.tab==='debug')renderAdmin()},function(){})}
+function admDebug(o){
+  var lab=function(t){var l=document.createElement('div');l.className='alab';l.textContent=t;o.appendChild(l)},box=function(){var b=document.createElement('div');b.className='abox';o.appendChild(b);return b};
+  var ab=document.createElement('div');ab.className='abox apad';o.appendChild(ab);var ac=document.createElement('div');ac.className='aacts';ac.style.marginTop='0';ab.appendChild(ac);
+  [['Sync Now',function(){if(!libReady()){toast('Sync is off: sign in first');return}cloudSync();toast('Syncing');setTimeout(renderAdmin,2500)}],
+   ['Refresh Plan',function(){planRefresh().then(function(){toast('Plan: '+planName());renderAdmin()})}],
+   ['Reload Remote Controls',function(){cfgLoad().then(function(){toast('Remote controls reloaded');renderAdmin()})}],
+   ['Clear Audio Cache',function(){if(!confirm('Clear the downloaded audio on this device? It downloads again when played.'))return;acClear();toast('Audio cache cleared');renderAdmin()}],
+   ['Copy Report',function(){admCopy(JSON.stringify(diagReport(true),null,2),'report')}],
+   ['Send to Help Desk',function(){fnCall('support',{action:'submit',topic:'bug',message:'Debug report from Admin › Debug ('+errPlatform()+', '+APP_COMMIT+')',diag:diagReport(true)}).then(function(r){toast('Sent to the help desk as #'+r.id);tkLoad()},function(e){toast('Couldn’t send the report: '+((e&&e.message)||e))})}],
+   ['Clear Log',function(){DBG_LOG.length=0;renderAdmin()}],
+   ['Reload App',function(){location.reload()}]].forEach(function(x,i){ac.appendChild(admBtn(x[0],x[1],i===0?'ok':''))});
+  lab('This app');var b1=box(),C=window.Capacitor;
+  admKV(b1,'Version',APP_COMMIT);admKV(b1,'Build',APP_SEQ||'Not stamped');
+  admKV(b1,'Platform',{ios:'iPhone',mac:'Mac',web:'Web'}[errPlatform()]+(cfgIsDev()?' · [developer]':'')+(C&&C.isNativePlatform&&C.isNativePlatform()?' · native':''));
+  admKV(b1,'Online',navigator.onLine===false?'No':'Yes',navigator.onLine===false);
+  admKV(b1,'Screen',(screen.width||0)+'×'+(screen.height||0)+' @'+(window.devicePixelRatio||1)+'x · window '+innerWidth+'×'+innerHeight);
+  admKV(b1,'Language',(navigator.language||'')+' · '+(function(){try{return Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){return''}})());
+  admKV(b1,'Browser',String(navigator.userAgent||''));
+  lab('Account');var b2=box(),se=DBG.sess;
+  admKV(b2,'Signed in as',AUTH_USER?AUTH_USER.email:'Nobody',!AUTH_USER);if(AUTH_USER)admKV(b2,'Account ID',AUTH_USER.id);
+  admKV(b2,'Session',!se?'Checking…':se.none?'No session':'Renews '+(se.exp?new Date(se.exp*1000).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}):'automatically'),se&&se.none);
+  admKV(b2,'Plan',planName()+(PLAN.expires_at?' until '+new Date(PLAN.expires_at).toLocaleDateString():'')+' · checked '+admAgo(PLAN.at));
+  admKV(b2,'Admin',BETA.admin?'Yes':'No');
+  lab('Purchases');var b3=box();
+  admKV(b3,'In-app purchases',iapPlugin()?'Available on this device':'Not on this device');admKV(b3,'RevenueCat key',RC_KEY?'Set':'Not set yet',!RC_KEY&&!!iapPlugin());
+  admKV(b3,'Store',IAP.ready?(IAP.pkgs?'Products loaded'+(IAP.pkgs.month?' · monthly':'')+(IAP.pkgs.year?' · yearly':''):'Connected, no products'):'Not connected');
+  if(IAP.err)admKV(b3,'Last error',IAP.err,true);
+  lab('Sync');var b4=box();
+  admKV(b4,'Library sync',libReady()?(libBusy?'Syncing now':'Connected'):'Off',!libReady()&&!!AUTH_USER);
+  admKV(b4,'Last synced',libSeenAt?admAgo(libSeenAt):'Not yet this session');
+  admKV(b4,'On this device',songs.length+(songs.length===1?' song · ':' songs · ')+ideas.length+(ideas.length===1?' idea':' ideas'));
+  admKV(b4,'Audio cache',(function(){try{return Object.keys(acIx()).length+' files'}catch(e){return'Unknown'}})());
+  lab('Remote controls');var b5=box();
+  admKV(b5,'Checked',CFG.at?admAgo(CFG.at):'Not yet');
+  admKV(b5,'Paused',[CFG.ai_off?'AI':'',CFG.sync_off?'lyric sync':'',CFG.uploads_off?'uploads':''].filter(Boolean).join(', ')||'Nothing',CFG.ai_off||CFG.sync_off||CFG.uploads_off);
+  admKV(b5,'Minimum build',CFG.min_seq||'Off');admKV(b5,'Banner',CFG.banner||'None');
+  lab('Storage');var b6=box(),lc=diagLocal(),es=DBG.est;
+  admKV(b6,'Saved on this device',(sfSize(lc.total)||'0 KB')+' in '+lc.keys+' entries');
+  lc.largest.slice(0,5).forEach(function(x){admKV(b6,'  '+x[0].replace(/^songpad:/,''),sfSize(x[1])||'0 KB')});
+  admKV(b6,'Browser storage',es?(sfSize(es.usage||0)||'0 KB')+(es.quota?' of '+sfSize(es.quota):''):'Unknown');
+  admKV(b6,'Cloud storage',STORE?(sfSize(STORE.used)||'0 KB')+(STORE.limit!=null?' of '+sfSize(STORE.limit):''):'Not loaded yet');
+  lab('Sign-in steps');var b7=document.createElement('div');b7.className='abox apad';o.appendChild(b7);var p7=document.createElement('pre');p7.style.marginTop='0';p7.textContent=OAUTH_DEBUG.length?OAUTH_DEBUG.map(dbgScrub).join('\n'):'Nothing since the app opened.';b7.appendChild(p7);
+  lab('Log, newest first');var b8=document.createElement('div');b8.className='abox apad';o.appendChild(b8);var p8=document.createElement('pre');p8.style.marginTop='0';
+  p8.textContent=DBG_LOG.length?DBG_LOG.slice().reverse().map(function(x){return new Date(x.t).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' '+x.k+'  '+dbgScrub(x.m)}).join('\n'):'Nothing logged since the app opened.';b8.appendChild(p8);
+  var n=document.createElement('div');n.className='anote';n.textContent='Warnings, errors and messages shown on this device since it opened (the last 80). Copy Report puts all of this on the clipboard; Send to Help Desk files it as a ticket.';o.appendChild(n)}
 function onAuthUser(){
   if(AUTH_USER&&DEV_MODE){DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}}
   var uid=AUTH_USER&&AUTH_USER.id;
@@ -17819,7 +18152,8 @@ function onAuthUser(){
   if(AUTH_USER&&!DEV_MODE){if(uid!==betaCheck.uid){betaCheck.uid=uid;BETA={st:null,admin:false,sum:null,list:null,t:0,busy:{}};betaCheck()}}else{betaCheck.uid=null;betaGate(null)}
   if(AUTH_USER&&!DEV_MODE)iapStart();
   ensureStorageForMode();
-  if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;setTimeout(function(){if(AUTH_USER)acPrune()},45000);cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling();MZ.noTable=false;setTimeout(mzPull,1500);setTimeout(sharedGoneCheck,5000)}
+  if(AUTH_USER&&!DEV_MODE)seenPing();
+  if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;SUP.list=null;setTimeout(function(){if(AUTH_USER)acPrune()},45000);cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling();MZ.noTable=false;setTimeout(mzPull,1500);setTimeout(sharedGoneCheck,5000)}
   if(AUTH_USER)setTimeout(function(){if(cur&&cur.shared)pullShared(cur);liveEnsure()},0);
   if(!AUTH_USER){stopInvitePolling();libStop()}
   refreshAccount();
@@ -18391,6 +18725,7 @@ var ACC_ICO={
   reset:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>',
   disk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-.5-8.97A6 6 0 0 1 18 8.5a4.5 4.5 0 0 1-.5 9.5z"/></svg>',
   chev:'<svg viewBox="0 0 8 14" width="8" height="14"><path d="M1.5 1.5 6.5 7l-5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  help:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6a2.5 2.5 0 0 1 2.5-2.5h11A2.5 2.5 0 0 1 20 6v7.5a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4A2.5 2.5 0 0 1 4 13.5z"/><path d="M9.9 8.3a2.2 2.2 0 1 1 2.9 2.1c-.5.2-.8.6-.8 1.1v.3M12 14v.01"/></svg>',
   ext:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>',
   person:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.2"/><path d="M3.8 20.2c0-4.3 3.7-6.9 8.2-6.9s8.2 2.6 8.2 6.9z"/></svg>',
   swap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/></svg>',
@@ -18630,6 +18965,11 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
   var gl=accSection(o,'About');
   gl.appendChild(accCell({tile:ACC_ICO.lock,grad:10,label:'Privacy Policy',chev:true,onclick:function(){openDoc('privacy')}}));
   gl.appendChild(accCell({tile:ACC_ICO.doc,grad:3,label:'Terms of Service',chev:true,onclick:function(){openDoc('terms')}}));
+  /* Contact Support: a message to the help desk (supabase/functions/support), with the replies underneath */
+  if(AUTH_USER&&!DEV_MODE){var sOpen=ACC_EDIT==='support';supLoad();var sAns=(SUP.list||[]).filter(function(t){return t.status==='replied'}).length;
+    gl.appendChild(accCell({tile:ACC_ICO.help,grad:8,label:'Contact Support',value:sAns?sAns+(sAns===1?' reply':' replies'):'',chev:true,cls:sOpen?'open':'',onclick:function(){ACC_EDIT=sOpen?null:'support';if(!sOpen)supLoad(true);renderAccount()}}));
+    if(sOpen)supForm(gl)}
+  else gl.appendChild(accCell({tile:ACC_ICO.help,grad:8,label:'Contact Support',value:'help@hellodemo.app',chev:'ext',onclick:function(){openLink('mailto:help@hellodemo.app')}}));
   /* developer tools ([developer] only), then the account actions last, where Settings keeps Sign Out */
   if(ga&&(devFake||DEV_BUILD)&&dvl){o.appendChild(dvl);o.appendChild(ga)}
   if(AUTH_USER||devFake){
@@ -18646,7 +18986,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
     }
   }
   var ver=document.createElement('div');ver.className='note';ver.style.cssText='text-align:center;padding:18px 0 6px;font-variant-numeric:tabular-nums;-webkit-user-select:text;user-select:text';ver.textContent='Version '+APP_COMMIT;o.appendChild(ver);
-  if(keepF){var kf=o.querySelector('input[data-dk="'+keepF.dk+'"]');if(kf){try{kf.focus({preventScroll:true});kf.setSelectionRange(keepF.s,keepF.e)}catch(e){}}}
+  if(keepF){var kf=o.querySelector('[data-dk="'+keepF.dk+'"]');if(kf){try{kf.focus({preventScroll:true});kf.setSelectionRange(keepF.s,keepF.e)}catch(e){}}}
 }
 $('#acctb').onclick=function(){openAccount('')};$('#sacct').onclick=function(){openAccount('')};$('#done6').onclick=function(){sheet(false)};
 /* ---------- deleting the account (Account › Delete Account) ----------
@@ -18714,8 +19054,9 @@ function sfUsage(force){var c=AUTH_USER&&!DEV_MODE&&sbClient();if(!c||!c.rpc)ret
   return c.rpc('my_storage').then(function(r){if(r.error||!r.data)return null;var d=Array.isArray(r.data)?r.data[0]:r.data;if(!d)return null;
     STORE={used:+d.used_bytes||0,limit:d.limit_bytes==null?null:+d.limit_bytes,t:Date.now()};return STORE}).catch(function(){return null})}
 function sfFull(){return!!(STORE&&STORE.limit!=null&&STORE.used>=STORE.limit)}
-function sfRoom(){return sfUsage().then(function(){if(sfFull()){var e=new Error('storage full');e.storageFull=true;throw e}})}
+function sfRoom(){if(typeof CFG!=='undefined'&&CFG.uploads_off)return Promise.reject(new Error(CFG_PAUSED.uploads));return sfUsage().then(function(){if(sfFull()){var e=new Error('storage full');e.storageFull=true;throw e}})}
 function sfErr(e){var m=(e&&(e.message||e.error||e.statusText))||String(e||'');
+  if(/paused for maintenance/i.test(m)||(/row-level security/i.test(m)&&CFG.uploads_off))return'adding music and files is paused for maintenance. Try again shortly.';
   if(/storage full|under limit/i.test(m)||(/row-level security/i.test(m)&&sfFull()))return'you’ve used all '+sfSize(STORE&&STORE.limit||157286400)+' of your storage. Delete some audio or files to make room.';
   if(/bucket not found/i.test(m))return'audio storage isn’t set up yet.';
   if(/object not found|not_found|404/i.test(m))return'that file isn’t in storage any more. It may have been replaced or deleted on another device, or it was shared by someone whose files you can’t open yet.';
@@ -19009,7 +19350,7 @@ function syncPiece(pcm,sr,k,prompt){var a=Math.max(0,k*SYNC_CHUNK-SYNC_OVER),b=M
       if(res&&res.error)return fnErr(res.error).then(function(m){throw new Error(m)});return(res&&res.data)||{}},function(e){clearTimeout(t);throw e})};
   var fileP=mp3FromBuf(fake,null,48).then(function(bl){return new File([bl],'part'+k+'.mp3',{type:'audio/mpeg'})},
     function(){return new File([wav16(part,sr)],'part'+k+'.wav',{type:'audio/wav'})});
-  return fileP.then(function(file){return send(file).catch(function(e){if(/sign in|deployed|too long to sync|isn.t set up|limit|a minute/i.test(e.message))throw e;return send(file)})})
+  return fileP.then(function(file){return send(file).catch(function(e){if(/sign in|deployed|too long to sync|isn.t set up|limit|a minute|paused/i.test(e.message))throw e;return send(file)})})
     .then(function(d){var lo=k*SYNC_CHUNK,hi=(k+1)*SYNC_CHUNK,len=b-a;
       /* (once the updated function is deployed) leave out stretches Whisper itself thinks were not singing:
          over music it can otherwise "hear" the lyrics it was given as a hint */
@@ -19036,6 +19377,7 @@ function runSync(){var song=cur,a=audCur(song);if(!song||!a)return;
   if(!isPro())return upsell('sync');
   if(aiOk()!=='yes')return aiConsent(true).then(runSync,function(){});
   if(!sfCloud())return toast(DEV_MODE?'Lyric sync needs a signed-in account.':'Sign in to sync lyrics.');
+  if(CFG.sync_off)return toast(CFG_PAUSED.sync);
   var lines=syncLinesOf(song.lyrics);if(lines.length<2)return toast('Write the lyrics first, then sync them to the audio.');
   if(a.dur>720)return toast('That track is too long to sync (over 12 minutes).');
   SYNC_BUSY=song.id;SYNC_PROG=null;renderAud();
