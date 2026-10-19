@@ -3,13 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@capacitor/core": "^6.1.2",
-    "@capacitor/ios": "^6.1.2",
-    "@capacitor/haptics": "^6.0.1",
-    "@capacitor/browser": "^6.0.3",
-    "@capacitor/app": "^6.0.2"
+    "@capacitor-community/apple-sign-in": "^7.1.0",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/browser": "^8.0.5",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/ios": "^8.5.3",
+    "@revenuecat/purchases-capacitor": "13.7.4"
   },
   "devDependencies": {
-    "@capacitor/cli": "^6.1.2"
+    "@capacitor/cli": "^8.5.3"
   }
 }

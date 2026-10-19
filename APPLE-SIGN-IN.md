@@ -53,21 +53,19 @@ The secret lasts 6 months. Run the same command again before then, and paste the
    - `demo://auth-callback`
    - `demo-dev://auth-callback`
 
-## 4. The iPhone apps (Terminal, then Xcode)
+## 4. The iPhone apps (done on 19 Oct 2026)
 
-This installs the Apple sign-in plugin and, while we're at it, the subscriptions plugin. The subscriptions plugin stays switched off until RevenueCat is ready.
+Both projects were moved to Capacitor 8, with `@capacitor-community/apple-sign-in` 7.1.0 and `@revenuecat/purchases-capacitor` 13.7.4. Capacitor 8 needs Node 22 or later.
+
+- The CocoaPods targets are named `[demo]` and `[developer]`, to match the Xcode targets.
+- **Sign in with Apple** is added under Signing & Capabilities.
+- The old package lists are saved as `package.cap6.json` in each project.
+
+To reinstall from clean:
 
 ```
-cd ~/Documents/songpad-ios && npm install @capacitor-community/apple-sign-in@6.0.0 @revenuecat/purchases-capacitor@9.2.2 && npx cap sync ios
-cd ~/Documents/songpad-ios-dev && npm install @capacitor-community/apple-sign-in@6.0.0 @revenuecat/purchases-capacitor@9.2.2 && npx cap sync ios
+cd ~/Documents/songpad-ios && rm -rf node_modules package-lock.json ios/App/Pods ios/App/Podfile.lock && npm install && npx cap sync ios
 ```
-
-Then do this in **each** Xcode project:
-
-1. Open the App target, then **Signing & Capabilities**.
-2. Click **+ Capability** and add **Sign in with Apple**.
-3. Click **+ Capability** again and add **In-App Purchase**.
-4. Build to your phone.
 
 ## 5. Check it
 

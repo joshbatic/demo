@@ -57,15 +57,9 @@ If App Store Connect says your account isn't set up, wait a few hours after the 
    - `REVENUECAT_SECRET_KEY`: from RevenueCat › Project settings › API keys › **Secret** API key (starts `sk_`). Give it read access, or the default is fine.
 9. In the webhook screen, press **Send Test Event**. It should show 200.
 
-## 4. Add the purchase plugin to the iPhone app (Terminal, once)
+## 4. The purchase plugin (done on 19 Oct 2026)
 
-```
-cd ~/Documents/songpad-ios
-npm install @revenuecat/purchases-capacitor@9.2.2
-npx cap sync ios
-```
-
-Then in Xcode, under **App target › Signing & Capabilities**, check that **In-App Purchase** is listed. If it isn't, click **+ Capability** and add it.
+Both iPhone projects already have it: Capacitor 8 with `@revenuecat/purchases-capacitor` 13.7.4. Older versions don't compile with the current Xcode. Xcode no longer lists an In-App Purchase capability, because Apple switches it on for every App ID automatically.
 
 ## 5. Test a purchase (no real money)
 
