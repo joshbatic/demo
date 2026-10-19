@@ -163,3 +163,11 @@ Do these when the app is approved and you're ready to release it:
 - **Admin › Settings** has a banner for everyone, Pause AI / Lyric Sync / Uploads, and a Minimum Build (older builds see "Time to update"; [developer] builds never do).
 - **Admin › Debug** shows this device's state and log, with Copy Report and Send to Help Desk.
 - Server side: `supabase/helpdesk.sql` (applied), `supabase/functions/support` (Verify JWT on).
+
+## Push notifications (iPhone)
+
+- Sent for co-writer invites and help desk replies (and from Admin › Users › someone › Notify, or Admin › Debug › Test Push).
+- Apple side: a key with APNs (Keys › *[demo] Push), Push Notifications on both app IDs, and in Xcode the Push Notifications capability plus Background Modes › Remote notifications on both targets.
+- Supabase secrets: `APNS_KEY` (the whole .p8 file), `APNS_KEY_ID`. Team ID defaults to KZL3T52VV3.
+- Server: `supabase/push.sql` (applied), `supabase/functions/push` (Verify JWT on). Xcode builds get sandbox tokens and TestFlight/App Store builds production ones; the function works out which on the first send.
+- The app asks for permission only when it makes sense: after a Contact Support message, after setting a username, or from Account › Notifications.

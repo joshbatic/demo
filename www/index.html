@@ -17158,7 +17158,7 @@ function inviteCollaborator(target){if(!cur||!AUTH_USER)return;
     var ins=function(){return c.from('collab_invites').insert(row)};
     ins().then(function(r){if(r&&r.error&&/row-level security/i.test(r.error.message||'')){try{pushShared(s0)}catch(e){}return new Promise(function(res){setTimeout(function(){ins().then(res,res)},2500)})}return r}).then(function(r){
       if(r&&r.error)return toast('Couldn’t send the invite: '+(/row-level security/i.test(r.error.message||'')?'only the song’s owner can invite people.':r.error.message));
-      toast('Invited @'+uname);renderCollab();pingUser(uid,'invite')
+      toast('Invited @'+uname);renderCollab();pingUser(uid,'invite');fnCall('push',{action:'invite',song_id:row.song_id,invitee:uid}).catch(function(){})
     })
   }
   if(target&&typeof target==='object')return send(target.user_id,target.username);
@@ -17916,7 +17916,7 @@ function supLoad(force){var c=sbClient();if(!c||!AUTH_USER||DEV_MODE)return;if(!
 function supSend(){if(SUP.busy)return;var m=SUP.msg.trim();if(m.length<3){toast('Write a little more so we can help.');return}
   SUP.busy=true;renderAccount();
   fnCall('support',{action:'submit',topic:SUP.topic,message:m,diag:SUP.diag?diagReport(false):null}).then(function(){
-    SUP.msg='';SUP.busy=false;toast('Sent. We’ll reply by email.');supLoad(true);renderAccount()
+    SUP.msg='';SUP.busy=false;toast('Sent. We’ll reply by email.');supLoad(true);renderAccount();setTimeout(function(){pushAsk('You’ll also get a notification when we reply.')},1800)
   }).catch(function(e){SUP.busy=false;renderAccount();toast('Couldn’t send your message: '+((e&&e.message)||'try again'))})}
 function supForm(g){var f=document.createElement('div');f.className='supf';
   var sel=document.createElement('select');sel.setAttribute('aria-label','What it’s about');SUP_TOPICS.forEach(function(t){var op=document.createElement('option');op.value=t[0];op.textContent=t[1];sel.appendChild(op)});
@@ -17980,9 +17980,9 @@ function admHelp(o){var c=(TK.data&&TK.data.counts)||{};
     d.onclick=function(){TK.open=op?null:t.id;renderAdmin()};bx.appendChild(d)});
   var n=document.createElement('div');n.className='anote';n.textContent='Tap a message to read it and reply. Replies are emailed and saved here; when they answer by email it lands in the help@hellodemo.app inbox.';o.appendChild(n)}
 /* ---------- Admin › Users › someone: everything about one account, and what you can do about it ---------- */
-var UD={id:null,d:null,err:'',busy:false,ms:'',mt:'',errs:false};
-function admOpenUser(id){UD={id:id,d:null,err:'',busy:false,ms:'',mt:'',errs:false};ADM.tab='users';var o=$('#adm');if(o)o.scrollTop=0;renderAdmin();admLoadUser()}
-function admLoadUser(){var id=UD.id;if(!id)return;admRpc('admin_user_detail',{p_user:id}).then(function(d){if(UD.id!==id)return;UD.d=d;UD.err='';renderAdmin()},
+var UD={id:null,d:null,err:'',busy:false,ms:'',mt:'',errs:false,push:null,pn:''};
+function admOpenUser(id){UD={id:id,d:null,err:'',busy:false,ms:'',mt:'',errs:false,push:null,pn:''};ADM.tab='users';var o=$('#adm');if(o)o.scrollTop=0;renderAdmin();admLoadUser()}
+function admLoadUser(){var id=UD.id;if(!id)return;admRpc('admin_push_devices',{p_user:id}).then(function(l){if(UD.id===id){UD.push=l||[];renderAdmin()}},function(){if(UD.id===id)UD.push=[]});admRpc('admin_user_detail',{p_user:id}).then(function(d){if(UD.id!==id)return;UD.d=d;UD.err='';renderAdmin()},
   function(e){if(UD.id!==id)return;UD.err=(e&&e.message)||String(e);renderAdmin()})}
 function udDo(what,p,ok){UD.busy=true;renderAdmin();Promise.resolve(p).then(function(r){UD.busy=false;toast(typeof ok==='function'?ok(r):ok);admLoadUser();admLoadOverview(true)},
   function(e){UD.busy=false;renderAdmin();toast('Couldn’t '+what+': '+((e&&e.message)||e))})}
@@ -18029,6 +18029,12 @@ function admUser(o,lab){var d=UD.d;
   var mt=document.createElement('textarea');mt.className='ata';mt.dataset.ak='mt';mt.placeholder='Message. It’s sent from help@hellodemo.app and starts with “Hi '+first+',”.';mt.value=UD.mt;mt.oninput=function(){UD.mt=mt.value};mb.appendChild(mt);
   var ma=document.createElement('div');ma.className='aacts';ma.appendChild(admBtn(UD.busy?'One moment…':'Send Email',function(){var tx=UD.mt.trim();if(tx.length<2){toast('Write a message first');return}
     udDo('send the email',fnCall('support',{action:'email',user:d.id,subject:UD.ms.trim(),text:tx}),function(r){UD.ms='';UD.mt='';return r.emailed?'Email sent to '+d.email:'Saved to Help, but the email didn’t send'})},'ok',UD.busy));mb.appendChild(ma);
+  /* a push notification to their iPhones */
+  var ph=UD.push||[];lab('Notify '+first);var nb=document.createElement('div');nb.className='abox apad';o.appendChild(nb);
+  var nm=document.createElement('div');nm.className='am';nm.textContent=UD.push==null?'Checking their phones…':ph.length?ph.length+(ph.length===1?' iPhone':' iPhones')+' can get notifications'+(ph[0].last_sent?' · last sent '+admAgo(ph[0].last_sent):'')+(ph.some(function(x){return x.last_error})?' · last error: '+ph.filter(function(x){return x.last_error})[0].last_error:''):'No iPhone with notifications allowed. They can turn them on in Account › Notifications.';nb.appendChild(nm);
+  if(ph.length){var pi=document.createElement('input');pi.className='ain';pi.dataset.ak='pn';pi.maxLength=240;pi.placeholder='Notification text';pi.value=UD.pn;pi.oninput=function(){UD.pn=pi.value};nb.appendChild(pi);
+    var pa=document.createElement('div');pa.className='aacts';pa.appendChild(admBtn('Send Notification',function(){var tx=UD.pn.trim();if(tx.length<2){toast('Write the notification first');return}
+      udDo('send the notification',fnCall('push',{action:'admin_send',user:d.id,body:tx}),function(r){UD.pn='';return r.sent?'Sent to '+r.sent+(r.sent===1?' iPhone':' iPhones'):'Apple refused it: '+(r.reasons||[]).join(', ')})},'ok',UD.busy));nb.appendChild(pa)}
   /* the account itself */
   lab('Account');var kb=document.createElement('div');kb.className='abox';o.appendChild(kb);var pr=d.plan_row||{};
   admKV(kb,'Joined',admDate(d.created_at));admKV(kb,'Last sign-in',d.last_sign_in_at?admAgo(d.last_sign_in_at):'Never');
@@ -18108,6 +18114,7 @@ function admDebug(o){
    ['Clear Audio Cache',function(){if(!confirm('Clear the downloaded audio on this device? It downloads again when played.'))return;acClear();toast('Audio cache cleared');renderAdmin()}],
    ['Copy Report',function(){admCopy(JSON.stringify(diagReport(true),null,2),'report')}],
    ['Send to Help Desk',function(){fnCall('support',{action:'submit',topic:'bug',message:'Debug report from Admin › Debug ('+errPlatform()+', '+APP_COMMIT+')',diag:diagReport(true)}).then(function(r){toast('Sent to the help desk as #'+r.id);tkLoad()},function(e){toast('Couldn’t send the report: '+((e&&e.message)||e))})}],
+   ['Test Push',function(){fnCall('push',{action:'test'}).then(function(r){toast(r.sent?'Sent to '+r.sent+' of '+r.devices+(r.devices===1?' phone':' phones'):r.devices?'Apple refused it: '+(r.reasons||[]).join(', '):'No phones registered for your account yet. Allow notifications in the iPhone app first.')},function(e){toast('Couldn’t send a test: '+((e&&e.message)||e))})}],
    ['Clear Log',function(){DBG_LOG.length=0;renderAdmin()}],
    ['Reload App',function(){location.reload()}]].forEach(function(x,i){ac.appendChild(admBtn(x[0],x[1],i===0?'ok':''))});
   lab('This app');var b1=box(),C=window.Capacitor;
@@ -18122,6 +18129,7 @@ function admDebug(o){
   admKV(b2,'Session',!se?'Checking…':se.none?'No session':'Renews '+(se.exp?new Date(se.exp*1000).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}):'automatically'),se&&se.none);
   admKV(b2,'Plan',planName()+(PLAN.expires_at?' until '+new Date(PLAN.expires_at).toLocaleDateString():'')+' · checked '+admAgo(PLAN.at));
   admKV(b2,'Admin',BETA.admin?'Yes':'No');
+  admKV(b2,'Push notifications',!pushPlugin()?'iPhone app only':({granted:'Allowed',denied:'Turned off in Settings'}[PUSH.perm]||'Not asked yet')+(PUSH.token?' · registered':'')+(PUSH.err?' · '+PUSH.err:''),!!PUSH.err);
   lab('Purchases');var b3=box();
   admKV(b3,'In-app purchases',iapPlugin()?'Available on this device':'Not on this device');admKV(b3,'RevenueCat key',RC_KEY?'Set':'Not set yet',!RC_KEY&&!!iapPlugin());
   admKV(b3,'Store',IAP.ready?(IAP.pkgs?'Products loaded'+(IAP.pkgs.month?' · monthly':'')+(IAP.pkgs.year?' · yearly':''):'Connected, no products'):'Not connected');
@@ -18144,6 +18152,39 @@ function admDebug(o){
   lab('Log, newest first');var b8=document.createElement('div');b8.className='abox apad';o.appendChild(b8);var p8=document.createElement('pre');p8.style.marginTop='0';
   p8.textContent=DBG_LOG.length?DBG_LOG.slice().reverse().map(function(x){return new Date(x.t).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' '+x.k+'  '+dbgScrub(x.m)}).join('\n'):'Nothing logged since the app opened.';b8.appendChild(p8);
   var n=document.createElement('div');n.className='anote';n.textContent='Warnings, errors and messages shown on this device since it opened (the last 80). Copy Report puts all of this on the clipboard; Send to Help Desk files it as a ticket.';o.appendChild(n)}
+/* ---------- push notifications, iPhone only (@capacitor/push-notifications + supabase/functions/push) ----------
+   For co-writer invites and help desk replies. The app never asks on launch: it asks when someone sends a support
+   message, shares a song or accepts an invite, or turns it on in Account. Once allowed, each launch registers the
+   phone's token with the signed-in account; signing out releases it. */
+var PUSH={perm:'',token:'',err:'',on:false};try{PUSH.token=localStorage.getItem('songpad:pushtok')||''}catch(e){}
+function pushPlugin(){var C=window.Capacitor;try{return C&&C.isNativePlatform&&C.isNativePlatform()&&(!C.getPlatform||C.getPlatform()==='ios')&&C.Plugins&&C.Plugins.PushNotifications||null}catch(e){return null}}
+function pushTopic(){var A=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
+  return A&&A.getInfo?A.getInfo().then(function(i){return(i&&i.id)||'app.hellodemo.demo'},function(){return cfgIsDev()?'app.hellodemo.demo.dev':'app.hellodemo.demo'}):Promise.resolve(cfgIsDev()?'app.hellodemo.demo.dev':'app.hellodemo.demo')}
+function pushSave(tok){var c=sbClient();if(!c||!AUTH_USER||DEV_MODE||!tok)return;
+  pushTopic().then(function(topic){return c.rpc('push_register',{p_token:tok,p_topic:topic,p_build:APP_COMMIT})}).then(function(r){if(r&&r.error)dbgLog('warn','push_register: '+r.error.message);else PUSH.saved=AUTH_USER&&AUTH_USER.id},function(){})}
+function pushOpen(d){d=d||{};
+  if(d.kind==='invite'){pullInvites();sheet(false);setTimeout(function(){openAccount('')},250)}
+  else if(d.kind==='support'){ACC_EDIT='support';supLoad(true);sheet(false);setTimeout(function(){openAccount('')},250)}}
+function pushListen(){var P=pushPlugin();if(!P||pushListen.on)return;pushListen.on=true;
+  P.addListener('registration',function(t){var v=t&&t.value;if(!v)return;PUSH.token=v;PUSH.err='';try{localStorage.setItem('songpad:pushtok',v)}catch(e){}pushSave(v)});
+  P.addListener('registrationError',function(e){PUSH.err=(e&&(e.error||e.message))||'registration failed';dbgLog('warn','push registration: '+PUSH.err)});
+  /* while the app is open: no banner from iOS, so show it here */
+  P.addListener('pushNotificationReceived',function(n){var d=(n&&n.data)||{};
+    if(d.kind==='invite')pullInvites();
+    else if(d.kind==='support'){supLoad(true);toast('*[demo] Support replied. See Account › Contact Support.')}
+    else if(n&&(n.title||n.body))toast([n.title,n.body].filter(Boolean).join(': '))});
+  P.addListener('pushNotificationActionPerformed',function(a){pushOpen(a&&a.notification&&a.notification.data)})}
+/* on sign-in: if they've already allowed notifications, register quietly */
+function pushStart(){var P=pushPlugin();if(!P||!AUTH_USER||DEV_MODE)return;pushListen();
+  P.checkPermissions().then(function(s){PUSH.perm=s&&s.receive||'';if(PUSH.perm==='granted'){PUSH.on=true;return P.register()}}).catch(function(e){PUSH.err=String((e&&e.message)||e)})}
+/* at a moment where it makes sense ("so you'll know when we reply"); asks iOS once, never nags */
+function pushAsk(why){var P=pushPlugin();if(!P||!AUTH_USER||DEV_MODE)return Promise.resolve(false);pushListen();
+  return P.checkPermissions().then(function(s){PUSH.perm=s&&s.receive||'';if(PUSH.perm==='granted')return true;if(PUSH.perm==='denied')return false;
+    return P.requestPermissions().then(function(r){PUSH.perm=r&&r.receive||'';return PUSH.perm==='granted'})})
+  .then(function(ok){PUSH.on=ok;if(ok){P.register();if(why)toast(why)}refreshAccount();return ok}).catch(function(){return false})}
+/* signing out on this phone: stop sending this account's notifications here */
+function pushForget(c){if(!pushPlugin()||!PUSH.token||!c)return Promise.resolve();PUSH.saved=null;
+  return Promise.race([c.rpc('push_forget',{p_token:PUSH.token}).then(function(){},function(){}),new Promise(function(r){setTimeout(r,2500)})])}
 function onAuthUser(){
   if(AUTH_USER&&DEV_MODE){DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}}
   var uid=AUTH_USER&&AUTH_USER.id;
@@ -18152,7 +18193,7 @@ function onAuthUser(){
   if(AUTH_USER&&!DEV_MODE){if(uid!==betaCheck.uid){betaCheck.uid=uid;BETA={st:null,admin:false,sum:null,list:null,t:0,busy:{}};betaCheck()}}else{betaCheck.uid=null;betaGate(null)}
   if(AUTH_USER&&!DEV_MODE)iapStart();
   ensureStorageForMode();
-  if(AUTH_USER&&!DEV_MODE)seenPing();
+  if(AUTH_USER&&!DEV_MODE){seenPing();pushStart()}
   if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;SUP.list=null;setTimeout(function(){if(AUTH_USER)acPrune()},45000);cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling();MZ.noTable=false;setTimeout(mzPull,1500);setTimeout(sharedGoneCheck,5000)}
   if(AUTH_USER)setTimeout(function(){if(cur&&cur.shared)pullShared(cur);liveEnsure()},0);
   if(!AUTH_USER){stopInvitePolling();libStop()}
@@ -18619,7 +18660,7 @@ function signInApple(forceChooser){var P=appleNative(),c=sbClient();
     /* 1001 = the person closed Apple's sheet */
     if(!/1001|cancel/i.test(m+(e&&e.code||''))){toast('Sign in with Apple didn’t work. Please try again.');oauthDbg('apple native: '+m)}
   }).then(function(){oauthInFlight=false})}
-function signOutGoogle(){iapStop();libStop();liveLeave();acClear();var c=sbClient();if(c)c.auth.signOut();AUTH_USER=null;cloudDidPull=false;DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}stopInvitePolling();PENDING_INVITES=[];ensureStorageForMode();renderAccount();paintAcctIcons();sheet(false);var ag=$('#authgate');if(ag)ag.style.display='flex'}
+function signOutGoogle(){iapStop();libStop();liveLeave();acClear();var c=sbClient();if(c){var so=function(){c.auth.signOut()};pushForget(c).then(so,so)}AUTH_USER=null;cloudDidPull=false;DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}stopInvitePolling();PENDING_INVITES=[];ensureStorageForMode();renderAccount();paintAcctIcons();sheet(false);var ag=$('#authgate');if(ag)ag.style.display='flex'}
 $('#ag-google').onclick=function(){$('#ag-note').textContent='';signInGoogle(true)};
 $('#ag-apple').onclick=function(){$('#ag-note').textContent='';signInApple(true)};
 setTimeout(function(){if(!AUTH_USER&&!sbClient())$('#ag-note').textContent='Couldn’t reach the sign-in service. Check your connection and try again.'},4000);
@@ -18725,6 +18766,7 @@ var ACC_ICO={
   reset:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>',
   disk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-.5-8.97A6 6 0 0 1 18 8.5a4.5 4.5 0 0 1-.5 9.5z"/></svg>',
   chev:'<svg viewBox="0 0 8 14" width="8" height="14"><path d="M1.5 1.5 6.5 7l-5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/></svg>',
   help:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6a2.5 2.5 0 0 1 2.5-2.5h11A2.5 2.5 0 0 1 20 6v7.5a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4A2.5 2.5 0 0 1 4 13.5z"/><path d="M9.9 8.3a2.2 2.2 0 1 1 2.9 2.1c-.5.2-.8.6-.8 1.1v.3M12 14v.01"/></svg>',
   ext:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>',
   person:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.2"/><path d="M3.8 20.2c0-4.3 3.7-6.9 8.2-6.9s8.2 2.6 8.2 6.9z"/></svg>',
@@ -18799,10 +18841,16 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
       function saveProfile(e){var btn=e&&e.target;if(btn)btn.disabled=true;
         var oldName=devFake?(dp.display_name||dp.username||''):myName(),rawUser=ui.value.replace(/^@+/,'').trim(),dn=di.value.trim();
         if(devFake){dp.username=rawUser;dp.display_name=dn;devProfileSet(dp);renameMyArtistCredit(oldName,dn||rawUser);ACC_EDIT=null;ACC_DRAFT={};toast('Saved (dev only)');renderAccount()}
-        else saveUsername(rawUser,dn).then(function(){renameMyArtistCredit(oldName,myName());ACC_EDIT=null;ACC_DRAFT={};toast('Saved');renderAccount()},function(err){if(btn)btn.disabled=false;toast(err.message)})}
+        else saveUsername(rawUser,dn).then(function(){renameMyArtistCredit(oldName,myName());ACC_EDIT=null;ACC_DRAFT={};toast('Saved');renderAccount();if(rawUser)setTimeout(function(){pushAsk('You’ll get a notification when someone invites you to a song.')},1800)},function(err){if(btn)btn.disabled=false;toast(err.message)})}
     }else{
       var pg2=accSection(o,'');
       pg2.appendChild(accCell({tile:ACC_ICO.person,grad:1,label:'Name & Username',value:handle?'@'+handle:'Not set',valueCls:handle?'':'add',chev:true,onclick:function(){ACC_EDIT='profile';ACC_DRAFT={};ACC_AUTOFOCUS='profile';renderAccount()}}));
+      /* iPhone: notifications for invites and help desk replies */
+      if(pushPlugin()&&!devFake){var pg=PUSH.perm==='granted'?'On':PUSH.perm==='denied'?'Off':'Turn On';
+        pg2.appendChild(accCell({tile:ACC_ICO.bell,grad:4,label:'Notifications',value:pg,valueCls:pg==='Turn On'?'add':'',onclick:function(){
+          if(PUSH.perm==='granted')toast('You’ll be notified about invites and replies. Turn them off in Settings › *[demo] › Notifications.');
+          else if(PUSH.perm==='denied')toast('Notifications are off for *[demo]. Turn them on in Settings › *[demo] › Notifications.');
+          else pushAsk('Notifications are on')}}))}
     }
     /* ---- links: one row per network with its own icon, showing the handle, like contact details ---- */
     var linking=ACC_EDIT==='links';

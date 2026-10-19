@@ -4,6 +4,7 @@
 //                                                  emails you. diag is the app's diagnostics, if they left it ticked.
 //   { action: "reply", id, text }                   Admins only, from Admin › Help. Emails the person and saves the reply.
 //   { action: "email", user, subject, text }        Admins only, from a user's page in Admin › Users: starts a conversation.
+// Replies and emails also go to their iPhones as push notifications, once push is set up (supabase/functions/push).
 //
 // Replies come from help@hellodemo.app and people answer by email (reply-to help@hellodemo.app).
 // Secrets: RESEND_API_KEY and ADMIN_EMAIL (already set for the beta function). SUPPORT_FROM is optional.
@@ -40,6 +41,19 @@ async function send(to: string, subject: string, html: string) {
     if (!r.ok) console.error(`Resend refused the email to ${to}: ${r.status} ${await r.text()}`);
     return r.ok;
   } catch (e) { console.error("Couldn't reach Resend:", e); return false; }
+}
+
+// a push notification to their iPhones too (supabase/functions/push); quietly skipped if push isn't set up
+async function pushTo(user: unknown, title: string, body: string, data: Record<string, unknown>) {
+  if (typeof user !== "string" || !user) return;
+  try {
+    const r = await fetch(`${env("SUPABASE_URL")}/functions/v1/push`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${env("SUPABASE_SERVICE_ROLE_KEY")}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "send", user, title, body: body.length > 180 ? body.slice(0, 177) + "…" : body, data }),
+    });
+    if (!r.ok) console.error(`Push for ${user} answered ${r.status}: ${await r.text()}`);
+  } catch (e) { console.error("Couldn't reach the push function:", e); }
 }
 
 Deno.serve(async (req) => {
@@ -89,6 +103,7 @@ Deno.serve(async (req) => {
     const replies = [...(Array.isArray(t.replies) ? t.replies : []), { at: new Date().toISOString(), by: "admin", text, emailed }];
     const { error } = await db.from("support_tickets").update({ replies, status: "replied", updated_at: new Date().toISOString() }).eq("id", id);
     if (error) return json({ error: "Couldn't save the reply: " + error.message }, 500);
+    await pushTo(t.user_id, "*[demo] Support", text, { kind: "support", ticket: t.id });
     return json({ ok: true, emailed, emailReady: !!env("RESEND_API_KEY") });
   }
 
@@ -106,6 +121,7 @@ Deno.serve(async (req) => {
       user_id: user, email: to, name, topic: "other", message: `(You wrote to them) ${subject}`, status: "replied",
       replies: [{ at: new Date().toISOString(), by: "admin", text, emailed }],
     }).select("id").single();
+    await pushTo(user, subject, text, { kind: "support", ticket: t?.id });
     return json({ ok: true, emailed, id: t?.id, emailReady: !!env("RESEND_API_KEY") });
   }
 
