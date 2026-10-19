@@ -69,6 +69,9 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 .plopt b{font-size:16px}.plopt span{font-size:13.5px;color:var(--mute)}
 .plopt em{position:absolute;top:-9px;right:10px;font-style:normal;font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;background:var(--tint);color:var(--ontint)}
 .plopt.best{box-shadow:0 0 0 2px var(--tint)}
+.plopt:disabled{opacity:.55}.plopt.busy{opacity:1}
+.pllinks{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:8px}.pllinks button{font:inherit;font-size:13px;font-weight:600;color:var(--tint);padding:4px 0;background:none}
+.pllinks-pro{margin:10px 20px 0}
 .devpill{display:inline-flex;align-items:center;height:20px;padding:0 8px;margin-left:8px;border-radius:99px;font-size:11px;font-weight:800;letter-spacing:.4px;vertical-align:middle;color:#fff;background:linear-gradient(140deg,#FFAA7F,#FF8FA3)}
 .bth{color:#fff;background:linear-gradient(140deg,#FFE9A8,#FFAA7F)!important}.bth svg{filter:drop-shadow(0 .5px 1.5px rgba(0,0,0,.25))}
 .brow0 em{font-style:normal}.brow0 .bct{min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:#FF3B30;color:#fff;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-left:auto}
@@ -17797,6 +17800,7 @@ function onAuthUser(){
   if(uid!==lastAuthUid){lastAuthUid=uid;cloudDidPull=false;PENDING_INVITES=[];MY_PROFILE=null;mzLoad()}
   var ag=$('#authgate');if(ag)ag.style.display=(AUTH_USER||DEV_MODE)?'none':'flex';
   if(AUTH_USER&&!DEV_MODE){if(uid!==betaCheck.uid){betaCheck.uid=uid;BETA={st:null,admin:false,sum:null,list:null,t:0,busy:{}};betaCheck()}}else{betaCheck.uid=null;betaGate(null)}
+  if(AUTH_USER&&!DEV_MODE)iapStart();
   ensureStorageForMode();
   if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;setTimeout(function(){if(AUTH_USER)acPrune()},45000);cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling();MZ.noTable=false;setTimeout(mzPull,1500);setTimeout(sharedGoneCheck,5000)}
   if(AUTH_USER)setTimeout(function(){if(cur&&cur.shared)pullShared(cur);liveEnsure()},0);
@@ -18246,7 +18250,7 @@ function signInOAuth(provider,forceChooser,label){
 }
 function signInGoogle(forceChooser){signInOAuth('google',forceChooser,'Google')}
 function signInApple(forceChooser){signInOAuth('apple',forceChooser,'Apple')}
-function signOutGoogle(){libStop();liveLeave();acClear();var c=sbClient();if(c)c.auth.signOut();AUTH_USER=null;cloudDidPull=false;DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}stopInvitePolling();PENDING_INVITES=[];ensureStorageForMode();renderAccount();paintAcctIcons();sheet(false);var ag=$('#authgate');if(ag)ag.style.display='flex'}
+function signOutGoogle(){iapStop();libStop();liveLeave();acClear();var c=sbClient();if(c)c.auth.signOut();AUTH_USER=null;cloudDidPull=false;DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}stopInvitePolling();PENDING_INVITES=[];ensureStorageForMode();renderAccount();paintAcctIcons();sheet(false);var ag=$('#authgate');if(ag)ag.style.display='flex'}
 $('#ag-google').onclick=function(){$('#ag-note').textContent='';signInGoogle(true)};
 $('#ag-apple').onclick=function(){$('#ag-note').textContent='';signInApple(true)};
 setTimeout(function(){if(!AUTH_USER&&!sbClient())$('#ag-note').textContent='Couldn’t reach the sign-in service. Check your connection and try again.'},4000);
@@ -18297,6 +18301,49 @@ function hideProBanner(){$('#probanner').classList.remove('on');clearTimeout(pro
 $('#pb-x').onmousedown=prevent;$('#pb-x').onclick=function(e){e.stopPropagation();hideProBanner()};
 function upsellMsg(k){return k==='memos'?'Free keeps '+FREE_MEMOS+' voice memos on this device, up to a minute each. Pro syncs them everywhere, with no limit.':k==='ai'?'You’ve used today’s free AI. Pro has plenty more.':(FEAT[k]||'That')+' is part of *[demo] Pro.'}
 function upsell(k,msg){showProBanner(msg||upsellMsg(k),k)}
+/* In-app subscriptions, iPhone only, through RevenueCat (@revenuecat/purchases-capacitor). This only buys and restores:
+   the server decides the plan (supabase/functions/revenuecat asks RevenueCat and writes plans), so Pro follows the
+   account to the Mac and the web. People are logged in to RevenueCat with their Supabase user id.
+   RC_KEY is RevenueCat's public Apple SDK key (starts appl_). It's meant to ship inside apps, so it's fine here. */
+var RC_KEY='',RC_ENT='pro';
+var IAP={ready:false,user:null,pkgs:null,busy:false,err:''};
+function iapPlugin(){var C=window.Capacitor;try{return C&&C.isNativePlatform&&C.isNativePlatform()&&(!C.getPlatform||C.getPlatform()==='ios')&&C.Plugins&&C.Plugins.Purchases||null}catch(e){return null}}
+function iapOn(){return!!(iapPlugin()&&RC_KEY)}
+function iapStart(){var P=iapPlugin();if(!P||!RC_KEY||!AUTH_USER||DEV_MODE)return Promise.resolve();
+  var uid=AUTH_USER.id;if(IAP.ready&&IAP.user===uid&&IAP.pkgs)return Promise.resolve();
+  var go=!IAP.ready?P.configure({apiKey:RC_KEY,appUserID:uid}):IAP.user!==uid?P.logIn({appUserID:uid}):Promise.resolve();
+  return Promise.resolve(go).then(function(){IAP.ready=true;IAP.user=uid;return P.getOfferings()}).then(function(o){
+    var c=o&&o.current;if(!c)throw new Error('No products yet');
+    IAP.pkgs={month:c.monthly||null,year:c.annual||null};IAP.err='';
+    try{refreshAccount()}catch(e){}
+  }).catch(function(e){IAP.err=(e&&(e.message||e.errorMessage))||String(e);console.warn('[iap]',IAP.err)})}
+function iapStop(){var P=iapPlugin();if(P&&IAP.ready)Promise.resolve(P.logOut()).catch(function(){});IAP.user=null;IAP.pkgs=null}
+function iapPrice(k){var p=IAP.pkgs&&IAP.pkgs[k],pr=p&&p.product;return pr&&pr.priceString?pr.priceString:(k==='year'?PRICE.year:PRICE.month)}
+function iapCancelled(e){return!!e&&(e.userCancelled===true||(e.data&&e.data.userCancelled)||e.code==='1'||e.code===1||e.code==='PURCHASE_CANCELLED'||/cancel/i.test(e.message||''))}
+function iapHasPro(ci){var a=ci&&ci.entitlements&&ci.entitlements.active;return!!(a&&a[RC_ENT])}
+/* after a purchase or restore: have the server check with RevenueCat now, rather than wait for the webhook */
+function iapSync(ci){var c=sbClient();
+  if(iapHasPro(ci)&&PLAN.tier!=='pro')planSave(Object.assign({},PLAN,{tier:'pro',at:0}));
+  var p=c?c.functions.invoke('revenuecat',{body:{action:'sync'}}).catch(function(){}):Promise.resolve();
+  return p.then(function(){return planRefresh()}).then(function(){if(iapHasPro(ci)&&PLAN.tier==='free')planSave(Object.assign({},PLAN,{tier:'pro',at:0}))})}
+function iapBuy(k){
+  if(!AUTH_USER){toast('Sign in first, so Pro is saved to your account.');return}
+  if(!iapPlugin()){toast('Subscribe in the *[demo] iPhone app. Pro then works here too, on the same account.');return}
+  if(!RC_KEY){toast('Subscriptions open soon. You’ll start your '+PRICE.trial+'-day free trial right here.');return}
+  var P=iapPlugin(),pkg=IAP.pkgs&&IAP.pkgs[k];
+  if(!pkg){toast('The App Store isn’t answering. Check your connection and try again.');IAP.pkgs=null;iapStart();return}
+  if(IAP.busy)return;IAP.busy=k;renderAccount();
+  Promise.resolve(P.purchasePackage({aPackage:pkg})).then(function(r){var ci=r&&r.customerInfo;
+    return iapSync(ci).then(function(){toast(iapHasPro(ci)?'Welcome to *[demo] Pro':'Purchase received. Pro switches on in a moment.')})
+  },function(e){if(!iapCancelled(e))toast('The purchase didn’t go through. '+((e&&(e.message||e.errorMessage))||'Try again.'))}).then(function(){IAP.busy=false;accWhy='';renderAccount()})}
+function iapRestore(){var P=iapPlugin();if(!P||!RC_KEY){toast('Restore your purchase in the *[demo] iPhone app.');return}
+  if(!AUTH_USER){toast('Sign in first.');return}if(IAP.busy)return;IAP.busy='restore';renderAccount();
+  Promise.resolve(iapStart()).then(function(){return P.restorePurchases()}).then(function(r){var ci=r&&r.customerInfo;
+    return iapSync(ci).then(function(){toast(iapHasPro(ci)?'Pro restored':'No *[demo] Pro subscription found for this Apple ID')})
+  },function(e){toast('Couldn’t restore: '+((e&&(e.message||e.errorMessage))||'try again'))}).then(function(){IAP.busy=false;renderAccount()})}
+function iapManage(){var P=iapPlugin();
+  if(P&&RC_KEY&&P.showManageSubscriptions){Promise.resolve(P.showManageSubscriptions()).catch(function(){openLink('https://apps.apple.com/account/subscriptions')});return}
+  openLink('https://apps.apple.com/account/subscriptions')}
 var accWhy='';
 function openAccount(k){accWhy=k||'';renderAccount();sheet(true,'sheet6')}
 function devProfileGet(){try{return JSON.parse(localStorage.getItem('songpad:devprofile'))||{}}catch(e){return{}}}
@@ -18478,13 +18525,23 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
     var r2=document.createElement('div');r2.className='row';
     r2.innerHTML='<span class="pfrow"><i class="pfi"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></i><span class="pft"></span></span>';
     r2.querySelector('.pft').textContent=t;fbox.appendChild(r2)});
-  /* payments aren't switched on yet (they need the Apple Developer account): the buttons explain that */
+  /* prices come from the App Store when it has answered (local currency), else the Australian list price */
+  if(!iapPlugin()){var wn=document.createElement('div');wn.className='note';wn.style.paddingTop='10px';wn.textContent='Pro is sold in the *[demo] iPhone app: '+PRICE.month+' a month or '+PRICE.year+' a year, with a '+PRICE.trial+'-day free trial. Subscribe there and Pro works here too, on the same account.';o.appendChild(wn)}else{
+  if(iapOn()&&!IAP.pkgs)iapStart();
   var buy=document.createElement('div');buy.className='plbuy';
-  [['year','Yearly',PRICE.year+' a year','About 35% off'],['month','Monthly',PRICE.month+' a month','']].forEach(function(x){
-    var b=document.createElement('button');b.className='plopt'+(x[0]==='year'?' best':'');b.innerHTML='<b></b><span></span><em></em>';b.children[0].textContent=x[1];b.children[1].textContent=x[2];b.children[2].textContent=x[3];if(!x[3])b.children[2].remove();
-    b.onclick=function(){toast('Subscriptions open soon. You’ll start your '+PRICE.trial+'-day free trial right here.')};buy.appendChild(b)});
+  [['year','Yearly',iapPrice('year')+' a year','About 35% off'],['month','Monthly',iapPrice('month')+' a month','']].forEach(function(x){
+    var b=document.createElement('button');b.className='plopt'+(x[0]==='year'?' best':'')+(IAP.busy===x[0]?' busy':'');b.innerHTML='<b></b><span></span><em></em>';b.children[0].textContent=IAP.busy===x[0]?'One moment…':x[1];b.children[1].textContent=x[2];b.children[2].textContent=x[3];if(!x[3])b.children[2].remove();
+    b.disabled=!!IAP.busy;b.onclick=function(){iapBuy(x[0])};buy.appendChild(b)});
   o.appendChild(buy);
-  var tn=document.createElement('div');tn.className='note';tn.style.paddingTop='8px';tn.textContent=PRICE.trial+'-day free trial, then billed through the App Store. Cancel any time; your songs and recordings stay yours.';o.appendChild(tn)}
+  /* what Apple asks paywalls to say: price, trial, renewal, how to cancel, and links to the terms and privacy policy */
+  var tn=document.createElement('div');tn.className='note plterms';tn.style.paddingTop='8px';
+  tn.textContent=PRICE.trial+'-day free trial for new subscribers, then '+iapPrice('year')+' a year or '+iapPrice('month')+' a month, charged to your Apple ID. Renews automatically unless you cancel at least 24 hours before the period ends; manage it in Settings › Apple ID › Subscriptions. Your songs and recordings stay yours.';
+  var lk=document.createElement('div');lk.className='pllinks';
+  [['Restore Purchases',iapRestore],['Terms of Use',function(){openDoc('terms')}],['Privacy Policy',function(){openDoc('privacy')}]].forEach(function(x,i){var a2=document.createElement('button');a2.textContent=IAP.busy==='restore'&&i===0?'Restoring…':x[0];a2.onclick=x[1];lk.appendChild(a2)});
+  tn.appendChild(lk);o.appendChild(tn)}}
+  /* Pro through the App Store: manage it here (Apple asks apps to make this easy) */
+  if(tier==='pro'&&iapPlugin()){var gm=document.createElement('div');gm.className='pllinks pllinks-pro';
+    [['Manage Subscription',iapManage],['Restore Purchases',iapRestore]].forEach(function(x){var a3=document.createElement('button');a3.textContent=x[0];a3.onclick=x[1];gm.appendChild(a3)});o.appendChild(gm)}
   if(AUTH_USER){
     /* Credits: a small discography of finished songs you wrote or co-wrote */
     var credited=songs.filter(function(s){return s.title&&s.status==='Finished'&&(s.owner===AUTH_USER.id||(s.members||[]).indexOf(AUTH_USER.id)>=0||(!s.shared&&!s.owner))}).sort(function(a,b){return b.updated-a.updated});
