@@ -22,6 +22,7 @@ npx electron-packager . "[demo]" --platform=darwin --arch=universal \
   --out=dist --overwrite --ignore='^/dist' --ignore='^/build' --ignore='^/scripts' --ignore='^/README'
 APP="dist/[demo]-darwin-universal/[demo].app"
 rm -f "$APP/Contents/Resources/app/dev-build"   # never ship the developer version
+bash scripts/trim-languages.sh "$APP"           # English only: about 40 MB smaller
 
 if [ -n "${DEVELOPER_ID:-}" ]; then
   echo "Signing with $DEVELOPER_ID…"
