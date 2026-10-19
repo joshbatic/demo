@@ -18249,7 +18249,25 @@ function signInOAuth(provider,forceChooser,label){
   c.auth.signInWithOAuth({provider:provider,options:{redirectTo:window.location.href,queryParams:qp}}).catch(function(e){fail(e)})
 }
 function signInGoogle(forceChooser){signInOAuth('google',forceChooser,'Google')}
-function signInApple(forceChooser){signInOAuth('apple',forceChooser,'Apple')}
+/* Sign in with Apple. On iPhone it uses Apple's own sheet (@capacitor-community/apple-sign-in) and hands the
+   identity token to Supabase, so there's no web page. Elsewhere (Mac, web, or an iPhone build without the plugin)
+   it uses the web sign-in. Apple only tells us the person's name the first time, so it's saved then. */
+function appleNative(){try{return NATIVE_IOS&&window.Capacitor.Plugins&&window.Capacitor.Plugins.SignInWithApple||null}catch(e){return null}}
+function sha256hex(s){return crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)).then(function(b){return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')})}
+function signInApple(forceChooser){var P=appleNative(),c=sbClient();
+  if(!P||!c||!(window.crypto&&crypto.subtle)){signInOAuth('apple',forceChooser,'Apple');return}
+  if(oauthInFlight)return;oauthInFlight=true;
+  var raw=Array.from(crypto.getRandomValues(new Uint8Array(24))).map(function(x){return x.toString(16).padStart(2,'0')}).join('');
+  sha256hex(raw).then(function(hashed){
+    return P.authorize({clientId:'app.hellodemo.demo',redirectURI:'https://cygfgurzvmbtcegkpnss.supabase.co/auth/v1/callback',scopes:'email name',state:raw.slice(0,12),nonce:hashed})
+  }).then(function(res){var r=(res&&res.response)||{};if(!r.identityToken)throw new Error('Apple didn’t return a sign-in token');
+    return c.auth.signInWithIdToken({provider:'apple',token:r.identityToken,nonce:raw}).then(function(out){if(out&&out.error)throw out.error;
+      var nm=[r.givenName,r.familyName].filter(Boolean).join(' ');
+      if(nm){var md=(out&&out.data&&out.data.user&&out.data.user.user_metadata)||{};if(!md.full_name)return c.auth.updateUser({data:{full_name:nm,name:nm}}).catch(function(){})}})
+  }).catch(function(e){var m=(e&&(e.message||e.errorMessage))||String(e);
+    /* 1001 = the person closed Apple's sheet */
+    if(!/1001|cancel/i.test(m+(e&&e.code||''))){toast('Sign in with Apple didn’t work. Please try again.');oauthDbg('apple native: '+m)}
+  }).then(function(){oauthInFlight=false})}
 function signOutGoogle(){iapStop();libStop();liveLeave();acClear();var c=sbClient();if(c)c.auth.signOut();AUTH_USER=null;cloudDidPull=false;DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}stopInvitePolling();PENDING_INVITES=[];ensureStorageForMode();renderAccount();paintAcctIcons();sheet(false);var ag=$('#authgate');if(ag)ag.style.display='flex'}
 $('#ag-google').onclick=function(){$('#ag-note').textContent='';signInGoogle(true)};
 $('#ag-apple').onclick=function(){$('#ag-note').textContent='';signInApple(true)};
