@@ -5,7 +5,7 @@
 ## Branches and releases
 - `main`: the released 4.x line. Pushing it redeploys hellodemo.app (GitHub Pages) and listen.hellodemo.app (Vercel), so it gets fixes for the current release.
 - `next`: work toward the next major release (started from 4.0.0). On hold: Josh isn't using it for a while, so don't merge `main` into it or report its build number until he says otherwise. Work goes on `main`.
-- `stable-1` … `stable-4`: frozen snapshots of past milestones; never commit to them.
+- `stable-1` … `stable-5`: frozen snapshots of past milestones; never commit to them. `stable-5` is the last Electron Mac app (build e996c85), kept in case the Tauri version breaks.
 - Releases are tagged `vX.Y.Z` on `main`, with notes in `RELEASE-NOTES-vX.Y.Z.md`.
 
 ## Mac dev build
