@@ -126,7 +126,7 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 #adm .akv span{color:var(--mute);flex:none}#adm .akv b{font-weight:500;text-align:right;overflow-wrap:anywhere;min-width:0;-webkit-user-select:text;user-select:text}#adm .akv.warn b{color:#d92d20}
 #adm .apad pre{max-height:260px}
 #cfgban{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:50%;transform:translateX(-50%);z-index:58;display:flex;align-items:center;gap:10px;width:max-content;max-width:calc(100% - 24px);padding:8px 8px 8px 16px;border-radius:16px;background:var(--row);color:var(--ink);box-shadow:0 6px 24px rgba(0,0,0,.16),0 0 0 .5px var(--ring);font-size:14px;line-height:1.35}
-#cfgban[hidden]{display:none}#cfgban.warn{background:#FFF1D6;color:#6B4200}#cfgban button{flex:none;width:28px;height:28px;border-radius:14px;background:var(--fill);color:inherit;font-size:18px;line-height:1}
+#cfgban{cursor:pointer;opacity:0;transform:translate(-50%,-14px);transition:opacity .24s,transform .3s cubic-bezier(.32,.72,0,1)}#cfgban.on{opacity:1;transform:translate(-50%,0)}#cfgban[hidden]{display:none}#cfgban.warn{background:#FFF1D6;color:#6B4200}#cfgban button{flex:none;width:28px;height:28px;border-radius:14px;background:var(--fill);color:inherit;font-size:18px;line-height:1}
 @media (prefers-color-scheme:dark){#cfgban.warn{background:#3B2A0C;color:#FFD99A}}
 #cfgupd{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg);color:var(--ink)}#cfgupd[hidden]{display:none}
 #cfgupd .cu{max-width:340px;text-align:center}#cfgupd b{display:block;font-size:24px;font-weight:750;letter-spacing:-.02em}#cfgupd p{margin:10px 0 22px;color:var(--mute);font-size:16px;line-height:1.45}
@@ -17868,9 +17868,14 @@ function cfgLoad(){var c=sbClient();if(!c)return Promise.resolve();
 function cfgPaint(){
   var b=$('#cfgban');
   if(!b){b=document.createElement('div');b.id='cfgban';b.setAttribute('role','status');b.hidden=true;b.innerHTML='<span></span><button type="button" aria-label="Dismiss">×</button>';document.body.appendChild(b);
-    b.querySelector('button').onclick=function(){try{localStorage.setItem('songpad:banner-x',CFG.banner_id||'')}catch(e){}cfgPaint()}}
-  var gone='';try{gone=localStorage.getItem('songpad:banner-x')||''}catch(e){}
-  var show=!!CFG.banner&&gone!==(CFG.banner_id||'');b.hidden=!show;b.classList.toggle('warn',CFG.banner_kind==='warn');if(show)b.querySelector('span').textContent=CFG.banner;
+    /* tapping anywhere on it (or the ×) puts it away for good on this device */
+    b.onclick=function(){try{localStorage.setItem('songpad:banner-x',CFG.banner_id||'')}catch(e){}cfgPaint()}}
+  var gone='',id=CFG.banner_id||'';try{gone=localStorage.getItem('songpad:banner-x')||''}catch(e){}
+  /* it also slides away on its own after a few seconds (a warning stays longer), and comes back next time the app opens */
+  var show=!!CFG.banner&&gone!==id&&cfgPaint.auto!==id;b.classList.toggle('warn',CFG.banner_kind==='warn');
+  if(show){b.querySelector('span').textContent=CFG.banner;b.hidden=false;requestAnimationFrame(function(){b.classList.add('on')});
+    if(cfgPaint.t!==id){cfgPaint.t=id;clearTimeout(cfgPaint.tm);cfgPaint.tm=setTimeout(function(){cfgPaint.auto=id;cfgPaint()},CFG.banner_kind==='warn'?20000:9000)}}
+  else if(!b.hidden){b.classList.remove('on');clearTimeout(cfgPaint.ht);cfgPaint.ht=setTimeout(function(){if(!b.classList.contains('on'))b.hidden=true},260)}
   var old=!cfgIsDev()&&APP_SEQ>0&&(CFG.min_seq||0)>APP_SEQ,u=$('#cfgupd');
   if(old&&!u){u=document.createElement('div');u.id='cfgupd';u.setAttribute('role','alertdialog');u.setAttribute('aria-label','Update required');
     u.innerHTML='<div class="cu"><b>Time to update</b><p></p><button type="button"></button><em></em></div>';document.body.appendChild(u)}
@@ -17879,8 +17884,8 @@ function cfgPaint(){
     bt.textContent=pl==='web'?'Reload':'Get the Update';bt.onclick=function(){if(UPDATE_URL[pl])openLink(UPDATE_URL[pl]);else location.reload()};
     u.querySelector('em').textContent='Version '+APP_COMMIT+' · build '+APP_SEQ}}}
 function cfgSet(p,msg){return admRpc('admin_set_config',{p:p}).then(function(r){cfgKeep(r);renderAdmin();if(msg)toast(msg);return true},function(e){toast('Couldn’t change it: '+((e&&e.message)||e));renderAdmin();return false})}
-cfgPaint();setTimeout(cfgLoad,700);setInterval(function(){if(!document.hidden)cfgLoad()},600000);
-document.addEventListener('visibilitychange',function(){if(!document.hidden&&Date.now()-(CFG.at||0)>120000)cfgLoad()});
+cfgPaint();setTimeout(cfgLoad,700);setInterval(function(){if(!document.hidden)cfgLoad()},180000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&Date.now()-(CFG.at||0)>30000)cfgLoad()});
 /* which build each device is on (Admin › Users › someone › Devices, and Builds in Use) */
 function seenPing(){var c=sbClient();if(!c||!AUTH_USER||DEV_MODE||seenPing.uid===AUTH_USER.id)return;seenPing.uid=AUTH_USER.id;
   c.rpc('app_seen_ping',{p_device:LIB_DEV,p_platform:errPlatform()+(cfgIsDev()?'-dev':''),p_build:APP_COMMIT,p_seq:APP_SEQ,p_ua:String(navigator.userAgent||'').slice(0,300)}).then(function(){},function(){})}
@@ -18100,7 +18105,7 @@ function admRemote(o,lab){
   else ADM.builds.forEach(function(b){var rr=document.createElement('div');rr.className='arow';rr.style.cursor='default';rr.innerHTML='<b></b><div class="am"></div>';
     rr.querySelector('b').textContent=(b.seq?'Build '+b.seq+' · ':'')+(b.build||'?');
     rr.querySelector('.am').textContent=[{ios:'iPhone',mac:'Mac',web:'Web','ios-dev':'iPhone [developer]','mac-dev':'Mac [developer]','web-dev':'Web [developer]'}[b.platform]||b.platform,b.people+(b.people===1?' person':' people'),'seen '+admAgo(b.last_seen),CFG.min_seq&&b.seq&&b.seq<CFG.min_seq?'below the minimum':''].filter(Boolean).join(' · ');bl.appendChild(rr)});
-  var n=document.createElement('div');n.className='anote';n.textContent='Apps check these on launch, when they come back to the front, and every 10 minutes. Pauses also apply on the server, so older builds are covered too.';o.appendChild(n)}
+  var n=document.createElement('div');n.className='anote';n.textContent='Apps check these on launch, when they come back to the front, and every 3 minutes. The banner shows for a few seconds each time the app opens (a warning for longer) until someone taps it away. Pauses also apply on the server, so older builds are covered too.';o.appendChild(n)}
 /* ---------- Admin › Debug: this device, right now ---------- */
 var DBG={est:null,sess:null};
 function dbgPrep(){try{if(navigator.storage&&navigator.storage.estimate)navigator.storage.estimate().then(function(e){DBG.est=e;if(ADM.tab==='debug')renderAdmin()},function(){})}catch(e){}
