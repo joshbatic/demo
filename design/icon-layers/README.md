@@ -9,11 +9,11 @@ These are the layers for the Liquid Glass versions of the two app icons, for App
 
 Each folder has three layers, all on a 1024 × 1024 canvas with no rounded corners (iOS and macOS add those):
 
-1. `1-background.png`: the brushed metal. It's a picture, so it stays as it is, with no glass.
-2. `2-label.svg`: the black centre disc.
+1. `1-background.png`: the brushed metal, including its light streak. It's a picture, so it stays as it is, with no glass.
+2. `2-label.png`: the black centre disc, with its glossy highlight, bevelled rim and DEMO (or DEV) lettering.
 3. `3-asterisk.svg`: the white asterisk.
 
-The DEMO/DEV lettering is left out because it's too small to read once it's glass. The silver and graphite backgrounds tell the two apps apart.
+The label keeps all the detail of the flat icon, so leave glass off for it. Glass on the asterisk is what makes the icon feel like Liquid Glass.
 
 ## Make the main icon (about 5 minutes)
 
@@ -22,7 +22,7 @@ The DEMO/DEV lettering is left out because it's too small to read once it's glas
 3. Put the layers in this order, from bottom to top: background, label, asterisk.
 4. Put each one in its own group, so you have three groups. Each group is a separate depth of glass.
 5. Select the **background** group and turn **Liquid Glass off**. The metal should stay solid.
-6. Select the **label** group and turn **Liquid Glass on**. Leave Specular on, and set Shadow to Neutral.
+6. Select the **label** group and turn **Liquid Glass off**, so its gloss, rim and lettering stay crisp. Set Shadow to Neutral, so it sits slightly above the metal.
 7. Select the **asterisk** group and turn **Liquid Glass on**, with Specular on. This is where the highlight shows most.
 8. Check the different looks with the buttons along the bottom: Default, Dark, Clear and Tinted.
    - If Dark looks too bright, select the background, switch the inspector to Dark, and lower the background's opacity a little.
