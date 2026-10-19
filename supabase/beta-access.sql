@@ -67,7 +67,10 @@ language sql stable security definer set search_path = public as $$
   select not coalesce((select gate from public.beta_config where id = 1), false)
       or public.is_admin()
       or exists (select 1 from public.beta_requests r
-                 where r.status = 'approved' and (r.user_id = auth.uid() or r.email = public.my_email()));
+                 where r.status = 'approved' and (r.user_id = auth.uid() or r.email = public.my_email()))
+      -- an active Pro plan (bought or given) always gets in, whatever the waitlist says
+      or exists (select 1 from public.plans p where p.user_id = auth.uid() and p.tier = 'pro'
+                 and (p.expires_at is null or p.expires_at > now()));
 $$;
 
 -- For the app after sign-in: 'open' (lock off), 'admin', 'approved', 'pending', 'declined' or 'none'.
@@ -82,6 +85,9 @@ begin
    order by (b.status = 'approved') desc, (b.user_id = me) desc limit 1;
   if found and r.status = 'approved' then
     if r.user_id is null then update public.beta_requests set user_id = me where id = r.id; end if;
+    return 'approved';
+  end if;
+  if exists (select 1 from public.plans p where p.user_id = me and p.tier = 'pro' and (p.expires_at is null or p.expires_at > now())) then
     return 'approved';
   end if;
   if not coalesce((select gate from public.beta_config where id = 1), false) then return 'open'; end if;
