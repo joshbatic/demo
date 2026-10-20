@@ -15148,7 +15148,7 @@ function editIdea(i){curIdea=i||null;$('#ititle').textContent=i?'Idea':'New Idea
     rm.onclick=function(){ideaMemoRemove(i);if(!i.text){ideas=ideas.filter(function(x){return x!==i});sheet(false);toast('Voice memo deleted')}else{i.updated=Date.now();toast('Recording removed');editIdea(i)}saveIdeas()};mr.appendChild(rm);mw.appendChild(mr)}
   var ac=$('#iacts');ac.innerHTML='';ac.hidden=!i;
   if(i){ac.appendChild(accCell({tile:ACC_ICO.spark,grad:8,label:'Start a Song',chev:true,onclick:function(){var t=ta.value.trim();if(t){i.text=t;if(i.kind==='memo')i.kind='line'}ideaToSong(i)}}));
-    ac.appendChild(accCell({label:'Delete Idea',cls:'danger notile',onclick:function(){ideaMemoRemove(i);ideas=ideas.filter(function(x){return x!==i});saveIdeas();sheet(false);toast('Idea deleted')}}))}
+    ac.appendChild(accCell({label:'Delete Idea',cls:'danger notile',onclick:function(){var nat=natDestroy({title:'Delete this idea?',message:'This can’t be undone.',ok:'Delete Idea'});if(nat){nat.then(function(ok){if(!ok)return;ideaMemoRemove(i);ideas=ideas.filter(function(x){return x!==i});saveIdeas();sheet(false);toast('Idea deleted')});return}ideaMemoRemove(i);ideas=ideas.filter(function(x){return x!==i});saveIdeas();sheet(false);toast('Idea deleted')}}))}
   itextFit();$('#ibd').scrollTop=0;sheet(true,'sheet7');if(!i)setTimeout(function(){ta.focus()},350)}
 function itextFit(){var ta=$('#itext');ta.style.height='auto';ta.style.height=Math.max(96,ta.scrollHeight+2)+'px'}
 function openIdeas(jot){sheet(false);if(document.body.classList.contains('side'))sideOn(false);show('vIdeas');ifilterTag='';ifilterKind='';$('#iq').value='';renderIdeas();if(jot)setTimeout(function(){$('#ijot').focus()},320)}
@@ -15698,7 +15698,9 @@ function goBack(){if(cur&&!cur.title&&!cur.lyrics&&!cur.chords&&!cur.notes)songs
 $('#back').onclick=goBack;
 $('#logo').onclick=function(){var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'||ae.id==='q'))ae.blur();goBack()};
 $('#logo').onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();$('#logo').click()}};
-var delArm=0;$('#del').onclick=function(){var b=this;if(Date.now()-delArm>3000){delArm=Date.now();b.textContent='Tap Again to Delete';setTimeout(function(){b.textContent='Delete Song'},3000);return}delArm=0;b.textContent='Delete Song';removeSong(cur)};
+var delArm=0;$('#del').onclick=function(){var b=this,s0=cur;
+  var nat=s0&&natDestroy({title:'Delete “'+(s0.title||'Untitled')+'”?',message:'This can’t be undone.',ok:'Delete Song'});if(nat){nat.then(function(ok){if(ok)removeSong(s0)});return}
+  if(Date.now()-delArm>3000){delArm=Date.now();b.textContent='Tap Again to Delete';setTimeout(function(){b.textContent='Delete Song'},3000);return}delArm=0;b.textContent='Delete Song';removeSong(cur)};
 function sheet(on,w){if(on&&!wideMQ.matches&&document.body.classList.contains('side'))sideOn(false);
   if(on){var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'||ae.id==='q'))ae.blur()}
   if(!on){var fa=document.activeElement;if(fa&&fa.blur&&fa.closest&&fa.closest('[role=dialog]'))fa.blur();$('#sheet').classList.remove('on');$('#sheet2').classList.remove('on');$('#sheet3').classList.remove('on');$('#sheet4').classList.remove('on');$('#sheet5').classList.remove('on');$('#sheet6').classList.remove('on');$('#sheet7').classList.remove('on');$('#sheet8').classList.remove('on');var s10=$('#sheet10');if(s10)s10.classList.remove('on');var s11=$('#sheet11');if(s11)s11.classList.remove('on')}else $('#'+(w||'sheet')).classList.add('on');$('#scrim').classList.toggle('on',on)}
@@ -16229,6 +16231,17 @@ function parseAIJson(text){
    The first time someone taps an AI feature, a card names the provider and what's sent, with Allow / Not Now.
    Background requests (the muse learning your style, judging candidates) never ask: they only run once allowed.
    Turn it on or off any time in Account › AI Features. Stored per device. */
+/* ---------- native iPhone alerts and action sheets (@capacitor/dialog, @capacitor/action-sheet) ----------
+   On iPhone, questions use the system alert and destructive choices the system action sheet (red button,
+   Cancel underneath). On the Mac and the web, or before the plugins are installed, each caller keeps its
+   in-app version: these return null there. */
+function natPlug(n){var C=window.Capacitor;try{return C&&C.isNativePlatform&&C.isNativePlatform()&&(!C.getPlatform||C.getPlatform()==='ios')&&C.Plugins&&C.Plugins[n]||null}catch(e){return null}}
+function natBlur(){try{var ae=document.activeElement;if(ae&&ae.blur)ae.blur()}catch(e){}}
+function natConfirm(o){var D=natPlug('Dialog');if(!D)return null;natBlur();
+  return D.confirm({title:o.title,message:o.message||'',okButtonTitle:o.ok||'OK',cancelButtonTitle:o.cancel||'Cancel'}).then(function(r){return!!(r&&r.value)},function(){return false})}
+function natDestroy(o){var A=natPlug('ActionSheet');if(!A)return null;natBlur();haptic('warning');
+  var a={title:o.title,options:[{title:o.ok,style:'DESTRUCTIVE'},{title:'Cancel',style:'CANCEL'}]};if(o.message)a.message=o.message;
+  return A.showActions(a).then(function(r){return!!r&&r.index===0},function(){return false})}
 var AI_ASK=null,AI_TAP=0;
 ['pointerup','keydown'].forEach(function(ev){document.addEventListener(ev,function(){AI_TAP=Date.now()},true)});
 function aiOk(){try{return localStorage.getItem('songpad:aiconsent')||''}catch(e){return''}}
@@ -16240,9 +16253,12 @@ function aiConsent(ask){var v=aiOk();if(v==='yes')return Promise.resolve();
   if(!ask&&Date.now()-AI_TAP>2500)return Promise.reject(aiOffErr());
   if(AI_ASK)return AI_ASK;
   AI_ASK=new Promise(function(res,rej){
+    var AI_MSG='Lines, Muse, Rate, Writing voice and lyric sync send what you’re working on (your lyrics, the song brief and, for lyric sync, a low-quality copy of the audio) to '+aiWho()+' to write suggestions. It’s used only to answer each request, not to train models.';
+    var nat=natConfirm({title:'Use AI features?',message:AI_MSG+'\n\nNothing is sent unless you allow it. The Privacy Policy is in Account.',ok:'Allow',cancel:'Not Now'});
+    if(nat){nat.then(function(ok){AI_ASK=null;if(ok){aiSet('yes');res()}else{aiSet('no');toast('AI features are off. Turn them on any time in Account › AI Features.');rej(aiOffErr())}});return}
     var ov=document.createElement('div');ov.id='aiask';ov.setAttribute('role','alertdialog');ov.setAttribute('aria-modal','true');ov.setAttribute('aria-labelledby','aiask-t');
     ov.innerHTML='<div class="aiask"><b id="aiask-t">Use AI features?</b><p></p><p class="aiask-s">Nothing is sent unless you allow it. <a href="#" data-doc="privacy">Privacy Policy</a></p><button class="go" id="aiask-y">Allow</button><button id="aiask-n">Not Now</button></div>';
-    ov.querySelector('p').textContent='Lines, Muse, Rate, Writing voice and lyric sync send what you’re working on (your lyrics, the song brief and, for lyric sync, a low-quality copy of the audio) to '+aiWho()+' to write suggestions. It’s used only to answer each request, not to train models.';
+    ov.querySelector('p').textContent=AI_MSG;
     var done=function(ok){ov.classList.remove('on');setTimeout(function(){ov.remove()},220);AI_ASK=null;
       if(ok){aiSet('yes');res()}else{aiSet('no');toast('AI features are off. Turn them on any time in Account › AI Features.');rej(aiOffErr())}};
     ov.querySelector('#aiask-y').onclick=function(){done(true)};ov.querySelector('#aiask-n').onclick=function(){done(false)};
@@ -17258,8 +17274,8 @@ function clPerson(g,o){var r=document.createElement('div');r.className='clrow';r
   if(o.badge){var bd=document.createElement('span');bd.className='clbadge'+(o.badgeCls?' '+o.badgeCls:'');bd.textContent=o.badge;r.appendChild(bd)}
   if(o.act){var x=document.createElement('button');x.className='clx';x.textContent=o.act;var arm=0;x.onclick=function(){if(Date.now()-arm>3000){arm=Date.now();x.textContent=o.confirm||'Tap Again';x.classList.add('arm');setTimeout(function(){x.textContent=o.act;x.classList.remove('arm')},3000);return}o.onAct()};r.appendChild(x)}
   g.appendChild(r);return r}
-function clArmed(label,fn,cls){var b=document.createElement('button');b.className='clfoot '+(cls||'');b.textContent=label;var arm=0;
-  b.onclick=function(){if(Date.now()-arm>3000){arm=Date.now();b.textContent='Tap Again to '+label;setTimeout(function(){b.textContent=label},3000);return}fn()};return b}
+function clArmed(label,fn,cls,ask){var b=document.createElement('button');b.className='clfoot '+(cls||'');b.textContent=label;var arm=0;
+  b.onclick=function(){var nat=ask&&natDestroy({title:ask.title,message:ask.message,ok:label});if(nat){nat.then(function(ok){if(ok)fn()});return}if(Date.now()-arm>3000){arm=Date.now();b.textContent='Tap Again to '+label;setTimeout(function(){b.textContent=label},3000);return}fn()};return b}
 function renderCollab(){var g=$('#collab'),n=$('#collab-note');g.innerHTML='';n.textContent='';if(!cur)return;var songId=cur.id,c=sbClient();
   var nameOf=function(p,fb){return(p&&(p.display_name||p.username))||fb||'Someone'};
   if(!AUTH_USER||!cur.shared){
@@ -17300,7 +17316,7 @@ function renderCollab(){var g=$('#collab'),n=$('#collab-note');g.innerHTML='';n.
       fetchProfiles(ids,function(pm){prof=pm||{};draw(prof,mem,invs)});if(owner&&mem.length)applyCredits(cur,[AUTH_USER.id].concat(mem.map(function(m){return m.user_id})))};
     c.from('collab_members').select('user_id,email').eq('song_id',songId).then(function(r){mem=(r&&r.data)||[];done()},done);
     if(owner)c.from('collab_invites').select('invitee_user_id,invitee_username,invitee_email,status').eq('song_id',songId).eq('status','pending').then(function(r){invs=(r&&r.data)||[];done()},done)}
-  g.appendChild(owner?clArmed('Stop Sharing',stopSharing,'red'):clArmed('Leave Song',function(){leaveOrDelete(cur)},'red'));
+  var ttl=cur.title||'this song';g.appendChild(owner?clArmed('Stop Sharing',stopSharing,'red',{title:'Stop sharing “'+ttl+'”?',message:'Your co-writers lose access. The song stays with you.'}):clArmed('Leave Song',function(){leaveOrDelete(cur)},'red',{title:'Leave “'+ttl+'”?',message:'It’s removed from your devices. The owner can invite you again.'}));
   n.textContent=owner?'Co-writers need *[demo] and a username.':'Leaving removes the song from your library.'
 }
 function sendPres(){}
@@ -19058,10 +19074,10 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
     var ag=accSection(o,'');
     ag.appendChild(accCell({tile:ACC_ICO.swap,grad:9,label:'Switch Account',chev:true,onclick:function(){signInGoogle(true)}}));
     var og=accSection(o,'');
-    og.appendChild(accCell({label:'Sign Out',cls:'danger',onclick:signOutGoogle}));
+    og.appendChild(accCell({label:'Sign Out',cls:'danger',onclick:function(){var nat=natDestroy({title:'Sign out of *[demo]?',message:'Your songs stay safe in your account.',ok:'Sign Out'});if(nat){nat.then(function(ok){if(ok)signOutGoogle()});return}signOutGoogle()}}));
     /* deleting the account: a second, deliberate step that says exactly what goes */
     if(AUTH_USER&&!devFake){
-      if(ACC_EDIT!=='delete'){var dg=accSection(o,'');dg.appendChild(accCell({label:'Delete Account',cls:'danger',onclick:function(){ACC_EDIT='delete';renderAccount();setTimeout(function(){var x=$('#acc .delcard');if(x)x.scrollIntoView({block:'center',behavior:'smooth'})},60)}}))}
+      if(ACC_EDIT!=='delete'){var dg=accSection(o,'');dg.appendChild(accCell({label:'Delete Account',cls:'danger',onclick:function(){var nat=natDestroy({title:'Delete your account?',message:'Your songs, ideas, recordings, share links and profile are deleted from every device, and songs you share stop being shared. This can’t be undone.',ok:'Delete Account'});if(nat){nat.then(function(ok){if(ok)deleteAccount()});return}ACC_EDIT='delete';renderAccount();setTimeout(function(){var x=$('#acc .delcard');if(x)x.scrollIntoView({block:'center',behavior:'smooth'})},60)}}))}
       else{var dc=document.createElement('div');dc.className='gf delcard';dc.innerHTML='<b>Delete your account?</b><p>Your songs, ideas, recordings, share links and profile are deleted from every device, and songs you share stop being shared. This can’t be undone.</p>';
         var dbt=document.createElement('button');dbt.className='delgo';dbt.textContent=DEL_BUSY?'Deleting…':'Delete Account';dbt.disabled=DEL_BUSY;dbt.onclick=deleteAccount;dc.appendChild(dbt);
         var dcx=document.createElement('button');dcx.className='delno';dcx.textContent='Cancel';dcx.disabled=DEL_BUSY;dcx.onclick=function(){ACC_EDIT=null;renderAccount()};dc.appendChild(dcx);o.appendChild(dc)}
@@ -19828,7 +19844,7 @@ function renderShare(){var o=$('#shr'),song=SHR.song;if(!o||!song)return;var bg=
   var bi=document.createElement('button');bi.id='shr-img';bi.className='go2';bi.onclick=function(){shSend(SHR.img)};
   var bt=document.createElement('button');bt.className='go2 ghost';bt.textContent='Copy Lyrics';bt.onclick=function(){var t=(song.title?song.title+(song.artist?' – '+song.artist:'')+'\n\n':'')+(song.lyrics||'');try{navigator.clipboard.writeText(t).then(function(){toast('Copied')},function(){toast('Copy blocked by browser')})}catch(e){toast('Copy not available')}};
   if(sh&&!SHR.linkBusy){var la=document.createElement('div');la.className='shacts shla';var ls=document.createElement('button');ls.className='go2';ls.textContent='Share Link';ls.onclick=shLinkSend;
-    var lx=document.createElement('button');lx.className='go2 ghost red';lx.textContent='Stop Sharing';var arm=0;lx.onclick=function(){if(Date.now()-arm>3000){arm=Date.now();lx.textContent='Tap Again to Stop';setTimeout(function(){lx.textContent='Stop Sharing'},3000);return}
+    var lx=document.createElement('button');lx.className='go2 ghost red';lx.textContent='Stop Sharing';var arm=0;lx.onclick=function(){var nat=!lx._go&&natDestroy({title:'Stop the share link?',message:'Anyone with the link can no longer open it.',ok:'Stop Sharing'});if(nat){nat.then(function(ok){if(ok){lx._go=true;arm=Date.now();lx.onclick()}});return}if(Date.now()-arm>3000){arm=Date.now();lx.textContent='Tap Again to Stop';setTimeout(function(){lx.textContent='Stop Sharing'},3000);return}
       SHR.linkBusy='Stopping…';renderShare();shLinkStop(song).then(function(){SHR.linkBusy=null;toast('The link no longer works');renderShare()},function(e){SHR.linkBusy=null;renderShare();toast('Couldn’t stop sharing: '+shLinkErr(e))})};
     la.appendChild(ls);la.appendChild(lx);o.appendChild(la)}
   if(sh)bi.classList.add('ghost')
