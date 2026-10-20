@@ -151,11 +151,11 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 #brq .block b{font-size:15.5px}#brq .block span{display:block;font-size:13px;color:var(--mute);margin-top:2px}
 #brq .bcode{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:6px 12px;border-radius:10px;background:var(--fill);font:700 15px/1.2 ui-monospace,Menlo,monospace;letter-spacing:1.5px}
 #brq .bnote{font-size:13px;color:var(--mute);padding:12px 4px 0;line-height:1.45}
-.th.ith{background:#fff;color:#111;box-shadow:0 0 0 .5px var(--ring),0 1px 3px rgba(0,0,0,.06)}
-.th.ith svg{position:relative;z-index:1}
+.th.ith{background:radial-gradient(circle at 72% 28%,#FFC2DA 0,rgba(255,194,218,0) 58%),linear-gradient(140deg,#D7C4FF,#9CC8FF);color:#fff;box-shadow:0 0 0 .5px var(--ring)}
+.th.ith svg{position:relative;z-index:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.18))}
 .th.ith{position:relative}.th.ith::after{content:'';position:absolute;inset:0;border-radius:inherit;background:#000;opacity:0;pointer-events:none}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .th.ith::after{opacity:0}}
-:root[data-theme="dark"] .th.ith::after{opacity:0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .th.ith::after{opacity:.22}}
+:root[data-theme="dark"] .th.ith::after{opacity:.22}
 .ijb{flex:none;width:34px;height:34px;border-radius:50%;background:var(--fill);color:var(--ink);display:grid;place-items:center;margin-right:-4px}
 .ijb:active{transform:scale(.92)}
 .ijot.gf{margin:20px 16px 14px;padding:10px 10px 10px 14px;display:flex;flex-direction:column;gap:8px}
@@ -567,8 +567,8 @@ body.ios .sacctav{width:30px;height:30px}
 .stc.big .protag{background:rgba(255,255,255,.22);color:#fff}
 .accwhy{margin:0 20px 12px;padding:12px 16px;border-radius:16px;background:var(--fill);font-weight:600;font-size:14px;line-height:1.4;box-shadow:inset 3px 0 0 var(--mute)}
 .plancard{margin:0 20px 14px;padding:16px 18px;border-radius:22px;background:var(--gl);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);box-shadow:0 0 0 .5px var(--ring),0 1px 1px var(--sh2),0 10px 24px var(--sh2),inset 0 1px 0 var(--hl2);display:flex;align-items:center;gap:14px}
-.plancard .plic{width:44px;height:44px;border-radius:13px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(150deg,var(--mute),var(--ink));box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 -1px 2px rgba(0,0,0,.15)}
-.plancard.pro .plic{background:linear-gradient(150deg,#3a3a3c,#000)}
+.plancard .plic{width:44px;height:44px;border-radius:13px;flex:none;display:flex;align-items:center;justify-content:center;color:#3A3D45;background:linear-gradient(150deg,#F7F8FA,#D9DCE3 55%,#BCC1CC);box-shadow:0 0 0 .5px var(--ring),inset 0 1px 0 rgba(255,255,255,.6)}
+.plancard.pro .plic{color:#fff;background:radial-gradient(circle at 72% 28%,#FFD6A5 0,rgba(255,214,165,0) 58%),linear-gradient(140deg,#FFC2DA,#B9A6FF);box-shadow:0 0 0 .5px var(--ring),inset 0 1px 0 rgba(255,255,255,.35)}.plancard.pro .plic svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,.2))}
 .plancard .pltx{min-width:0;flex:1}
 .plancard b{font-size:18px;display:block}
 .plancard.pro b{color:var(--proclr)}
