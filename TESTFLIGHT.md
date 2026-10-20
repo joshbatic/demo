@@ -89,7 +89,7 @@ Rebuild in Xcode and run through these, ideally with a second account for the co
    - Name: *[demo] (if it's taken, try "*[demo] songwriting")
    - Primary language: English (Australia)
    - Bundle ID: `app.hellodemo.demo`
-   - SKU: `songpad`
+   - SKU: `hellodemo` (only you see it; it can't be changed later)
 2. **App Privacy.** Fill this in using the answers below. It's needed before outside testers. Privacy Policy URL: `https://hellodemo.app/privacy.html`.
 3. **TestFlight tab.**
    - The upload shows as "Processing" for 10–30 minutes.

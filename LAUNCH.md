@@ -18,7 +18,7 @@ If App Store Connect says your account isn't set up, wait a few hours after the 
    - Name: *[demo]. If it's taken, use `*[demo] songwriting`.
    - Language: English (Australia)
    - Bundle ID: `app.hellodemo.demo`
-   - SKU: `songpad`
+   - SKU: `hellodemo` (only you see it; it can't be changed later)
 2. **Your app › Monetization › Subscriptions:** create a group called `*[demo] Pro`, then add two subscriptions to it:
 
    | Reference name | Product ID | Duration | Price |
