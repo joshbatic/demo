@@ -67,8 +67,10 @@ async function sendOne(t: Tok, payload: unknown): Promise<Sent> {
     } catch (err) { return { ok: false, env: t.env, reason: "Couldn't reach Apple: " + String((err as Error)?.message || err).slice(0, 120) }; }
     if (r.status === 200) return { ok: true, env: e };
     const reason = String((await r.json().catch(() => ({})))?.reason || r.status);
-    last = { ok: false, env: t.env, reason, dead: r.status === 410 || ["Unregistered", "BadDeviceToken", "DeviceTokenNotForTopic"].includes(reason) };
-    if (reason === "BadDeviceToken" && !t.env && e === "production") continue;   // maybe a sandbox token
+    last = { ok: false, env: t.env, reason: reason === "BadEnvironmentKeyInToken" ? `BadEnvironmentKeyInToken: the APNs key isn't allowed on Apple's ${e} server (set the key to Sandbox & Production)` : reason,
+      dead: r.status === 410 || ["Unregistered", "BadDeviceToken", "DeviceTokenNotForTopic"].includes(reason) };
+    // a new phone: an Xcode build's token, or a key only allowed on the sandbox, works on the other server
+    if ((reason === "BadDeviceToken" || reason === "BadEnvironmentKeyInToken") && !t.env && e === "production") continue;
     break;
   }
   return last;
