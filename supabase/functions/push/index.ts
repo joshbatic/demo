@@ -30,9 +30,11 @@ const db = () => createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KE
 // ---------- Apple's sign-in token: an ES256 JWT made from the .p8 key, good for up to an hour ----------
 const b64u = (b: Uint8Array) => btoa(String.fromCharCode(...b)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const utf8 = (s: string) => new TextEncoder().encode(s);
-let cached = { jwt: "", at: 0 };
+let cached = { jwt: "", at: 0, kid: "" };
 async function appleJwt(): Promise<string> {
-  if (cached.jwt && Date.now() - cached.at < 40 * 60e3) return cached.jwt;
+  // made again when the key in the secrets changes (a new key from Apple), not just every 40 minutes
+  const kid = env("APNS_KEY_ID") + ":" + env("APNS_KEY").length;
+  if (cached.jwt && cached.kid === kid && Date.now() - cached.at < 40 * 60e3) return cached.jwt;
   const pem = env("APNS_KEY").replace(/\\n/g, "\n");
   const b64 = pem.replace(/-----[A-Z ]+-----/g, "").replace(/\s+/g, "");
   const der = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
@@ -40,7 +42,7 @@ async function appleJwt(): Promise<string> {
   const head = b64u(utf8(JSON.stringify({ alg: "ES256", kid: env("APNS_KEY_ID") })));
   const claims = b64u(utf8(JSON.stringify({ iss: env("APNS_TEAM_ID") || "KZL3T52VV3", iat: Math.floor(Date.now() / 1000) })));
   const sig = new Uint8Array(await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, key, utf8(`${head}.${claims}`)));
-  cached = { jwt: `${head}.${claims}.${b64u(sig)}`, at: Date.now() };
+  cached = { jwt: `${head}.${claims}.${b64u(sig)}`, at: Date.now(), kid };
   return cached.jwt;
 }
 const ready = () => !!(env("APNS_KEY") && env("APNS_KEY_ID"));
