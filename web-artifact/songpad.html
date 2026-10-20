@@ -17761,7 +17761,7 @@ document.addEventListener('focusout',function(){if(!ADM.pend)return;setTimeout(f
 function admBtn(lbl,fn,cls,dis){var b=document.createElement('button');b.type='button';b.textContent=lbl;if(cls)b.className=cls;b.disabled=!!dis;b.onmousedown=prevent;
   b.onclick=function(e){e.stopPropagation();var ae=document.activeElement;if(ae&&ae.blur&&$('#adm').contains(ae))ae.blur();ADM.pend=false;fn()};return b}
 function admRender(o){
-  var nOpen=TK.data&&TK.data.counts&&TK.data.counts.open||0;
+  var nOpen=TKT.data&&TKT.data.counts&&TKT.data.counts.open||0;
   var seg=document.createElement('div');seg.className='bseg';[['overview','Overview'],['help','Help'+(nOpen?' '+nOpen:'')],['users','Users'],['errors','Errors'],['status','Status'],['debug','Debug'],['settings','Settings']].forEach(function(t){var b=document.createElement('button');b.className=ADM.tab===t[0]?'on':'';b.textContent=t[1];b.onclick=function(){if(t[0]==='users'&&ADM.tab==='users')UD.id=null;admTab(t[0])};seg.appendChild(b)});o.appendChild(seg);
   if(ADM.tab==='debug')return admDebug(o);
   if(ADM.miss){var m=document.createElement('div');m.className='aempty';m.textContent='Run supabase/admin-tools.sql in Supabase › SQL Editor to turn on the admin tools.';o.appendChild(m);return}
@@ -17778,7 +17778,7 @@ function admRender(o){
     var plan=1073741824;admStat(g,sfSize(ov.storage_bytes||0)||'0 KB','Storage used','of 1 GB on the free plan'+(ov.storage_mb!=null?' · '+ov.storage_mb+' MB each':''),(ov.storage_bytes||0)>plan*.8,(ov.storage_bytes||0)/plan*100);
     if(ov.ai_units_today!=null)admStat(g,ov.ai_units_today,'AI units today',(ov.ai_users_today||0)+' people · '+(ov.sync_today||0)+' syncs');
     if(ov.errors_24h!=null)admStat(g,ov.errors_24h,'Errors today',(ov.error_users_24h||0)+' people affected',ov.errors_24h>0);
-    if(TK.data&&TK.data.counts&&!TK.data.err){var tc=TK.data.counts;admStat(g,tc.open||0,'Help desk',(tc.open?'waiting for a reply · ':'')+(tc.replied||0)+' answered',tc.open>0);g.lastChild.style.cursor='pointer';g.lastChild.onclick=function(){admTab('help')}}
+    if(TKT.data&&TKT.data.counts&&!TKT.data.err){var tc=TKT.data.counts;admStat(g,tc.open||0,'Help desk',(tc.open?'waiting for a reply · ':'')+(tc.replied||0)+' answered',tc.open>0);g.lastChild.style.cursor='pointer';g.lastChild.onclick=function(){admTab('help')}}
     if(ADM.st&&ADM.st.services&&ADM.st.services.length){var sd=svcDown();admStat(g,sd.down?sd.down+' down':sd.slow?sd.slow+' slow':'All up','Services',sd.n+' checked · '+admAgo(ADM.st.checked_at),sd.down>0)}
     if(ov.songs!=null)admStat(g,ov.songs,'Songs',(ov.ideas||0)+' ideas · '+(ov.share_links||0)+' share links · '+(ov.shared_songs||0)+' co-written');
     var nt=document.createElement('div');nt.className='anote';nt.textContent='Updated '+admAgo(ov.at)+'. Day counts reset at midnight Adelaide time; AI counts at midnight UTC.';o.appendChild(nt);
@@ -17942,38 +17942,38 @@ function supForm(g){var f=document.createElement('div');f.className='supf';
       f.appendChild(d)})}
   g.appendChild(f)}
 /* ---------- Admin › Help: the help desk inbox ---------- */
-var TK={st:'open',data:null,open:null,draft:{},diag:{},busy:{}};
-function tkLoad(){if(!BETA.admin)return;var st=TK.st;admRpc('admin_tickets',{p_status:st}).then(function(r){if(TK.st!==st)return;TK.data=r||{counts:{},list:[]};renderAdmin()},
-  function(e){TK.data={counts:{},list:[],err:(e&&e.message)||String(e)};renderAdmin()})}
-function tkReply(t){var txt=(TK.draft[t.id]||'').trim();if(txt.length<2){toast('Write a reply first');return}if(TK.busy[t.id])return;TK.busy[t.id]=1;renderAdmin();
-  fnCall('support',{action:'reply',id:t.id,text:txt}).then(function(r){delete TK.busy[t.id];TK.draft[t.id]='';
+var TKT={st:'open',data:null,open:null,draft:{},diag:{},busy:{}};
+function tkLoad(){if(!BETA.admin)return;var st=TKT.st;admRpc('admin_tickets',{p_status:st}).then(function(r){if(TKT.st!==st)return;TKT.data=r||{counts:{},list:[]};renderAdmin()},
+  function(e){TKT.data={counts:{},list:[],err:(e&&e.message)||String(e)};renderAdmin()})}
+function tkReply(t){var txt=(TKT.draft[t.id]||'').trim();if(txt.length<2){toast('Write a reply first');return}if(TKT.busy[t.id])return;TKT.busy[t.id]=1;renderAdmin();
+  fnCall('support',{action:'reply',id:t.id,text:txt}).then(function(r){delete TKT.busy[t.id];TKT.draft[t.id]='';
     toast(r.emailed?'Reply emailed to '+t.email:'Reply saved, but the email didn’t send'+(r.emailReady===false?' (RESEND_API_KEY isn’t set)':''));tkLoad()},
-  function(e){delete TK.busy[t.id];renderAdmin();toast('Couldn’t send the reply: '+((e&&e.message)||e))})}
+  function(e){delete TKT.busy[t.id];renderAdmin();toast('Couldn’t send the reply: '+((e&&e.message)||e))})}
 function tkSet(t,status,note){admRpc('admin_ticket_update',{p_id:t.id,p_status:status||null,p_note:note==null?null:note}).then(function(){
   if(status)toast(status==='closed'?'Closed #'+t.id:'Reopened #'+t.id);else toast('Note saved');tkLoad()},function(e){toast('Couldn’t update #'+t.id+': '+((e&&e.message)||e))})}
 function tkDiagLine(g){if(!g||typeof g!=='object')return'';return[g.platform,g.build?'build '+g.build+(g.seq?' ('+g.seq+')':''):'',g.plan?'plan '+g.plan:'',g.online===false?'offline':'',g.sync&&g.sync.on===false?'sync off':'',g.iap&&g.iap.error?'purchases: '+g.iap.error:'',g.log&&g.log.length?g.log.length+' log lines':''].filter(Boolean).join(' · ')}
-function admHelp(o){var c=(TK.data&&TK.data.counts)||{};
+function admHelp(o){var c=(TKT.data&&TKT.data.counts)||{};
   var sg=document.createElement('div');sg.className='bseg small';[['open','Open',c.open],['replied','Answered',c.replied],['closed','Closed',c.closed],['all','All']].forEach(function(x){
-    var b=document.createElement('button');b.className=TK.st===x[0]?'on':'';b.textContent=x[1]+(x[2]?' '+x[2]:'');b.onclick=function(){TK.st=x[0];TK.open=null;if(TK.data)TK.data.list=null;renderAdmin();tkLoad()};sg.appendChild(b)});
+    var b=document.createElement('button');b.className=TKT.st===x[0]?'on':'';b.textContent=x[1]+(x[2]?' '+x[2]:'');b.onclick=function(){TKT.st=x[0];TKT.open=null;if(TKT.data)TKT.data.list=null;renderAdmin();tkLoad()};sg.appendChild(b)});
   o.appendChild(sg);sg.style.marginBottom='12px';
   var bx=document.createElement('div');bx.className='abox';o.appendChild(bx);
   var empty=function(t){var e=document.createElement('div');e.className='aempty';e.textContent=t;bx.appendChild(e)};
-  if(!TK.data||!TK.data.list)return empty(TK.data&&TK.data.err?'Couldn’t load the help desk: '+TK.data.err:'Loading…');
-  if(TK.data.err)return empty(/admin_tickets|does not exist|PGRST202/i.test(TK.data.err)?'Run supabase/helpdesk.sql to turn on the help desk.':'Couldn’t load the help desk: '+TK.data.err);
-  if(!TK.data.list.length)return empty(TK.st==='open'?'Nothing waiting. People write in from Account › Contact Support.':'Nothing here.');
-  TK.data.list.forEach(function(t){var op=TK.open===t.id,d=document.createElement('div');d.className='arow';d.innerHTML='<b></b><div class="am"></div><div class="tkp"></div>';
+  if(!TKT.data||!TKT.data.list)return empty(TKT.data&&TKT.data.err?'Couldn’t load the help desk: '+TKT.data.err:'Loading…');
+  if(TKT.data.err)return empty(/admin_tickets|does not exist|PGRST202/i.test(TKT.data.err)?'Run supabase/helpdesk.sql to turn on the help desk.':'Couldn’t load the help desk: '+TKT.data.err);
+  if(!TKT.data.list.length)return empty(TKT.st==='open'?'Nothing waiting. People write in from Account › Contact Support.':'Nothing here.');
+  TKT.data.list.forEach(function(t){var op=TKT.open===t.id,d=document.createElement('div');d.className='arow';d.innerHTML='<b></b><div class="am"></div><div class="tkp"></div>';
     var who=t.display_name||t.name||t.email,reps=Array.isArray(t.replies)?t.replies:[],ours=/^\(You wrote to them\) /.test(t.message||'');
     d.querySelector('b').textContent=who+' · '+(ours?'You wrote to them':topicName(t.topic));
     d.querySelector('.am').textContent=['#'+t.id,who!==t.email?t.email:'',t.username?'@'+t.username:'',admAgo(t.created_at),{open:'Open',replied:'Answered',closed:'Closed'}[t.status],reps.length?reps.length+(reps.length===1?' reply':' replies'):''].filter(Boolean).join(' · ');
     var p=d.querySelector('.tkp');p.textContent=ours?String(t.message).replace(/^\(You wrote to them\) /,''):t.message;
     if(op){p.classList.add('full');
       if(t.diag){var dg=document.createElement('div');dg.className='tkd';dg.textContent='Diagnostics: '+(tkDiagLine(t.diag)||'included');
-        var tg=document.createElement('button');tg.type='button';tg.textContent=TK.diag[t.id]?'Hide':'Show';tg.onclick=function(e){e.stopPropagation();TK.diag[t.id]=!TK.diag[t.id];renderAdmin()};dg.appendChild(tg);d.appendChild(dg);
-        if(TK.diag[t.id]){var pr=document.createElement('pre');pr.textContent=JSON.stringify(t.diag,null,2);pr.onclick=function(e){e.stopPropagation()};d.appendChild(pr)}}
+        var tg=document.createElement('button');tg.type='button';tg.textContent=TKT.diag[t.id]?'Hide':'Show';tg.onclick=function(e){e.stopPropagation();TKT.diag[t.id]=!TKT.diag[t.id];renderAdmin()};dg.appendChild(tg);d.appendChild(dg);
+        if(TKT.diag[t.id]){var pr=document.createElement('pre');pr.textContent=JSON.stringify(t.diag,null,2);pr.onclick=function(e){e.stopPropagation()};d.appendChild(pr)}}
       reps.forEach(function(r){var q=document.createElement('div');q.className='tkr';q.innerHTML='<em></em><span></span>';q.firstChild.textContent='You · '+admAgo(r.at)+(r.emailed===false?' · email didn’t send':'');q.lastChild.textContent=r.text;d.appendChild(q)});
       var ta=document.createElement('textarea');ta.className='ata';ta.dataset.ak='r'+t.id;ta.placeholder='Reply to '+(String(who).split(/[\s@]/)[0]||'them')+'. It’s emailed from help@hellodemo.app, and their answer comes back to that inbox.';
-      ta.value=TK.draft[t.id]||'';ta.oninput=function(){TK.draft[t.id]=ta.value};ta.onclick=function(e){e.stopPropagation()};d.appendChild(ta);
-      var ac=document.createElement('div');ac.className='aacts';var busy=!!TK.busy[t.id];
+      ta.value=TKT.draft[t.id]||'';ta.oninput=function(){TKT.draft[t.id]=ta.value};ta.onclick=function(e){e.stopPropagation()};d.appendChild(ta);
+      var ac=document.createElement('div');ac.className='aacts';var busy=!!TKT.busy[t.id];
       ac.appendChild(admBtn(busy?'Sending…':'Send Reply',function(){tkReply(t)},'ok',busy));
       ac.appendChild(t.status==='closed'?admBtn('Reopen',function(){tkSet(t,'open')}):admBtn('Close',function(){tkSet(t,'closed')}));
       if(t.user_id)ac.appendChild(admBtn('View Account',function(){admOpenUser(t.user_id)}));
@@ -17982,7 +17982,7 @@ function admHelp(o){var c=(TK.data&&TK.data.counts)||{};
       d.appendChild(ac);
       var nt=document.createElement('textarea');nt.className='ata note';nt.dataset.ak='n'+t.id;nt.placeholder='Private note, only you see it';nt.value=t.note||'';nt.onclick=function(e){e.stopPropagation()};
       nt.onchange=function(){if((nt.value||'')!==(t.note||''))tkSet(t,null,nt.value)};d.appendChild(nt)}
-    d.onclick=function(){TK.open=op?null:t.id;renderAdmin()};bx.appendChild(d)});
+    d.onclick=function(){TKT.open=op?null:t.id;renderAdmin()};bx.appendChild(d)});
   var n=document.createElement('div');n.className='anote';n.textContent='Tap a message to read it and reply. Replies are emailed and saved here; when they answer by email it lands in the help@hellodemo.app inbox.';o.appendChild(n)}
 /* ---------- Admin › Users › someone: everything about one account, and what you can do about it ---------- */
 var UD={id:null,d:null,err:'',busy:false,ms:'',mt:'',errs:false,push:null,pn:''};
@@ -18065,7 +18065,7 @@ function admUser(o,lab){var d=UD.d;
     d.tickets.forEach(function(t){var r=document.createElement('div');r.className='arow';r.innerHTML='<b></b><div class="am"></div>';
       r.querySelector('b').textContent=/^\(You wrote to them\) /.test(t.message)?String(t.message).replace(/^\(You wrote to them\) /,'You wrote: '):t.message;
       r.querySelector('.am').textContent=['#'+t.id,topicName(t.topic),{open:'Open',replied:'Answered',closed:'Closed'}[t.status],admAgo(t.created_at)].join(' · ');
-      r.onclick=function(){TK.st='all';TK.open=t.id;if(TK.data)TK.data.list=null;admTab('help')};tb.appendChild(r)})}
+      r.onclick=function(){TKT.st='all';TKT.open=t.id;if(TKT.data)TKT.data.list=null;admTab('help')};tb.appendChild(r)})}
   /* recent errors */
   if((d.errors||[]).length){lab('Recent errors');var eb=document.createElement('div');eb.className='abox apad';o.appendChild(eb);
     var pe=document.createElement('pre');pe.style.marginTop='0';pe.textContent=d.errors.map(function(x){return admAgo(x.at)+' · '+[x.platform,x.build,x.screen,x.kind].filter(Boolean).join(' ')+'\n  '+x.message}).join('\n');eb.appendChild(pe);
