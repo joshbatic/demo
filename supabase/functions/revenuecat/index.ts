@@ -56,11 +56,13 @@ async function sync(user: string): Promise<Result> {
   const hadApple = Object.keys(sub?.subscriptions || {}).length > 0 || !!ent;
   const expires: string | null = ent ? (ent.expires_date ?? null) : null;  // null expiry on an entitlement = lifetime
   const active = !!ent && (expires === null || Date.parse(expires) > Date.now());
+  // in the free trial? (for the "trial ends in 2 days" notification, supabase/notify.sql)
+  const trial = !!ent && sub?.subscriptions?.[ent.product_identifier]?.period_type === "trial";
 
   const db = admin();
   const { data: row } = await db.from("plans").select("tier, source").eq("user_id", user).maybeSingle();
   if (active) {
-    const { error } = await db.from("plans").upsert({ user_id: user, tier: "pro", source: "apple", expires_at: expires, updated_at: new Date().toISOString() });
+    const { error } = await db.from("plans").upsert({ user_id: user, tier: "pro", source: "apple", expires_at: expires, trial, updated_at: new Date().toISOString() });
     return error ? { user, plan: "unchanged", error: error.message } : { user, plan: "pro", expires };
   }
   // Not subscribed (expired, refunded or never bought). Only undo a plan that came from Apple.

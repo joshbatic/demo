@@ -783,6 +783,7 @@ body.ios .song{padding:13px 24px}
 .prbeta{display:inline-block;margin-top:12px;padding:4px 11px;border-radius:99px;font-size:12px;font-weight:650;color:#3b2f52;background:linear-gradient(140deg,#D7C4FF,#9CC8FF)}
 #acc .cell.open .chev{transform:rotate(90deg)}#acc .cell .chev{transition:transform .2s}
 #acc .cell.sub{padding-left:59px;min-height:46px;font-size:15.5px}
+#acc .nprow{gap:12px;padding-top:10px;padding-bottom:10px}#acc .nprow .ct{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;text-align:left}#acc .nprow .ct b{font-weight:500}#acc .nprow .ct small{font-size:12.5px;color:var(--mute);line-height:1.35}#acc .npnote{font-size:12.5px;color:var(--mute);line-height:1.4}
 .prosub .dim{font-size:13.5px}
 :is(#acc) .crstat{display:grid;grid-template-columns:repeat(3,1fr);padding:16px 8px 14px;border-bottom:.5px solid var(--sep)}
 :is(#acc) .crstat div{display:flex;flex-direction:column;align-items:center;gap:1px}
@@ -18177,15 +18178,31 @@ function admDebug(o){
    For co-writer invites and help desk replies. The app never asks on launch: it asks when someone sends a support
    message, shares a song or accepts an invite, or turns it on in Account. Once allowed, each launch registers the
    phone's token with the signed-in account; signing out releases it. */
-var PUSH={perm:'',token:'',err:'',on:false};try{PUSH.token=localStorage.getItem('songpad:pushtok')||''}catch(e){}
+var PUSH={perm:'',token:'',err:'',on:false},NP={prefs:null};
+/* which automatic notifications to get (supabase/notify.sql): Account › Notifications */
+var NP_KINDS=[['cowrite','Co-writing','When someone accepts your invite or edits a song you share'],['nudge','Writing reminders','A gentle nudge after a few days away, at most once a week'],['account','Account & Pro','Beta access, Pro and your free trial'],['plays','Share link plays','When someone opens a song you shared, once a day']];
+function npLoad(){var c=sbClient();if(!c||!AUTH_USER)return;c.rpc('my_notify_prefs').then(function(r){if(r&&r.data){NP.prefs=r.data;refreshAccount()}},function(){})}
+function npSet(k,v){var c=sbClient();if(!c)return;NP.prefs=Object.assign({},NP.prefs||{},(function(){var o={};o[k]=v;return o})());renderAccount();
+  var p={};p[k]=v;c.rpc('set_notify_prefs',{p:p}).then(function(r){if(r&&r.error){toast('Couldn’t save that: '+r.error.message);npLoad()}else if(r&&r.data)NP.prefs=r.data},function(){toast('Couldn’t save that. Check your connection.')})}
+function npRows(g){var pr=NP.prefs||{};NP_KINDS.forEach(function(x){var on=pr[x[0]]!==false,r=document.createElement('div');r.className='cell sub nprow';
+    r.innerHTML='<span class="ct"><b></b><small></small></span>';r.querySelector('b').textContent=x[1];r.querySelector('small').textContent=x[2];
+    var sw=document.createElement('button');sw.className='swtch'+(on?' on':'');sw.setAttribute('role','switch');sw.setAttribute('aria-checked',on?'true':'false');sw.setAttribute('aria-label',x[1]);sw.innerHTML='<i></i>';
+    sw.disabled=!NP.prefs;sw.onclick=function(e){e.stopPropagation();npSet(x[0],!on)};r.appendChild(sw);g.appendChild(r)});
+  var n=document.createElement('div');n.className='cell sub nprow npnote';n.textContent='Invites and replies from *[demo] Support always come through. To turn everything off, use Settings › *[demo] › Notifications.';g.appendChild(n)}try{PUSH.token=localStorage.getItem('songpad:pushtok')||''}catch(e){}
 function pushPlugin(){var C=window.Capacitor;try{return C&&C.isNativePlatform&&C.isNativePlatform()&&(!C.getPlatform||C.getPlatform()==='ios')&&C.Plugins&&C.Plugins.PushNotifications||null}catch(e){return null}}
 function pushTopic(){var A=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
   return A&&A.getInfo?A.getInfo().then(function(i){return(i&&i.id)||'app.hellodemo.demo'},function(){return cfgIsDev()?'app.hellodemo.demo.dev':'app.hellodemo.demo'}):Promise.resolve(cfgIsDev()?'app.hellodemo.demo.dev':'app.hellodemo.demo')}
 function pushSave(tok){var c=sbClient();if(!c||!AUTH_USER||DEV_MODE||!tok)return;
-  pushTopic().then(function(topic){return c.rpc('push_register',{p_token:tok,p_topic:topic,p_build:APP_COMMIT})}).then(function(r){if(r&&r.error)dbgLog('warn','push_register: '+r.error.message);else PUSH.saved=AUTH_USER&&AUTH_USER.id},function(){})}
+  pushTopic().then(function(topic){return c.rpc('push_register',{p_token:tok,p_topic:topic,p_build:APP_COMMIT})}).then(function(r){if(r&&r.error)dbgLog('warn','push_register: '+r.error.message);else PUSH.saved=AUTH_USER&&AUTH_USER.id},function(){});
+  /* the phone's time zone, so a writing nudge arrives around 6pm where you are */
+  try{var tz=Intl.DateTimeFormat().resolvedOptions().timeZone;if(tz)c.rpc('set_notify_prefs',{p:{tz:tz}}).then(function(r){if(r&&r.data)NP.prefs=r.data},function(){})}catch(e){}}
 function pushOpen(d){d=d||{};
   if(d.kind==='invite'){pullInvites();sheet(false);setTimeout(function(){openAccount('')},250)}
-  else if(d.kind==='support'){ACC_EDIT='support';supLoad(true);sheet(false);setTimeout(function(){openAccount('')},250)}}
+  else if(d.kind==='support'){ACC_EDIT='support';supLoad(true);sheet(false);setTimeout(function(){openAccount('')},250)}
+  /* a song: a co-writer's edit or a share link opened */
+  else if(d.song){var s=songs.filter(function(x){return x.id===d.song})[0];sheet(false);if(s){setTimeout(function(){openSong(s.id);if(s.shared)pullShared(s)},250)}}
+  else if(d.open==='account'){planRefresh();sheet(false);setTimeout(function(){openAccount('')},250)}
+  else if(d.open==='songs'){sheet(false);try{show('vList')}catch(e){}}}
 function pushListen(){var P=pushPlugin();if(!P||pushListen.on)return;pushListen.on=true;
   P.addListener('registration',function(t){var v=t&&t.value;if(!v)return;PUSH.token=v;PUSH.err='';try{localStorage.setItem('songpad:pushtok',v)}catch(e){}pushSave(v)});
   P.addListener('registrationError',function(e){PUSH.err=(e&&(e.error||e.message))||'registration failed';dbgLog('warn','push registration: '+PUSH.err)});
@@ -18193,6 +18210,8 @@ function pushListen(){var P=pushPlugin();if(!P||pushListen.on)return;pushListen.
   P.addListener('pushNotificationReceived',function(n){var d=(n&&n.data)||{};
     if(d.kind==='invite')pullInvites();
     else if(d.kind==='support'){supLoad(true);toast('*[demo] Support replied. See Account › Contact Support.')}
+    else if(d.kind==='cowrite'&&d.song&&cur&&cur.id===d.song&&cur.shared){pullShared(cur)}
+    else if(d.kind==='account'){planRefresh();if(n&&n.title)toast(n.title)}
     else if(n&&(n.title||n.body))toast([n.title,n.body].filter(Boolean).join(': '))});
   P.addListener('pushNotificationActionPerformed',function(a){pushOpen(a&&a.notification&&a.notification.data)})}
 /* on sign-in: if they've already allowed notifications, register quietly */
@@ -18897,10 +18916,12 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
       pg2.appendChild(accCell({tile:ACC_ICO.person,grad:1,label:'Name & Username',value:handle?'@'+handle:'Not set',valueCls:handle?'':'add',chev:true,onclick:function(){ACC_EDIT='profile';ACC_DRAFT={};ACC_AUTOFOCUS='profile';renderAccount()}}));
       /* iPhone: notifications for invites and help desk replies */
       if(pushPlugin()&&!devFake){var pg=PUSH.perm==='granted'?'On':PUSH.perm==='denied'?'Off':'Turn On';
-        pg2.appendChild(accCell({tile:ACC_ICO.bell,grad:4,label:'Notifications',value:pg,valueCls:pg==='Turn On'?'add':'',onclick:function(){
-          if(PUSH.perm==='granted')toast('You’ll be notified about invites and replies. Turn them off in Settings › *[demo] › Notifications.');
+        var npOpen=ACC_EDIT==='notif'&&PUSH.perm==='granted';
+        pg2.appendChild(accCell({tile:ACC_ICO.bell,grad:4,label:'Notifications',value:pg,valueCls:pg==='Turn On'?'add':'',chev:PUSH.perm==='granted',cls:npOpen?'open':'',onclick:function(){
+          if(PUSH.perm==='granted'){ACC_EDIT=npOpen?null:'notif';if(!npOpen)npLoad();renderAccount();return}
           else if(PUSH.perm==='denied')toast('Notifications are off for *[demo]. Turn them on in Settings › *[demo] › Notifications.');
-          else pushAsk('Notifications are on')}}))}
+          else pushAsk('Notifications are on')}}));
+        if(npOpen)npRows(pg2)}
     }
     /* ---- links: one row per network with its own icon, showing the handle, like contact details ---- */
     var linking=ACC_EDIT==='links';

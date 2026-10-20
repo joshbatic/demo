@@ -46,6 +46,8 @@ var PRE=null;/*PRELOAD*/
     if(a&&url(a.src))out.audio={src:url(a.src),name:str(a.name,160),dur:+a.dur||0,peaks:(Array.isArray(a.peaks)?a.peaks.slice(0,2000):[]).map(Number).filter(isFinite)};
     return out}
   function show(d){if(!d||typeof d!=='object')return msg('This song isn’t shared any more','Ask whoever sent it for a new link.');
+    /* let the writer know it's being listened to (once a day per link, if they want that: supabase/notify.sql) */
+    try{fetch(SB_URL+'/rest/v1/rpc/share_seen',{method:'POST',keepalive:true,headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({sid:id})}).catch(function(){})}catch(e){}
     var html=shRender(clean(d),{skB:SKB,skF:SKF});
     /* replace the whole loading page. While the page is still loading, document.open() is ignored and the song
        would be added underneath the loading dots, so wait for the page to finish loading first */

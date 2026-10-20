@@ -171,3 +171,9 @@ Do these when the app is approved and you're ready to release it:
 - Supabase secrets: `APNS_KEY` (the whole .p8 file), `APNS_KEY_ID`. Team ID defaults to KZL3T52VV3.
 - Server: `supabase/push.sql` (applied), `supabase/functions/push` (Verify JWT on). Xcode builds get sandbox tokens and TestFlight/App Store builds production ones; the function works out which on the first send.
 - The app asks for permission only when it makes sense: after a Contact Support message, after setting a username, or from Account › Notifications.
+
+## Automatic notifications (supabase/notify.sql, applied 21 Oct 2026)
+
+- Co-writing (invite accepted, a co-writer edited a shared song: once per 30 min per song), writing reminders (3+ days away, ~6pm local, at most weekly), Account & Pro (beta approved, Pro given, trial ends in 2 days, Pro ended) and share link plays (once a day per link). Each can be switched off in Account › Notifications.
+- Triggers and an hourly check (`notify-hourly`) queue them in `push_outbox`; `notify-send` (every minute, only when something's waiting) has the push function send them. The token between them is in Vault (`notify_cron_token`).
+- Look at what was sent: `select * from push_outbox order by id desc limit 20;`

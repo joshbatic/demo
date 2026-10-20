@@ -6,6 +6,8 @@
 //                                                service role key.
 //   { action: "admin_send", user, title, body }  Admins, from Admin › Users › someone › Send a Notification.
 //   { action: "test" }                           Admins: a test notification to their own phones (Admin › Debug).
+//   { action: "drain" }                          The every-minute schedule (supabase/notify.sql): sends what's queued in
+//                                                push_outbox. Its x-cron-token header must match the token kept in Vault.
 //
 // Secrets (Edge Functions › Secrets):
 //   APNS_KEY      the whole .p8 file from Apple (Keys › *[demo] Push), including the BEGIN/END lines
@@ -17,7 +19,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cron-token",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const json = (body: unknown, status = 200) =>
@@ -104,6 +106,23 @@ Deno.serve(async (req) => {
   try { b = await req.json(); } catch { return json({ error: "Expected JSON." }, 400); }
   const auth = req.headers.get("Authorization") ?? "";
   const service = env("SUPABASE_SERVICE_ROLE_KEY");
+
+  // ---------- the schedule: send the automatic notifications that are waiting ----------
+  if (b.action === "drain") {
+    const sb = db();
+    const given = req.headers.get("x-cron-token") || "";
+    const { data: tok } = await sb.rpc("_notify_cron_token");
+    if (!given || typeof tok !== "string" || given !== tok) return json({ error: "Not allowed." }, 401);
+    const { data: rows, error } = await sb.rpc("notify_claim", { p_limit: 100 });
+    if (error) return json({ error: error.message }, 500);
+    let sent = 0;
+    for (const n of (rows || []) as Array<{ id: number; user_id: string; title: string; body: string; data: Record<string, unknown> }>) {
+      const r = await sendTo(n.user_id, n.title, n.body, n.data || {});
+      sent += r.sent;
+      await sb.rpc("notify_result", { p_id: n.id, p_result: r.error || `sent to ${r.sent} of ${r.devices}` + (r.reasons && r.reasons.length ? ": " + r.reasons.join(", ") : "") });
+    }
+    return json({ ok: true, queued: (rows || []).length, sent });
+  }
 
   // ---------- other functions ----------
   if (service && auth === `Bearer ${service}`) {
