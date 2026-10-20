@@ -18195,6 +18195,7 @@ function onAuthUser(){
   var uid=AUTH_USER&&AUTH_USER.id;
   if(uid!==lastAuthUid){lastAuthUid=uid;cloudDidPull=false;PENDING_INVITES=[];MY_PROFILE=null;mzLoad()}
   var ag=$('#authgate');if(ag)ag.style.display=(AUTH_USER||DEV_MODE)?'none':'flex';
+  if(AUTH_USER&&AUTH_STALE){ensureStorageForMode();refreshAccount();paintAcctIcons();return}
   if(AUTH_USER&&!DEV_MODE){if(uid!==betaCheck.uid){betaCheck.uid=uid;BETA={st:null,admin:false,sum:null,list:null,t:0,busy:{}};betaCheck()}}else{betaCheck.uid=null;betaGate(null)}
   if(AUTH_USER&&!DEV_MODE)iapStart();
   ensureStorageForMode();
@@ -18367,12 +18368,40 @@ function renameMyArtistCredit(oldName,newName){
   });
   if(changed){save();renderList();renderSide();if(cur){hdr();var fa=$('#f-artist');if(fa)fa.value=cur.artist||''}}
 }
+/* Staying signed in. The sign-in token lasts an hour and is renewed over the network. After a few hours in the
+   background the phone wakes with an expired token, and until the renewal gets through (the network can take a
+   moment to come back) Supabase reports no session. That isn't a sign-out: the saved session is still there. So
+   only an actual sign-out (SIGNED_OUT: you signed out, or the server refused the saved session) shows the
+   sign-in screen; otherwise the app carries on as you and keeps retrying the renewal. */
+var AUTH_STALE=false;
+var SB_STORE_KEY='sb-'+(function(){try{return new URL(SB_URL).hostname.split('.')[0]}catch(e){return''}})()+'-auth-token';
+function authStored(){try{var v=JSON.parse(localStorage.getItem(SB_STORE_KEY)||'null');v=v&&v.currentSession||v;return v&&v.refresh_token&&v.user?v:null}catch(e){return null}}
+function authApply(ev,session){var u=(session&&session.user)||null;
+  if(ev!=='GET'&&ev!=='INITIAL_SESSION')dbgLog('auth',ev+(u?'':' (no session)'));
+  if(u){clearTimeout(authRecover.t);authRecover.t=null;authRecover.n=0;AUTH_STALE=false;AUTH_USER=u;onAuthUser();return}
+  if(ev!=='SIGNED_OUT'&&!authApply.out){var st=authStored();
+    /* waiting on the renewal: show your own songs, but hold off syncing and server checks until it's through */
+    if(st){if(!AUTH_USER||AUTH_STALE){AUTH_STALE=true;AUTH_USER=st.user;onAuthUser()}authRecover();return}}
+  authApply.out=false;AUTH_STALE=false;AUTH_USER=null;onAuthUser()}
+function authRecover(){if(authRecover.t)return;var c=sbClient();if(!c)return;
+  var again=function(){var n=authRecover.n=(authRecover.n||0)+1;authRecover.t=setTimeout(function(){authRecover.t=null;authRecover()},Math.min(30000,800*Math.pow(2,n)))};
+  authRecover.t=-1;
+  c.auth.refreshSession().then(function(r){authRecover.t=null;var se=r&&r.data&&r.data.session,e=r&&r.error;
+    if(se)return authApply('REFRESHED',se);
+    /* the server said no (not a network problem): the saved session is gone for good */
+    if(e&&e.status>=400&&e.status<500&&!/fetch|network|timed? ?out/i.test(e.message||'')){dbgLog('auth','session refused: '+(e.message||e.status));authApply('SIGNED_OUT',null);return}
+    again()},function(){authRecover.t=null;again()})}
+window.addEventListener('online',function(){if(authRecover.t&&authRecover.t!==-1){clearTimeout(authRecover.t);authRecover.t=null;authRecover()}});
+/* no flash of the sign-in screen while the app starts if there's a saved session */
+(function(){var g=document.getElementById('authgate');if(g&&authStored())g.style.display='none'})();
 function sbClient(){
   if(sbc)return sbc;
   if(!window.supabase||!window.supabase.createClient)return null;
   sbc=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,flowType:'pkce'}});
-  sbc.auth.onAuthStateChange(function(ev,session){AUTH_USER=(session&&session.user)||null;onAuthUser()});
-  sbc.auth.getSession().then(function(r){AUTH_USER=(r&&r.data&&r.data.session&&r.data.session.user)||null;onAuthUser()});
+  sbc.auth.onAuthStateChange(function(ev,session){authApply(ev,session)});
+  /* straight away, from the saved session, so your songs are on screen while Supabase checks it */
+  var st0=authStored();if(st0&&!AUTH_USER){AUTH_STALE=true;AUTH_USER=st0.user;setTimeout(function(){if(AUTH_STALE)onAuthUser()},0)}
+  sbc.auth.getSession().then(function(r){authApply('GET',r&&r.data&&r.data.session)},function(){authApply('GET',null)});
   /* Mac app: Google's redirect can't land on a file:// URL, so the OAuth round-trip goes out
      through the system browser to a custom demo://auth-callback link instead — main.js registers
      that scheme, catches the OS handing it back to the app, and forwards it here over the
@@ -18466,7 +18495,7 @@ var libSeenAt=null,libBusy=false,libAgain=false,libT=null,libChan=null,libPollT=
 function libKey(n){return'songpad:sync:'+n+':'+AUTH_USER.id}
 function libGet(n,d){try{return JSON.parse(localStorage.getItem(libKey(n)))||d}catch(e){return d}}
 function libSet(n,v){try{localStorage.setItem(libKey(n),JSON.stringify(v))}catch(e){}}
-function libReady(){return!!(AUTH_USER&&!DEV_MODE&&ACTIVE_KEY===K+':'+AUTH_USER.id&&sbClient())}
+function libReady(){return!!(AUTH_USER&&!AUTH_STALE&&!DEV_MODE&&ACTIVE_KEY===K+':'+AUTH_USER.id&&sbClient())}
 function libStr(v){if(v===null||typeof v!=='object')return JSON.stringify(v)||'null';if(Array.isArray(v))return'['+v.map(libStr).join(',')+']';return'{'+Object.keys(v).sort().filter(function(k){return v[k]!==undefined}).map(function(k){return JSON.stringify(k)+':'+libStr(v[k])}).join(',')+'}'}
 function libClean(x){var o={};Object.keys(x).forEach(function(k){if(k[0]!=='_')o[k]=x[k]});return o}
 /* the cloud copy is kept in id order so devices that list songs differently still agree it's unchanged */
@@ -18665,7 +18694,7 @@ function signInApple(forceChooser){var P=appleNative(),c=sbClient();
     /* 1001 = the person closed Apple's sheet */
     if(!/1001|cancel/i.test(m+(e&&e.code||''))){toast('Sign in with Apple didn’t work. Please try again.');oauthDbg('apple native: '+m)}
   }).then(function(){oauthInFlight=false})}
-function signOutGoogle(){iapStop();libStop();liveLeave();acClear();var c=sbClient();if(c){var so=function(){c.auth.signOut()};pushForget(c).then(so,so)}AUTH_USER=null;cloudDidPull=false;DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}stopInvitePolling();PENDING_INVITES=[];ensureStorageForMode();renderAccount();paintAcctIcons();sheet(false);var ag=$('#authgate');if(ag)ag.style.display='flex'}
+function signOutGoogle(){authApply.out=true;clearTimeout(authRecover.t);authRecover.t=null;iapStop();libStop();liveLeave();acClear();var c=sbClient();if(c){var so=function(){c.auth.signOut()};pushForget(c).then(so,so)}AUTH_USER=null;cloudDidPull=false;DEV_MODE=false;try{localStorage.setItem('songpad:devmode','0')}catch(e){}stopInvitePolling();PENDING_INVITES=[];ensureStorageForMode();renderAccount();paintAcctIcons();sheet(false);var ag=$('#authgate');if(ag)ag.style.display='flex'}
 $('#ag-google').onclick=function(){$('#ag-note').textContent='';signInGoogle(true)};
 $('#ag-apple').onclick=function(){$('#ag-note').textContent='';signInApple(true)};
 setTimeout(function(){if(!AUTH_USER&&!sbClient())$('#ag-note').textContent='Couldn’t reach the sign-in service. Check your connection and try again.'},4000);
