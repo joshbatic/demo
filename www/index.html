@@ -151,11 +151,11 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 #brq .block b{font-size:15.5px}#brq .block span{display:block;font-size:13px;color:var(--mute);margin-top:2px}
 #brq .bcode{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:6px 12px;border-radius:10px;background:var(--fill);font:700 15px/1.2 ui-monospace,Menlo,monospace;letter-spacing:1.5px}
 #brq .bnote{font-size:13px;color:var(--mute);padding:12px 4px 0;line-height:1.45}
-.th.ith{background:radial-gradient(circle at 72% 28%,#FFC2DA 0,rgba(255,194,218,0) 58%),linear-gradient(140deg,#D7C4FF,#9CC8FF);color:#fff;box-shadow:0 0 0 .5px var(--ring)}
-.th.ith svg{position:relative;z-index:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.18))}
+.th.ith{background:linear-gradient(150deg,#2E2E33,#0B0B0D);color:#fff;box-shadow:0 0 0 .5px var(--ring),inset 0 1px 0 rgba(255,255,255,.12)}
+.th.ith svg{position:relative;z-index:1}.si .th.ith svg{width:19px;height:19px}.th.ith>svg{width:22px;height:22px}
 .th.ith{position:relative}.th.ith::after{content:'';position:absolute;inset:0;border-radius:inherit;background:#000;opacity:0;pointer-events:none}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .th.ith::after{opacity:.22}}
-:root[data-theme="dark"] .th.ith::after{opacity:.22}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .th.ith::after{opacity:0}}
+:root[data-theme="dark"] .th.ith::after{opacity:0}
 .ijb{flex:none;width:34px;height:34px;border-radius:50%;background:var(--fill);color:var(--ink);display:grid;place-items:center;margin-right:-4px}
 .ijb:active{transform:scale(.92)}
 .ijot.gf{margin:20px 16px 14px;padding:10px 10px 10px 14px;display:flex;flex-direction:column;gap:8px}
@@ -1064,7 +1064,7 @@ body.sprinting #rhy{display:none}
 
 <aside id="side" aria-label="Songs">
   <div class="sdh"><b id="logo" role="button" tabindex="0" aria-label="Songs overview">*[demo]</b><div class="gl grp2"><button class="ib2" id="sacct" aria-label="Account"><img id="sacctav" class="sacctav" alt="" hidden><svg id="sacctsvg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.9-3.6 3.7-5.6 7-5.6s6.1 2 7 5.6"/></svg><i class="invdot" id="invdot2" hidden></i></button><button class="ib2" id="snew" aria-label="New song"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6"/><path d="M18.5 3.5l2 2L11 15l-3 1 1-3z"/></svg></button><button class="ib2" id="sfolder" aria-label="New folder" title="New folder"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5a2 2 0 0 1 2-2h4.5l1.8 2H19a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 12.3v4.4M9.8 14.5h4.4"/></svg></button><button class="ib2" id="shide" aria-label="Hide sidebar"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M9.5 4v16"/></svg></button></div></div>
-  <button id="svault" class="si"><i class="th ith"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M5.1 8l13.8 8M5.1 16l13.8-8" stroke-width="2.6"/></svg></i><div class="tx"><b>Ideas</b><span id="svaultsub">A quick jot for lines and ideas</span></div><em id="svaultct"></em></button>
+  <button id="svault" class="si"><i class="th ith"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8a6.4 6.4 0 0 0-3.9 11.5c.7.6 1.1 1.3 1.1 2.1v.8h5.6v-.8c0-.8.4-1.5 1.1-2.1A6.4 6.4 0 0 0 12 2.8z" fill="currentColor" stroke="none"/><path d="M9.6 19h4.8M10.4 21.3h3.2" stroke-width="2"/><path d="M9.6 8.2a3 3 0 0 1 2.4-2" stroke="rgba(0,0,0,.2)" stroke-width="1.5"/></svg></i><div class="tx"><b>Ideas</b><span id="svaultsub">A quick jot for lines and ideas</span></div><em id="svaultct"></em></button>
   <button id="sadm" class="si" hidden><i class="th ath"></i><div class="tx"><b>Admin</b><span id="sadmsub">Users, errors and settings</span></div><em id="sadmct"></em></button>
   <button id="sbeta" class="si" hidden><i class="th bth"></i><div class="tx"><b>Beta Requests</b><span id="sbetasub">Sign in as the admin to review</span></div><em id="sbetact"></em></button>
   <input id="sq" type="search" placeholder="Search">
@@ -14989,7 +14989,7 @@ function allIdeaTags(){var t={};ideas.forEach(function(i){(i.tags||[]).forEach(f
    A card at the top of the song list opens them; the box at the top of Ideas saves with Return. Each one is a
    Line, an Idea or a Concept, can carry tags, and can start a new song. Synced with the library like songs. */
 var IKINDS=[['line','Line','A lyric line or hook'],['idea','Idea','A title, image, phrase, anything'],['concept','Concept','What a song could be about']],IKL={};IKINDS.forEach(function(k){IKL[k[0]]=k[1]});
-var ijotKind='line',ifilterKind='',IBULB='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M5.1 8l13.8 8M5.1 16l13.8-8" stroke-width="2.6"/></svg>';
+var ijotKind='line',ifilterKind='',IBULB='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8a6.4 6.4 0 0 0-3.9 11.5c.7.6 1.1 1.3 1.1 2.1v.8h5.6v-.8c0-.8.4-1.5 1.1-2.1A6.4 6.4 0 0 0 12 2.8z" fill="currentColor" stroke="none"/><path d="M9.6 19h4.8M10.4 21.3h3.2" stroke-width="2"/><path d="M9.6 8.2a3 3 0 0 1 2.4-2" stroke="rgba(0,0,0,.2)" stroke-width="1.5"/></svg>';
 /* the Ideas row at the top of the song list: built like a song row (tile, title, latest idea, count and time)
    so it sits in the list rather than on top of it, with a small + to jot one straight away */
 function paintVault(){var ct=$('#svaultct'),sb=$('#svaultsub');if(ct)ct.textContent=ideas.length||'';if(sb){var l=ideas.slice().sort(function(a,c){return c.updated-a.updated})[0];sb.textContent=l?(l.text?l.text.split('\n')[0]:'Voice memo · '+sfTime(l.memo&&l.memo.dur)):'A quick jot for lines and ideas'}}
