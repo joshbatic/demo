@@ -151,11 +151,11 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 #brq .block b{font-size:15.5px}#brq .block span{display:block;font-size:13px;color:var(--mute);margin-top:2px}
 #brq .bcode{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:6px 12px;border-radius:10px;background:var(--fill);font:700 15px/1.2 ui-monospace,Menlo,monospace;letter-spacing:1.5px}
 #brq .bnote{font-size:13px;color:var(--mute);padding:12px 4px 0;line-height:1.45}
-.th.ith{background:linear-gradient(150deg,#2E2E33,#0B0B0D);color:#fff;box-shadow:0 0 0 .5px var(--ring),inset 0 1px 0 rgba(255,255,255,.12)}
-.th.ith svg{position:relative;z-index:1}.si .th.ith svg{width:19px;height:19px}.th.ith>svg{width:22px;height:22px}
+.th.ith{background:radial-gradient(circle at 70% 25%,#FFF1B8 0,rgba(255,241,184,0) 60%),linear-gradient(140deg,#FFD59E,#FF9E8A);color:#fff;box-shadow:0 0 0 .5px var(--ring)}
+.th.ith svg{position:relative;z-index:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.18))}.si .th.ith svg{width:19px;height:19px}.th.ith>svg{width:22px;height:22px}
 .th.ith{position:relative}.th.ith::after{content:'';position:absolute;inset:0;border-radius:inherit;background:#000;opacity:0;pointer-events:none}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .th.ith::after{opacity:0}}
-:root[data-theme="dark"] .th.ith::after{opacity:0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .th.ith::after{opacity:.22}}
+:root[data-theme="dark"] .th.ith::after{opacity:.22}
 .ijb{flex:none;width:34px;height:34px;border-radius:50%;background:var(--fill);color:var(--ink);display:grid;place-items:center;margin-right:-4px}
 .ijb:active{transform:scale(.92)}
 .ijot.gf{margin:20px 16px 14px;padding:10px 10px 10px 14px;display:flex;flex-direction:column;gap:8px}
