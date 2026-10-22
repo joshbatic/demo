@@ -16355,7 +16355,11 @@ function rhyme(){
     MC[k]=pr;
     pr.then(function(a){MC[k]=a;if(!lines&&ctx().sel.trim()===selPhrase)rhyme()});
   }
-  function order(a){if(!left)return a;var f=function(x){return sy(x)===left};return a.filter(f).concat(a.filter(function(x){return!f(x)}))}
+  /* rare words (the dictionary's two least-common tiers, e.g. "diltiazem") and abbreviations read letter by letter
+     ("atm", "mph": as many syllables as letters) go last, and are never lifted to the front just because their
+     syllables fit the line */
+  function order(a){var rare=function(x){var w=nw(x),e=W[w];return!!e&&(e.t>=8||(e.s>=2&&w.length<=e.s))};a=a.filter(function(x){return!rare(x)}).concat(a.filter(rare));
+    if(!left)return a;var f=function(x){return sy(x)===left&&!rare(x)};return a.filter(f).concat(a.filter(function(x){return!f(x)}))}
   function add(x,type){chip(x,left&&sy(x)===left?'f':'',sy(x),function(){var ta=$('#lyr'),pv=ta.value.charAt(ta.selectionStart-1);var orig=c.sel?c.sel.trim():sp?ta.value.slice(sp[0],sp[1]):'',out=x;
     if(/^[A-Z][A-Z]+$/.test(orig))out=x.toUpperCase();else if(/^[A-Z]/.test(orig))out=x.charAt(0).toUpperCase()+x.slice(1);
     if(c.sel){ins(ta,out)}
