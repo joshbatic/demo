@@ -147,7 +147,7 @@ private func glassRect(_ v: JSValue?) -> CGRect? {
     return r.width > 0 && r.height > 0 ? r : nil
 }
 
-final class GlassGroupView: UIView, UITextFieldDelegate {
+final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
     let effectView = UIVisualEffectView()
     let kind: String
     weak var plugin: GlassBarPlugin?
@@ -169,6 +169,12 @@ final class GlassGroupView: UIView, UITextFieldDelegate {
     private var avatarURL = ""
     private var parts: [String: CGRect] = [:]
     static var avatars: [String: UIImage] = [:]
+    // pop-up menus on buttons (the editor's •••)
+    private var menuKeys: [String] = []
+    // the dev app's tab bar: Apple's own UITabBar
+    private var tabBar: UITabBar?
+    private var tabIds: [String] = []
+    private var tabKey = ""
 
     init(kind: String, plugin: GlassBarPlugin) {
         self.kind = kind
@@ -203,7 +209,7 @@ final class GlassGroupView: UIView, UITextFieldDelegate {
         bounds = CGRect(x: 0, y: 0, width: w, height: h)
         center = CGPoint(x: x + w / 2, y: y + h / 2)
         isBottom = (s["bottom"] as? Bool) ?? false
-        if kind == "search" { configureSearch(s) } else if kind == "account" { configureAccount(s) } else { configureButtons(s) }
+        if kind == "search" { configureSearch(s) } else if kind == "account" { configureAccount(s) } else if kind == "tabbar" { configureTabBar(s) } else { configureButtons(s) }
         setShown((s["show"] as? Bool) ?? true)
         setNeedsLayout()
     }
@@ -227,6 +233,7 @@ final class GlassGroupView: UIView, UITextFieldDelegate {
             buttons = []
             onStates = []
             slots = []
+            menuKeys = []
             for it in items {
                 let id = (it["id"] as? String) ?? ""
                 let b = UIButton(type: .system)
@@ -235,6 +242,7 @@ final class GlassGroupView: UIView, UITextFieldDelegate {
                 buttons.append(b)
                 onStates.append(false)
                 slots.append(nil)
+                menuKeys.append("")
             }
         }
         for (i, it) in items.enumerated() where i < buttons.count {
@@ -244,7 +252,72 @@ final class GlassGroupView: UIView, UITextFieldDelegate {
             let rw = glassNum(it["rw"])
             slots[i] = rw > 0 ? CGRect(x: glassNum(it["rx"]), y: 0, width: rw, height: 0) : nil
             style(buttons[i], sf: (it["sf"] as? String) ?? "circle", icon: it["ik"] as? String, label: (it["label"] as? String) ?? "", on: on)
+            configureMenu(buttons[i], index: i, sections: it["menu"] as? JSArray)
         }
+    }
+
+    // a button with a menu shows Apple's pop-up menu on tap instead of acting straight away
+    private func configureMenu(_ b: UIButton, index i: Int, sections: JSArray?) {
+        guard let sections = sections, !sections.isEmpty else {
+            if !menuKeys[i].isEmpty { b.menu = nil; b.showsMenuAsPrimaryAction = false; menuKeys[i] = "" }
+            return
+        }
+        let groups = sections.compactMap { $0 as? JSArray }.map { $0.compactMap { $0 as? JSObject } }
+        let key = groups.map { $0.map { "\(($0["id"] as? String) ?? "")|\(($0["title"] as? String) ?? "")|\(($0["sf"] as? String) ?? "")|\(($0["destructive"] as? Bool) == true)" }.joined(separator: ",") }.joined(separator: ";")
+        guard key != menuKeys[i] else { return }
+        menuKeys[i] = key
+        let menus: [UIMenuElement] = groups.map { items in
+            UIMenu(title: "", options: .displayInline, children: items.map { m in
+                let id = (m["id"] as? String) ?? ""
+                let img = (m["sf"] as? String).flatMap { UIImage(systemName: $0) }
+                return UIAction(title: (m["title"] as? String) ?? "", image: img, attributes: (m["destructive"] as? Bool) == true ? [.destructive] : []) { [weak self] _ in
+                    self?.plugin?.menuPicked(id)
+                }
+            })
+        }
+        b.menu = UIMenu(title: "", children: menus)
+        b.showsMenuAsPrimaryAction = true
+    }
+
+    private func configureTabBar(_ s: JSObject) {
+        let tb: UITabBar
+        if let existing = tabBar { tb = existing } else {
+            tb = UITabBar()
+            tb.delegate = self
+            tb.tintColor = .label
+            effectView.isHidden = true
+            addSubview(tb)
+            tabBar = tb
+        }
+        let items = ((s["items"] as? JSArray) ?? []).compactMap { $0 as? JSObject }
+        let key = items.map { "\(($0["id"] as? String) ?? ""):\(($0["label"] as? String) ?? ""):\(($0["ik"] as? String) ?? "")" }.joined(separator: ",")
+        if key != tabKey {
+            tabKey = key
+            tabIds = items.map { ($0["id"] as? String) ?? "" }
+            tb.items = items.enumerated().map { (i, it) in
+                var img: UIImage? = nil
+                if let k = it["ik"] as? String { img = GlassBarPlugin.icons[k] }
+                if img == nil { img = UIImage(systemName: (it["sf"] as? String) ?? "circle") }
+                return UITabBarItem(title: (it["label"] as? String) ?? "", image: img, tag: i)
+            }
+        }
+        for (i, it) in items.enumerated() where i < (tb.items?.count ?? 0) {
+            let badge = (it["badge"] as? String) ?? ""
+            tb.items?[i].badgeValue = badge.isEmpty ? nil : badge
+            if (it["on"] as? Bool) == true, tb.selectedItem !== tb.items?[i] { tb.selectedItem = tb.items?[i] }
+        }
+        // Apple's tab bar sits along the bottom edge at its own height, whatever size the page's bar was
+        if let sv = superview {
+            let safe = sv.safeAreaInsets.bottom
+            let fit = tb.sizeThatFits(CGSize(width: sv.bounds.width, height: 0)).height
+            let h = fit >= 49 + safe ? fit : fit + safe
+            bounds = CGRect(x: 0, y: 0, width: sv.bounds.width, height: h)
+            center = CGPoint(x: sv.bounds.width / 2, y: sv.bounds.height - h / 2)
+        }
+    }
+
+    func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
+        if item.tag >= 0 && item.tag < tabIds.count { plugin?.tapped(tabIds[item.tag]) }
     }
 
     private func style(_ b: UIButton, sf: String, icon: String?, label: String, on: Bool) {
@@ -400,7 +473,9 @@ final class GlassGroupView: UIView, UITextFieldDelegate {
             effectView.layer.cornerCurve = .continuous
         }
         if layer.shadowOpacity > 0 { layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: r).cgPath }
-        if kind == "account" {
+        if kind == "tabbar" {
+            tabBar?.frame = bounds
+        } else if kind == "account" {
             hitButton?.frame = bounds
             if let r = parts["tag"] { tagLabel.frame = r; tagLabel.layer.cornerRadius = r.height / 2 }
             if let r = parts["avatar"] { avatarView.frame = r; avatarView.layer.cornerRadius = r.width / 2 }
@@ -525,6 +600,7 @@ public class GlassBarPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     func tapped(_ id: String) { notifyListeners("tap", data: ["id": id]) }
+    func menuPicked(_ id: String) { notifyListeners("menu", data: ["id": id]) }
     func typed(_ id: String, _ text: String) { notifyListeners("input", data: ["id": id, "text": text]) }
     func focusChanged(_ id: String, focused: Bool) {
         notifyListeners(focused ? "focus" : "blur", data: ["id": id])
