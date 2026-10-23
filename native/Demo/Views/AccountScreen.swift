@@ -25,7 +25,9 @@ struct AccountScreen: View {
     @State private var prefs: [String: Bool] = [:]
     // links
     @State private var editingLinks = false
-    @State private var spotify = "", instagram = "", tiktok = ""
+    @State private var spotify = ""
+    @State private var instagram = ""
+    @State private var tiktok = ""
     // songs
     @State private var importing = false
     @State private var exportURL: URL?
