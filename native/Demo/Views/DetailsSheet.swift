@@ -17,6 +17,7 @@ struct DetailsSheet: View {
     var onRestore: () -> Void = {}
     var onDelete: () -> Void = {}
     var onPlayWithLyrics: () -> Void = {}
+    var onLeave: () -> Void = {}
     @Environment(AppSession.self) private var session
     @Environment(LibraryStore.self) private var library
     @Environment(\.dismiss) private var dismiss
@@ -98,6 +99,7 @@ struct DetailsSheet: View {
         Section {
             TextField("Notes: melody ideas, references, co-writers", text: binding(\.notes), axis: .vertical).lineLimit(3...12)
         }
+        CollabSection(songID: songID, onLeft: { dismiss(); onLeave() })
         Section("Versions") {
             Button {
                 guard var s = song else { return }

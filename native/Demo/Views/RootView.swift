@@ -19,6 +19,7 @@ struct RootView: View {
         }
         .animation(.smooth(duration: 0.35), value: session.phase)
         .overlay(alignment: .bottom) { ToastView() }
+        .overlay(alignment: .top) { InviteBanner().animation(.spring(response: 0.45, dampingFraction: 0.8), value: Collab.shared.banner) }
         // the first AI request asks once (App Store guideline 5.1.2(i)); Account › AI Features changes it later
         .alert("Use AI features?", isPresented: Binding(get: { AIService.shared.askingConsent }, set: { _ in })) {
             Button("Not Now", role: .cancel) {

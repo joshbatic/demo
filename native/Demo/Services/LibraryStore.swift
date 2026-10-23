@@ -18,6 +18,8 @@ final class LibraryStore {
     var editingID: String?
     @ObservationIgnored var lastTyping = Date.distantPast
     var ideaEditingID: String?
+    /// Runs after each save to the device (shared songs push their changes from here).
+    @ObservationIgnored var onSaved: (() -> Void)?
 
     // sync bookkeeping: not watched by any screen
     @ObservationIgnored private var tomb = Tombs()
@@ -81,6 +83,18 @@ final class LibraryStore {
 
     func add(_ song: Song) { songs.insert(song, at: 0); changed() }
 
+    /// Saves bookkeeping on a song (like when it was last pushed) without counting as an edit.
+    func putQuietly(_ song: Song) {
+        if let i = songs.firstIndex(where: { $0.id == song.id }) { songs[i] = song }
+        changed()
+    }
+
+    /// A shared song that's gone (its owner stopped sharing or deleted it): off this device and the library.
+    func dropLocally(_ id: String) {
+        if editingID == id { editingID = nil }
+        delete(id)
+    }
+
     /// Removes a song for good, on every device (the tombstone is recorded straight away).
     func delete(_ id: String) {
         songs.removeAll { $0.id == id }
@@ -107,6 +121,7 @@ final class LibraryStore {
             try? await Task.sleep(for: .milliseconds(250))
             guard !Task.isCancelled else { return }
             self?.flushSave()
+            self?.onSaved?()
         }
         pushTask?.cancel()
         pushTask = Task { [weak self] in

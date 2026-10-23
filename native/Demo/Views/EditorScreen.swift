@@ -20,6 +20,8 @@ struct EditorScreen: View {
     @State private var showMap = UserDefaults.standard.bool(forKey: "view.map")
     @State private var showSyl = UserDefaults.standard.bool(forKey: "view.syl")
     @State private var showPlay = false
+    @State private var showShare = false
+    @State private var live = LiveSession()
     @State private var editorFrame = CGRect.zero
     @State private var topBarBottom: CGFloat = 0
     @State private var rhymeTop: CGFloat = 0
@@ -90,7 +92,16 @@ struct EditorScreen: View {
         .toolbar(.hidden, for: .navigationBar)
         .sheet(item: $detailsTab) { t in
             DetailsSheet(songID: songID, tab: t, onRestore: { reloadEditor() }, onDelete: { deleteSong() },
-                         onPlayWithLyrics: { DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { showPlay = true } })
+                         onPlayWithLyrics: { DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { showPlay = true } },
+                         onLeave: { dismiss() })
+        }
+        .sheet(isPresented: $showShare) { ShareSheet(songID: songID) }
+        // live co-writing: send what changed here (from typing, Details, anywhere) and file changes
+        .onChange(of: liveKey) { _, _ in live.localChanged() }
+        .onChange(of: filesKey) { _, _ in if live.isOn && !live.applying { live.filesChanged() } }
+        .onChange(of: song?.isShared ?? false) { _, on in
+            if on, live.isOn == false { live.start(songID: songID, library: library, session: session, bridge: bridge) }
+            if !on { live.stop() }
         }
         .sheet(isPresented: $showVoice, onDismiss: { refreshResults(); lines.clear() }) { VoiceSheet(songID: songID) }
         .sheet(isPresented: $showMuse) {
@@ -126,6 +137,10 @@ struct EditorScreen: View {
             if var s = library.song(songID), s.autoSnap() { library.put(s) }
             bridge.onEdit = { attr in save(attr) }
             bridge.onSelection = { text, sel in updateContext(text, sel) }
+            if library.song(songID)?.isShared == true {
+                live.start(songID: songID, library: library, session: session, bridge: bridge)
+            }
+            markSeenIfNew()
             results.ai = {
                 WordResults.AIContext(pro: session.plan.isPro, ctxOn: ctxOn, env: promptEnv())
             }
@@ -136,6 +151,7 @@ struct EditorScreen: View {
             // leaving the song pauses its audio (spec §4.10)
             if !showPlay { AudioPlayer.shared.pause(ifSong: songID) }
             MuseMemory.shared.check(force: false)
+            live.stop()
             // a new song left untouched isn't kept (spec §1.6)
             if let s = library.song(songID), s.isEmptyDraft, !s.isPlaceholder { library.delete(s.id) }
         }
@@ -160,6 +176,45 @@ struct EditorScreen: View {
         showPlay = true
     }
 
+    // MARK: co-writing
+
+    private var liveKey: String {
+        guard let s = song else { return "" }
+        return LiveSession.fields.map { LiveSession.value(s, $0) }.joined(separator: "\u{1}") + "\u{1}" + s.rich
+    }
+
+    private var filesKey: String {
+        guard let s = song else { return "" }
+        return CanonicalJSON.string(.array([s.raw["rmFiles"] ?? .null, s.raw["audio"] ?? .null, s.raw["files"] ?? .null]))
+    }
+
+    private static var seenKey: String { "songpad:seen" }
+    private func seenLyrics() -> String? { (UserDefaults.standard.dictionary(forKey: Self.seenKey) as? [String: String])?[songID] }
+    private func setSeen(_ v: String) {
+        var d = (UserDefaults.standard.dictionary(forKey: Self.seenKey) as? [String: String]) ?? [:]
+        d[songID] = v
+        UserDefaults.standard.set(d, forKey: Self.seenKey)
+    }
+    private func markSeenIfNew() { if seenLyrics() == nil, let s = song { setSeen(s.lyrics) } }
+
+    /// "Sam added 3 new lines": lines a co-writer added since I last dismissed it (data spec §3.11).
+    private func addedHint(_ s: Song) -> String? {
+        guard s.isShared, let seen = seenLyrics(), seen != s.lyrics else { return nil }
+        let by = s.raw["lastEditBy"]?.string ?? ""
+        guard !by.isEmpty, by != session.email, by != session.myName else { return nil }
+        var before: [String: Int] = [:]
+        for l in seen.components(separatedBy: "\n") { let t = l.trimmingCharacters(in: .whitespaces); if !t.isEmpty { before[t, default: 0] += 1 } }
+        var added = 0
+        for l in s.lyrics.components(separatedBy: "\n") {
+            let t = l.trimmingCharacters(in: .whitespaces)
+            guard !t.isEmpty else { continue }
+            if (before[t] ?? 0) > 0 { before[t]! -= 1 } else { added += 1 }
+        }
+        guard added > 0 else { return nil }
+        let name = by.components(separatedBy: "@")[0]
+        return (name.prefix(1).uppercased() + name.dropFirst()) + " added \(added) new \(added == 1 ? "line" : "lines") · tap to dismiss"
+    }
+
     private func titleRow(_ s: Song) -> some View {
         HStack(alignment: .center, spacing: 14) {
             // tap the cover to choose a photo (spec §4.1)
@@ -176,6 +231,12 @@ struct EditorScreen: View {
                 }
                 Text([s.status, s.key, s.bpm.isEmpty ? "" : s.bpm + " BPM"].filter { !$0.isEmpty }.joined(separator: " · "))
                     .font(.subheadline).foregroundStyle(.tertiary).lineLimit(1)
+                if let who = live.writing {
+                    Text("\(who) is writing…").font(.footnote.weight(.medium)).foregroundStyle(Theme.proGreen)
+                } else if let hint = addedHint(s) {
+                    Text(hint).font(.footnote.weight(.medium)).foregroundStyle(.secondary)
+                        .onTapGesture { setSeen(s.lyrics); Haptics.tap(); library.put(s) }
+                }
             }
         }
     }
@@ -202,11 +263,10 @@ struct EditorScreen: View {
                     showSyl.toggle(); bridge.showSyl = showSyl
                     session.toast = showSyl ? "Syllable counts on" : "Syllable counts off"
                 }
-                ShareLink(item: shareText) {
+                Button { Haptics.tap(); bridge.textView?.resignFirstResponder(); showShare = true } label: {
                     Icon("ic-share", 22).foregroundStyle(Theme.tint).frame(width: 44, height: 48).contentShape(Rectangle())
                 }
                 .buttonStyle(PressScale())
-                .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })
                 .accessibilityLabel("Share")
             }
             .padding(.horizontal, 2)

@@ -85,6 +85,7 @@ final class AppSession {
             profile = loadCachedProfile(uid)
             library.open(uid: uid)
             MuseMemory.shared.open(uid: uid, library: library, session: self)
+            Collab.shared.start(library: library, session: self)
         }
         // the beta gate decides whether the app opens; it fails open if the check itself fails (spec §6.4)
         if UserDefaults.standard.string(forKey: "songpad:beta:\(uid)") == "ok" { phase = .ready }
@@ -150,6 +151,7 @@ final class AppSession {
 
     func signOut() async {
         signedOutFlag = true
+        Collab.shared.stop()
         library.flushSave()
         try? await Backend.client.auth.signOut()
         try? await Backend.client.auth.signOut(scope: .local)

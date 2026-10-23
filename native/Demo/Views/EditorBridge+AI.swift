@@ -111,6 +111,23 @@ extension EditorBridge {
         place(end)
     }
 
+    /// A co-writer's change: spliced into the text without touching the undo stack, keeping my caret
+    /// where it was relative to the words around it.
+    func applyRemote(at: Int, delete: Int, insert: String) {
+        guard let tv = textView else { return }
+        let ns = (tv.text ?? "") as NSString
+        let a = min(max(0, at), ns.length), len = min(delete, ns.length - a)
+        let sel = tv.selectedRange
+        let ins = (insert as NSString).length
+        tv.textStorage.beginEditing()
+        tv.textStorage.replaceCharacters(in: NSRange(location: a, length: len), with: NSAttributedString(string: insert, attributes: EditorBridge.baseAttributes))
+        tv.textStorage.endEditing()
+        func shift(_ p: Int) -> Int { p >= a + len ? p + ins - len : (p > a ? a + ins : p) }
+        let s0 = shift(sel.location), s1 = shift(sel.location + sel.length)
+        tv.selectedRange = NSRange(location: s0, length: max(0, s1 - s0))
+        coordinator?.afterChange(tv)
+    }
+
     /// Words in the lyrics right now (sprint counts).
     var wordCount: Int { text.matches(of: #/[A-Za-z0-9']+/#).count }
 }

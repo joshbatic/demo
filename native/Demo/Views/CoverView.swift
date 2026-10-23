@@ -79,6 +79,8 @@ struct CoverPick {
     static let palette: [(UInt32, UInt32)] = [(0xFFC9B0, 0xFF8FA3), (0xD7C4FF, 0x9CC8FF), (0xBFF0D4, 0x7FCCDB), (0xFFE9A8, 0xFFAA7F), (0xFFC2DA, 0xB9A6FF), (0xB6E8D8, 0x9AAEF2), (0xF5D7BA, 0xEE8F82), (0xB8DEFF, 0xB5EDC6), (0xF7AFC2, 0xF9CD86), (0xAFBBFF, 0xEFAED6), (0xC9E6A6, 0x86CFB4), (0xFFD6A5, 0xE7A6E0)]
     let a: Color, b: Color, glow: Color
     let angle: Double, cx: Double, cy: Double
+    /// covHex: the cover's colours, strongest first (the share card's fallback palette).
+    let hexes: [UInt32]
 
     init(id: String) {
         var h: UInt32 = 2166136261
@@ -96,6 +98,7 @@ struct CoverPick {
         cy = (15 + (r() * 70).rounded()) / 100
         let c = r() < 0.5 ? q.0 : q.1
         a = Color(hex: p.0); b = Color(hex: p.1); glow = Color(hex: c)
+        hexes = [p.1, c, p.0]
     }
 }
 
