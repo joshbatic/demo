@@ -282,12 +282,13 @@ struct RichTextEditor: UIViewRepresentable {
             lt.topSpace = insets.top
             lt.setNeedsLayout()
         }
-        if abs(tv.contentInset.bottom - insets.bottom) > 0.5 {
+        if insets.bottom > 0 && abs(tv.contentInset.bottom - insets.bottom) > 0.5 {
             tv.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: insets.bottom, right: 0)
+            tv.verticalScrollIndicatorInsets.bottom = insets.bottom
         }
-        tv.verticalScrollIndicatorInsets = insets
         if let header, let hc = context.coordinator.headerHost {
             hc.rootView = header
+            (tv as? LyricsTextView)?.headerDirty = true
             tv.setNeedsLayout()
         }
         let key = rich + "\u{0}" + lyrics
@@ -459,16 +460,31 @@ final class LyricsTextView: UITextView {
     /// Empty space at the top of the page for the floating top bar.
     var topSpace: CGFloat = 0
     private var lastTop: CGFloat = -1
+    var headerDirty = true
+    private var headerHeight: CGFloat = 0
+    private var measuredWidth: CGFloat = 0
 
     override func layoutSubviews() {
         super.layoutSubviews()
         let w = bounds.width
+        // the floating top bar: the status bar, then 8 + 44 + 12 pt (EditorScreen.topBar)
+        let barRoom = (window?.safeAreaInsets.top ?? safeAreaInsets.top) + 64
+        let space = max(topSpace, barRoom)
         var h: CGFloat = 0
         if let hc = header {
-            h = ceil(hc.sizeThatFits(in: CGSize(width: w, height: .greatestFiniteMagnitude)).height)
-            hc.view.frame = CGRect(x: 0, y: topSpace, width: w, height: h)
+            // measuring the header is the costly part, and layout runs on every scroll frame
+            if headerDirty || w != measuredWidth {
+                headerHeight = ceil(hc.sizeThatFits(in: CGSize(width: w, height: .greatestFiniteMagnitude)).height)
+                measuredWidth = w
+                headerDirty = false
+            }
+            h = headerHeight
+            let f = CGRect(x: 0, y: space, width: w, height: h)
+            if hc.view.frame != f { hc.view.frame = f }
         }
-        let top = topSpace + h + 8
+        if abs(verticalScrollIndicatorInsets.top - space) > 0.5 { verticalScrollIndicatorInsets.top = space }
+        if contentInset.bottom < 1 { contentInset.bottom = 240 }   // the rhyme bar, until it's measured
+        let top = space + h + 8
         if abs(textContainerInset.top - top) > 0.5 {
             textContainerInset.top = top
         }
