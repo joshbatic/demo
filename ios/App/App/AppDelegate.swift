@@ -142,6 +142,7 @@ final class GlassGroupView: UIView, UITextFieldDelegate {
     private var itemsKey = ""
     private var buttons: [UIButton] = []
     private var onStates: [Bool] = []
+    private var slots: [CGRect?] = []
     private(set) var field: UITextField?
     private let searchIcon = UIImageView()
     private(set) var inputId = ""
@@ -202,6 +203,7 @@ final class GlassGroupView: UIView, UITextFieldDelegate {
             buttons.forEach { $0.removeFromSuperview() }
             buttons = []
             onStates = []
+            slots = []
             for it in items {
                 let id = (it["id"] as? String) ?? ""
                 let b = UIButton(type: .system)
@@ -209,18 +211,22 @@ final class GlassGroupView: UIView, UITextFieldDelegate {
                 effectView.contentView.addSubview(b)
                 buttons.append(b)
                 onStates.append(false)
+                slots.append(nil)
             }
         }
         for (i, it) in items.enumerated() where i < buttons.count {
             let on = (it["on"] as? Bool) ?? false
             onStates[i] = on
+            // where the page put this button inside the group, so spacing matches exactly
+            let rw = glassNum(it["rw"])
+            slots[i] = rw > 0 ? CGRect(x: glassNum(it["rx"]), y: 0, width: rw, height: 0) : nil
             style(buttons[i], sf: (it["sf"] as? String) ?? "circle", label: (it["label"] as? String) ?? "", on: on)
         }
     }
 
     private func style(_ b: UIButton, sf: String, label: String, on: Bool) {
         var c = UIButton.Configuration.plain()
-        let sym = UIImage.SymbolConfiguration(pointSize: 17, weight: .medium)
+        let sym = UIImage.SymbolConfiguration(pointSize: 17, weight: .regular, scale: .medium)
         c.image = UIImage(systemName: sf, withConfiguration: sym) ?? UIImage(systemName: "circle", withConfiguration: sym)
         c.baseForegroundColor = .label
         c.cornerStyle = .capsule
@@ -296,9 +302,16 @@ final class GlassGroupView: UIView, UITextFieldDelegate {
         } else if !buttons.isEmpty {
             let w = bounds.width / CGFloat(buttons.count)
             for (i, b) in buttons.enumerated() {
-                let slot = CGRect(x: CGFloat(i) * w, y: 0, width: w, height: bounds.height)
-                // a toggled-on button shows a soft pill inside its slot, like a selected toolbar item
-                b.frame = onStates[i] && buttons.count > 1 ? slot.insetBy(dx: 3, dy: 5) : slot
+                var slot = CGRect(x: CGFloat(i) * w, y: 0, width: w, height: bounds.height)
+                if let s = slots[i] { slot = CGRect(x: s.minX, y: 0, width: s.width, height: bounds.height) }
+                b.frame = slot
+                // a toggled-on button gets a soft circle centred behind its icon; the button itself never moves
+                if var c = b.configuration {
+                    let d = max(0, min(slot.width, slot.height) - 6)
+                    let ix = (slot.width - d) / 2, iy = (slot.height - d) / 2
+                    c.background.backgroundInsets = NSDirectionalEdgeInsets(top: iy, leading: ix, bottom: iy, trailing: ix)
+                    b.configuration = c
+                }
             }
         }
     }

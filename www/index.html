@@ -17709,7 +17709,7 @@ var NG_G=[
   {id:'inew',sel:'#inew',items:[['inew','plus','New idea']],bottom:1},
   {id:'iback',sel:'#ideaBack',items:[['ideaBack','chevron.left','Back']]},
   {id:'eleft',sel:'#vEdit .bar .lgrp',items:[['back','chevron.left','Songs'],['sbt','sidebar.left','Sidebar']]},
-  {id:'eright',sel:'#vEdit .bar .bl>.grp2',items:[['vmap','point.3.connected.trianglepath.dotted','Rhyme map'],['vsyl','chart.bar','Syllable counts'],['shareb','square.and.arrow.up','Share'],['rateb','star','Rate song']]},
+  {id:'eright',sel:'#vEdit .bar .bl>.grp2',items:[['vmap','highlighter','Rhyme map'],['vsyl','number','Syllable counts'],['shareb','square.and.arrow.up','Share'],['rateb','star','Rate song']]},
   {id:'edet',sel:'#det',items:[['det','ellipsis','Details']]}];
 function ngShown(el){return!!el&&el.getClientRects().length>0&&getComputedStyle(el).display!=='none'&&getComputedStyle(el).visibility!=='hidden'}
 function ngTop(el,r){var x=r.left+r.width/2,y=r.top+r.height/2;if(x<1||y<1||x>innerWidth-1||y>innerHeight-1)return false;var h=document.elementFromPoint(x,y);return!!h&&(h===el||el.contains(h))}
@@ -17717,7 +17717,7 @@ function ngSpec(){var out=[],rd=function(v){return Math.round(v*2)/2};
   NG_G.forEach(function(g){var el=document.querySelector(g.sel);if(!el)return;var r=el.getBoundingClientRect(),vis=r.width>4&&r.height>4&&ngShown(el);
     var o={id:g.id,kind:g.kind||'buttons',x:rd(r.left),y:rd(r.top),w:rd(r.width),h:rd(r.height),show:vis&&ngTop(el,r),bottom:!!g.bottom};
     if(g.kind==='search'){var inp=document.getElementById(g.input);o.input=g.input;o.ph=(inp&&inp.placeholder)||g.ph;o.text=inp?inp.value:''}
-    else{o.items=g.items.filter(function(it){return ngShown(document.getElementById(it[0]))}).map(function(it){var b=document.getElementById(it[0]);return{id:it[0],sf:it[1],label:b.getAttribute('aria-label')||it[2],on:b.getAttribute('aria-pressed')==='true'}});if(!o.items.length)o.show=false}
+    else{o.items=g.items.filter(function(it){return ngShown(document.getElementById(it[0]))}).map(function(it){var b=document.getElementById(it[0]);var br=b.getBoundingClientRect();return{id:it[0],sf:it[1],label:b.getAttribute('aria-label')||it[2],on:b.getAttribute('aria-pressed')==='true',rx:rd(br.left-r.left),rw:rd(br.width)}});if(!o.items.length)o.show=false}
     out.push(o)});return out}
 function ngTheme(){var t=document.documentElement.getAttribute('data-theme');return t==='light'||t==='dark'?t:''}
 function ngLoop(){if(NG.on&&!document.hidden){try{var g=ngSpec(),th=ngTheme(),k=JSON.stringify(g)+th;if(k!==NG.last){NG.last=k;NG.P.sync({groups:g,theme:th})}}catch(e){}}requestAnimationFrame(ngLoop)}
