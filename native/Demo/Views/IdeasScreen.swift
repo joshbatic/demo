@@ -29,56 +29,143 @@ struct IdeasRow: View {
     private var latest: Idea? { library.ideas.max { $0.updated < $1.updated } }
 }
 
+
+/// Ideas (spec §5): a jot box with voice memos on top, then every idea, newest first.
 struct IdeasScreen: View {
+    @Environment(AppSession.self) private var session
     @Environment(LibraryStore.self) private var library
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @State private var jot = ""
     @State private var query = ""
-    @State private var editing: Idea?
+    @State private var editing: IdeaTarget?
+    @State private var recorder = MemoRecorder()
     @FocusState private var jotFocused: Bool
+
+    /// The Idea sheet's subject: an existing idea or a new blank one.
+    struct IdeaTarget: Identifiable { let id: String; let idea: Idea? }
 
     var body: some View {
         List {
-            Section {
-                HStack(alignment: .bottom, spacing: 10) {
-                    TextField("A line, a title, an idea…", text: $jot, axis: .vertical)
-                        .lineLimit(1...6)
-                        .focused($jotFocused)
-                        .submitLabel(.done)
-                        .onSubmit(save)
-                    Button(action: save) {
-                        Image(systemName: "arrow.up.circle.fill").font(.system(size: 28))
-                    }
-                    .disabled(jot.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                    .accessibilityLabel("Save idea")
-                }
+            jotBox
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 12, trailing: 16))
+            if filtered.isEmpty {
+                Text(query.isEmpty ? "Nothing here yet. Type a line and press Return, or tap the mic and hum it." : "No ideas match.")
+                    .font(.subheadline).foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity).multilineTextAlignment(.center)
+                    .padding(.vertical, 30)
+                    .listRowSeparator(.hidden)
             }
-            Section {
-                ForEach(filtered) { i in
-                    Button { editing = i } label: {
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(i.text.isEmpty ? (i.hasMemo ? "Voice memo" : "Empty idea") : i.text)
-                                .foregroundStyle(.primary).lineLimit(4)
-                            Text(ShortDate.string(i.updated)).font(.caption).foregroundStyle(.tertiary)
-                        }
-                        .padding(.vertical, 2)
+            ForEach(filtered) { i in
+                Button { editing = IdeaTarget(id: i.id, idea: i) } label: { IdeaCard(idea: i) }
+                    .buttonStyle(.plain)
+                    .listRowInsets(EdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20))
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) { delete(i) } label: { Label("Delete", systemImage: "trash") }
                     }
-                    .swipeActions {
-                        Button(role: .destructive) {
-                            Haptics.thud()
-                            withAnimation { library.deleteIdea(i.id) }
-                        } label: { Label("Delete", systemImage: "trash") }
-                    }
+            }
+        }
+        .listStyle(.plain)
+        .scrollDismissesKeyboard(.interactively)
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top, spacing: 0) { header }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            SearchDock(text: $query, prompt: "Search ideas", icon: "ic-plus", label: "New idea") {
+                editing = IdeaTarget(id: "new-" + UUID().uuidString, idea: nil)
+            }
+        }
+        .sheet(item: $editing) { t in IdeaSheet(idea: t.idea) }
+        .task { await IdeaMemos.uploadPending(library: library, session: session) }
+        .onDisappear { stopAndSave() }
+        .onChange(of: scenePhase) { _, p in if p != .active { stopAndSave() } }
+        .onChange(of: recorder.hitLimit) { _, hit in
+            guard hit, let (url, d) = recorder.finished else { return }
+            recorder.finished = nil
+            let text = jot
+            jot = ""
+            Task {
+                if await IdeaMemos.save(url, dur: d, text: text, library: library, session: session) {
+                    session.toast = session.plan.isPro ? "Saved at 10 minutes, the longest a voice memo can be."
+                                                       : "Saved at a minute, the longest on Free. Pro memos can run 10 minutes."
                 }
             }
         }
-        .navigationTitle("Ideas")
-        .searchable(text: $query, prompt: "Search ideas")
-        .sheet(item: $editing) { i in IdeaSheet(idea: i) }
+        .onChange(of: recorder.notice) { _, n in if let n { session.toast = n; recorder.notice = nil } }
+    }
+
+    private var header: some View {
+        HStack(spacing: 12) {
+            Button { Haptics.tap(); dismiss() } label: {
+                Icon("ic-back", 20).foregroundStyle(Theme.tint).frame(width: 44, height: 44).contentShape(Circle())
+            }
+            .buttonStyle(PressScale())
+            .glassCircle()
+            .accessibilityLabel("Songs")
+            Text("Ideas").font(.system(size: 34, weight: .bold)).tracking(-0.6)
+            Spacer()
+        }
+        .padding(.horizontal, 14)
+        .padding(.top, 6)
+        .padding(.bottom, 14)
+        .background { EdgeFade(edge: .top, solidTo: 0.76) }
+    }
+
+    // MARK: the jot box
+
+    @ViewBuilder private var jotBox: some View {
+        VStack(spacing: 0) {
+            if recorder.isRecording {
+                HStack(spacing: 10) {
+                    Button("Cancel") { recorder.cancel(); Haptics.tap(); session.toast = "Recording discarded" }
+                        .font(.system(size: 15, weight: .medium))
+                    Circle().fill(.red).frame(width: 8, height: 8)
+                    Text(SongFiles.time(recorder.elapsed)).font(.system(size: 15).monospacedDigit())
+                    LiveLevels(levels: recorder.levels).frame(height: 30)
+                    Button { stopAndSave() } label: {
+                        RoundedRectangle(cornerRadius: 3).fill(.white).frame(width: 12, height: 12)
+                            .frame(width: 34, height: 34).background(.red, in: Circle())
+                    }
+                    .buttonStyle(PressScale())
+                    .accessibilityLabel("Stop and save")
+                }
+                .padding(.horizontal, 14).frame(minHeight: 54)
+            } else {
+                HStack(alignment: .bottom, spacing: 8) {
+                    TextField("A line, a title, an idea…", text: $jot, axis: .vertical)
+                        .lineLimit(1...7)
+                        .focused($jotFocused)
+                        .submitLabel(.done)
+                        .onChange(of: jot) { _, v in if v.hasSuffix("\n") { jot = String(v.dropLast()); save() } }
+                        .padding(.vertical, 8)
+                    Button { record() } label: {
+                        Image(systemName: "mic.fill").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.tint)
+                            .frame(width: 34, height: 34).background(BarFill.color, in: Circle())
+                    }
+                    .buttonStyle(PressScale())
+                    .accessibilityLabel("Record a voice memo")
+                    Button(action: save) {
+                        Image(systemName: "arrow.up").font(.system(size: 15, weight: .bold)).foregroundStyle(Theme.onTint)
+                            .frame(width: 34, height: 34).background(Theme.tint, in: Circle())
+                    }
+                    .buttonStyle(PressScale())
+                    .disabled(jot.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .opacity(jot.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.35 : 1)
+                    .accessibilityLabel("Save idea")
+                }
+                .padding(.leading, 16).padding(.trailing, 10).padding(.vertical, 6)
+            }
+        }
+        .background(BarFill.color, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .animation(.snappy(duration: 0.25), value: recorder.isRecording)
     }
 
     private var filtered: [Idea] {
-        let q = query.lowercased()
-        return library.ideas.filter { q.isEmpty || $0.text.lowercased().contains(q) }.sorted { $0.updated > $1.updated }
+        let q = query.trimmingCharacters(in: .whitespaces).lowercased()
+        return library.ideas.filter { i in
+            q.isEmpty || i.text.lowercased().contains(q) || (i.raw["tags"]?.array ?? []).contains { ($0.string ?? "").lowercased().contains(q) }
+        }
+        .sorted { $0.updated > $1.updated }
     }
 
     private func save() {
@@ -89,38 +176,208 @@ struct IdeasScreen: View {
         jot = ""
         jotFocused = false
     }
+
+    private func record() {
+        if !session.plan.isPro && IdeaMemos.memoCount(library) >= IdeaMemos.freeLimit {
+            Haptics.warning()
+            session.toast = "Free keeps 10 voice memos on this device, up to a minute each. Pro syncs them everywhere, with no limit."
+            return
+        }
+        jotFocused = false
+        Task {
+            do { try await recorder.start(maxSeconds: session.plan.isPro ? 600 : 60) }
+            catch MemoRecorder.StartError.denied { session.toast = "Allow microphone access for *[demo] in Settings to record." }
+            catch { session.toast = "Recording isn’t available here." }
+        }
+    }
+
+    /// Stop saves (and so does leaving Ideas or the app).
+    private func stopAndSave() {
+        guard recorder.isRecording, let (url, d) = recorder.finish() else { return }
+        let text = jot
+        jot = ""
+        Task { await IdeaMemos.save(url, dur: d, text: text, library: library, session: session) }
+    }
+
+    private func delete(_ i: Idea) {
+        Haptics.thud()
+        IdeaMemos.deleteFile(i.memo)
+        withAnimation { library.deleteIdea(i.id) }
+        session.toast = "Idea deleted"
+    }
 }
 
+/// The live meter while recording: a bar per 70 ms scrolling left, fading toward the left.
+struct LiveLevels: View {
+    let levels: [Double]
+    var body: some View {
+        Canvas { ctx, size in
+            let bw: CGFloat = 3, gap: CGFloat = 2.5
+            let count = Int(size.width / (bw + gap))
+            let shown = levels.suffix(count)
+            var x = size.width - bw
+            for v in shown.reversed() {
+                let h = max(3, size.height * v)
+                let a = 0.35 + 0.65 * Double(x / max(1, size.width))
+                ctx.fill(Path(roundedRect: CGRect(x: x, y: (size.height - h) / 2, width: bw, height: h), cornerRadius: 1.5),
+                         with: .color(.primary.opacity(a)))
+                x -= bw + gap
+                if x < 0 { break }
+            }
+        }
+    }
+}
+
+/// An idea in the list: its text, the memo player, and the date (" · In a song" once a song was started from it).
+struct IdeaCard: View {
+    let idea: Idea
+    @Environment(LibraryStore.self) private var library
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if !idea.text.isEmpty {
+                Text(idea.text).font(.system(size: 17)).foregroundStyle(.primary).lineLimit(6)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            if let m = idea.memo { MemoPlayer(ideaID: idea.id, memo: m) }
+            Text(ShortDate.string(idea.updated) + (idea.usedSongID.map { library.song($0) != nil } == true ? " · In a song" : ""))
+                .font(.caption).foregroundStyle(.tertiary)
+        }
+        .contentShape(Rectangle())
+    }
+}
+
+/// A memo's play button, waveform (a tick a second while scrubbing) and time.
+struct MemoPlayer: View {
+    let ideaID: String
+    let memo: FileItem
+    var large = false
+    @Environment(AppSession.self) private var session
+    private var player: AudioPlayer { AudioPlayer.shared }
+
+    var body: some View {
+        let k = AudioPlayer.key(idea: ideaID)
+        let active = player.isActive(k)
+        let dur = active && player.duration > 0 ? player.duration : memo.dur
+        let t = active ? player.time : 0
+        HStack(spacing: 10) {
+            Button { Haptics.tap(); player.toggle(k, item: memo, fallbackDuration: memo.dur) } label: {
+                Image(systemName: active && player.isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: large ? 16 : 13, weight: .bold)).foregroundStyle(Theme.onTint)
+                    .frame(width: large ? 40 : 32, height: large ? 40 : 32).background(Theme.tint, in: Circle())
+            }
+            .buttonStyle(PressScale())
+            .accessibilityLabel(active && player.isPlaying ? "Pause" : "Play")
+            Waveform(peaks: memo.peaks, progress: dur > 0 ? t / dur : 0, duration: dur, tickEvery: 1, height: large ? 40 : 30) { f in
+                if active { player.seek(f * dur) } else { player.load(k, item: memo, fallbackDuration: memo.dur, autoplay: false, at: f * dur) }
+            }
+            Text(active && t > 0 ? "\(SongFiles.time(t)) / \(SongFiles.time(dur))" : SongFiles.time(dur))
+                .font(.system(size: 12).monospacedDigit()).foregroundStyle(.secondary)
+                .fixedSize()
+        }
+        .onChange(of: player.error) { _, e in if let e, active { session.toast = e; player.error = nil } }
+    }
+}
+
+/// The Idea sheet (spec §2.6). Saves when it closes.
 struct IdeaSheet: View {
+    let idea: Idea?
+    @Environment(AppSession.self) private var session
     @Environment(LibraryStore.self) private var library
     @Environment(\.dismiss) private var dismiss
-    let idea: Idea
+    @Environment(\.openRoute) private var openRoute
     @State private var text = ""
+    @State private var confirmDelete = false
+    @State private var gone = false
+    @FocusState private var focused: Bool
+
+    private var current: Idea? { idea.flatMap { i in library.ideas.first { $0.id == i.id } } }
 
     var body: some View {
         NavigationStack {
             Form {
-                TextField("A line, a title, an idea…", text: $text, axis: .vertical).lineLimit(3...20)
-            }
-            .navigationTitle("Idea")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    DoneButton { commit(); dismiss() }
+                if let c = current, let m = c.memo {
+                    Section {
+                        MemoPlayer(ideaID: c.id, memo: m, large: true)
+                        Button("Remove", role: .destructive) { removeMemo(c) }
+                    }
+                }
+                Section {
+                    TextField(current?.memo != nil ? "Add words to go with it…" : "A line, a title, an idea…", text: $text, axis: .vertical)
+                        .lineLimit(4...20)
+                        .focused($focused)
+                }
+                if let c = current {
+                    Section {
+                        Button { Task { await startSong(c) } } label: {
+                            Label { Text("Start a Song").foregroundStyle(.primary) } icon: { TileIcon("sparkles", Theme.Tile.orange) }
+                        }
+                        Button("Delete Idea", role: .destructive) { confirmDelete = true }
+                    }
                 }
             }
+            .navigationTitle(idea == nil ? "New Idea" : "Idea")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } } }
+            .confirmationDialog("Delete this idea?", isPresented: $confirmDelete, titleVisibility: .visible) {
+                Button("Delete Idea", role: .destructive) {
+                    guard let c = current else { return }
+                    gone = true
+                    IdeaMemos.deleteFile(c.memo)
+                    library.deleteIdea(c.id)
+                    Haptics.thud(); session.toast = "Idea deleted"
+                    dismiss()
+                }
+            } message: { Text("This can’t be undone.") }
         }
         .presentationDetents([.medium, .fraction(0.84)])
-        .onAppear { text = idea.text; library.ideaEditingID = idea.id }
+        .onAppear {
+            text = idea?.text ?? ""
+            library.ideaEditingID = idea?.id
+            if idea == nil { DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { focused = true } }
+        }
         .onDisappear { commit(); library.ideaEditingID = nil }
     }
 
+    /// Empty new ideas are dropped; a memo idea is `line` with words and `memo` without.
     private func commit() {
-        guard var i = library.ideas.first(where: { $0.id == idea.id }), i.text != text else { return }
+        guard !gone else { return }
+        let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard var i = current else {
+            if idea == nil && !t.isEmpty { library.putIdea(Idea.new(text: t)) }
+            return
+        }
+        guard i.text != text else { return }
         i.text = text
-        // a memo with a caption is a line; clearing the caption makes it a memo again
-        if i.hasMemo { i.raw["kind"] = .string(text.isEmpty ? "memo" : "line") }
+        if i.memo != nil { i.raw["kind"] = .string(t.isEmpty ? "memo" : "line") }
         i.updated = Clock.nowMs
         library.putIdea(i)
+    }
+
+    private func removeMemo(_ c: Idea) {
+        Haptics.thud()
+        IdeaMemos.deleteFile(c.memo)
+        if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            gone = true
+            library.deleteIdea(c.id)
+            session.toast = "Voice memo deleted"
+            dismiss()
+        } else {
+            var i = c
+            i.raw.removeValue(forKey: "memo")
+            i.text = text
+            i.raw["kind"] = "line"
+            i.updated = Clock.nowMs
+            library.putIdea(i)
+            session.toast = "Recording removed"
+        }
+    }
+
+    private func startSong(_ c: Idea) async {
+        commit()
+        guard let latest = library.ideas.first(where: { $0.id == c.id }) else { return }
+        let id = await IdeaMemos.startSong(latest, library: library, session: session)
+        gone = true
+        dismiss()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { openRoute(id) }
     }
 }

@@ -19,6 +19,7 @@ struct EditorScreen: View {
     @State private var showMap = UserDefaults.standard.bool(forKey: "view.map")
     @State private var showSyl = UserDefaults.standard.bool(forKey: "view.syl")
     @State private var showSide = false
+    @State private var showPlay = false
     @State private var editorFrame = CGRect.zero
     @State private var topBarBottom: CGFloat = 0
     @State private var rhymeTop: CGFloat = 0
@@ -64,9 +65,11 @@ struct EditorScreen: View {
         .toolbar(.hidden, for: .navigationBar)
         .overlay { SongSidebar(isOpen: $showSide, currentID: songID) }
         .sheet(item: $detailsTab) { t in
-            DetailsSheet(songID: songID, tab: t, onRestore: { reloadEditor() }, onDelete: { deleteSong() })
+            DetailsSheet(songID: songID, tab: t, onRestore: { reloadEditor() }, onDelete: { deleteSong() },
+                         onPlayWithLyrics: { DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { showPlay = true } })
         }
         .sheet(isPresented: $showVoice, onDismiss: { refreshResults() }) { VoiceSheet(songID: songID) }
+        .fullScreenCover(isPresented: $showPlay) { PlayWithLyrics(songID: songID) }
         .photosPicker(isPresented: $pickArt, selection: $artItem, matching: .images)
         .onChange(of: artItem) { _, item in if let item { loadArt(item) } }
         .sheet(isPresented: $showDictionary) {
@@ -84,6 +87,8 @@ struct EditorScreen: View {
         }
         .onDisappear {
             if library.editingID == songID { library.editingID = nil }
+            // leaving the song pauses its audio (spec §4.10)
+            if !showPlay { AudioPlayer.shared.pause(ifSong: songID) }
             // a new song left untouched isn't kept (spec §1.6)
             if let s = library.song(songID), s.isEmptyDraft, !s.isPlaceholder { library.delete(s.id) }
         }
@@ -92,6 +97,23 @@ struct EditorScreen: View {
     // MARK: header
 
     private func header(_ s: Song) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            titleRow(s)
+            SongPlayer(song: s, onPlayWithLyrics: openPlay)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 6)
+        .padding(.bottom, 8)
+    }
+
+    private func openPlay() {
+        guard session.plan.isPro else { Haptics.warning(); session.toast = "Play with Lyrics is part of *[demo] Pro"; return }
+        guard song?.currentAudio != nil else { session.toast = "Add audio in Details › Audio first"; return }
+        bridge.textView?.resignFirstResponder()
+        showPlay = true
+    }
+
+    private func titleRow(_ s: Song) -> some View {
         HStack(alignment: .center, spacing: 14) {
             // tap the cover to choose a photo (spec §4.1)
             Button { Haptics.tap(); pickArt = true } label: { CoverView(song: s, size: 64) }
@@ -109,9 +131,6 @@ struct EditorScreen: View {
                     .font(.subheadline).foregroundStyle(.tertiary).lineLimit(1)
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 6)
-        .padding(.bottom, 8)
     }
 
     // MARK: menus

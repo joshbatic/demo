@@ -16,6 +16,7 @@ struct DetailsSheet: View {
     @State var tab: DetailsTab
     var onRestore: () -> Void = {}
     var onDelete: () -> Void = {}
+    var onPlayWithLyrics: () -> Void = {}
     @Environment(AppSession.self) private var session
     @Environment(LibraryStore.self) private var library
     @Environment(\.dismiss) private var dismiss
@@ -148,49 +149,10 @@ struct DetailsSheet: View {
         session.toast = "Restored. Your previous text was saved as a version."
     }
 
-    // MARK: Audio (playing and adding arrive with the audio phase)
+    // MARK: Audio
 
-    @ViewBuilder private var audio: some View {
-        let items = song?.raw["audio"]?.array?.compactMap(\.object) ?? []
-        Section("Versions") {
-            if items.isEmpty {
-                Text("Add a voice memo, demo, mix or master").foregroundStyle(.secondary)
-            }
-            ForEach(Array(items.enumerated().reversed()), id: \.offset) { _, a in
-                HStack(spacing: 12) {
-                    Image(systemName: a["cur"]?.bool == true ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(a["cur"]?.bool == true ? Theme.tint : Color.secondary)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(a["name"]?.string ?? "Recording")
-                        Text(audioMeta(a)).font(.footnote).foregroundStyle(.secondary)
-                    }
-                }
-            }
-        }
-        let files = song?.raw["files"]?.array?.compactMap(\.object) ?? []
-        Section("Stems & files") {
-            if files.isEmpty { Text("Attach stems, artwork or session files").foregroundStyle(.secondary) }
-            ForEach(Array(files.enumerated()), id: \.offset) { _, f in
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(f["name"]?.string ?? "File")
-                    Text([f["kind"]?.string ?? "Other", size(f["size"]?.number)].filter { !$0.isEmpty }.joined(separator: " · "))
-                        .font(.footnote).foregroundStyle(.secondary)
-                }
-            }
-        }
-    }
-
-    private func audioMeta(_ a: [String: JSONValue]) -> String {
-        var parts = [a["kind"]?.string ?? "Demo"]
-        if let d = a["dur"]?.number, d > 0 { parts.append(String(format: "%d:%02d", Int(d) / 60, Int(d) % 60)) }
-        let s = size(a["size"]?.number); if !s.isEmpty { parts.append(s) }
-        if let o = a["orig"]?.object, let n = o["name"]?.string, let ext = n.split(separator: ".").last { parts.append("MP3 from \(ext.uppercased())") }
-        return parts.joined(separator: " · ")
-    }
-
-    private func size(_ b: Double?) -> String {
-        guard let b, b > 0 else { return "" }
-        return ByteCountFormatter.string(fromByteCount: Int64(b), countStyle: .file)
+    private var audio: some View {
+        AudioPane(songID: songID, onPlayWithLyrics: { dismiss(); onPlayWithLyrics() })
     }
 
     // MARK: Chords
