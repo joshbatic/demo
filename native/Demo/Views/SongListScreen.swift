@@ -27,19 +27,17 @@ struct SongListScreen: View {
                         .listRowSeparator(.hidden)
                         .listRowInsets(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 20))
                 }
-                ForEach(groups, id: \.key) { g in
-                    Section {
-                        // header and songs in one ForEach, so a song dropped anywhere in the group lands in it
-                        ForEach(g.rows, id: \.id) { row in
-                            if case .header = row { groupHeader(g) }
-                            else if case .song(let i, let s) = row {
+                // every group's title and songs in one ForEach, so a song can be dragged (press, hold and
+                // move) to any group: where it lands decides its folder (spec §3.6)
+                ForEach(flatRows, id: \.id) { item in
+                    let g = item.group
+                    if case .header = item.row { groupHeader(g) }
+                    else if case .song(let i, let s) = item.row {
                             // no chevron, and a hairline only between songs, from the text to the edge (.song+.song)
                             ZStack {
                                 NavigationLink(value: s.id) { EmptyView() }.opacity(0)
                                 SongRow(song: s, showFolder: g.pinned)
                             }
-                            // press, then drag a song into another group to move it there
-                            .draggable(SongDrag.prefix + s.id)
                             .overlay(alignment: .top) {
                                 if i > 0 { Rectangle().fill(Color(uiColor: .separator)).frame(height: 0.5).padding(.leading, 66).padding(.trailing, -24) }
                             }
@@ -73,17 +71,9 @@ struct SongListScreen: View {
                                 } preview: {
                                     SongPreview(song: s)
                                 }
-                            }
-                        }
-                        .onInsert(of: [.plainText, .utf8PlainText, .text]) { _, providers in
-                            guard let f = g.dropFolder, let p = providers.first else { return }
-                            _ = p.loadObject(ofClass: NSString.self) { obj, _ in
-                                guard let id = SongDrag.id(obj as? String) else { return }
-                                Task { @MainActor in moveSong(id, to: f) }
-                            }
-                        }
                     }
                 }
+                .onMove { from, to in dropped(from: from, to: to) }
                 if groups.isEmpty {
                     // the web's .empty
                     VStack(spacing: 6) {
@@ -142,6 +132,23 @@ struct SongListScreen: View {
 
     private func isMine(_ s: Song) -> Bool { !s.isShared || s.owner.isEmpty || s.owner == session.userID }
 
+    struct FlatRow { let group: SongGroup; let row: SongGroup.Row; var id: String { row.id == "\u{1}header" ? "h:" + group.key : row.id } }
+
+    private var flatRows: [FlatRow] { groups.flatMap { g in g.rows.map { FlatRow(group: g, row: $0) } } }
+
+    /// A song dragged in the list: the group whose title is above where it landed is its new home.
+    /// The list itself doesn't reorder (songs stay newest first); only the folder changes.
+    private func dropped(from: IndexSet, to: Int) {
+        let rows = flatRows
+        guard let i = from.first, case .song(_, let s) = rows[i].row else { return }
+        var target: SongGroup?
+        for (k, r) in rows.enumerated() where k < to && k != i {
+            if case .header = r.row { target = r.group }
+        }
+        guard let g = target, let f = g.dropFolder else { Haptics.warning(); return }
+        moveSong(s.id, to: f)
+    }
+
     struct SongGroup {
         let name: String; let songs: [Song]; var pinned = false
         var key: String { pinned ? "\u{0}pin" : name }
@@ -181,6 +188,7 @@ struct SongListScreen: View {
         }
         .padding(.top, 22).padding(.bottom, 6)
         .moveDisabled(true)
+        .deleteDisabled(true)
         .listRowSeparator(.hidden)
         .listRowInsets(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 24))
         .accessibilityAddTraits(.isHeader)
@@ -291,15 +299,6 @@ struct SongListScreen: View {
         UIPasteboard.general.string = (s.title.isEmpty ? "" : s.title + "\n\n") + s.lyrics
         Haptics.success()
         session.toast = "Lyrics copied"
-    }
-}
-
-/// What a song carries while it's dragged onto a folder: its id, marked so other text isn't taken for a song.
-enum SongDrag {
-    static let prefix = "demo-song:"
-    static func id(_ s: String?) -> String? {
-        guard let s, s.hasPrefix(prefix) else { return nil }
-        return String(s.dropFirst(prefix.count))
     }
 }
 
