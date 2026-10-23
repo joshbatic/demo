@@ -232,7 +232,7 @@ final class MuseMemory {
                 for w in Self.norm(e.shown ?? "").split(separator: " ").map(String.init) where !f.contains(w) && w.count > 3 && !RhymeEngine.stop.contains(w) { bad[w, default: 0] += 1 }
             }
         }
-        return bad.filter { $0.value >= 2 && !good.contains($0.key) }.sorted { $0.value > $1.value }.prefix(25).map(\.key)
+        return bad.filter { $0.value >= 2 && !good.contains($0.key) }.sorted { $0.value != $1.value ? $0.value > $1.value : $0.key < $1.key }.prefix(25).map(\.key)
     }
 
     // MARK: the voice profile (engines.md §2.6)
@@ -438,9 +438,10 @@ enum Prompts {
         }
         let n = Double(lines.count)
         let avgW = String(format: "%.1f", Double(totW) / n), avgS = String(format: "%.1f", Double(totS) / n)
-        let topImg = imgCount.filter { Double($0.value) >= n * 0.04 }.sorted { $0.value > $1.value }.prefix(2).map(\.key)
+        let topImg = imgCount.filter { Double($0.value) >= n * 0.04 }.sorted { $0.value != $1.value ? $0.value > $1.value : $0.key < $1.key }.prefix(2).map(\.key)
         let topPov = ["I", "You", "We"].max { (pov[$0] ?? 0) < (pov[$1] ?? 0) } ?? "I"
-        let topWords = words.filter { $0.value >= 3 }.sorted { $0.value > $1.value }.prefix(6).map(\.key)
+        // ties broken by the word, so the text (part of the Lines cache key) is the same every time
+        let topWords = words.filter { $0.value >= 3 }.sorted { $0.value != $1.value ? $0.value > $1.value : $0.key < $1.key }.prefix(6).map(\.key)
         var bits = ["lines average around \(avgW) words / \(avgS) syllables"]
         if !suppressImg && !topImg.isEmpty { bits.append("imagery leans toward " + topImg.joined(separator: " and ")) }
         let povText = ["I": "first person (I/my)", "You": "second person (you)", "We": "first person plural (we)"]
@@ -460,7 +461,7 @@ enum Prompts {
                 if !t.isEmpty && t.count < 120 { out.append((t, s.updated)) }
             }
         }
-        out.sort { $0.1 > $1.1 }
+        out.sort { $0.1 != $1.1 ? $0.1 > $1.1 : $0.0 < $1.0 }
         var seen = Set<String>(), res: [String] = []
         for o in out where res.count < 4 && !seen.contains(o.0) { seen.insert(o.0); res.append(o.0) }
         return res
