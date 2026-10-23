@@ -19068,11 +19068,12 @@ var ACC_ICO={
   spark:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 2.5l1.7 4.7c.3.9 1 1.6 1.9 1.9l4.7 1.7-4.7 1.7c-.9.3-1.6 1-1.9 1.9L10 19.1l-1.7-4.7c-.3-.9-1-1.6-1.9-1.9L1.7 10.8l4.7-1.7c.9-.3 1.6-1 1.9-1.9z"/></svg>',
   cam:'<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M9.2 4h5.6l1.5 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2.7z"/><circle cx="12" cy="12.5" r="3.6" fill="var(--tint)"/><circle cx="12" cy="12.5" r="2" fill="currentColor"/></svg>'
 };
+var ACC_SOLID={'Start a Song':'#FF9500','Name & Username':'#007AFF','Notifications':'#FF3B30','Requests':'#FF9500','Waitlist Lock':'#FF9500','Import Songs':'#007AFF','Export All Songs':'#34C759','Storage':'#8E8E93','AI Features':'#AF52DE','Reset What Rate Learned':'#5856D6','Blocked':'#FF2D55','Privacy Policy':'#007AFF','Terms of Service':'#8E8E93','Contact Support':'#34C759','Switch Account':'#5856D6'};
 function accCell(o){
   var b=document.createElement(o.onclick?'button':'div');b.className='cell'+(o.tile?'':' notile')+(o.cls?' '+o.cls:'');
   if(o.tile){var t=document.createElement('span');t.className='tile'+(o.tileCls?' '+o.tileCls:'')+(o.grad!=null?' gr':'');t.innerHTML=o.tile;
-    /* the same pastel washes as the song covers, so Account looks like part of the library */
-    if(o.grad!=null){var gp=COV_PAL[o.grad%COV_PAL.length];t.style.background='linear-gradient(rgba(40,20,60,.12),rgba(40,20,60,.12)),linear-gradient(140deg,'+gp[0]+','+gp[1]+')'}b.appendChild(t)}
+    /* solid Apple system colours, iOS Settings style (the pastel washes stay with the song covers and Ideas) */
+    if(o.grad!=null){var sc=ACC_SOLID[o.label]||['#007AFF','#34C759','#FF9500','#AF52DE','#5856D6','#FF2D55','#30B0C7','#8E8E93'][o.grad%8];t.style.background=sc;t.classList.add('solid')}b.appendChild(t)}
   var l=document.createElement('span');l.className='ct';l.textContent=o.label;b.appendChild(l);
   if(o.value!=null&&o.value!==''){var v=document.createElement('span');v.className='cv'+(o.valueCls?' '+o.valueCls:'');v.textContent=o.value;b.appendChild(v)}
   if(o.chev){var c=document.createElement('span');c.className='chev';c.innerHTML=o.chev==='ext'?ACC_ICO.ext:ACC_ICO.chev;b.appendChild(c)}
