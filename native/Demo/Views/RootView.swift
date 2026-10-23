@@ -157,6 +157,7 @@ struct WaitlistView: View {
 struct ToastView: View {
     @Environment(AppSession.self) private var session
     @Environment(LibraryStore.self) private var library
+    @State private var bottomY: CGFloat = 0
 
     var body: some View {
         let text = session.toast ?? library.notice
@@ -175,8 +176,16 @@ struct ToastView: View {
                     }
             }
         }
-        .padding(.bottom, 96)
+        // above the song screen's rhyme bar (or keyboard + bar) when there is one, else the usual spot
+        .padding(.bottom, lift)
+        .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxY } action: { bottomY = $0 }
         .animation(.spring(response: 0.45, dampingFraction: 0.78), value: text)
+        .animation(.snappy, value: lift)
         .allowsHitTesting(false)
+    }
+
+    private var lift: CGFloat {
+        guard let top = session.toastAvoidTop, bottomY > 0 else { return 96 }
+        return max(96, bottomY - top + 10)
     }
 }

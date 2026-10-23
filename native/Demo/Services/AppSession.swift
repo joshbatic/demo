@@ -16,6 +16,8 @@ final class AppSession {
     private(set) var metaName = ""
     var profile = Profile()
     var plan = Plan()
+    /// Where a floating bottom bar starts (global y), so toasts appear above it rather than over it.
+    var toastAvoidTop: CGFloat?
     var toast: String?
     var busy = false
     let library = LibraryStore()

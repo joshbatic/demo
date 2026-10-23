@@ -75,7 +75,7 @@ struct EditorScreen: View {
                                      onCleanup: { bridge.textView?.resignFirstResponder(); showCleanup = true })
                                 .padding(.horizontal, 10)
                                 .padding(.bottom, 6)
-                                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY } action: { rhymeTop = $0 }
+                                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY } action: { rhymeTop = $0; session.toastAvoidTop = $0 }
                         }
                     }
                 }
@@ -134,6 +134,7 @@ struct EditorScreen: View {
         }
         .onDisappear {
             if library.editingID == songID { library.editingID = nil }
+            if session.toastAvoidTop == rhymeTop { session.toastAvoidTop = nil }
             // leaving the song pauses its audio (spec §4.10)
             if !showPlay { AudioPlayer.shared.pause(ifSong: songID) }
             MuseMemory.shared.check(force: false)
