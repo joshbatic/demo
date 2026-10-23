@@ -1191,7 +1191,7 @@ html.ngsheet :is(#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,
 
 /* iOS: an invisible link over each song row, so press-and-hold opens the system context menu (UIKit's lift, blur and
    preview); taps still go to the row. The row's own pin and delete buttons sit above it. */
-.ngctx{position:absolute;inset:0;z-index:0;border-radius:inherit;-webkit-touch-callout:default;-webkit-user-select:none;user-select:none;color:transparent}
+.ngrowlink{position:absolute;inset:0;z-index:0;border-radius:inherit;-webkit-touch-callout:default;-webkit-user-select:none;user-select:none;color:transparent}
 body.ngctx .si{position:relative}
 body.ngctx :is(.song,.si)>:is(.rpin,.rdel){position:relative;z-index:1}
 /* on/off switches drawn natively (UISwitch) */
@@ -17878,11 +17878,11 @@ function ngSegs(out,rd){var seen={},n=0;NG.reg={};
       fs:parseFloat(getComputedStyle(btns[0]).fontSize)||14,show:vis&&ngTop(el,cr),
       items:btns.map(function(b){return{id:ngId(b),label:b.textContent.replace(/\s+/g,' ').trim(),on:b.classList.contains('on')||b.getAttribute('aria-checked')==='true'||b.getAttribute('aria-selected')==='true',dis:b.disabled||undefined}})})})}
 /* ---- press-and-hold on a song: the system context menu ---- */
-function ngCtxLink(b,s){var a=document.createElement('a');a.className='ngctx';a.tabIndex=-1;a.setAttribute('aria-hidden','true');
+function ngCtxLink(b,s){var a=document.createElement('a');a.className='ngrowlink';a.tabIndex=-1;a.setAttribute('aria-hidden','true');
   var mine=!(s.shared&&s.owner&&AUTH_USER&&s.owner!==AUTH_USER.id),ls=(s.lyrics||'').split('\n').map(function(x){return x.trim()}).filter(Boolean),pin=isPinned(s);
   var acts=[[{id:'open',t:'Open',sf:'arrow.up.forward.app'}],[{id:'pin',t:pin?'Unpin':'Pin',sf:pin?'pin.slash':'pin'},{id:'copy',t:'Copy Lyrics',sf:'doc.on.doc'}],[{id:'del',t:mine?'Delete Song':'Leave Song',sf:mine?'trash':'rectangle.portrait.and.arrow.right',d:1}]];
   var q=new URLSearchParams({id:s.id,t:s.title||ls[0]||'New Song',s:[s.shared?'Shared':'',s.artist,s.status,s.key,fd(s.updated)].filter(Boolean).join(' · '),l:ls.slice(s.title?0:1,s.title?9:10).join('\n'),a:JSON.stringify(acts)});
-  a.href='demo-row://song?'+q.toString();a.addEventListener('click',function(e){e.preventDefault()});b.appendChild(a)}
+  a.href='demo-row://song?'+q.toString().replace(/\+/g,'%20');a.addEventListener('click',function(e){e.preventDefault()});b.appendChild(a)}
 function ngRowAction(d){var s=d&&songs.filter(function(x){return x.id===d.id})[0];if(!s)return;NG.hz=Date.now();
   if(d.action==='open'){openSong(s.id);if(!wideMQ.matches&&document.body.classList.contains('side'))sideOn(false);return}
   if(d.action==='pin'){setPin(s,!isPinned(s));return}
