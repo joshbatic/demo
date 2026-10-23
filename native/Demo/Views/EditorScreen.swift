@@ -9,6 +9,11 @@ struct EditorScreen: View {
     @State private var bridge = EditorBridge()
     @State private var showDetails = false
     @State private var confirmDelete = false
+    @State private var results = WordResults()
+    @State private var context = RhymeContext()
+    @State private var showDictionary = false
+    @State private var showMap = UserDefaults.standard.bool(forKey: "view.map")
+    @State private var showSyl = UserDefaults.standard.bool(forKey: "view.syl")
 
     private var song: Song? { library.song(songID) }
 
@@ -19,6 +24,11 @@ struct EditorScreen: View {
                     header(song)
                     RichTextEditor(bridge: bridge, rich: song.rich, lyrics: song.lyrics)
                 }
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    RhymeBar(bridge: bridge, context: context, results: results) { showDictionary = true }
+                        .padding(.horizontal, 10)
+                        .padding(.bottom, 6)
+                }
             } else {
                 ContentUnavailableView("Song deleted", systemImage: "music.note", description: Text("That song was deleted on another device."))
             }
@@ -26,11 +36,27 @@ struct EditorScreen: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
+                Button {
+                    showMap.toggle(); bridge.showMap = showMap; Haptics.selection()
+                    session.toast = showMap ? "Rhyme map on" : "Rhyme map off"
+                } label: { Image(systemName: showMap ? "highlighter" : "highlighter") .symbolVariant(showMap ? .fill : .none) }
+                    .accessibilityLabel("Rhyme map").accessibilityValue(showMap ? "On" : "Off")
+                    .tint(showMap ? Theme.tint : .primary)
+                Button {
+                    showSyl.toggle(); bridge.showSyl = showSyl; Haptics.selection()
+                    session.toast = showSyl ? "Syllable counts on" : "Syllable counts off"
+                } label: { Image(systemName: showSyl ? "number.square.fill" : "number") }
+                    .accessibilityLabel("Syllable counts").accessibilityValue(showSyl ? "On" : "Off")
+            }
+            ToolbarItemGroup(placement: .topBarTrailing) {
                 formatMenu
                 moreMenu
             }
         }
         .sheet(isPresented: $showDetails) { if song != nil { DetailsSheet(songID: songID) } }
+        .sheet(isPresented: $showDictionary) {
+            DictionarySheet(bridge: bridge, initialWord: context.word, register: voice("reg") ?? "Conversational", perfectOnly: voiceStrict)
+        }
         .confirmationDialog("Delete “\(song?.displayTitle ?? "")”?", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Delete Song", role: .destructive) {
                 if let s = song { dismiss(); Task { await session.removeSong(s) } }
@@ -39,6 +65,7 @@ struct EditorScreen: View {
         .onAppear {
             library.editingID = songID
             bridge.onEdit = { attr in save(attr) }
+            bridge.onSelection = { text, sel in updateContext(text, sel) }
         }
         .onDisappear {
             if library.editingID == songID { library.editingID = nil }
@@ -118,6 +145,25 @@ struct EditorScreen: View {
             Image(systemName: "ellipsis")
         }
         .accessibilityLabel("More")
+    }
+
+    // MARK: the rhyme bar
+
+    private func voice(_ k: String) -> String? { song?.raw["pf"]?[k]?.string }
+    private var voiceStrict: Bool { song?.raw["pf"]?["strict"]?.bool ?? true }
+
+    /// Follows the caret: which word, which line it should rhyme with, how many syllables it needs.
+    private func updateContext(_ text: String, _ sel: NSRange) {
+        let scheme = song?.raw["scheme"]?.string ?? "auto"
+        let c = RhymeContext.make(text: text, selection: sel, scheme: scheme)
+        let eng = RhymeEngine.shared
+        let need = c.ref.isEmpty ? 0 : eng.lineSyllables(c.ref) - eng.lineSyllables(c.line)
+        results.register = voice("reg") ?? "Conversational"
+        results.perfectOnly = voiceStrict
+        let leftChanged = results.left != max(0, need)
+        results.left = max(0, need)
+        if c != context { context = c }
+        if RhymeEngine.normalise(c.word) != RhymeEngine.normalise(results.word) || leftChanged { results.show(c.word) }
     }
 
     // MARK: saving

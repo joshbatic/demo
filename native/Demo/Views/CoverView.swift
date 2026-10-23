@@ -112,6 +112,7 @@ enum Syllables {
         return max(1, groups)
     }
     static func line(_ l: String) -> Int {
-        l.matches(of: #/[A-Za-z']+/#).reduce(0) { $0 + word(String(l[$1.range])) }
+        if RhymeEngine.shared.loaded { return RhymeEngine.shared.lineSyllables(l) }
+        return l.matches(of: #/[A-Za-z']+/#).reduce(0) { $0 + word(String(l[$1.range])) }
     }
 }

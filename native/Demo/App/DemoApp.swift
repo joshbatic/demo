@@ -12,6 +12,8 @@ struct DemoApp: App {
                 .environment(session.library)
                 .tint(Theme.tint)
                 .task { await session.start() }
+                // the rhyme dictionary loads in the background so it's ready when a song opens
+                .task(priority: .utility) { await Task.detached(priority: .utility) { RhymeEngine.shared.load() }.value }
         }
         .onChange(of: scenePhase) { _, phase in
             switch phase {

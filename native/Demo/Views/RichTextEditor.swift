@@ -11,6 +11,118 @@ final class EditorBridge {
     /// The stored text this view last loaded or saved, and when the user last typed.
     var lastKey = ""
     var lastEdit = Date.distantPast
+    /// The text and selection whenever either changes (the rhyme bar follows it).
+    var onSelection: ((String, NSRange) -> Void)?
+    weak var coordinator: RichTextEditor.Coordinator?
+    /// Rhyme map and syllable counts (`songpad:view`).
+    var showMap = UserDefaults.standard.bool(forKey: "view.map") { didSet { UserDefaults.standard.set(showMap, forKey: "view.map"); coordinator?.scheduleViews(now: true) } }
+    var showSyl = UserDefaults.standard.bool(forKey: "view.syl") { didSet { UserDefaults.standard.set(showSyl, forKey: "view.syl"); coordinator?.scheduleViews(now: true) } }
+
+    var caretLocation: Int { textView?.selectedRange.location ?? 0 }
+
+    // MARK: inserting words
+
+    /// A rhyme chip: replaces the selection, or the word at the caret, or goes in at the caret (with a
+    /// space before it when needed), keeping the capitalisation of what it replaces.
+    func insertWord(_ w: String, viaPartner: Bool) {
+        guard let tv = textView else { return }
+        let ns = tv.text as NSString
+        var target = tv.selectedRange
+        if target.length == 0 && !viaPartner, let wr = wordRange(at: target.location, in: ns) { target = wr }
+        let orig = ns.substring(with: target)
+        var rep = Self.matchCase(w, orig)
+        if target.length == 0, target.location > 0, let prev = Unicode.Scalar(ns.character(at: target.location - 1)), !CharacterSet.whitespacesAndNewlines.contains(prev) {
+            rep = " " + rep
+        }
+        let end = replace(target, with: rep)
+        tv.selectedRange = NSRange(location: end, length: 0)
+        Haptics.tap()
+    }
+
+    /// Plain insertion at a given point (the Dictionary), returning where the caret ends up.
+    @discardableResult
+    func insertPlain(_ w: String, at loc: Int) -> Int {
+        guard let tv = textView else { return loc }
+        let ns = tv.text as NSString
+        let at = min(loc, ns.length)
+        var rep = w
+        if at > 0, let prev = Unicode.Scalar(ns.character(at: at - 1)), !CharacterSet.whitespacesAndNewlines.contains(prev) { rep = " " + rep }
+        let end = replace(NSRange(location: at, length: 0), with: rep)
+        Haptics.tap()
+        return end
+    }
+
+    /// A section tag on the caret's empty line; "[Chorus] + lyrics" brings the chorus's lines too.
+    func insertSection(_ label: String) {
+        guard let tv = textView else { return }
+        let ns = tv.text as NSString
+        let lr = ns.lineRange(for: NSRange(location: tv.selectedRange.location, length: 0))
+        var content = NSRange(location: lr.location, length: lr.length)
+        if content.length > 0 && ns.character(at: content.location + content.length - 1) == 10 { content.length -= 1 }
+        var text = label.hasPrefix("[Chorus]") ? "[Chorus]" : label
+        if label.contains("+ lyrics"), let ch = chorusText() { text += "\n" + ch }
+        // a newline after it, unless a lyric line follows straight away
+        let after = content.location + content.length
+        var nextIsLyric = false
+        if after < ns.length {
+            let nr = ns.lineRange(for: NSRange(location: after + 1 <= ns.length ? min(after + 1, ns.length) : after, length: 0))
+            nextIsLyric = !ns.substring(with: nr).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        if !nextIsLyric { text += "\n" }
+        let end = replace(content, with: text)
+        tv.selectedRange = NSRange(location: end, length: 0)
+        Haptics.tap()
+    }
+
+    /// The lines after the first [Chorus], up to a blank line or another tag.
+    func chorusText(before limit: Int? = nil) -> String? {
+        guard let t = textView?.text else { return nil }
+        let lines = t.components(separatedBy: "\n")
+        var pos = 0
+        for (i, l) in lines.enumerated() {
+            if l.trimmingCharacters(in: .whitespaces) == "[Chorus]" {
+                if let limit, pos >= limit { return nil }
+                var out: [String] = []
+                for x in lines.dropFirst(i + 1) {
+                    let tr = x.trimmingCharacters(in: .whitespaces)
+                    if tr.isEmpty || tr.hasPrefix("[") { break }
+                    out.append(x)
+                }
+                return out.isEmpty ? nil : out.joined(separator: "\n")
+            }
+            pos += (l as NSString).length + 1
+        }
+        return nil
+    }
+
+    private func wordRange(at loc: Int, in ns: NSString) -> NSRange? {
+        let lr = ns.lineRange(for: NSRange(location: loc, length: 0))
+        guard let re = try? NSRegularExpression(pattern: "[A-Za-z']+") else { return nil }
+        for m in re.matches(in: ns as String, range: lr) where loc >= m.range.location && loc <= m.range.location + m.range.length {
+            return m.range
+        }
+        return nil
+    }
+
+    static func matchCase(_ w: String, _ orig: String) -> String {
+        let letters = orig.filter { $0.isLetter }
+        if letters.count > 1 && letters == letters.uppercased() && letters != letters.lowercased() { return w.uppercased() }
+        if let f = letters.first, f.isUppercase { return w.prefix(1).uppercased() + w.dropFirst() }
+        return w
+    }
+
+    /// Replaces text through UIKit's text input, so it can be undone, and saves. Returns the end of the new text.
+    @discardableResult
+    func replace(_ range: NSRange, with text: String) -> Int {
+        guard let tv = textView,
+              let start = tv.position(from: tv.beginningOfDocument, offset: range.location),
+              let end = tv.position(from: start, offset: range.length),
+              let tr = tv.textRange(from: start, to: end) else { return range.location }
+        tv.replace(tr, withText: text)
+        lastEdit = Date()
+        coordinator?.afterChange(tv)
+        return range.location + (text as NSString).length
+    }
 
     static let baseFont = UIFont.systemFont(ofSize: 19)
     static let slate = UIColor(red: 0.557, green: 0.557, blue: 0.588, alpha: 1)
@@ -132,6 +244,7 @@ struct RichTextEditor: UIViewRepresentable {
         tv.delegate = context.coordinator
         context.coordinator.bridge = bridge
         bridge.textView = tv
+        bridge.coordinator = context.coordinator
         load(tv, context.coordinator)
         context.coordinator.placeholder.text = placeholder
         context.coordinator.attachPlaceholder(to: tv)
@@ -158,6 +271,7 @@ struct RichTextEditor: UIViewRepresentable {
         if sel.location <= a.length { tv.selectedRange = NSRange(location: min(sel.location, a.length), length: 0) }
         bridge.lastKey = rich + "\u{0}" + lyrics
         c.updatePlaceholder(tv)
+        c.scheduleViews(now: true)
     }
 
     @MainActor
@@ -181,9 +295,98 @@ struct RichTextEditor: UIViewRepresentable {
 
         func textViewDidChange(_ tv: UITextView) {
             bridge?.lastEdit = Date()
+            afterChange(tv)
+        }
+
+        func afterChange(_ tv: UITextView) {
             styleSectionTags(tv)
             updatePlaceholder(tv)
             bridge?.emit()
+            bridge?.onSelection?(tv.text, tv.selectedRange)
+            scheduleViews()
+        }
+
+        func textViewDidChangeSelection(_ tv: UITextView) {
+            bridge?.onSelection?(tv.text, tv.selectedRange)
+        }
+
+        /// Return on a [Chorus] line, when an earlier chorus exists, brings that chorus's lines (spec §4.3).
+        func textView(_ tv: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+            guard text == "\n", range.length == 0, let bridge else { return true }
+            let ns = tv.text as NSString
+            let lr = ns.lineRange(for: NSRange(location: range.location, length: 0))
+            let line = ns.substring(with: lr).trimmingCharacters(in: .whitespacesAndNewlines)
+            guard line == "[Chorus]", let ch = bridge.chorusText(before: lr.location) else { return true }
+            let end = bridge.replace(range, with: "\n" + ch + "\n")
+            tv.selectedRange = NSRange(location: end, length: 0)
+            Haptics.tap()
+            return false
+        }
+
+        // MARK: rhyme map and syllable counts (drawn over the text, never saved into it)
+
+        private var viewsTask: Task<Void, Never>?
+        private let gutter = UIView()
+        static let mapColours: [UIColor] = [
+            UIColor(red: 1, green: 149 / 255, blue: 0, alpha: 0.30), UIColor(red: 52 / 255, green: 199 / 255, blue: 89 / 255, alpha: 0.28),
+            UIColor(red: 0, green: 122 / 255, blue: 1, alpha: 0.24), UIColor(red: 175 / 255, green: 82 / 255, blue: 222 / 255, alpha: 0.26),
+            UIColor(red: 1, green: 45 / 255, blue: 85 / 255, alpha: 0.24), UIColor(red: 90 / 255, green: 200 / 255, blue: 250 / 255, alpha: 0.34),
+            UIColor(red: 1, green: 204 / 255, blue: 0, alpha: 0.38), UIColor(red: 162 / 255, green: 132 / 255, blue: 94 / 255, alpha: 0.32)
+        ]
+
+        func scheduleViews(now: Bool = false) {
+            viewsTask?.cancel()
+            viewsTask = Task { [weak self] in
+                if !now { try? await Task.sleep(for: .milliseconds(140)) }
+                guard !Task.isCancelled, let self, let tv = self.bridge?.textView else { return }
+                self.applyViews(tv)
+            }
+        }
+
+        private func applyViews(_ tv: UITextView) {
+            guard let bridge, let tlm = tv.textLayoutManager, let tcm = tlm.textContentManager else { return }
+            let text = tv.text ?? ""
+            // rhyme map
+            tlm.removeRenderingAttribute(.backgroundColor, for: tlm.documentRange)
+            if bridge.showMap {
+                for (r, ci) in RhymeMap.ranges(text) {
+                    guard let s = tcm.location(tcm.documentRange.location, offsetBy: r.location),
+                          let e = tcm.location(s, offsetBy: r.length), let tr = NSTextRange(location: s, end: e) else { continue }
+                    tlm.addRenderingAttribute(.backgroundColor, value: Self.mapColours[ci], for: tr)
+                }
+            }
+            // syllable gutter
+            let wantLeft: CGFloat = bridge.showSyl ? 50 : 18
+            if tv.textContainerInset.left != wantLeft { tv.textContainerInset.left = wantLeft }
+            gutter.subviews.forEach { $0.removeFromSuperview() }
+            guard bridge.showSyl else { gutter.removeFromSuperview(); return }
+            if gutter.superview == nil { tv.addSubview(gutter) }
+            gutter.frame = CGRect(x: 0, y: 0, width: 44, height: max(tv.contentSize.height, tv.bounds.height))
+            tlm.ensureLayout(for: tlm.documentRange)
+            var pos = 0
+            for l in text.components(separatedBy: "\n") {
+                let len = (l as NSString).length
+                let tr = l.trimmingCharacters(in: .whitespaces)
+                if !tr.isEmpty && !tr.hasPrefix("["),
+                   let loc = tcm.location(tcm.documentRange.location, offsetBy: pos),
+                   let frag = tlm.textLayoutFragment(for: loc) {
+                    let f = frag.layoutFragmentFrame
+                    let lineH = frag.textLineFragments.first?.typographicBounds.height ?? f.height
+                    let lab = UILabel(frame: CGRect(x: 6, y: f.minY + tv.textContainerInset.top, width: 34, height: lineH))
+                    lab.text = "\(RhymeEngine.shared.lineSyllables(l))"
+                    lab.font = .monospacedDigitSystemFont(ofSize: 13, weight: .medium)
+                    lab.textColor = .tertiaryLabel
+                    lab.textAlignment = .right
+                    gutter.addSubview(lab)
+                }
+                pos += len + 1
+            }
+        }
+
+        static func near(_ a: UIColor, _ b: UIColor) -> Bool {
+            var r1: CGFloat = 0, g1: CGFloat = 0, b1: CGFloat = 0, a1: CGFloat = 0, r2: CGFloat = 0, g2: CGFloat = 0, b2: CGFloat = 0, a2: CGFloat = 0
+            a.getRed(&r1, green: &g1, blue: &b1, alpha: &a1); b.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
+            return abs(r1 - r2) < 0.02 && abs(g1 - g2) < 0.02 && abs(b1 - b2) < 0.02
         }
 
         /// Lines like [Chorus] are bold and slate, the way the web styles them (tagBold).
@@ -196,12 +399,11 @@ struct RichTextEditor: UIViewRepresentable {
                 guard r.length > 0 else { return }
                 let line = ns.substring(with: r)
                 let isTag = line.range(of: #"^\s*\[[^\]]+\]\s*$"#, options: .regularExpression) != nil
-                let slate = (s.attribute(.foregroundColor, at: r.location, effectiveRange: nil) as? UIColor).map { $0 == EditorBridge.slate } ?? false
+                let slate = (s.attribute(.foregroundColor, at: r.location, effectiveRange: nil) as? UIColor).map { Self.near($0, EditorBridge.slate) } ?? false
+                // only ever adds the tag style (never takes it away: Slate is also a colour people pick)
                 if isTag && !slate {
                     let bold = UIFont(descriptor: EditorBridge.baseFont.fontDescriptor.withSymbolicTraits(.traitBold) ?? EditorBridge.baseFont.fontDescriptor, size: EditorBridge.baseFont.pointSize)
                     s.addAttributes([.foregroundColor: EditorBridge.slate, .font: bold], range: r); changed = true
-                } else if !isTag && slate {
-                    s.addAttributes([.foregroundColor: UIColor.label, .font: EditorBridge.baseFont], range: r); changed = true
                 }
             }
             if changed { tv.selectedRange = sel; tv.typingAttributes = EditorBridge.baseAttributes }
