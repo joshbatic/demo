@@ -35,20 +35,25 @@ struct EditorScreen: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                Button {
-                    showMap.toggle(); bridge.showMap = showMap; Haptics.selection()
-                    session.toast = showMap ? "Rhyme map on" : "Rhyme map off"
-                } label: { Icon("ic-map", 21).padding(5).background(showMap ? Color.primary.opacity(0.14) : .clear, in: Circle()) }
-                    .accessibilityLabel("Rhyme map").accessibilityValue(showMap ? "On" : "Off")
-                Button {
-                    showSyl.toggle(); bridge.showSyl = showSyl; Haptics.selection()
-                    session.toast = showSyl ? "Syllable counts on" : "Syllable counts off"
-                } label: { Icon("ic-syl", 21).padding(5).background(showSyl ? Color.primary.opacity(0.14) : .clear, in: Circle()) }
-                    .accessibilityLabel("Syllable counts").accessibilityValue(showSyl ? "On" : "Off")
-                ShareLink(item: shareText) { Icon("ic-share", 21).padding(5) }
+            // one pill like the web's: 38-wide buttons, no gaps, a dark circle behind a toggle that's on
+            ToolbarItem(placement: .topBarTrailing) {
+                HStack(spacing: 0) {
+                    barToggle("ic-map", "Rhyme map", on: showMap) {
+                        showMap.toggle(); bridge.showMap = showMap
+                        session.toast = showMap ? "Rhyme map on" : "Rhyme map off"
+                    }
+                    barToggle("ic-syl", "Syllable counts", on: showSyl) {
+                        showSyl.toggle(); bridge.showSyl = showSyl
+                        session.toast = showSyl ? "Syllable counts on" : "Syllable counts off"
+                    }
+                    ShareLink(item: shareText) {
+                        Icon("ic-share", 20).foregroundStyle(Theme.tint).frame(width: 38, height: 44).contentShape(Rectangle())
+                    }
+                    .buttonStyle(PressScale())
                     .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })
                     .accessibilityLabel("Share")
+                }
+                .padding(.horizontal, 2)
             }
             ToolbarItemGroup(placement: .topBarTrailing) { moreMenu }
         }
@@ -94,6 +99,19 @@ struct EditorScreen: View {
 
     // MARK: menus
 
+    private func barToggle(_ icon: String, _ label: String, on: Bool, _ action: @escaping () -> Void) -> some View {
+        Button { Haptics.selection(); withAnimation(.snappy(duration: 0.2)) { action() } } label: {
+            Icon(icon, 20)
+                .foregroundStyle(on ? Theme.onTint : Theme.tint)
+                .frame(width: 34, height: 34)
+                .background(on ? Theme.tint : .clear, in: Circle())
+                .frame(width: 38, height: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(PressScale())
+        .accessibilityLabel(label).accessibilityValue(on ? "On" : "Off")
+    }
+
     private var shareText: String {
         guard let s = song else { return "" }
         return (s.title.isEmpty ? "" : s.title + "\n\n") + s.lyrics
@@ -119,7 +137,7 @@ struct EditorScreen: View {
                 Button(role: .destructive) { confirmDelete = true } label: { Label("Delete Song", systemImage: "trash") }
             }
         } label: {
-            Icon("ic-more", 22)
+            Icon("ic-more", 22).foregroundStyle(Theme.tint).frame(width: 44, height: 44).contentShape(Rectangle())
         }
         .accessibilityLabel("More")
     }
