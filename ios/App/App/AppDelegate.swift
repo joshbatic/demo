@@ -220,14 +220,19 @@ final class GlassGroupView: UIView, UITextFieldDelegate {
             // where the page put this button inside the group, so spacing matches exactly
             let rw = glassNum(it["rw"])
             slots[i] = rw > 0 ? CGRect(x: glassNum(it["rx"]), y: 0, width: rw, height: 0) : nil
-            style(buttons[i], sf: (it["sf"] as? String) ?? "circle", label: (it["label"] as? String) ?? "", on: on)
+            style(buttons[i], sf: (it["sf"] as? String) ?? "circle", icon: it["ik"] as? String, label: (it["label"] as? String) ?? "", on: on)
         }
     }
 
-    private func style(_ b: UIButton, sf: String, label: String, on: Bool) {
+    private func style(_ b: UIButton, sf: String, icon: String?, label: String, on: Bool) {
         var c = UIButton.Configuration.plain()
-        let sym = UIImage.SymbolConfiguration(pointSize: 17, weight: .regular, scale: .medium)
-        c.image = UIImage(systemName: sf, withConfiguration: sym) ?? UIImage(systemName: "circle", withConfiguration: sym)
+        if let k = icon, let img = GlassBarPlugin.icons[k] {
+            // the app's own icon (the same SVG the Mac and web use), tinted like a symbol
+            c.image = img
+        } else {
+            let sym = UIImage.SymbolConfiguration(pointSize: 17, weight: .regular, scale: .medium)
+            c.image = UIImage(systemName: sf, withConfiguration: sym) ?? UIImage(systemName: "circle", withConfiguration: sym)
+        }
         c.baseForegroundColor = .label
         c.cornerStyle = .capsule
         c.contentInsets = .zero
@@ -325,8 +330,11 @@ public class GlassBarPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "available", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "sync", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "focus", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "blur", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "blur", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "icon", returnType: CAPPluginReturnPromise)
     ]
+    // the page's own button icons, rendered by the page to PNG once and kept here by key
+    static var icons: [String: UIImage] = [:]
     private var overlay: GlassPassthroughView?
     private var groups: [String: GlassGroupView] = [:]
     private var kbTop = CGFloat.greatestFiniteMagnitude
@@ -387,6 +395,18 @@ public class GlassBarPlugin: CAPPlugin, CAPBridgedPlugin {
         let id = call.getString("id") ?? ""
         DispatchQueue.main.async {
             self.groups.values.first { $0.inputId == id && $0.shownTarget }?.field?.becomeFirstResponder()
+            call.resolve()
+        }
+    }
+
+    @objc func icon(_ call: CAPPluginCall) {
+        let key = call.getString("key") ?? ""
+        let b64 = call.getString("png") ?? ""
+        let scale = CGFloat(call.getDouble("scale") ?? 3)
+        DispatchQueue.main.async {
+            if !key.isEmpty, let data = Data(base64Encoded: b64), let img = UIImage(data: data, scale: scale) {
+                GlassBarPlugin.icons[key] = img.withRenderingMode(.alwaysTemplate)
+            }
             call.resolve()
         }
     }

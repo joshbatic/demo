@@ -17701,7 +17701,17 @@ function clearHeld(){if(HELDROW){unholdRow(HELDROW);HELDROW=null}}
    page so they get Apple's real Liquid Glass. The page still lays these bars out (invisibly): each frame it sends
    where each one sits, its buttons (as SF Symbols) and whether anything covers it, and the native side follows.
    Native taps click the page's own buttons; native typing fills the page's search fields. */
-var NG={on:false,P:null,last:'',edit:null};
+var NG={on:false,P:null,last:'',edit:null,ic:{}};
+/* the native buttons draw the app's own SVG icons: each one is rendered to a 3x PNG once and handed over by key */
+function ngHash(t){var h=5381;for(var i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return(h>>>0).toString(36)}
+function ngIcon(b){var sv=b&&b.querySelector('svg');if(!sv)return null;var r=sv.getBoundingClientRect();if(!r.width||!r.height)return null;
+  var w=Math.round(r.width),h=Math.round(r.height),src=sv.outerHTML,k=ngHash(src+w+'x'+h),st=NG.ic[k];
+  if(st==='ok')return k;if(st)return null;NG.ic[k]='busy';
+  var x=src.replace(/currentColor/g,'#000');if(!/xmlns=/.test(x))x=x.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"');
+  x=x.replace(/\swidth="[^"]*"/,'').replace(/\sheight="[^"]*"/,'').replace('<svg','<svg width="'+w*3+'" height="'+h*3+'"');
+  var im=new Image();im.onload=function(){try{var c=document.createElement('canvas');c.width=w*3;c.height=h*3;c.getContext('2d').drawImage(im,0,0,w*3,h*3);
+      Promise.resolve(NG.P.icon({key:k,png:c.toDataURL('image/png').split(',')[1],scale:3})).then(function(){NG.ic[k]='ok';NG.last=''})}catch(e){NG.ic[k]=''}};
+  im.onerror=function(){NG.ic[k]=''};im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(x);return null}
 var NG_G=[
   {id:'lq',sel:'#vList .sbox',kind:'search',input:'q',ph:'Search',bottom:1},
   {id:'lnew',sel:'#new',items:[['new','square.and.pencil','New song']],bottom:1},
@@ -17717,7 +17727,7 @@ function ngSpec(){var out=[],rd=function(v){return Math.round(v*2)/2};
   NG_G.forEach(function(g){var el=document.querySelector(g.sel);if(!el)return;var r=el.getBoundingClientRect(),vis=r.width>4&&r.height>4&&ngShown(el);
     var o={id:g.id,kind:g.kind||'buttons',x:rd(r.left),y:rd(r.top),w:rd(r.width),h:rd(r.height),show:vis&&ngTop(el,r),bottom:!!g.bottom};
     if(g.kind==='search'){var inp=document.getElementById(g.input);o.input=g.input;o.ph=(inp&&inp.placeholder)||g.ph;o.text=inp?inp.value:''}
-    else{o.items=g.items.filter(function(it){return ngShown(document.getElementById(it[0]))}).map(function(it){var b=document.getElementById(it[0]);var br=b.getBoundingClientRect();return{id:it[0],sf:it[1],label:b.getAttribute('aria-label')||it[2],on:b.getAttribute('aria-pressed')==='true',rx:rd(br.left-r.left),rw:rd(br.width)}});if(!o.items.length)o.show=false}
+    else{o.items=g.items.filter(function(it){return ngShown(document.getElementById(it[0]))}).map(function(it){var b=document.getElementById(it[0]);var br=b.getBoundingClientRect(),ik=ngIcon(b);return{id:it[0],sf:it[1],ik:ik||undefined,label:b.getAttribute('aria-label')||it[2],on:b.getAttribute('aria-pressed')==='true',rx:rd(br.left-r.left),rw:rd(br.width)}});if(!o.items.length)o.show=false}
     out.push(o)});return out}
 function ngTheme(){var t=document.documentElement.getAttribute('data-theme');return t==='light'||t==='dark'?t:''}
 function ngLoop(){if(NG.on&&!document.hidden){try{var g=ngSpec(),th=ngTheme(),k=JSON.stringify(g)+th;if(k!==NG.last){NG.last=k;NG.P.sync({groups:g,theme:th})}}catch(e){}}requestAnimationFrame(ngLoop)}
