@@ -16,9 +16,14 @@ struct MuseSheet: View {
     @State private var out: Output = .none
     @State private var seq = 0
     @State private var whyFor: String?
+    @State private var who = ""
+    @State private var to = ""
+    @State private var place = ""
+    @State private var thing = ""
+    @State private var more = ""
 
     enum Output: Equatable {
-        case none, busy(String), error(String), read(Read), stare(String), card(String)
+        case none, busy(String), error(String), read(Read), stare(String), card(String), brief
     }
     struct Read: Equatable {
         var text: String
@@ -34,36 +39,107 @@ struct MuseSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                if out != .none { Section { output } }
-                Section {
-                    NavigationLink { BriefForm(songID: songID) } label: {
-                        card(Prompts.brief(song ?? Song(raw: [:])).isEmpty ? "Tell the muse about this song" : "About this song",
-                             briefSummary.isEmpty ? "Who’s singing, to whom, where, one real detail." : briefSummary, icon: "person.text.rectangle", color: Theme.Tile.indigo)
+            ScrollView {
+                VStack(spacing: 12) {
+                    if out != .none {
+                        outputCard.transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
                     }
-                    Button { readSong() } label: {
-                        card("Read my song", "What this is really about, where it stalls, and a few doors out", icon: "book", color: Theme.Tile.purple)
-                    }
-                    Button {
-                        if rateOn { onRateOff(); session.toast = "Rate mode off"; dismiss(); return }
-                        guard session.plan.isPro else { Haptics.warning(); session.toast = "Rate is part of *[demo] Pro"; return }
-                        dismiss(); onRate()
-                    } label: {
-                        card(rateOn ? "Rate mode is on" : "Rate my song", rateOn ? "Notes are marked in your lyrics. Tap to hide them." : "Scores and notes on what’s landing and what isn’t",
-                             icon: "star", color: Theme.Tile.orange, locked: !session.plan.isPro && !rateOn)
-                    }
+                    grid
                 }
-                Section {
-                    Button { stare() } label: { card("Stare at a thing", "90 seconds on one object. Every sense. No rhyming.", icon: "eye", color: Theme.Tile.teal) }
-                    Button { Haptics.tap(); out = .card(Self.cards.randomElement()!) } label: { card("Wild card", "One odd instruction. Just do it.", icon: "suit.club", color: Theme.Tile.pink) }
-                    Button { dismiss(); onSprint(300, nil) } label: { card("Pen never stops", "Five minutes. No deleting. No rhyme bar. Go.", icon: "timer", color: Theme.Tile.green) }
-                }
+                .padding(.top, 4)
+                .padding(.bottom, 24)
+                .animation(.snappy(duration: 0.25), value: out)
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Muse")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } } }
         }
         .presentationDetents([.fraction(0.84)])
+    }
+
+    // MARK: the cards (the web's .stg grid of .stc buttons)
+
+    /// The web's --row: a light card on the sheet.
+    static let row = Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 1, alpha: 0.1) : UIColor(white: 1, alpha: 0.7) })
+
+    private var grid: some View {
+        VStack(spacing: 10) {
+            // the song brief and Read my song run full width; the rest sit two to a row
+            let bs = briefSummary
+            stc(title: (bs.isEmpty ? "" : "✓ ") + (bs.isEmpty ? "Tell the muse about this song" : "About this song"),
+                sub: bs.isEmpty ? "Who’s singing, to whom, where, one real detail." : bs,
+                fill: BarFill.color, minH: 0) { openBrief() }
+            stc(title: "Read my song", sub: "What this is really about, where it stalls, and a few doors out",
+                fill: Theme.tint, ink: Theme.onTint, minH: 0) { readSong() }
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+            stc(title: rateOn ? "Rate mode is on" : "Rate my song",
+                sub: rateOn ? "Notes are marked in your lyrics. Tap to hide them." : "Scores and notes on what’s landing and what isn’t",
+                pro: !session.plan.isPro && !rateOn, ring: rateOn) {
+                if rateOn { onRateOff(); session.toast = "Rate mode off"; dismiss(); return }
+                guard session.plan.isPro else { Haptics.warning(); session.toast = "Rate is part of *[demo] Pro"; return }
+                dismiss(); onRate()
+            }
+            stc(title: "Stare at a thing", sub: "90 seconds on one object. Every sense. No rhyming.") { stare() }
+            stc(title: "Wild card", sub: "One odd instruction. Just do it.") { Haptics.tap(); out = .card(Self.cards.randomElement()!) }
+            stc(title: "Pen never stops", sub: "Five minutes. No deleting. No rhyme bar. Go.") { dismiss(); onSprint(300, nil) }
+            }
+        }
+        .padding(.horizontal, 16)
+    }
+
+    /// One card: bold title, muted line under it.
+    private func stc(title: String, sub: String, fill: Color = MuseSheet.row, ink: Color = .primary, pro: Bool = false, ring: Bool = false,
+                     minH: CGFloat = 86, _ action: @escaping () -> Void) -> some View {
+        Button { Haptics.tap(); action() } label: {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Text(title).font(.system(size: 16, weight: .semibold)).foregroundStyle(ink)
+                    if pro {
+                        Text("Pro").font(.system(size: 10, weight: .bold)).padding(.horizontal, 5).padding(.vertical, 1)
+                            .background(Theme.proGreen, in: Capsule()).foregroundStyle(.white)
+                    }
+                }
+                Text(sub).font(.system(size: 13)).foregroundStyle(ink.opacity(ink == .primary ? 0.55 : 0.7)).lineSpacing(1.5)
+                    .multilineTextAlignment(.leading)
+            }
+            .frame(maxWidth: .infinity, minHeight: minH, alignment: .topLeading)
+            .padding(.horizontal, 16).padding(.vertical, 14)
+            .background(fill, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .overlay {
+                if ring { RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Color(hex: 0xFF9F0A), lineWidth: 1.5) }
+            }
+        }
+        .buttonStyle(PressScale())
+    }
+
+    // MARK: the output card (the web's #stk-out)
+
+    private var outputCard: some View {
+        VStack(alignment: .leading, spacing: 8) { output }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(16)
+            .glass(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .padding(.horizontal, 20)
+    }
+
+    private func h4(_ t: String) -> some View {
+        Text(t).font(.system(size: 13, weight: .semibold)).foregroundStyle(.secondary).padding(.top, 4)
+    }
+
+    private func acts(_ items: [(String, Bool, () -> Void)]) -> some View {
+        HStack(spacing: 8) {
+            ForEach(Array(items.enumerated()), id: \.offset) { _, it in
+                Button { Haptics.tap(); it.2() } label: {
+                    Text(it.0).font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(it.1 ? Theme.onTint : Theme.tint)
+                        .padding(.horizontal, 16).frame(height: 38)
+                        .background(it.1 ? Theme.tint : BarFill.color, in: Capsule())
+                }
+                .buttonStyle(PressScale())
+            }
+        }
+        .padding(.top, 4)
     }
 
     private var briefSummary: String {
@@ -72,59 +148,106 @@ struct MuseSheet: View {
         return [who, to.isEmpty ? "" : "to " + to, wh].filter { !$0.isEmpty }.joined(separator: " · ")
     }
 
-    private func card(_ title: String, _ sub: String, icon: String, color: Color, locked: Bool = false) -> some View {
-        HStack(spacing: 12) {
-            TileIcon(icon, color)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(title).foregroundStyle(.primary)
-                    if locked {
-                        Text("Pro").font(.caption2.weight(.bold)).padding(.horizontal, 6).padding(.vertical, 2)
-                            .background(Theme.proGreen, in: Capsule()).foregroundStyle(.white)
-                    }
-                }
-                Text(sub).font(.footnote).foregroundStyle(.secondary)
-            }
-        }
-        .padding(.vertical, 2)
-    }
-
-    // MARK: output
-
     @ViewBuilder private var output: some View {
         switch out {
         case .none: EmptyView()
         case .busy(let t):
-            HStack(spacing: 10) { ProgressView(); Text(t).foregroundStyle(.secondary) }
+            HStack(spacing: 8) { ProgressView().controlSize(.small); Text(t).font(.system(size: 16)) }
         case .error(let t):
-            Text(t).foregroundStyle(.secondary)
+            Text(t).font(.system(size: 16))
         case .card(let t):
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Strategy card").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                Text(t).font(.title3.weight(.semibold))
-                Button("Another card") { Haptics.tap(); out = .card(Self.cards.filter { $0 != t }.randomElement()!) }
-            }
+            h4("Strategy card")
+            Text(t).font(.system(size: 22, weight: .semibold)).tracking(-0.2)
+            acts([("Another card", true, { out = .card(Self.cards.filter { $0 != t }.randomElement()!) })])
         case .stare(let noun):
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Zoom in on").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                Text(noun).font(.system(size: 30, weight: .bold))
-                Text("90 seconds on just this: how it looks, sounds, smells and feels. No rhyming. It goes in a scratch section.").font(.subheadline).foregroundStyle(.secondary)
-                HStack {
-                    Button("Start 90 seconds") { dismiss(); onSprint(90, noun) }.buttonStyle(.borderedProminent).tint(Theme.tint)
-                    Button("Another object") { stare() }.buttonStyle(.bordered)
-                }
-            }
+            h4("Zoom in on")
+            Text(noun).font(.system(size: 22, weight: .semibold)).tracking(-0.2)
+            Text("90 seconds on just this: how it looks, sounds, smells and feels. No rhyming. It goes in a scratch section.").font(.system(size: 16))
+            acts([("Start 90 seconds", true, { dismiss(); onSprint(90, noun) }), ("Another object", false, { stare() })])
+        case .brief:
+            briefForm
         case .read(let r):
-            VStack(alignment: .leading, spacing: 10) {
-                Text(r.text)
-                if !r.questions.isEmpty {
-                    Text("Answer one of these in your head").font(.subheadline.weight(.semibold)).padding(.top, 4)
-                    ForEach(r.questions, id: \.self) { Text("• " + $0).font(.subheadline) }
-                }
-                Text("Ways forward (tap to add the line)").font(.subheadline.weight(.semibold)).padding(.top, 4)
-                ForEach(r.moves) { m in moveRow(m) }
-                Button("Read again") { readSong() }.padding(.top, 4)
+            Text(r.text).font(.system(size: 16))
+            if !r.questions.isEmpty {
+                h4("Answer one of these in your head")
+                ForEach(r.questions, id: \.self) { Text("• " + $0).font(.system(size: 16)) }
             }
+            h4("Ways forward (tap to add the line)")
+            ForEach(r.moves) { m in moveRow(m) }
+            acts([("Read again", true, { readSong() })])
+        }
+    }
+
+    // MARK: the brief, inline (briefForm)
+
+    @ViewBuilder private var briefForm: some View {
+        h4("Tell the muse about this song")
+        Text("Fill in what you like.").font(.system(size: 14)).foregroundStyle(.secondary)
+        briefField("Who’s singing", "e.g. me at 19, my dad, a bartender closing up", $who, 160)
+        briefField("Singing to", "e.g. my ex, my brother, nobody", $to, 160)
+        briefField("Where and when", "e.g. Glenelg, the night before I moved", $place, 160)
+        briefField("One real detail from it", "e.g. her blue Corolla with the cracked windscreen", $thing, 160)
+        briefField("Anything else that’s true", "what actually happened, what you can’t say out loud", $more, 600, multi: true)
+        HStack(spacing: 8) {
+            Button { saveBrief() } label: {
+                Text("Save").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.onTint)
+                    .padding(.horizontal, 16).frame(height: 38).background(Theme.tint, in: Capsule())
+            }
+            .buttonStyle(PressScale())
+            Button { clearBrief() } label: {
+                Text("Clear").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.tint)
+                    .padding(.horizontal, 16).frame(height: 38).background(BarFill.color, in: Capsule())
+            }
+            .buttonStyle(PressScale())
+            .disabled(briefEmpty && song?.raw["brief"] == nil)
+            .opacity(briefEmpty && song?.raw["brief"] == nil ? 0.4 : 1)
+        }
+        .padding(.top, 4)
+    }
+
+    private func briefField(_ label: String, _ ph: String, _ b: Binding<String>, _ max: Int, multi: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label).font(.system(size: 13, weight: .semibold)).foregroundStyle(.secondary)
+            TextField(ph, text: Binding(get: { b.wrappedValue }, set: { b.wrappedValue = String($0.prefix(max)) }), axis: multi ? .vertical : .horizontal)
+                .lineLimit(multi ? 3...8 : 1...1)
+                .font(.system(size: 16))
+                .padding(.horizontal, 12).padding(.vertical, 10)
+                .background(BarFill.color, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+    }
+
+    private var briefEmpty: Bool { [who, to, place, thing, more].allSatisfy { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty } }
+
+    private func openBrief() {
+        let b = song?.raw["brief"]?.object
+        who = b?["who"]?.string ?? ""; to = b?["to"]?.string ?? ""; place = b?["where"]?.string ?? ""
+        thing = b?["thing"]?.string ?? ""; more = b?["more"]?.string ?? ""
+        seq += 1
+        out = .brief
+    }
+
+    private func saveBrief() {
+        guard var s = song else { return }
+        let any = !briefEmpty
+        if any {
+            var o: [String: JSONValue] = [:]
+            for (k, v) in [("who", who), ("to", to), ("where", place), ("thing", thing), ("more", more)] {
+                let t = v.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !t.isEmpty { o[k] = .string(t) }
+            }
+            s.raw["brief"] = .object(o)
+        } else { s.raw.removeValue(forKey: "brief") }
+        s.touch(); library.put(s)
+        Haptics.success()
+        session.toast = any ? "The muse knows this song now" : "Song brief cleared"
+        out = .none
+    }
+
+    private func clearBrief() {
+        who = ""; to = ""; place = ""; thing = ""; more = ""
+        if var s = song, s.raw["brief"] != nil {
+            s.raw.removeValue(forKey: "brief"); s.touch(); library.put(s)
+            Haptics.tap(); session.toast = "Song brief cleared"
         }
     }
 
@@ -148,14 +271,14 @@ struct MuseSheet: View {
                         session.toast = "Added to your song"
                     }
                 } label: {
-                    VStack(alignment: .leading, spacing: 3) {
-                        if !m.idea.isEmpty { Text(m.idea).font(.footnote.weight(.semibold)).foregroundStyle(.secondary) }
-                        Text(m.line).foregroundStyle(.primary)
-                        Text("\(RhymeEngine.shared.lineSyllables(m.line)) syl · tap to add").font(.caption).foregroundStyle(.tertiary)
+                    VStack(alignment: .leading, spacing: 6) {
+                        if !m.idea.isEmpty { Text(m.idea).font(.system(size: 15, weight: .semibold)).foregroundStyle(.primary) }
+                        Text(m.line).font(.system(size: 16)).foregroundStyle(.primary)
+                        Text("\(RhymeEngine.shared.lineSyllables(m.line)) syl · tap to add").font(.system(size: 12)).foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(12)
-                    .background(BarFill.color, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .padding(.horizontal, 14).padding(.vertical, 12)
+                    .background(BarFill.color, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
                 }
                 .buttonStyle(PressScale())
                 Button { Haptics.selection(); withAnimation(.snappy) { whyFor = m.line } } label: {
@@ -227,64 +350,5 @@ struct MuseSheet: View {
                 out = .error(msg)
             }
         }
-    }
-}
-
-/// The song brief: what the muse knows about this song (spec §2.3).
-struct BriefForm: View {
-    let songID: String
-    @Environment(LibraryStore.self) private var library
-    @Environment(AppSession.self) private var session
-    @Environment(\.dismiss) private var dismiss
-    @State private var who = ""
-    @State private var to = ""
-    @State private var place = ""
-    @State private var thing = ""
-    @State private var more = ""
-    @State private var loaded = false
-
-    var body: some View {
-        Form {
-            Section { Text("Fill in what you like.").foregroundStyle(.secondary) }
-            Section("Who’s singing") { TextField("e.g. me at 19, my dad, a bartender closing up", text: limited($who, 160)) }
-            Section("Singing to") { TextField("e.g. my ex, my brother, nobody", text: limited($to, 160)) }
-            Section("Where and when") { TextField("e.g. Glenelg, the night before I moved", text: limited($place, 160)) }
-            Section("One real detail from it") { TextField("e.g. her blue Corolla with the cracked windscreen", text: limited($thing, 160)) }
-            Section("Anything else that’s true") { TextField("what actually happened, what you can’t say out loud", text: limited($more, 600), axis: .vertical).lineLimit(3...10) }
-            Section {
-                Button("Save") { save() }
-                Button("Clear", role: .destructive) { who = ""; to = ""; place = ""; thing = ""; more = ""; save() }
-                    .disabled(allEmpty && library.song(songID)?.raw["brief"] == nil)
-            }
-        }
-        .navigationTitle("Tell the muse about this song")
-        .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            guard !loaded, let b = library.song(songID)?.raw["brief"]?.object else { loaded = true; return }
-            who = b["who"]?.string ?? ""; to = b["to"]?.string ?? ""; place = b["where"]?.string ?? ""
-            thing = b["thing"]?.string ?? ""; more = b["more"]?.string ?? ""
-            loaded = true
-        }
-    }
-
-    private var allEmpty: Bool { [who, to, place, thing, more].allSatisfy { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty } }
-
-    private func limited(_ b: Binding<String>, _ n: Int) -> Binding<String> {
-        Binding(get: { b.wrappedValue }, set: { b.wrappedValue = String($0.prefix(n)) })
-    }
-
-    private func save() {
-        guard var s = library.song(songID) else { return }
-        if allEmpty { s.raw.removeValue(forKey: "brief") }
-        else {
-            s.raw["brief"] = .object(["who": .string(who.trimmingCharacters(in: .whitespaces)), "to": .string(to.trimmingCharacters(in: .whitespaces)),
-                                      "where": .string(place.trimmingCharacters(in: .whitespaces)), "thing": .string(thing.trimmingCharacters(in: .whitespaces)),
-                                      "more": .string(more.trimmingCharacters(in: .whitespacesAndNewlines))])
-        }
-        s.touch()
-        library.put(s)
-        Haptics.success()
-        session.toast = allEmpty ? "Song brief cleared" : "The muse knows this song now"
-        dismiss()
     }
 }
