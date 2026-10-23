@@ -860,6 +860,9 @@ body.ios .song{padding:13px 24px}
 #acc .cell .cv.full{color:var(--red,#FF3B30)}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .cell .chev{flex:none;display:flex;color:var(--mute);opacity:.5;margin-left:-3px}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) button.cell:active{background:var(--fill)}
+/* list rows highlight in place, like iOS Settings: no shrinking box (the scale press is for real buttons) */
+button.cell:active,button.row:active,.drow:active,.accplan:active,.accme:active,#adm .alink:active,button.crrow:active{transform:none!important;transition:background-color .12s}
+#acc .accg,#acc .gf,.dgroup{overflow:hidden}
 @media (hover:hover){:is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) button.cell:hover{background:var(--fill)}}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .cell.danger{justify-content:center}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .cell.danger .ct{flex:none;color:var(--red);text-align:center}
