@@ -1173,6 +1173,13 @@ body.sprinting #rhy{display:none}
    invisibly, so the native ones can follow them */
 body.nglass #vList .dock>*,body.nglass #vIdeas .dock>*,body.nglass #ideaBack,body.nglass #vEdit .bar .lgrp,body.nglass #vEdit .bar .bl>.grp2,body.nglass :is(#rhy,#perf .pbar,#sprint,#toast,#probanner,#invbanner){filter:opacity(0)!important}
 body.nglass #dtabs,body.nglass #det,body.nglass #acctb,body.nglass .sh>button.shok,body.nglass #pb-x,body.nglass #ib-x,body.nglass #accback,body.nglass #lp-x,body.nglass #pf-x,body.nglass #pwx{opacity:0!important;transition:none!important}
+
+/* glass sheets (iOS 26): the native side holds a picture of the page behind a glass panel shaped to the sheet; the page
+   goes see-through and shows only the sheet's content and its own dimming is drawn natively */
+html.ngsheet,html.ngsheet body{background:transparent!important}
+html.ngsheet body>.view,html.ngsheet body>#side,html.ngsheet body>#scrim2,html.ngsheet body>.dragbar{visibility:hidden!important}
+html.ngsheet #scrim{filter:opacity(0)!important}
+html.ngsheet :is(#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet10,#sheet11,#dictSheet){background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}
 </style>
 </head>
 <body>
@@ -16992,7 +16999,7 @@ function dictRun(){
   if(!lst.length)return hint('No '+WML[mk].toLowerCase()+' found for “'+w+'”.');
   lst.forEach(function(x){chip(x,x.indexOf(' ')<0?sy(x):null)});
 }
-$('#rhyExpand').onmousedown=prevent;$('#rhyExpand').onclick=openDict;
+$('#rhyExpand').onmousedown=prevent;$('#rhyExpand').onclick=function(e){openDict(e)};
 $('#dictdone').onclick=closeDict;
 $('#dictq').addEventListener('input',function(){dictWord=this.value;clearTimeout(dictT);dictT=setTimeout(dictRun,280)});
 $('#dictq').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();clearTimeout(dictT);dictRun();this.blur()}});
@@ -17744,7 +17751,7 @@ function ngSpec(){var out=[],late=[],rd=function(v){return Math.round(v*2)/2},li
       var dr=part('invdot1');if(dr){o.dot=true;o.dotRect=dr}}
     else if(g.kind==='search'){var inp=document.getElementById(g.input);o.input=g.input;o.ph=(inp&&inp.placeholder)||g.ph;o.text=inp?inp.value:''}
     else{o.items=g.items.filter(function(it){return ngShown(document.getElementById(it[0]))}).map(function(it){var b=document.getElementById(it[0]);var br=b.getBoundingClientRect(),ik=ngIcon(b);return{id:it[0],sf:it[1],ik:ik||undefined,menu:it[0]==='det'?ngSongMenu():undefined,label:b.getAttribute('aria-label')||it[2],on:b.getAttribute('aria-pressed')==='true',rx:rd(br.left-r.left),rw:rd(br.width)}});if(!o.items.length)o.show=false}
-    if(g.late){late.push(o);return}out.push(o)});ngMirrorSpecs(out,rd);return out.concat(late)}
+    if(g.late){late.push(o);return}out.push(o)});ngMirrorSpecs(out,rd);var und=[];ngSheetTick(und);return und.concat(out,late)}
 /* mirrors go last so toasts and banners sit above every other glass */
 function ngMirrorSpecs(out,rd){
   NG_M.forEach(function(g){var el=document.querySelector(g.sel);if(!el)return;var r=el.getBoundingClientRect(),cs=getComputedStyle(el),op=parseFloat(cs.opacity);
@@ -17803,6 +17810,25 @@ function ngMirror(g,root){var c=NG_MC[g.id];
   var R=root.getBoundingClientRect(),now=performance.now();
   if(c.dirty||Math.abs(R.width-c.w)>.5||Math.abs(R.height-c.h)>.5||now-c.t>400){var parts=[];ngWalk(root,root,R,{l:R.left,t:R.top,r:R.right,b:R.bottom},parts,1);c.parts=parts;c.dirty=false;c.w=R.width;c.h=R.height;c.t=now}
   return c.parts}
+/* ---- glass sheets ---- */
+var NG_SH='#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet10,#sheet11,#dictSheet';
+var NG_SHON=NG_SH.split(',').map(function(q){return q+'.on'}).join(',');
+NG.under=false;NG.offT=null;
+function ngSheetOpen(){return document.querySelector(NG_SHON)}
+/* called just before a sheet opens, so the picture of the page is taken before the sheet starts to move */
+function ngSheetPre(){if(!NG.on||NG.under||ngSheetOpen())return;NG.under='pending';
+  Promise.resolve(NG.P.sheetGlass({on:true})).then(function(r){NG.under=!!(r&&r.ok);if(!NG.under)return;if(!ngSheetOpen())ngSheetOff()},function(){NG.under=false})}
+function ngSheetOff(){clearTimeout(NG.offT);NG.offT=null;document.documentElement.classList.remove('ngsheet');if(NG.under===true){NG.under=false;Promise.resolve(NG.P.sheetGlass({on:false})).catch(function(){})}}
+/* each frame: glass on while a sheet is open; the moment it starts closing, the page and the sheet's own frosted
+   background come straight back, and the native layer is taken down once the slide has finished */
+function ngSheetTick(out){var open=ngSheetOpen(),de=document.documentElement;
+  if(open){if(NG.offT){clearTimeout(NG.offT);NG.offT=null}if(NG.under===true&&!de.classList.contains('ngsheet'))de.classList.add('ngsheet')}
+  else{if(de.classList.contains('ngsheet'))de.classList.remove('ngsheet');if(NG.under===true&&!NG.offT)NG.offT=setTimeout(function(){NG.offT=null;if(!ngSheetOpen())ngSheetOff()},450)}
+  if(NG.under!==true||!de.classList.contains('ngsheet'))return;
+  var sc=document.getElementById('scrim'),so=sc?parseFloat(getComputedStyle(sc).opacity)||0:0;
+  out.push({id:'u-dim',kind:'dim',layer:'under',x:0,y:0,w:innerWidth,h:innerHeight,op:Math.round(so*30)/100,show:true});
+  document.querySelectorAll(NG_SH).forEach(function(el){var r=el.getBoundingClientRect();if(r.top>=innerHeight-1||r.height<4)return;
+    out.push({id:'u-'+el.id,kind:'mirror',layer:'under',parts:[],x:Math.round(r.left),y:Math.round(r.top*2)/2,w:Math.round(r.width),h:Math.round(r.height+80),r:parseFloat(getComputedStyle(el).borderTopLeftRadius)||38,op:1,show:true})})}
 function ngTheme(){var t=document.documentElement.getAttribute('data-theme');return t==='light'||t==='dark'?t:''}
 function ngLoop(){if(NG.on&&!document.hidden){try{var g=ngSpec(),th=ngTheme(),k=JSON.stringify(g)+th;if(k!==NG.last){NG.last=k;NG.P.sync({groups:g,theme:th})}}catch(e){}}requestAnimationFrame(ngLoop)}
 (function(){if(!NATIVE_IOS)return;var C=window.Capacitor,P=C&&C.Plugins&&C.Plugins.GlassBar;if(!P||!P.available)return;
@@ -17816,6 +17842,9 @@ function ngLoop(){if(NG.on&&!document.hidden){try{var g=ngSpec(),th=ngTheme(),k=
     /* touching the page while the native search is typing puts the keyboard away, like tapping outside a field */
     document.addEventListener('touchstart',function(){if(NG.edit)P.blur()},{passive:true,capture:true});
     /* anything in the page that focuses a search field focuses the native one instead */
+    /* sheets: take the picture of the page first */
+    var sh0=sheet;sheet=function(on,w){if(on)ngSheetPre();return sh0.apply(this,arguments)};
+    var od0=openDict;openDict=function(){ngSheetPre();return od0.apply(this,arguments)};
     ['q','iq'].forEach(function(id){var el=document.getElementById(id);if(!el)return;var f0=el.focus;el.focus=function(){if(NG.on)P.focus({id:id});else f0.apply(el,arguments)}});
     requestAnimationFrame(ngLoop)},function(){})})();
 /* row press highlight, driven by touch so it shows on every tap, not just slow ones; a scroll cancels it */

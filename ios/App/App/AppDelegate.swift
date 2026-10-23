@@ -214,6 +214,16 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
         center = CGPoint(x: x + w / 2, y: y + h / 2)
         isBottom = (s["bottom"] as? Bool) ?? false
         cornerRadiusHint = glassNum(s["r"])
+        if kind == "dim" {
+            // the dimming behind a glass sheet (the page's own dim layer is hidden while the sheet is glass)
+            effectView.isHidden = true
+            backgroundColor = .black
+            let show = (s["show"] as? Bool) ?? true
+            shownTarget = show
+            isUserInteractionEnabled = false
+            alpha = show ? glassNum(s["op"]) : 0
+            return
+        }
         if kind == "mirror" {
             configureMirror(s)
             // the page animates these in and out with opacity; follow it exactly, and never take touches
@@ -657,12 +667,17 @@ public class GlassBarPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "sync", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "focus", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "blur", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "icon", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "icon", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "sheetGlass", returnType: CAPPluginReturnPromise)
     ]
     // the page's own button icons, rendered by the page to PNG once and kept here by key
     static var icons: [String: UIImage] = [:]
     private var overlay: GlassPassthroughView?
     private var groups: [String: GlassGroupView] = [:]
+    // Glass sheets: while one is open, a still picture of the page sits *behind* the web view with the dim and a
+    // glass panel shaped to the sheet on top of it; the page itself goes see-through and shows only the sheet's
+    // content. The glass then bends a real image of the page, the way an iOS 26 sheet does.
+    private var under: UIView?
     private var kbTop = CGFloat.greatestFiniteMagnitude
     private var kbDuration = 0.25
 
@@ -700,13 +715,15 @@ public class GlassBarPlugin: CAPPlugin, CAPBridgedPlugin {
             var seen = Set<String>()
             for s in specs {
                 guard let id = s["id"] as? String else { continue }
+                let wantsUnder = (s["layer"] as? String) == "under"
+                if wantsUnder && self.under == nil { continue }
                 seen.insert(id)
                 let g: GlassGroupView
                 if let existing = self.groups[id] {
                     g = existing
                 } else {
                     g = GlassGroupView(kind: (s["kind"] as? String) ?? "buttons", plugin: self)
-                    o.addSubview(g)
+                    if wantsUnder, let u = self.under { u.addSubview(g) } else { o.addSubview(g) }
                     self.groups[id] = g
                 }
                 g.apply(s)
@@ -734,6 +751,47 @@ public class GlassBarPlugin: CAPPlugin, CAPBridgedPlugin {
                 GlassBarPlugin.icons[key] = img.withRenderingMode(.alwaysTemplate)
             }
             call.resolve()
+        }
+    }
+
+    @objc func sheetGlass(_ call: CAPPluginCall) {
+        let on = call.getBool("on") ?? false
+        DispatchQueue.main.async {
+            guard let web = self.bridge?.webView else { call.resolve(["ok": false]); return }
+            if on {
+                if self.under == nil {
+                    let u = UIView(frame: web.bounds)
+                    u.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+                    u.isUserInteractionEnabled = false
+                    u.backgroundColor = .systemBackground
+                    // the page exactly as it looks right now (taken before the sheet has moved)
+                    if let snap = web.snapshotView(afterScreenUpdates: false) {
+                        snap.frame = u.bounds
+                        snap.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+                        u.addSubview(snap)
+                    } else {
+                        let iv = UIImageView(frame: u.bounds)
+                        iv.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+                        u.addSubview(iv)
+                        web.takeSnapshot(with: nil) { img, _ in iv.image = img }
+                    }
+                    web.insertSubview(u, at: 0)
+                    self.under = u
+                }
+                web.backgroundColor = .clear
+                web.scrollView.backgroundColor = .clear
+                web.underPageBackgroundColor = .clear
+            } else {
+                if let u = self.under {
+                    for (id, g) in self.groups where g.isDescendant(of: u) { self.groups[id] = nil }
+                    u.removeFromSuperview()
+                }
+                self.under = nil
+                web.backgroundColor = .systemBackground
+                web.scrollView.backgroundColor = .systemBackground
+                web.underPageBackgroundColor = .systemBackground
+            }
+            call.resolve(["ok": true])
         }
     }
 
