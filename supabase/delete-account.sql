@@ -37,6 +37,14 @@ begin
   if to_regclass('public.beta_requests')  is not null then delete from public.beta_requests  where user_id = me or email = lower(auth.jwt() ->> 'email'); end if;
   if to_regclass('public.cloud_library')  is not null then delete from public.cloud_library  where user_id = me; end if;
   if to_regclass('public.profiles')       is not null then delete from public.profiles       where user_id = me; end if;
+  -- added 23 Oct 2026: plan, phones, notification settings and queue, help desk tickets, device check-ins, blocks
+  if to_regclass('public.plans')          is not null then delete from public.plans          where user_id = me; end if;
+  if to_regclass('public.push_tokens')    is not null then delete from public.push_tokens    where user_id = me; end if;
+  if to_regclass('public.push_outbox')    is not null then delete from public.push_outbox    where user_id = me; end if;
+  if to_regclass('public.notify_prefs')   is not null then delete from public.notify_prefs   where user_id = me; end if;
+  if to_regclass('public.support_tickets') is not null then delete from public.support_tickets where user_id = me; end if;
+  if to_regclass('public.app_seen')       is not null then delete from public.app_seen       where user_id = me; end if;
+  if to_regclass('public.user_blocks')    is not null then delete from public.user_blocks    where blocker = me or blocked = me; end if;
   delete from auth.users where id = me;
   return 'deleted';
 end $$;

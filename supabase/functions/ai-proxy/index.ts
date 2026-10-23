@@ -4,7 +4,7 @@
 //   modelTier "complex" (Rate, the voice profile) uses gpt-5; everything else uses gpt-5-mini.
 // Each request is counted against the account's plan limits first (supabase/plans.sql, ai_take()): Free gets a
 // few quick requests a day, Pro and Beta the full set, with a monthly cap on the heavy ones for Pro.
-// If that SQL hasn't been run yet, requests are allowed rather than broken.
+// If the allowance can't be checked (ai_take errors), the request is refused.
 //
 // Deploy:  supabase functions deploy ai-proxy        (or paste this into Edge Functions > ai-proxy > Code)
 // Needs:   the OPENAI_API_KEY secret (already set if AI works today).
@@ -58,7 +58,8 @@ Deno.serve(async (req) => {
     if (take.reason === "beta") return json({ error: "Your beta access hasn't been approved yet." }, 403);
     return json({ error: "Sign in to use AI features." }, 401);
   }
-  // (if ai_take doesn't exist yet, or errors, the request goes ahead rather than breaking the app)
+  // if the allowance can't be checked, nothing is sent: an unchecked request could bypass every limit
+  if (takeErr || !take) { console.error('ai_take', takeErr); return json({ error: "AI couldn't start just now. Try again in a moment." }); }
 
   const payload: Record<string, unknown> = {
     model: complex ? "gpt-5" : "gpt-5-mini",

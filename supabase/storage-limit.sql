@@ -1,3 +1,5 @@
+-- NOTE (23 Oct 2026): plans.sql replaces my_storage() and storage_has_room() below with plan-aware versions
+-- (Free/Pro limits). If you ever run this file again, run plans.sql straight after it, or Pro drops to 150 MB.
 -- Storage limit per account (audio, voice memos, files and share-link copies).
 -- New uploads are refused once an account has used its limit; replacing an existing file still works.
 -- The app shows "Storage: 40 MB of 150 MB" in Account, and a clear message when it's full.

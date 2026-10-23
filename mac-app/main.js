@@ -33,7 +33,7 @@ app.on('open-url', (event, url) => {
   else pendingAuthUrl = url;
 });
 ipcMain.handle('shell:openExternal', (e, url) => {
-  if (typeof url === 'string' && /^https:\/\//i.test(url)) { shell.openExternal(url); return true; }
+  if (typeof url === 'string' && (/^https:\/\//i.test(url) || /^mailto:[^\s]+$/i.test(url))) { shell.openExternal(url); return true; }
   return false;
 });
 
@@ -313,9 +313,9 @@ app.whenReady().then(() => {
   session.defaultSession.setPermissionRequestHandler((wc, perm, cb, details) => {
     const mainFrame = !details || details.isMainFrame !== false;
     const audioOnly = !details || !details.mediaTypes || details.mediaTypes.every((t) => t === 'audio');
-    cb(ours(wc, details && details.requestingUrl) && mainFrame && ((perm === 'media' && audioOnly) || perm === 'clipboard-sanitized-write'));
+    cb(ours(wc, details && details.requestingUrl) && mainFrame && ((perm === 'media' && audioOnly) || perm === 'clipboard-sanitized-write' || perm === 'notifications'));
   });
-  session.defaultSession.setPermissionCheckHandler((wc, perm, origin) => perm === 'media' && ours(wc, origin));
+  session.defaultSession.setPermissionCheckHandler((wc, perm, origin) => (perm === 'media' || perm === 'notifications') && ours(wc, origin));
   buildMenu();
   createWindow();
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
