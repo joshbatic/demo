@@ -1108,6 +1108,66 @@ body.sprinting #rhy{display:none}
 #aiask #aiask-n{margin-top:8px;background:var(--fill);color:var(--ink)}
 .go2.ghost,.cuacts .go2.ghost{background:var(--fill);color:var(--ink);box-shadow:none}
 .go,.go2{letter-spacing:-.1px}
+
+/* ---- the Pro page (paywall): slides up over everything, pastel wash behind the logo, features with solid
+   iOS-colour icons, plan choice and the trial button pinned to the bottom in a glass bar ---- */
+#pw{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);transform:translateY(100%);transition:transform .44s cubic-bezier(.32,.72,0,1);visibility:hidden}
+#pw.on{transform:none;visibility:visible}
+#pwscrim{position:fixed;inset:0;z-index:49;background:rgba(0,0,0,.32);opacity:0;pointer-events:none;transition:opacity .3s}
+#pwscrim.on{opacity:1;pointer-events:auto}
+@media (min-width:700px){#pw{inset:auto;left:50%;top:50%;width:440px;height:min(820px,92vh);margin:0;border-radius:30px;overflow:hidden;transform:translate(-50%,calc(-50% + 40px)) scale(.97);opacity:0;transition:transform .36s cubic-bezier(.32,.72,0,1),opacity .25s;box-shadow:0 30px 80px rgba(0,0,0,.3)}#pw.on{transform:translate(-50%,-50%);opacity:1}}
+.pwsc{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative;padding:calc(env(safe-area-inset-top,0px) + 18px) 0 24px}
+.pwbg{position:absolute;left:0;right:0;top:0;height:430px;pointer-events:none;background:radial-gradient(90% 70% at 85% 0%,#FFD6A5 0,rgba(255,214,165,0) 60%),linear-gradient(155deg,#FFC2DA 0%,#D9C6FF 55%,#B9A6FF 100%);opacity:.62;-webkit-mask-image:linear-gradient(#000 35%,transparent);mask-image:linear-gradient(#000 35%,transparent)}
+:root[data-theme="dark"] .pwbg{opacity:.34}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pwbg{opacity:.34}}
+.pwx{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:16px;z-index:2;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--ink);background:var(--gl);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);box-shadow:0 0 0 .5px var(--ring),0 1px 2px var(--sh2),0 2px 10px var(--sh2),inset 0 1px 0 var(--hl);transition:transform .2s cubic-bezier(.34,1.4,.5,1)}
+.pwx:active{transform:scale(.9)}
+.pwhero{position:relative;text-align:center;padding:42px 28px 6px}
+.pwlogo{width:92px;height:92px;margin:0 auto 18px;border-radius:24px;display:grid;place-items:center;color:#fff;background:radial-gradient(circle at 72% 28%,#FFD6A5 0,rgba(255,214,165,0) 58%),linear-gradient(140deg,#FFC2DA,#B9A6FF);box-shadow:0 0 0 .5px rgba(0,0,0,.06),0 14px 34px rgba(150,120,220,.35),inset 0 1px 0 rgba(255,255,255,.5)}
+.pwlogo svg{filter:drop-shadow(0 1.5px 1.5px rgba(0,0,0,.2))}
+.pwhero h2{margin:0;font-size:34px;line-height:1.08;font-weight:750;letter-spacing:-.8px}
+.pwhero .pwsub{margin:8px auto 0;max-width:300px;font-size:17px;line-height:1.35;color:var(--mute)}
+.pwhero .pwwhy{margin:16px auto 0;max-width:330px;padding:11px 14px;border-radius:14px;background:var(--row);box-shadow:0 0 0 .5px var(--ring);font-size:14.5px;line-height:1.4;text-align:left}
+.pwhero .pwwhy:empty{display:none}
+.pwfeat{position:relative;margin:26px 20px 0;display:flex;flex-direction:column;gap:20px}
+.pwf{display:flex;align-items:flex-start;gap:14px}
+.pwf i{width:40px;height:40px;border-radius:11px;flex:none;display:grid;place-items:center;color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
+.pwf b{display:block;font-size:16.5px;font-weight:620;letter-spacing:-.2px;margin-top:1px}
+.pwf span{display:block;font-size:14.5px;line-height:1.35;color:var(--mute);margin-top:2px}
+#pw.on .pwf{animation:pwin .5s cubic-bezier(.32,.72,0,1) both}
+@keyframes pwin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){#pw,#pw.on .pwf{transition:none;animation:none}}
+.pwbar{flex:none;padding:12px 20px calc(env(safe-area-inset-bottom,0px) + 12px);background:var(--gl);-webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);box-shadow:0 -.5px 0 var(--sep)}
+.pwplans{display:flex;flex-direction:column;gap:8px}
+.pwplan{position:relative;display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border-radius:16px;background:var(--row);box-shadow:0 0 0 .5px var(--ring);text-align:left;color:var(--ink);transition:box-shadow .2s}
+.pwplan.on{box-shadow:0 0 0 2px var(--ink)}
+.pwplan .rd{width:22px;height:22px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1.6px var(--sep);display:grid;place-items:center;color:var(--bg);transition:background-color .2s}
+.pwplan.on .rd{background:var(--ink);box-shadow:none}
+.pwplan .rd svg{opacity:0;transition:opacity .15s}.pwplan.on .rd svg{opacity:1}
+.pwplan .pt{flex:1;min-width:0}.pwplan .pt b{display:block;font-size:16px;font-weight:620}.pwplan .pt span{display:block;font-size:13.5px;color:var(--mute);margin-top:1px}
+.pwplan em{font-style:normal;font-size:11.5px;font-weight:700;padding:4px 8px;border-radius:99px;background:#34C759;color:#fff;flex:none}
+.pwcta{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;margin-top:12px;border-radius:99px;background:var(--tint);color:var(--ontint);font-size:17px;font-weight:600;letter-spacing:-.2px;transition:transform .14s cubic-bezier(.32,.72,0,1),opacity .2s}
+.pwcta:active{transform:scale(.97)}.pwcta:disabled{opacity:.6}
+.pwfine{margin:9px 4px 0;font-size:11.5px;line-height:1.4;color:var(--mute);text-align:center}
+.pwlinks{display:flex;justify-content:center;gap:4px;margin-top:4px}
+.pwlinks button{font-size:12.5px;font-weight:500;color:var(--mute);padding:6px 8px;background:none}
+.pwnote{font-size:14px;line-height:1.4;color:var(--mute);text-align:center;margin:2px 6px 0}
+/* the Account row: Go Pro (free) or Pro is active */
+.accplan.gopro{background:radial-gradient(80% 120% at 100% 0%,rgba(255,214,165,.55) 0,rgba(255,214,165,0) 60%),linear-gradient(120deg,rgba(255,194,218,.45),rgba(185,166,255,.45)),var(--row)}
+.accplan .gocap{flex:none;font-size:14px;font-weight:650;padding:7px 13px;border-radius:99px;background:var(--tint);color:var(--ontint)}
+/* Pro is active: the plan page */
+.pwact{margin:6px 20px 16px;padding:24px 20px 20px;border-radius:24px;text-align:center;position:relative;overflow:hidden;background:var(--row);box-shadow:0 0 0 .5px var(--ring)}
+.pwact::before{content:'';position:absolute;inset:0;background:radial-gradient(90% 70% at 85% 0%,#FFD6A5 0,rgba(255,214,165,0) 60%),linear-gradient(155deg,#FFC2DA,#B9A6FF);opacity:.35;pointer-events:none}
+.pwact>*{position:relative}
+.pwact .pwlogo{width:64px;height:64px;border-radius:17px;margin-bottom:12px}
+.pwact h3{margin:0;font-size:22px;font-weight:720;letter-spacing:-.4px;display:flex;align-items:center;justify-content:center;gap:8px}
+.pwact p{margin:5px 0 0;font-size:14.5px;color:var(--mute)}
+.pwmeter{margin:16px auto 0;max-width:260px;text-align:left}
+.pwmeter .mt{display:flex;justify-content:space-between;font-size:13px;color:var(--mute);margin-bottom:6px}
+.pwmeter .mb{height:6px;border-radius:3px;background:var(--fill);overflow:hidden}.pwmeter .mb i{display:block;height:100%;border-radius:3px;background:#34C759}
+.pwinc .row{gap:12px;justify-content:flex-start}.pwinc .pwfi{width:30px;height:30px;border-radius:8px;flex:none;display:grid;place-items:center;color:#fff}
+.pwinc .row b{font-size:15.5px;font-weight:500}
+.plgo{display:flex;align-items:center;justify-content:center;width:calc(100% - 40px);margin:4px 20px 0;min-height:50px;border-radius:99px;background:var(--tint);color:var(--ontint);font-size:17px;font-weight:600}
 </style>
 </head>
 <body>
@@ -19114,7 +19174,49 @@ function iapManage(){var P=iapPlugin();
   if(P&&RC_KEY&&P.showManageSubscriptions){Promise.resolve(P.showManageSubscriptions()).catch(function(){openLink('https://apps.apple.com/account/subscriptions')});return}
   openLink('https://apps.apple.com/account/subscriptions')}
 var accWhy='';
-function openAccount(k){accWhy=k||'';ACC_PAGE=k?'plan':'main';ACC_EDIT=null;renderAccount();sheet(true,'sheet6')}
+/* ---------- the Pro page ---------- */
+var PRO_LOGO='<svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 3.5v17M4.6 7.75l14.8 8.5M4.6 16.25l14.8-8.5" stroke-width="3"/></svg>';
+var PRO_FEAT=[
+  ['<path d="M4 10v4M8 6.5v11M12 3.5v17M16 7.5v9M20 10.5v3"/>','#FF2D55','Demos, mixes and stems','Keep every take with its song. 5 GB of space.'],
+  ['<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>','#FF9500','Voice memos everywhere','Synced to all your devices, with no limit.'],
+  ['<path d="M4 6h9M4 11h9M4 16h5"/><path d="M17.5 17.5V7l3.5-1"/><circle cx="15.7" cy="17.6" r="1.9"/>','#AF52DE','Lyric sync','Play your demo with the words lighting up in time.'],
+  ['<circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c.7-3.5 3.2-5.6 6.2-5.6s5.5 2.1 6.2 5.6"/><path d="M16 4.6a3.4 3.4 0 0 1 0 6.8M17.6 14.6c2 .6 3.3 2.6 3.6 5.4"/>','#007AFF','Co-writing','Invite co-writers and finish the song together.'],
+  ['<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>','#30B0C7','Share links','Send a song, with its audio, to anyone.'],
+  ['<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/>','#5856D6','Lines, Rate and your voice','Suggestions that sound like you, and honest notes on a draft.'],
+  ['<path d="M4 7V5h11v2M9.5 5v14M8 19h3M14 12v-1.5h7V12M17.5 10.5V19M16.3 19h2.4"/>','#34C759','Perform mode','Big, clear lyrics for the stage, plus whole-song listening and release details.']];
+function proIco(i,w){return'<svg width="'+(w||22)+'" height="'+(w||22)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+PRO_FEAT[i][0]+'</svg>'}
+var PW={on:false,pick:'year',why:''};
+function openPaywall(why){PW.why=why||'';PW.pick='year';var el=$('#pw');
+  if(!el){var sc=document.createElement('div');sc.id='pwscrim';sc.onclick=closePaywall;document.body.appendChild(sc);
+    el=document.createElement('div');el.id='pw';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','*[demo] Pro');document.body.appendChild(el);
+    document.addEventListener('keydown',function(e){if(PW.on&&e.key==='Escape'){e.preventDefault();e.stopPropagation();closePaywall()}},true)}
+  if(iapOn()&&!IAP.pkgs)iapStart();
+  PW.on=true;var o0=el.querySelector('.pwsc');if(o0)o0.scrollTop=0;el.innerHTML='';pwRender();natBlur&&natBlur();haptic('light');
+  requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('on');$('#pwscrim').classList.add('on')})})}
+function closePaywall(){var el=$('#pw');if(!el||!PW.on)return;PW.on=false;el.classList.remove('on');$('#pwscrim').classList.remove('on')}
+function pwRender(){var el=$('#pw');if(!el)return;
+  if(PW.on&&isPro()&&PLAN.tier!=='free'){closePaywall();return}
+  var keep=el.querySelector('.pwsc'),top=keep?keep.scrollTop:0,first=!el.firstChild;
+  el.innerHTML='<div class="pwsc"><div class="pwbg"></div><button class="pwx" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'+
+    '<div class="pwhero"><div class="pwlogo">'+PRO_LOGO+'</div><h2>*[demo] Pro</h2><p class="pwsub">Everything you need to take a song from the first line to the finished demo.</p><p class="pwwhy"></p></div><div class="pwfeat"></div></div><div class="pwbar"></div>';
+  el.querySelector('.pwx').onclick=closePaywall;el.querySelector('.pwwhy').textContent=PW.why?upsellMsg(PW.why):'';
+  var f=el.querySelector('.pwfeat');PRO_FEAT.forEach(function(x,i){var r=document.createElement('div');r.className='pwf';r.style.animationDelay=(first?120+i*45:0)+'ms';if(!first)r.style.animation='none';
+    r.innerHTML='<i style="background:'+x[1]+'">'+proIco(i)+'</i><div><b></b><span></span></div>';r.querySelector('b').textContent=x[2];r.querySelector('span').textContent=x[3];f.appendChild(r)});
+  var bar=el.querySelector('.pwbar');
+  if(!iapPlugin()){var n=document.createElement('p');n.className='pwnote';n.textContent='Pro is sold in the *[demo] iPhone app: '+PRICE.month+' a month or '+PRICE.year+' a year, with a '+PRICE.trial+'-day free trial. Subscribe there and Pro works here too, on the same account.';bar.appendChild(n);
+    var ok=document.createElement('button');ok.className='pwcta';ok.textContent='Got It';ok.onclick=closePaywall;bar.appendChild(ok)}
+  else{var pl=document.createElement('div');pl.className='pwplans';
+    [['year','Yearly',iapPrice('year')+' a year','Save 35%'],['month','Monthly',iapPrice('month')+' a month','']].forEach(function(x){var b=document.createElement('button');b.className='pwplan'+(PW.pick===x[0]?' on':'');b.setAttribute('role','radio');b.setAttribute('aria-checked',PW.pick===x[0]?'true':'false');
+      b.innerHTML='<span class="rd"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="pt"><b></b><span></span></span>'+(x[3]?'<em></em>':'');
+      b.querySelector('b').textContent=x[1];b.querySelector('.pt span').textContent=x[2];if(x[3])b.querySelector('em').textContent=x[3];
+      b.onclick=function(){if(PW.pick===x[0])return;PW.pick=x[0];haptic('light');pwRender()};pl.appendChild(b)});
+    pl.setAttribute('role','radiogroup');pl.setAttribute('aria-label','Plan');bar.appendChild(pl);
+    var cta=document.createElement('button');cta.className='pwcta';cta.textContent=IAP.busy&&IAP.busy!=='restore'?'One moment…':'Start '+PRICE.trial+'-Day Free Trial';cta.disabled=!!IAP.busy;cta.onclick=function(){iapBuy(PW.pick)};bar.appendChild(cta);
+    var fine=document.createElement('p');fine.className='pwfine';fine.textContent=PRICE.trial+' days free for new subscribers, then '+iapPrice(PW.pick)+(PW.pick==='year'?' a year':' a month')+', charged to your Apple ID. Renews automatically unless you cancel at least 24 hours before the period ends, in Settings › Apple ID › Subscriptions.';bar.appendChild(fine);
+    var lk=document.createElement('div');lk.className='pwlinks';
+    [[IAP.busy==='restore'?'Restoring…':'Restore Purchases',iapRestore],['Terms of Use',function(){openDoc('terms')}],['Privacy Policy',function(){openDoc('privacy')}]].forEach(function(x){var a=document.createElement('button');a.textContent=x[0];a.onclick=x[1];lk.appendChild(a)});bar.appendChild(lk)}
+  el.querySelector('.pwsc').scrollTop=top}
+function openAccount(k){if(k&&PLAN.tier==='free'&&!(typeof BETA!=='undefined'&&BETA&&BETA.admin)){openPaywall(k);return}accWhy=k||'';ACC_PAGE=k?'plan':'main';ACC_EDIT=null;renderAccount();sheet(true,'sheet6')}
 function devProfileGet(){try{return JSON.parse(localStorage.getItem('songpad:devprofile'))||{}}catch(e){return{}}}
 function devProfileSet(p){try{localStorage.setItem('songpad:devprofile',JSON.stringify(p))}catch(e){}}
 /* ---------- Account sheet building blocks: Settings-style rows and section headers ---------- */
@@ -19169,7 +19271,7 @@ function accGo(pg){ACC_PAGE=pg||'main';ACC_EDIT=null;ACC_DRAFT={};renderAccount(
 function accHead(pg){var sh=$('#sheet6 .sh');if(!sh)return;var b=sh.querySelector('b'),bk=$('#accback');
   if(!bk){bk=document.createElement('button');bk.id='accback';bk.className='accback';bk.setAttribute('aria-label','Account');bk.innerHTML='<svg width="11" height="18" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';bk.onclick=function(){accGo('main')};sh.insertBefore(bk,b)}
   bk.hidden=pg==='main';b.textContent={main:'Account',plan:'*[demo] Pro',credits:'Credits'}[pg]||'Account'}
-function renderAccount(){var o=$('#acc'),pro=isPro(),page=ACC_PAGE||'main';accHead(page);var hero=null;
+function renderAccount(){if(PW.on)pwRender();var o=$('#acc'),pro=isPro(),page=ACC_PAGE||'main';accHead(page);var hero=null;
   var fae=document.activeElement,keepF=(fae&&fae.dataset&&fae.dataset.dk&&o.contains(fae))?{dk:fae.dataset.dk,s:fae.selectionStart,e:fae.selectionEnd}:null;
   o.innerHTML='';
   /* Dev Mode has no real Supabase session, so devFake fills the profile with a fake, clearly-labeled
@@ -19287,20 +19389,26 @@ function renderAccount(){var o=$('#acc'),pro=isPro(),page=ACC_PAGE||'main';accHe
   }
   var tier=PLAN.tier,isAdm=typeof BETA!=='undefined'&&BETA&&BETA.admin;
   /* main page: the plan as one clean row; everything about it is one tap in */
-  if(page==='main'){var pr=document.createElement('button');pr.className='accplan'+(tier==='pro'?' pro':'');
-    pr.innerHTML='<span class="plic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 3.5v17M4.6 7.75l14.8 8.5M4.6 16.25l14.8-8.5" stroke-width="3.2"/></svg></span><span class="accmetx"><b></b><span></span></span><span class="chev">'+ACC_ICO.chev+'</span>';
-    pr.querySelector('b').textContent=tier==='pro'?'*[demo] Pro':tier==='beta'?'*[demo] Beta':'Get *[demo] Pro';
-    pr.querySelector('.accmetx span').textContent=tier==='pro'?(PLAN.expires_at?'Active until '+new Date(PLAN.expires_at).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}):'Active'):tier==='beta'?'Everything’s unlocked during the beta':'Demos, co-writing, lyric sync and more. '+PRICE.trial+' days free';
-    pr.onclick=function(){accGo('plan')};o.appendChild(pr)}
+  if(page==='main'){var pr=document.createElement('button');pr.className='accplan'+(tier==='pro'?' pro':tier==='free'?' gopro':'');
+    pr.innerHTML='<span class="plic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 3.5v17M4.6 7.75l14.8 8.5M4.6 16.25l14.8-8.5" stroke-width="3.2"/></svg></span><span class="accmetx"><b></b><span></span></span>'+(tier==='free'?'<span class="gocap">Go Pro</span>':'<span class="chev">'+ACC_ICO.chev+'</span>');
+    var prb=pr.querySelector('b');prb.textContent=tier==='pro'?'*[demo] Pro':tier==='beta'?'*[demo] Beta':'*[demo] Pro';
+    if(tier==='pro'){var bd=document.createElement('i');bd.className='probadge';bd.textContent='Active';prb.appendChild(bd)}
+    pr.querySelector('.accmetx span').textContent=tier==='pro'?(PLAN.expires_at?'Renews '+new Date(PLAN.expires_at).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}):'Everything’s unlocked'):tier==='beta'?'Everything’s unlocked during the beta':'Demos, co-writing, lyric sync and more';
+    pr.onclick=function(){if(tier==='free'&&!isAdm)openPaywall('');else accGo('plan')};o.appendChild(pr)}
   if(page==='plan'){
   if(accWhy&&!pro){var w=document.createElement('div');w.className='accwhy';w.textContent=upsellMsg(accWhy);o.appendChild(w)}
   if(tier==='beta'&&!isAdm){var bb=document.createElement('div');bb.className='plancard';bb.innerHTML='<span class="plic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 3.5v17M4.6 7.75l14.8 8.5M4.6 16.25l14.8-8.5" stroke-width="3.2"/></svg></span><span class="pltx"><b>*[demo] Beta</b><p>Everything’s unlocked while *[demo] is in beta.</p></span>';o.appendChild(bb)}else{
+  if(tier==='pro'){var act=document.createElement('div');act.className='pwact';
+    act.innerHTML='<div class="pwlogo">'+PRO_LOGO.replace('width="42" height="42"','width="30" height="30"')+'</div><h3>*[demo] Pro <i class="probadge">Active</i></h3><p></p><div class="pwmeter"><div class="mt"><span>Rates this month</span><span class="mn"></span></div><div class="mb"><i></i></div></div>';
+    act.querySelector('p').textContent=PLAN.expires_at?'Renews '+new Date(PLAN.expires_at).toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'}):'Thanks for supporting *[demo].';
+    var hv=Math.min(100,PLAN.heavy_month||0);act.querySelector('.mn').textContent=hv+' of 100';act.querySelector('.mb i').style.width=hv+'%';o.appendChild(act);
+    var inc=accSection(o,'Included');inc.classList.add('pwinc');PRO_FEAT.forEach(function(x,i){var r=document.createElement('div');r.className='row';r.innerHTML='<i class="pwfi" style="background:'+x[1]+'">'+proIco(i,17)+'</i><b></b>';r.querySelector('b').textContent=x[2];inc.appendChild(r)})}else{
   var card=document.createElement('div');card.className='plancard'+(pro?' pro':'');
   card.innerHTML='<span class="plic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 3.5v17M4.6 7.75l14.8 8.5M4.6 16.25l14.8-8.5" stroke-width="3.2"/></svg></span><span class="pltx"><b></b><p></p></span>';
   card.querySelector('b').textContent=tier==='pro'?'*[demo] Pro':planName();
   card.querySelector('p').textContent=tier==='pro'?((PLAN.expires_at?'Until '+new Date(PLAN.expires_at).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})+'. ':'')+(PLAN.heavy_month||0)+' of 100 Rates used this month.')
     :tier==='beta'?'Everything’s unlocked while *[demo] is in beta.':'Unlimited songs, rhymes and ideas. Free for good.';
-  o.appendChild(card);
+  o.appendChild(card)}
   /* admins can try the Free plan on their own account; the server keeps it, so everything behaves for real */
   if(isAdm){var lab=document.createElement('div');lab.className='lab';lab.textContent='Testing';o.appendChild(lab);
     var box=document.createElement('div');box.className='gf';o.appendChild(box);
@@ -19312,26 +19420,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro(),page=ACC_PAGE||'main';accHe
     var on=tier==='free',sw=document.createElement('button');sw.className='swtch'+(on?' on':'');sw.setAttribute('role','switch');sw.setAttribute('aria-checked',on?'true':'false');sw.setAttribute('aria-label','Preview the Free plan');sw.innerHTML='<i></i>';
     var flip=function(){sw.disabled=true;setPlan(on?'beta':'free').then(function(){accWhy='';renderAccount();toast(on?'Back to your full plan':'You’re on the Free plan')})};
     sw.onclick=function(e){e.stopPropagation();flip()};trow.onclick=flip;trow.appendChild(sw);box.appendChild(trow)}}
-  if(!pro){var lt=document.createElement('div');lt.className='lab';lt.textContent='*[demo] Pro';o.appendChild(lt);
-  var fbox=document.createElement('div');fbox.className='gf';o.appendChild(fbox);
-  ['Add your demos, mixes, stems and files (5 GB)','Voice memos synced to every device, no limit','Lyric sync and Play with Lyrics','Share links with your audio','Invite co-writers to your songs','Lines, Rate and your writing voice','Perform mode, whole-song listening, release details'].forEach(function(t){
-    var r2=document.createElement('div');r2.className='row';
-    r2.innerHTML='<span class="pfrow"><i class="pfi"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></i><span class="pft"></span></span>';
-    r2.querySelector('.pft').textContent=t;fbox.appendChild(r2)});
-  /* prices come from the App Store when it has answered (local currency), else the Australian list price */
-  if(!iapPlugin()){var wn=document.createElement('div');wn.className='note';wn.style.paddingTop='10px';wn.textContent='Pro is sold in the *[demo] iPhone app: '+PRICE.month+' a month or '+PRICE.year+' a year, with a '+PRICE.trial+'-day free trial. Subscribe there and Pro works here too, on the same account.';o.appendChild(wn)}else{
-  if(iapOn()&&!IAP.pkgs)iapStart();
-  var buy=document.createElement('div');buy.className='plbuy';
-  [['year','Yearly',iapPrice('year')+' a year','About 35% off'],['month','Monthly',iapPrice('month')+' a month','']].forEach(function(x){
-    var b=document.createElement('button');b.className='plopt'+(x[0]==='year'?' best':'')+(IAP.busy===x[0]?' busy':'');b.innerHTML='<b></b><span></span><em></em>';b.children[0].textContent=IAP.busy===x[0]?'One moment…':x[1];b.children[1].textContent=x[2];b.children[2].textContent=x[3];if(!x[3])b.children[2].remove();
-    b.disabled=!!IAP.busy;b.onclick=function(){iapBuy(x[0])};buy.appendChild(b)});
-  o.appendChild(buy);
-  /* what Apple asks paywalls to say: price, trial, renewal, how to cancel, and links to the terms and privacy policy */
-  var tn=document.createElement('div');tn.className='note plterms';tn.style.paddingTop='8px';
-  tn.textContent=PRICE.trial+'-day free trial for new subscribers, then '+iapPrice('year')+' a year or '+iapPrice('month')+' a month, charged to your Apple ID. Renews automatically unless you cancel at least 24 hours before the period ends; manage it in Settings › Apple ID › Subscriptions. Your songs and recordings stay yours.';
-  var lk=document.createElement('div');lk.className='pllinks';
-  [['Restore Purchases',iapRestore],['Terms of Use',function(){openDoc('terms')}],['Privacy Policy',function(){openDoc('privacy')}]].forEach(function(x,i){var a2=document.createElement('button');a2.textContent=IAP.busy==='restore'&&i===0?'Restoring…':x[0];a2.onclick=x[1];lk.appendChild(a2)});
-  tn.appendChild(lk);o.appendChild(tn)}}
+  if(!pro){var gp=document.createElement('button');gp.className='plgo';gp.textContent='See What’s in Pro';gp.onclick=function(){openPaywall(accWhy)};o.appendChild(gp)}
   /* Pro through the App Store: manage it here (Apple asks apps to make this easy) */
   if(tier==='pro'&&iapPlugin()){var gm=document.createElement('div');gm.className='pllinks pllinks-pro';
     [['Manage Subscription',iapManage],['Restore Purchases',iapRestore]].forEach(function(x){var a3=document.createElement('button');a3.textContent=x[0];a3.onclick=x[1];gm.appendChild(a3)});o.appendChild(gm)}
