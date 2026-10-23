@@ -1171,7 +1171,7 @@ body.sprinting #rhy{display:none}
 
 /* iOS 26: these bars are drawn natively with real Liquid Glass (GlassBarPlugin); the page keeps laying them out,
    invisibly, so the native ones can follow them */
-body.nglass #vList .dock>*,body.nglass #vIdeas .dock>*,body.nglass #ideaBack,body.nglass #vEdit .bar .lgrp,body.nglass #vEdit .bar .bl>.grp2,body.nglass #det,body.nglass #acctb{opacity:0!important;transition:none!important}
+body.nglass #vList .dock>*,body.nglass #vIdeas .dock>*,body.nglass #ideaBack,body.nglass #vEdit .bar .lgrp,body.nglass #vEdit .bar .bl>.grp2,body.nglass #det,body.nglass #acctb,body.nglass .sh>button.shok,body.nglass #accback,body.nglass #lp-x,body.nglass #pf-x,body.nglass #pwx{opacity:0!important;transition:none!important}
 </style>
 </head>
 <body>
@@ -17724,8 +17724,11 @@ var NG_G=[
   {id:'edet',sel:'#det',items:[['det','ellipsis','Details']]}];
 function ngShown(el){return!!el&&el.getClientRects().length>0&&getComputedStyle(el).display!=='none'&&getComputedStyle(el).visibility!=='hidden'}
 function ngTop(el,r){var x=r.left+r.width/2,y=r.top+r.height/2;if(x<1||y<1||x>innerWidth-1||y>innerHeight-1)return false;var h=document.elementFromPoint(x,y);return!!h&&(h===el||el.contains(h))}
-function ngSpec(){var out=[],rd=function(v){return Math.round(v*2)/2};
-  NG_G.forEach(function(g){var el=document.querySelector(g.sel);if(!el)return;var r=el.getBoundingClientRect(),vis=r.width>4&&r.height>4&&ngShown(el);
+/* round buttons that come and go with their sheet or screen: each one found on the page becomes its own glass circle */
+var NG_DQ='.sh>button.shok,#accback,#lp-x,#pf-x,#pwx';
+function ngSpec(){var out=[],rd=function(v){return Math.round(v*2)/2},list=NG_G.slice();
+  document.querySelectorAll(NG_DQ).forEach(function(el){if(el.id)list.push({id:'d-'+el.id,el:el,items:[[el.id,el.classList.contains('shok')?'checkmark':el.id==='accback'?'chevron.left':'xmark',el.getAttribute('aria-label')||'']]})});
+  list.forEach(function(g){var el=g.el||document.querySelector(g.sel);if(!el)return;var r=el.getBoundingClientRect(),vis=r.width>4&&r.height>4&&ngShown(el);
     var o={id:g.id,kind:g.kind||'buttons',x:rd(r.left),y:rd(r.top),w:rd(r.width),h:rd(r.height),show:vis&&ngTop(el,r),bottom:!!g.bottom};
     if(g.kind==='account'){var part=function(q){var e=document.getElementById(q);if(!ngShown(e))return null;var pr=e.getBoundingClientRect();return{x:rd(pr.left-r.left),y:rd(pr.top-r.top),w:rd(pr.width),h:rd(pr.height)}};
       o.tap='acctb';o.label=el.getAttribute('aria-label')||'Account';var tg=document.getElementById('acctplan'),tr=part('acctplan');
@@ -19253,7 +19256,7 @@ function closePaywall(){var el=$('#pw');if(!el||!PW.on)return;PW.on=false;el.cla
 function pwRender(){var el=$('#pw');if(!el)return;
   if(PW.on&&isPro()&&PLAN.tier!=='free'){closePaywall();return}
   var keep=el.querySelector('.pwsc'),top=keep?keep.scrollTop:0,first=!el.firstChild;
-  el.innerHTML='<div class="pwsc"><div class="pwbg"></div><button class="pwx" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'+
+  el.innerHTML='<div class="pwsc"><div class="pwbg"></div><button class="pwx" id="pwx" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'+
     '<div class="pwhero"><div class="pwlogo">'+PRO_LOGO+'</div><h2>*[demo] Pro</h2><p class="pwsub">Everything you need to take a song from the first line to the finished demo.</p><p class="pwwhy"></p></div><div class="pwfeat"></div></div><div class="pwbar"></div>';
   el.querySelector('.pwx').onclick=closePaywall;el.querySelector('.pwwhy').textContent=PW.why?upsellMsg(PW.why):'';
   var f=el.querySelector('.pwfeat');PRO_FEAT.forEach(function(x,i){var r=document.createElement('div');r.className='pwf';r.style.animationDelay=(first?120+i*45:0)+'ms';if(!first)r.style.animation='none';
