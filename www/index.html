@@ -52,7 +52,8 @@ html.devbuild #sadm,html.devbuild #sbeta{display:none!important}
 #adm .bhead{padding:2px 0 10px}#adm .bhead::before{display:none}
 #adm .arow.brow{display:flex;align-items:center;gap:12px}#adm .arow.brow .bx{flex:1;min-width:0}#adm .arow.brow+.arow.brow::before{left:58px}
 /* ---- Account main page: you, your plan, then short groups ---- */
-#sheet6 #acc{min-height:min(62vh,560px)}#sheet6 .sh b{flex:1}#sheet6 .sh .accback{width:32px;padding:0;margin-right:10px;display:grid;place-items:center;flex:none}#sheet6 .sh .accback[hidden]{display:none}
+#sheet6 #acc{min-height:min(62vh,560px)}
+.prohero.procard{margin:4px 20px 14px;padding:20px 20px 18px;border-radius:22px;background:var(--row);box-shadow:0 0 0 .5px var(--ring)}#sheet6 .sh b{flex:1}#sheet6 .sh .accback{width:32px;padding:0;margin-right:10px;display:grid;place-items:center;flex:none}#sheet6 .sh .accback[hidden]{display:none}
 .accme,.accplan{display:flex;align-items:center;gap:14px;width:calc(100% - 40px);margin:4px 20px 12px;padding:12px 14px;border-radius:18px;background:var(--row);box-shadow:0 0 0 .5px var(--ring);color:var(--ink);text-align:left}
 .accme:active,.accplan:active{background:var(--fill)}
 .accmeav{width:58px;height:58px;border-radius:50%;flex:none;overflow:hidden;display:grid;place-items:center;background:linear-gradient(150deg,#A1A1AA,#76767E);color:#fff;font-weight:650;font-size:21px}
@@ -19111,12 +19112,12 @@ var ACC_EDIT=null,ACC_DRAFT={},ACC_AUTOFOCUS=null,ACC_PENDING=false;
    mid-edit in it; otherwise they wait until focus leaves the sheet */
 function refreshAccount(){if(!$('#sheet6').classList.contains('on'))return;var ae=document.activeElement;if(ae&&isTextField(ae)&&$('#acc').contains(ae)){ACC_PENDING=true;return}ACC_PENDING=false;renderAccount()}
 document.addEventListener('focusout',function(){if(!ACC_PENDING)return;setTimeout(function(){var ae=document.activeElement;if(!(ae&&isTextField(ae)&&$('#acc').contains(ae)))refreshAccount()},80)});
-/* Account has a short main page (Settings-style) and sub-pages: your profile, your plan, your credits */
+/* Account: you and your plan up top, Settings-style groups below; your plan and your credits open as sub-pages */
 var ACC_PAGE='main';
 function accGo(pg){ACC_PAGE=pg||'main';ACC_EDIT=null;ACC_DRAFT={};renderAccount();var a=$('#acc');if(a)a.scrollTop=0}
 function accHead(pg){var sh=$('#sheet6 .sh');if(!sh)return;var b=sh.querySelector('b'),bk=$('#accback');
   if(!bk){bk=document.createElement('button');bk.id='accback';bk.className='accback';bk.setAttribute('aria-label','Account');bk.innerHTML='<svg width="11" height="18" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';bk.onclick=function(){accGo('main')};sh.insertBefore(bk,b)}
-  bk.hidden=pg==='main';b.textContent={main:'Account',profile:'Profile',plan:'*[demo] Pro',credits:'Credits'}[pg]||'Account'}
+  bk.hidden=pg==='main';b.textContent={main:'Account',plan:'*[demo] Pro',credits:'Credits'}[pg]||'Account'}
 function renderAccount(){var o=$('#acc'),pro=isPro(),page=ACC_PAGE||'main';accHead(page);var hero=null;
   var fae=document.activeElement,keepF=(fae&&fae.dataset&&fae.dataset.dk&&o.contains(fae))?{dk:fae.dataset.dk,s:fae.selectionStart,e:fae.selectionEnd}:null;
   o.innerHTML='';
@@ -19132,14 +19133,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro(),page=ACC_PAGE||'main';accHe
     var handle=prof('username');
     /* ---- hero: photo, name, handle, email - straight on the sheet, the way Settings shows your account ---- */
     var avSrc=devFake?(dp.avatar_url||''):((MY_PROFILE&&MY_PROFILE.avatar_url)||meta.avatar_url);
-    /* main page: one row for you, like the Apple Account row at the top of Settings */
-    if(page==='main'){var me0=document.createElement('button');me0.className='accme';
-      var mav=document.createElement('span');mav.className='accmeav';if(avSrc){var mi=document.createElement('img');mi.src=avSrc;mi.alt='';mi.referrerPolicy='no-referrer';mav.appendChild(mi)}else{mav.textContent=initialsOf(shownName)||'';if(!mav.textContent)mav.innerHTML=ACC_ICO.person}
-      me0.appendChild(mav);var mt=document.createElement('span');mt.className='accmetx';mt.innerHTML='<b></b><span></span>';mt.firstChild.textContent=shownName;
-      if(PLAN.tier==='pro'){var pb0=document.createElement('i');pb0.className='probadge';pb0.textContent='Pro';mt.firstChild.appendChild(pb0)}
-      mt.lastChild.textContent=[handle?'@'+handle:'',devFake?'Local only':(AUTH_USER.email||'')].filter(Boolean).join(' · ');me0.appendChild(mt);
-      var mc=document.createElement('span');mc.className='chev';mc.innerHTML=ACC_ICO.chev;me0.appendChild(mc);me0.onclick=function(){accGo('profile')};o.appendChild(me0)}
-    if(page==='profile'){hero=document.createElement('div');hero.className='prohero';o.appendChild(hero);
+    if(page==='main'){hero=document.createElement('div');hero.className='prohero procard';o.appendChild(hero);
     var avWrap=document.createElement('button');avWrap.className='proav';avWrap.setAttribute('aria-label','Change photo');
     if(avSrc){var av=document.createElement('img');av.src=avSrc;av.alt='';av.referrerPolicy='no-referrer';avWrap.appendChild(av)}
     else{var avph=document.createElement('span');avph.className='proavph';var ini=initialsOf(shownName);if(ini)avph.textContent=ini;else avph.innerHTML=ACC_ICO.person;avWrap.appendChild(avph)}
@@ -19151,7 +19145,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro(),page=ACC_PAGE||'main';accHe
     subt.forEach(function(t,ix){var sp=document.createElement('span');sp.textContent=t;if(ix)sp.className='dim';sub.appendChild(sp)});
     hero.appendChild(sub);if(PLAN.tier==='pro'){var pb1=document.createElement('i');pb1.className='probadge';pb1.textContent='Pro';nm.appendChild(pb1)}}
     /* ---- name & username ---- */
-    if(page==='profile'&&ACC_EDIT==='profile'){
+    if(page==='main'&&ACC_EDIT==='profile'){
       var pg=accSection(o,'Name & username',[['Cancel',function(){ACC_EDIT=null;ACC_DRAFT={};renderAccount()},'ghost'],['Save',saveProfile,'strong']]);
       var di=formCell(pg,'Name','Shown on song credits','name',devFake?(dp.display_name||''):((MY_PROFILE&&MY_PROFILE.display_name)||myName()));
       var ui=formCell(pg,'Username','username','user',handle);
@@ -19164,7 +19158,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro(),page=ACC_PAGE||'main';accHe
         if(devFake){dp.username=rawUser;dp.display_name=dn;devProfileSet(dp);renameMyArtistCredit(oldName,dn||rawUser);ACC_EDIT=null;ACC_DRAFT={};toast('Saved (dev only)');renderAccount()}
         else saveUsername(rawUser,dn).then(function(){renameMyArtistCredit(oldName,myName());ACC_EDIT=null;ACC_DRAFT={};toast('Saved');renderAccount();if(rawUser)setTimeout(function(){pushAsk('You’ll get a notification when someone invites you to a song.')},1800)},function(err){if(btn)btn.disabled=false;toast(err.message)})}
     }else{
-      if(page==='profile'){var pg1=accSection(o,'');
+      if(page==='main'){var pg1=accSection(o,'');
       pg1.appendChild(accCell({tile:ACC_ICO.person,grad:1,label:'Name & Username',value:handle?'@'+handle:'Not set',valueCls:handle?'':'add',chev:true,onclick:function(){ACC_EDIT='profile';ACC_DRAFT={};ACC_AUTOFOCUS='profile';renderAccount()}}))}
       /* iPhone: notifications for invites and help desk replies */
       if(page==='main'&&pushPlugin()&&!devFake){var pg2=accSection(o,'');var pg=PUSH.perm==='granted'?'On':PUSH.perm==='denied'?'Off':'Turn On';
@@ -19177,7 +19171,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro(),page=ACC_PAGE||'main';accHe
     }
     /* ---- links: one row per network with its own icon, showing the handle, like contact details ---- */
     var linking=ACC_EDIT==='links';
-    if(page==='profile'){var lg=accSection(o,'Links',linking?[['Cancel',function(){ACC_EDIT=null;ACC_DRAFT={};renderAccount()},'ghost'],['Save',saveLinksNow,'strong']]:[['Edit',function(){ACC_EDIT='links';ACC_DRAFT={};ACC_AUTOFOCUS='links';renderAccount()}]]);
+    if(page==='main'){var lg=accSection(o,'Links',linking?[['Cancel',function(){ACC_EDIT=null;ACC_DRAFT={};renderAccount()},'ghost'],['Save',saveLinksNow,'strong']]:[['Edit',function(){ACC_EDIT='links';ACC_DRAFT={};ACC_AUTOFOCUS='links';renderAccount()}]]);
     var linkInputs={};
     SOCIALS.forEach(function(sx,ix){
       var k=sx[0],v=prof('link_'+k);
@@ -19356,12 +19350,12 @@ function renderAccount(){var o=$('#acc'),pro=isPro(),page=ACC_PAGE||'main';accHe
   /* developer tools ([developer] only), then the account actions last, where Settings keeps Sign Out */
   if(page==='main'&&ga&&(devFake||DEV_BUILD)&&dvl){o.appendChild(dvl);o.appendChild(ga)}
   if(AUTH_USER||devFake){
-    if(page==='profile'){var ag=accSection(o,'');
+    if(page==='main'){var ag=accSection(o,'');
     ag.appendChild(accCell({tile:ACC_ICO.swap,grad:9,label:'Switch Account',chev:true,onclick:function(){/* back to the sign-in screen, which offers Apple and Google */signOutGoogle();SWITCH_PICK=true}}))}
     if(page==='main'){var og=accSection(o,'');
     og.appendChild(accCell({label:'Sign Out',cls:'danger',onclick:function(){var nat=natDestroy({title:'Sign out of *[demo]?',message:'Your songs stay safe in your account.',ok:'Sign Out'});if(nat){nat.then(function(ok){if(ok)signOutGoogle()});return}signOutGoogle()}}))}
     /* deleting the account: a second, deliberate step that says exactly what goes */
-    if(AUTH_USER&&!devFake&&page==='profile'){
+    if(AUTH_USER&&!devFake&&page==='main'){
       if(ACC_EDIT!=='delete'){var dg=accSection(o,'');dg.appendChild(accCell({label:'Delete Account',cls:'danger',onclick:function(){var nat=natDestroy({title:'Delete your account?',message:'Your songs, ideas, recordings, share links and profile are deleted from your account, and songs you share stop being shared. Copies on your other devices go when you sign out there. If you pay for Pro through Apple, cancel it in Settings › your name › Subscriptions: deleting your account doesn’t stop billing. This can’t be undone.',ok:'Delete Account'});if(nat){nat.then(function(ok){if(ok)deleteAccount()});return}ACC_EDIT='delete';renderAccount();setTimeout(function(){var x=$('#acc .delcard');if(x)x.scrollIntoView({block:'center',behavior:'smooth'})},60)}}))}
       else{var dc=document.createElement('div');dc.className='gf delcard';dc.innerHTML='<b>Delete your account?</b><p>Your songs, ideas, recordings, share links and profile are deleted from your account, and songs you share stop being shared. Copies on your other devices go when you sign out there. If you pay for Pro through Apple, cancel it in Settings › your name › Subscriptions: deleting your account doesn’t stop billing. This can’t be undone.</p>';
         var dbt=document.createElement('button');dbt.className='delgo';dbt.textContent=DEL_BUSY?'Deleting…':'Delete Account';dbt.disabled=DEL_BUSY;dbt.onclick=deleteAccount;dc.appendChild(dbt);
