@@ -1171,7 +1171,7 @@ body.sprinting #rhy{display:none}
 
 /* iOS 26: these bars are drawn natively with real Liquid Glass (GlassBarPlugin); the page keeps laying them out,
    invisibly, so the native ones can follow them */
-body.nglass #vList .dock>*,body.nglass #vIdeas .dock>*,body.nglass #ideaBack,body.nglass #vEdit .bar .lgrp,body.nglass #vEdit .bar .bl>.grp2,body.nglass #det{opacity:0!important;transition:none!important}
+body.nglass #vList .dock>*,body.nglass #vIdeas .dock>*,body.nglass #ideaBack,body.nglass #vEdit .bar .lgrp,body.nglass #vEdit .bar .bl>.grp2,body.nglass #det,body.nglass #acctb{opacity:0!important;transition:none!important}
 </style>
 </head>
 <body>
@@ -17704,7 +17704,7 @@ function clearHeld(){if(HELDROW){unholdRow(HELDROW);HELDROW=null}}
 var NG={on:false,P:null,last:'',edit:null,ic:{}};
 /* the native buttons draw the app's own SVG icons: each one is rendered to a 3x PNG once and handed over by key */
 function ngHash(t){var h=5381;for(var i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return(h>>>0).toString(36)}
-function ngIcon(b){var sv=b&&b.querySelector('svg');if(!sv)return null;var r=sv.getBoundingClientRect();if(!r.width||!r.height)return null;
+function ngIcon(b){var sv=b&&(b.tagName.toLowerCase()==='svg'?b:b.querySelector('svg'));if(!sv)return null;var r=sv.getBoundingClientRect();if(!r.width||!r.height)return null;
   var w=Math.round(r.width),h=Math.round(r.height),src=sv.outerHTML,k=ngHash(src+w+'x'+h),st=NG.ic[k];
   if(st==='ok')return k;if(st)return null;NG.ic[k]='busy';
   var x=src.replace(/currentColor/g,'#000');if(!/xmlns=/.test(x))x=x.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"');
@@ -17713,6 +17713,7 @@ function ngIcon(b){var sv=b&&b.querySelector('svg');if(!sv)return null;var r=sv.
       Promise.resolve(NG.P.icon({key:k,png:c.toDataURL('image/png').split(',')[1],scale:3})).then(function(){NG.ic[k]='ok';NG.last=''})}catch(e){NG.ic[k]=''}};
   im.onerror=function(){NG.ic[k]=''};im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(x);return null}
 var NG_G=[
+  {id:'acct',sel:'#acctb',kind:'account'},
   {id:'lq',sel:'#vList .sbox',kind:'search',input:'q',ph:'Search',bottom:1},
   {id:'lnew',sel:'#new',items:[['new','square.and.pencil','New song']],bottom:1},
   {id:'iq',sel:'#vIdeas .sbox',kind:'search',input:'iq',ph:'Search ideas',bottom:1},
@@ -17726,7 +17727,13 @@ function ngTop(el,r){var x=r.left+r.width/2,y=r.top+r.height/2;if(x<1||y<1||x>in
 function ngSpec(){var out=[],rd=function(v){return Math.round(v*2)/2};
   NG_G.forEach(function(g){var el=document.querySelector(g.sel);if(!el)return;var r=el.getBoundingClientRect(),vis=r.width>4&&r.height>4&&ngShown(el);
     var o={id:g.id,kind:g.kind||'buttons',x:rd(r.left),y:rd(r.top),w:rd(r.width),h:rd(r.height),show:vis&&ngTop(el,r),bottom:!!g.bottom};
-    if(g.kind==='search'){var inp=document.getElementById(g.input);o.input=g.input;o.ph=(inp&&inp.placeholder)||g.ph;o.text=inp?inp.value:''}
+    if(g.kind==='account'){var part=function(q){var e=document.getElementById(q);if(!ngShown(e))return null;var pr=e.getBoundingClientRect();return{x:rd(pr.left-r.left),y:rd(pr.top-r.top),w:rd(pr.width),h:rd(pr.height)}};
+      o.tap='acctb';o.label=el.getAttribute('aria-label')||'Account';var tg=document.getElementById('acctplan'),tr=part('acctplan');
+      if(tr){var cs=getComputedStyle(tg);o.tag=tg.textContent;o.tagRect=tr;o.tagBg=cs.backgroundColor;o.tagFg=cs.color}
+      var av=document.getElementById('acctav'),ar=part('acctav');if(ar&&av.getAttribute('src')){o.avatar=av.src;o.avatarRect=ar}
+      else{var sv=document.getElementById('acctsvg'),ir=part('acctsvg');if(ir){o.iconRect=ir;o.ik=ngIcon(sv)||undefined}}
+      var dr=part('invdot1');if(dr){o.dot=true;o.dotRect=dr}}
+    else if(g.kind==='search'){var inp=document.getElementById(g.input);o.input=g.input;o.ph=(inp&&inp.placeholder)||g.ph;o.text=inp?inp.value:''}
     else{o.items=g.items.filter(function(it){return ngShown(document.getElementById(it[0]))}).map(function(it){var b=document.getElementById(it[0]);var br=b.getBoundingClientRect(),ik=ngIcon(b);return{id:it[0],sf:it[1],ik:ik||undefined,label:b.getAttribute('aria-label')||it[2],on:b.getAttribute('aria-pressed')==='true',rx:rd(br.left-r.left),rw:rd(br.width)}});if(!o.items.length)o.show=false}
     out.push(o)});return out}
 function ngTheme(){var t=document.documentElement.getAttribute('data-theme');return t==='light'||t==='dark'?t:''}

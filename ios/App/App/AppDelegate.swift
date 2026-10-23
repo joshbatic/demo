@@ -133,6 +133,20 @@ private func glassNum(_ v: JSValue?) -> CGFloat {
     return 0
 }
 
+// "rgb(52, 199, 89)" / "rgba(0, 0, 0, 0.08)" from the page's computed styles
+private func glassColor(_ v: JSValue?) -> UIColor? {
+    guard let str = v as? String, let open = str.firstIndex(of: "("), let close = str.lastIndex(of: ")") else { return nil }
+    let parts = str[str.index(after: open)..<close].split(separator: ",").map { Double($0.trimmingCharacters(in: .whitespaces)) ?? 0 }
+    guard parts.count >= 3 else { return nil }
+    return UIColor(red: parts[0] / 255, green: parts[1] / 255, blue: parts[2] / 255, alpha: parts.count > 3 ? parts[3] : 1)
+}
+
+private func glassRect(_ v: JSValue?) -> CGRect? {
+    guard let o = v as? JSObject else { return nil }
+    let r = CGRect(x: glassNum(o["x"]), y: glassNum(o["y"]), width: glassNum(o["w"]), height: glassNum(o["h"]))
+    return r.width > 0 && r.height > 0 ? r : nil
+}
+
 final class GlassGroupView: UIView, UITextFieldDelegate {
     let effectView = UIVisualEffectView()
     let kind: String
@@ -146,6 +160,15 @@ final class GlassGroupView: UIView, UITextFieldDelegate {
     private(set) var field: UITextField?
     private let searchIcon = UIImageView()
     private(set) var inputId = ""
+    // the Account button: plan tag, photo or person icon, invite dot
+    private let tagLabel = UILabel()
+    private let avatarView = UIImageView()
+    private let iconView = UIImageView()
+    private let dotView = UIView()
+    private var hitButton: UIButton?
+    private var avatarURL = ""
+    private var parts: [String: CGRect] = [:]
+    static var avatars: [String: UIImage] = [:]
 
     init(kind: String, plugin: GlassBarPlugin) {
         self.kind = kind
@@ -180,7 +203,7 @@ final class GlassGroupView: UIView, UITextFieldDelegate {
         bounds = CGRect(x: 0, y: 0, width: w, height: h)
         center = CGPoint(x: x + w / 2, y: y + h / 2)
         isBottom = (s["bottom"] as? Bool) ?? false
-        if kind == "search" { configureSearch(s) } else { configureButtons(s) }
+        if kind == "search" { configureSearch(s) } else if kind == "account" { configureAccount(s) } else { configureButtons(s) }
         setShown((s["show"] as? Bool) ?? true)
         setNeedsLayout()
     }
@@ -242,6 +265,82 @@ final class GlassGroupView: UIView, UITextFieldDelegate {
         b.accessibilityTraits = on ? [.button, .selected] : [.button]
     }
 
+    private func configureAccount(_ s: JSObject) {
+        if hitButton == nil {
+            tagLabel.font = .systemFont(ofSize: 10, weight: .bold)
+            tagLabel.textAlignment = .center
+            tagLabel.clipsToBounds = true
+            avatarView.contentMode = .scaleAspectFill
+            avatarView.clipsToBounds = true
+            iconView.contentMode = .center
+            iconView.tintColor = .label
+            dotView.backgroundColor = .systemRed
+            dotView.layer.borderColor = UIColor.systemBackground.cgColor
+            dotView.layer.borderWidth = 2
+            [tagLabel, avatarView, iconView, dotView].forEach {
+                $0.isUserInteractionEnabled = false
+                effectView.contentView.addSubview($0)
+            }
+            let b = UIButton(type: .custom)
+            let tapId = (s["tap"] as? String) ?? ""
+            b.addAction(UIAction { [weak self] _ in self?.plugin?.tapped(tapId) }, for: .touchUpInside)
+            effectView.contentView.addSubview(b)
+            hitButton = b
+        }
+        hitButton?.accessibilityLabel = (s["label"] as? String) ?? "Account"
+        parts = [:]
+        // plan tag ("Beta" / "Pro"), in the page's own colours
+        if let t = s["tag"] as? String, !t.isEmpty, let r = glassRect(s["tagRect"]) {
+            parts["tag"] = r
+            tagLabel.text = t
+            tagLabel.textColor = glassColor(s["tagFg"]) ?? .label
+            tagLabel.backgroundColor = glassColor(s["tagBg"]) ?? UIColor.label.withAlphaComponent(0.08)
+            tagLabel.isHidden = false
+        } else { tagLabel.isHidden = true }
+        // profile photo, or the person icon when there isn't one
+        let url = (s["avatar"] as? String) ?? ""
+        if !url.isEmpty, let r = glassRect(s["avatarRect"]) {
+            parts["avatar"] = r
+            avatarView.isHidden = false
+            iconView.isHidden = true
+            loadAvatar(url)
+        } else {
+            avatarView.isHidden = true
+            avatarURL = ""
+            if let k = s["ik"] as? String, let img = GlassBarPlugin.icons[k], let r = glassRect(s["iconRect"]) {
+                parts["icon"] = r
+                iconView.image = img
+                iconView.isHidden = false
+            } else { iconView.isHidden = true }
+        }
+        if (s["dot"] as? Bool) == true, let r = glassRect(s["dotRect"]) {
+            parts["dot"] = r
+            dotView.isHidden = false
+        } else { dotView.isHidden = true }
+    }
+
+    private func loadAvatar(_ url: String) {
+        guard url != avatarURL else { return }
+        avatarURL = url
+        if let img = GlassGroupView.avatars[url] { avatarView.image = img; return }
+        avatarView.image = nil
+        if url.hasPrefix("data:"), let comma = url.firstIndex(of: ",") {
+            if let d = Data(base64Encoded: String(url[url.index(after: comma)...])), let img = UIImage(data: d) {
+                GlassGroupView.avatars[url] = img
+                avatarView.image = img
+            }
+            return
+        }
+        guard let u = URL(string: url) else { return }
+        URLSession.shared.dataTask(with: u) { [weak self] data, _, _ in
+            guard let data = data, let img = UIImage(data: data) else { return }
+            DispatchQueue.main.async {
+                GlassGroupView.avatars[url] = img
+                if self?.avatarURL == url { self?.avatarView.image = img }
+            }
+        }.resume()
+    }
+
     private func configureSearch(_ s: JSObject) {
         if field == nil {
             searchIcon.image = UIImage(systemName: "magnifyingglass", withConfiguration: UIImage.SymbolConfiguration(pointSize: 16, weight: .medium))
@@ -301,7 +400,14 @@ final class GlassGroupView: UIView, UITextFieldDelegate {
             effectView.layer.cornerCurve = .continuous
         }
         if layer.shadowOpacity > 0 { layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: r).cgPath }
-        if kind == "search" {
+        if kind == "account" {
+            hitButton?.frame = bounds
+            if let r = parts["tag"] { tagLabel.frame = r; tagLabel.layer.cornerRadius = r.height / 2 }
+            if let r = parts["avatar"] { avatarView.frame = r; avatarView.layer.cornerRadius = r.width / 2 }
+            if let r = parts["icon"] { iconView.frame = r }
+            if let r = parts["dot"] { dotView.frame = r; dotView.layer.cornerRadius = r.width / 2 }
+            dotView.layer.borderColor = UIColor.systemBackground.resolvedColor(with: traitCollection).cgColor
+        } else if kind == "search" {
             searchIcon.frame = CGRect(x: 14, y: 0, width: 22, height: bounds.height)
             field?.frame = CGRect(x: 42, y: 0, width: max(0, bounds.width - 52), height: bounds.height)
         } else if !buttons.isEmpty {
