@@ -19,6 +19,9 @@ struct EditorScreen: View {
     @State private var showMap = UserDefaults.standard.bool(forKey: "view.map")
     @State private var showSyl = UserDefaults.standard.bool(forKey: "view.syl")
     @State private var showSide = false
+    @State private var editorFrame = CGRect.zero
+    @State private var topBarBottom: CGFloat = 0
+    @State private var rhymeTop: CGFloat = 0
 
     private var song: Song? { library.song(songID) }
 
@@ -26,24 +29,39 @@ struct EditorScreen: View {
         Group {
             if let song {
                 // the cover and title sit inside the lyrics' scroll, so they scroll away with the song (like the web)
-                RichTextEditor(bridge: bridge, rich: song.rich, lyrics: song.lyrics,
-                               header: AnyView(header(song).environment(session).environment(library).tint(Theme.tint)))
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    RhymeBar(bridge: bridge, context: context, results: results,
-                             onOpenDictionary: { showDictionary = true },
-                             voiceTouched: WritingVoice.isTouched(song.voice),
-                             onVoice: openVoice)
-                        .padding(.horizontal, 10)
-                        .padding(.bottom, 6)
+                // the lyrics run the full height of the screen and scroll under the glass bars,
+                // which float over them (the web's #sc under .bar and #rhy)
+                ZStack {
+                    RichTextEditor(bridge: bridge, rich: song.rich, lyrics: song.lyrics,
+                                   header: AnyView(header(song).environment(session).environment(library).tint(Theme.tint)),
+                                   insets: textInsets)
+                        .ignoresSafeArea(.container, edges: .vertical)
+                        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { editorFrame = $0 }
+
+                    VStack(spacing: 0) {
+                        topBar
+                            .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxY } action: { topBarBottom = $0 }
+                        Spacer(minLength: 0)
+                        RhymeBar(bridge: bridge, context: context, results: results,
+                                 onOpenDictionary: { showDictionary = true },
+                                 voiceTouched: WritingVoice.isTouched(song.voice),
+                                 onVoice: openVoice)
+                            .padding(.horizontal, 10)
+                            .padding(.bottom, 6)
+                            .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY } action: { rhymeTop = $0 }
+                            .background(alignment: .bottom) { bottomFade }
+                    }
                 }
             } else {
-                ContentUnavailableView("Song deleted", systemImage: "music.note", description: Text("That song was deleted on another device."))
+                VStack(spacing: 0) {
+                    topBar
+                    ContentUnavailableView("Song deleted", systemImage: "music.note", description: Text("That song was deleted on another device."))
+                }
             }
         }
         // the web's song bar instead of the system one: back + sidebar on the left,
         // map / syllables / share and ••• on the right, the lyrics fading under it
         .toolbar(.hidden, for: .navigationBar)
-        .safeAreaInset(edge: .top, spacing: 0) { topBar }
         .overlay { SongSidebar(isOpen: $showSide, currentID: songID) }
         .sheet(item: $detailsTab) { t in
             DetailsSheet(songID: songID, tab: t, onRestore: { reloadEditor() }, onDelete: { deleteSong() })
@@ -145,14 +163,20 @@ struct EditorScreen: View {
         .padding(.horizontal, 14)
         .padding(.top, 8)
         .padding(.bottom, 12)
-        .background {
-            LinearGradient(stops: [.init(color: Color(uiColor: .systemBackground), location: 0),
-                                   .init(color: Color(uiColor: .systemBackground), location: 0.5),
-                                   .init(color: Color(uiColor: .systemBackground).opacity(0), location: 1)],
-                           startPoint: .top, endPoint: .bottom)
-                .ignoresSafeArea(edges: .top)
-                .allowsHitTesting(false)
-        }
+        .background { EdgeFade(edge: .top) }
+    }
+
+    /// The web's .fadeB: the lyrics blur out under the rhyme bar.
+    private var bottomFade: some View {
+        EdgeFade(edge: .bottom).frame(height: 130).offset(y: 6)
+    }
+
+    /// Room at the top and bottom of the lyrics for the bars floating over them.
+    private var textInsets: UIEdgeInsets {
+        guard editorFrame.height > 0 else { return .zero }
+        let top = max(0, topBarBottom - editorFrame.minY)
+        let bottom = rhymeTop > 0 ? max(0, editorFrame.maxY - rhymeTop) + 12 : 0
+        return UIEdgeInsets(top: top, left: 0, bottom: bottom, right: 0)
     }
 
     private func barToggle(_ icon: String, _ label: String, on: Bool, _ action: @escaping () -> Void) -> some View {

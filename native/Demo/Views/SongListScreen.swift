@@ -270,14 +270,7 @@ struct ListHeader<Trailing: View>: View {
         .padding(.horizontal, 20)
         .padding(.top, 6)
         .padding(.bottom, 14)
-        .background {
-            LinearGradient(stops: [.init(color: Color(uiColor: .systemBackground), location: 0),
-                                   .init(color: Color(uiColor: .systemBackground), location: 0.55),
-                                   .init(color: Color(uiColor: .systemBackground).opacity(0), location: 1)],
-                           startPoint: .top, endPoint: .bottom)
-                .ignoresSafeArea(edges: .top)
-                .allowsHitTesting(false)
-        }
+        .background { EdgeFade(edge: .top, solidTo: 0.76) }
     }
 }
 
@@ -330,5 +323,23 @@ struct SearchDock: View {
         }
         .padding(.horizontal, 14)
         .padding(.bottom, 8)
+    }
+}
+
+/// The web's .fadeT / .fadeB: content blurs out as it passes under a floating bar, rather than
+/// stopping at a solid strip. Reaches into the status bar / home indicator area.
+struct EdgeFade: View {
+    let edge: VerticalEdge
+    var solidTo: CGFloat = 0.45
+
+    var body: some View {
+        Rectangle()
+            .fill(.ultraThinMaterial)
+            .mask {
+                LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: solidTo), .init(color: .clear, location: 1)],
+                               startPoint: edge == .top ? .top : .bottom, endPoint: edge == .top ? .bottom : .top)
+            }
+            .ignoresSafeArea(edges: edge == .top ? .top : .bottom)
+            .allowsHitTesting(false)
     }
 }

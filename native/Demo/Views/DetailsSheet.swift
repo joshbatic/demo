@@ -289,7 +289,11 @@ struct DetailsSheet: View {
                 Button("Add") { addCredit() }.font(.subheadline.weight(.semibold)).textCase(nil)
             }
         } footer: {
-            Text(splitNote(list)).foregroundStyle(splitOff(list) ? Color.orange : Color.secondary)
+            if splitOK(list) {
+                Label(splitNote(list), systemImage: "checkmark.circle.fill").foregroundStyle(Theme.proGreen)
+            } else {
+                Text(splitNote(list)).foregroundStyle(splitOff(list) ? Color.red : Color.secondary)
+            }
         }
 
         Section {
@@ -311,7 +315,7 @@ struct DetailsSheet: View {
             }))
         } header: { Text("Release") } footer: {
             let notes = releaseNotes
-            if !notes.isEmpty { Text(notes).foregroundStyle(.orange) }
+            if !notes.isEmpty { Text(notes).foregroundStyle(.red) }
         }
     }
 
@@ -419,6 +423,7 @@ struct DetailsSheet: View {
         guard !w.isEmpty, w.contains(where: { !$0.split.isEmpty }) else { return nil }
         return w.reduce(0) { $0 + (Double($1.split) ?? 0) }
     }
+    private func splitOK(_ l: [Song.Credit]) -> Bool { if let t = splitTotal(l) { return abs(t - 100) <= 0.01 }; return false }
     private func splitOff(_ l: [Song.Credit]) -> Bool { if let t = splitTotal(l) { return abs(t - 100) > 0.01 }; return false }
     private func splitNote(_ l: [Song.Credit]) -> String {
         guard let t = splitTotal(l) else { return "Splits should add up to 100%." }

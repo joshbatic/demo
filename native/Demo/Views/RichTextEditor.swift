@@ -236,6 +236,8 @@ struct RichTextEditor: UIViewRepresentable {
     var placeholder = "Start writing…"
     /// The song's cover and title: drawn inside the text view's scroll, above the lyrics, so they scroll away with it.
     var header: AnyView? = nil
+    /// Space for the glass bars floating over the text; the text scrolls under them.
+    var insets: UIEdgeInsets = .zero
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -244,7 +246,8 @@ struct RichTextEditor: UIViewRepresentable {
         tv.backgroundColor = .clear
         tv.font = EditorBridge.baseFont
         tv.typingAttributes = EditorBridge.baseAttributes
-        tv.textContainerInset = UIEdgeInsets(top: 8, left: 18, bottom: 120, right: 18)
+        tv.textContainerInset = UIEdgeInsets(top: 8, left: 18, bottom: 24, right: 18)
+        tv.contentInsetAdjustmentBehavior = .never
         tv.keyboardDismissMode = .interactive
         tv.alwaysBounceVertical = true
         tv.autocapitalizationType = .sentences
@@ -273,6 +276,13 @@ struct RichTextEditor: UIViewRepresentable {
     func updateUIView(_ tv: UITextView, context: Context) {
         bridge.textView = tv
         context.coordinator.bridge = bridge
+        let old = tv.contentInset
+        if abs(old.top - insets.top) > 0.5 || abs(old.bottom - insets.bottom) > 0.5 {
+            let atTop = tv.contentOffset.y <= -old.top + 1
+            tv.contentInset = insets
+            tv.verticalScrollIndicatorInsets = insets
+            if atTop { tv.contentOffset.y = -insets.top }
+        }
         if let header, let hc = context.coordinator.headerHost {
             hc.rootView = header
             tv.setNeedsLayout()
