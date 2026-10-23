@@ -181,6 +181,8 @@ struct RhymeBar: View {
     let context: RhymeContext
     let results: WordResults
     var onOpenDictionary: () -> Void
+    var voiceTouched = false
+    var onVoice: () -> Void = {}
     @AppStorage("view.fmt") private var showFormat = false
     @Namespace private var modeNS
 
@@ -205,6 +207,23 @@ struct RhymeBar: View {
                 }
                 .buttonStyle(PressScale())
                 .accessibilityLabel("Text formatting").accessibilityAddTraits(showFormat ? .isSelected : [])
+
+                // Writing voice, with a dot when it's been changed from the defaults
+                Button { Haptics.tap(); onVoice() } label: {
+                    Icon("ic-voice", 16)
+                        .foregroundStyle(Theme.tint)
+                        .frame(width: 32, height: 32)
+                        .background(BarFill.color, in: Circle())
+                        .overlay(alignment: .topTrailing) {
+                            if voiceTouched {
+                                Circle().fill(Theme.tint).frame(width: 7, height: 7)
+                                    .overlay(Circle().stroke(Color(uiColor: .systemBackground), lineWidth: 2))
+                                    .offset(x: -2, y: 2)
+                            }
+                        }
+                }
+                .buttonStyle(PressScale())
+                .accessibilityLabel("Writing voice")
             }
             .padding(.bottom, 10)
 

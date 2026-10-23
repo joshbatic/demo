@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import PhotosUI
 
 struct EditorScreen: View {
     let songID: String
@@ -7,7 +8,10 @@ struct EditorScreen: View {
     @Environment(LibraryStore.self) private var library
     @Environment(\.dismiss) private var dismiss
     @State private var bridge = EditorBridge()
-    @State private var showDetails = false
+    @State private var detailsTab: DetailsTab?
+    @State private var showVoice = false
+    @State private var pickArt = false
+    @State private var artItem: PhotosPickerItem?
     @State private var confirmDelete = false
     @State private var results = WordResults()
     @State private var context = RhymeContext()
@@ -25,7 +29,10 @@ struct EditorScreen: View {
                 RichTextEditor(bridge: bridge, rich: song.rich, lyrics: song.lyrics,
                                header: AnyView(header(song).environment(session).environment(library).tint(Theme.tint)))
                 .safeAreaInset(edge: .bottom, spacing: 0) {
-                    RhymeBar(bridge: bridge, context: context, results: results) { showDictionary = true }
+                    RhymeBar(bridge: bridge, context: context, results: results,
+                             onOpenDictionary: { showDictionary = true },
+                             voiceTouched: WritingVoice.isTouched(song.voice),
+                             onVoice: openVoice)
                         .padding(.horizontal, 10)
                         .padding(.bottom, 6)
                 }
@@ -38,17 +45,22 @@ struct EditorScreen: View {
         .toolbar(.hidden, for: .navigationBar)
         .safeAreaInset(edge: .top, spacing: 0) { topBar }
         .overlay { SongSidebar(isOpen: $showSide, currentID: songID) }
-        .sheet(isPresented: $showDetails) { if song != nil { DetailsSheet(songID: songID) } }
+        .sheet(item: $detailsTab) { t in
+            DetailsSheet(songID: songID, tab: t, onRestore: { reloadEditor() }, onDelete: { deleteSong() })
+        }
+        .sheet(isPresented: $showVoice, onDismiss: { refreshResults() }) { VoiceSheet(songID: songID) }
+        .photosPicker(isPresented: $pickArt, selection: $artItem, matching: .images)
+        .onChange(of: artItem) { _, item in if let item { loadArt(item) } }
         .sheet(isPresented: $showDictionary) {
             DictionarySheet(bridge: bridge, initialWord: context.word, register: voice("reg") ?? "Conversational", perfectOnly: voiceStrict)
         }
         .confirmationDialog("Delete “\(song?.displayTitle ?? "")”?", isPresented: $confirmDelete, titleVisibility: .visible) {
-            Button("Delete Song", role: .destructive) {
-                if let s = song { dismiss(); Task { await session.removeSong(s) } }
-            }
+            Button("Delete Song", role: .destructive) { deleteSong() }
         } message: { Text("This can’t be undone.") }
         .onAppear {
             library.editingID = songID
+            // an "Auto" version when the last one is over two hours old (spec §4.11)
+            if var s = library.song(songID), s.autoSnap() { library.put(s) }
             bridge.onEdit = { attr in save(attr) }
             bridge.onSelection = { text, sel in updateContext(text, sel) }
         }
@@ -63,14 +75,20 @@ struct EditorScreen: View {
 
     private func header(_ s: Song) -> some View {
         HStack(alignment: .center, spacing: 14) {
-            CoverView(song: s, size: 64)
-            VStack(alignment: .leading, spacing: 3) {
+            // tap the cover to choose a photo (spec §4.1)
+            Button { Haptics.tap(); pickArt = true } label: { CoverView(song: s, size: 64) }
+                .buttonStyle(PressScale())
+                .accessibilityLabel("Cover art")
+            VStack(alignment: .leading, spacing: 2) {
                 TextField("Untitled", text: Binding(get: { library.song(songID)?.title ?? "" }, set: { setTitle($0) }), axis: .vertical)
                     .font(.system(size: 26, weight: .bold))
                     .lineLimit(1...3)
                     .submitLabel(.next)
-                Text([s.artist, s.status].filter { !$0.isEmpty }.joined(separator: " · "))
-                    .font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+                if !s.artist.isEmpty {
+                    Text(s.artist).font(.system(size: 15, weight: .medium)).foregroundStyle(.secondary).lineLimit(1)
+                }
+                Text([s.status, s.key, s.bpm.isEmpty ? "" : s.bpm + " BPM"].filter { !$0.isEmpty }.joined(separator: " · "))
+                    .font(.subheadline).foregroundStyle(.tertiary).lineLimit(1)
             }
         }
         .padding(.horizontal, 20)
@@ -155,29 +173,91 @@ struct EditorScreen: View {
         return (s.title.isEmpty ? "" : s.title + "\n\n") + s.lyrics
     }
 
+    /// The web's ••• menu: the Details tabs, then Copy Lyrics, then Remove Cover Art and Delete Song.
     private var moreMenu: some View {
         Menu {
-            Button { showDetails = true } label: { Label("Details", systemImage: "info.circle") }
-            Button {
-                guard let s = song else { return }
-                UIPasteboard.general.string = (s.title.isEmpty ? "" : s.title + "\n\n") + s.lyrics
-                Haptics.success(); session.toast = "Lyrics copied"
-            } label: { Label("Copy Lyrics", systemImage: "doc.on.doc") }
-            Button {
-                guard let s = song else { return }
-                let on = !library.isPinned(s.id)
-                library.setPin(s.id, on); Haptics.selection()
-                session.toast = on ? "Pinned" : "Unpinned"
-            } label: {
-                Label(library.isPinned(songID) ? "Unpin" : "Pin", systemImage: library.isPinned(songID) ? "pin.slash" : "pin")
+            Section {
+                Button { openDetails(.info) } label: { Label("Details", systemImage: "info.circle") }
+                Button { openDetails(.audio) } label: { Label("Audio", systemImage: "waveform") }
+                Button { openDetails(.chords) } label: { Label("Chords", systemImage: "music.note.list") }
+                Button { openDetails(.credits) } label: { Label("Credits", systemImage: "person.2") }
             }
             Section {
+                Button {
+                    guard let s = song else { return }
+                    UIPasteboard.general.string = (s.title.isEmpty ? "" : s.title + "\n\n") + s.lyrics
+                    Haptics.success(); session.toast = "Copied"
+                } label: { Label("Copy Lyrics", systemImage: "doc.on.doc") }
+            }
+            Section {
+                if song?.artDataURL != nil {
+                    Button(role: .destructive) {
+                        guard var s = song else { return }
+                        s.raw["art"] = ""; s.touch(); library.put(s); Haptics.tap()
+                    } label: { Label("Remove Cover Art", systemImage: "photo") }
+                }
                 Button(role: .destructive) { confirmDelete = true } label: { Label("Delete Song", systemImage: "trash") }
             }
         } label: {
             Icon("ic-more", 22).foregroundStyle(Theme.tint).frame(width: 44, height: 44).contentShape(Rectangle())
         }
-        .accessibilityLabel("More")
+        .accessibilityLabel("Details")
+    }
+
+    private func openDetails(_ t: DetailsTab) {
+        if t == .credits && !session.plan.isPro {
+            Haptics.warning(); session.toast = "Credits and release details are part of *[demo] Pro"; return
+        }
+        bridge.textView?.resignFirstResponder()
+        detailsTab = t
+    }
+
+    private func openVoice() {
+        guard session.plan.isPro else {
+            Haptics.warning(); session.toast = "Writing voice is part of *[demo] Pro"; return
+        }
+        bridge.textView?.resignFirstResponder()
+        showVoice = true
+    }
+
+    private func deleteSong() {
+        if let s = song { dismiss(); Task { await session.removeSong(s) } }
+    }
+
+    /// Lets the editor take text that changed under it (a restored version), even mid-typing.
+    private func reloadEditor() {
+        bridge.textView?.resignFirstResponder()
+        bridge.lastEdit = .distantPast
+    }
+
+    private func refreshResults() {
+        results.register = voice("reg") ?? "Conversational"
+        results.perfectOnly = voiceStrict
+        results.refresh()
+    }
+
+    /// The chosen photo, centre-cropped to a 480 × 480 JPEG at 0.8 (spec §4.1).
+    private func loadArt(_ item: PhotosPickerItem) {
+        Task {
+            defer { artItem = nil }
+            guard let data = try? await item.loadTransferable(type: Data.self), let img = UIImage(data: data) else {
+                session.toast = "Could not read that image"; return
+            }
+            let side: CGFloat = 480
+            let w = img.size.width, h = img.size.height, m = min(w, h)
+            let fmt = UIGraphicsImageRendererFormat.default(); fmt.scale = 1
+            let out = UIGraphicsImageRenderer(size: CGSize(width: side, height: side), format: fmt).image { _ in
+                let scale = side / m
+                img.draw(in: CGRect(x: -(w - m) / 2 * scale, y: -(h - m) / 2 * scale, width: w * scale, height: h * scale))
+            }
+            guard let jpg = out.jpegData(compressionQuality: 0.8), var s = library.song(songID) else {
+                session.toast = "Could not read that image"; return
+            }
+            s.raw["art"] = .string("data:image/jpeg;base64," + jpg.base64EncodedString())
+            s.touch()
+            library.put(s)
+            Haptics.success()
+        }
     }
 
     // MARK: the rhyme bar
@@ -222,67 +302,5 @@ struct EditorScreen: View {
             library.put(s, typing: true)
         }
         return (rich, plain)
-    }
-}
-
-/// Song details: the facts about a song, its notes and chord chart.
-struct DetailsSheet: View {
-    let songID: String
-    @Environment(LibraryStore.self) private var library
-    @Environment(\.dismiss) private var dismiss
-
-    static let statuses = ["Idea", "Draft", "Demo", "Finished"]
-    static let keys = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    field("Artists", \.artist, prompt: "Add artists")
-                    Picker("Status", selection: binding(\.status)) { ForEach(Self.statuses, id: \.self) { Text($0) } }
-                    Picker("Key", selection: binding(\.key)) {
-                        Text("None").tag("")
-                        ForEach(Self.keys, id: \.self) { k in Text(k).tag(k); Text(k + "m").tag(k + "m") }
-                    }
-                    HStack {
-                        Text("Tempo")
-                        Spacer()
-                        TextField("BPM", text: binding(\.bpm)).keyboardType(.numberPad).multilineTextAlignment(.trailing).frame(maxWidth: 120)
-                    }
-                    field("Tuning", \.tuning, prompt: "Standard")
-                    field("Folder", \.folder, prompt: "None")
-                }
-                Section("Notes") {
-                    TextField("Melody ideas, references, co-writers", text: binding(\.notes), axis: .vertical).lineLimit(3...12)
-                }
-                Section("Chords") {
-                    TextField("Chord chart", text: binding(\.chords), axis: .vertical).lineLimit(3...20)
-                        .font(.system(.body, design: .monospaced))
-                }
-            }
-            .navigationTitle("Details")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } }
-            }
-        }
-        .presentationDetents([.fraction(0.88)])   // the web's Details sheet is 88% of the screen
-    }
-
-    private func field(_ label: String, _ kp: WritableKeyPath<Song, String>, prompt: String) -> some View {
-        HStack {
-            Text(label)
-            Spacer()
-            TextField(prompt, text: binding(kp)).multilineTextAlignment(.trailing)
-        }
-    }
-
-    private func binding(_ kp: WritableKeyPath<Song, String>) -> Binding<String> {
-        Binding(get: { library.song(songID)?[keyPath: kp] ?? "" }, set: { v in
-            guard var s = library.song(songID), s[keyPath: kp] != v else { return }
-            s[keyPath: kp] = v
-            s.touch()
-            library.put(s)
-        })
     }
 }

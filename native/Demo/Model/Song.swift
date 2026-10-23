@@ -15,7 +15,7 @@ nonisolated struct Song: Identifiable, Hashable {
             "title": "", "lyrics": "", "rich": "", "chords": "", "notes": "",
             "artist": .string(artist), "folder": .string(folder), "status": "Idea",
             "key": "", "bpm": "", "tuning": "", "capo": "", "time": "",
-            "pf": .object(WritingVoice.defaults),
+            "pf": .object(WritingVoice.lastUsed),
             "updated": .number(now)
         ])
     }
