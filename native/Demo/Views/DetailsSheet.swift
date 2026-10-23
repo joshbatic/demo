@@ -18,6 +18,7 @@ struct DetailsSheet: View {
     var onDelete: () -> Void = {}
     var onPlayWithLyrics: () -> Void = {}
     var onLeave: () -> Void = {}
+    var onPerform: () -> Void = {}
     @Environment(AppSession.self) private var session
     @Environment(LibraryStore.self) private var library
     @Environment(\.dismiss) private var dismiss
@@ -42,12 +43,8 @@ struct DetailsSheet: View {
             // the tabs sit just under the title bar, full width, at the large iOS size
             .contentMargins(.top, 4, for: .scrollContent)
             .topBar {
-                Picker("Details", selection: Binding(get: { tab }, set: { pick($0) })) {
-                    ForEach(DetailsTab.allCases) { Text($0.title).tag($0) }
-                }
-                .pickerStyle(.segmented)
-                .controlSize(.large)
-                .padding(.horizontal, 16).padding(.top, 2).padding(.bottom, 8)
+                SegTabs(items: DetailsTab.allCases.map { ($0, $0.title) }, selection: tab) { pick($0) }
+                    .padding(.horizontal, 20).padding(.top, 2).padding(.bottom, 10)
             }
             .navigationTitle("Details")
             .navigationBarTitleDisplayMode(.inline)
@@ -74,32 +71,32 @@ struct DetailsSheet: View {
     @ViewBuilder private var info: some View {
         Section {
             field("Artists", \.artist, prompt: "Add artists")
-            Picker("Key", selection: binding(\.key)) {
-                Text("None").tag("")
-                ForEach(Self.keys, id: \.self) { Text($0).tag($0) }
+            menuRow("Key", value: (song?.key ?? "").isEmpty ? "None" : song!.key) {
+                Button("None") { set(\.key, "") }
+                ForEach(Self.keys, id: \.self) { k in Button(k) { set(\.key, k) } }
             }
             HStack {
                 Text("Tempo")
                 Spacer()
-                TextField("BPM", text: binding(\.bpm)).keyboardType(.numberPad).multilineTextAlignment(.trailing).frame(maxWidth: 120)
+                TextField("BPM", text: binding(\.bpm)).keyboardType(.numberPad).multilineTextAlignment(.trailing).foregroundStyle(.secondary).frame(maxWidth: 140)
             }
             field("Tuning", \.tuning, prompt: "Standard")
-            Picker("Status", selection: binding(\.status)) { ForEach(Self.statuses, id: \.self) { Text($0) } }
-            HStack {
-                Text("Folder")
-                Spacer()
-                TextField("None", text: binding(\.folder)).multilineTextAlignment(.trailing)
-                if !folderSuggestions.isEmpty {
-                    Menu {
+            menuRow("Status", value: song?.status ?? "Idea") {
+                ForEach(Self.statuses, id: \.self) { st in Button(st) { set(\.status, st) } }
+            }
+            field("Folder", \.folder, prompt: "None")
+                .contextMenu {
+                    if !folderSuggestions.isEmpty {
                         Button("None") { set(\.folder, "") }
                         ForEach(folderSuggestions, id: \.self) { f in Button(f) { set(\.folder, f) } }
-                    } label: { Image(systemName: "chevron.up.chevron.down").font(.footnote).foregroundStyle(.secondary) }
-                    .accessibilityLabel("Choose a folder")
+                    }
                 }
-            }
         }
         Section {
-            TextField("Notes: melody ideas, references, co-writers", text: binding(\.notes), axis: .vertical).lineLimit(3...12)
+            TextField("Notes: melody ideas, references, co-writers", text: binding(\.notes), axis: .vertical)
+                .lineLimit(4...12)
+                .frame(minHeight: 88, alignment: .topLeading)
+                .padding(.vertical, 4)
         }
         CollabSection(songID: songID, onLeft: { dismiss(); onLeave() })
         Section("Versions") {
@@ -109,7 +106,7 @@ struct DetailsSheet: View {
                 if saved { library.put(s) }
                 Haptics.tap()
                 session.toast = saved ? "Version saved" : "No changes since the last version"
-            } label: { Text("Save Version").frame(maxWidth: .infinity) }
+            } label: { Text("Save Version").foregroundStyle(Theme.tint).frame(maxWidth: .infinity) }
             ForEach((song?.versions ?? []).reversed()) { v in
                 Button { restore(v) } label: {
                     HStack {
@@ -121,20 +118,22 @@ struct DetailsSheet: View {
                 }
             }
         }
+        // the web's last group: Perform, Copy Lyrics, then the red ones, all centred
         Section {
-            Button("Copy Lyrics") {
+            Button { dismiss(); onPerform() } label: { Text("Perform").foregroundStyle(Theme.tint).frame(maxWidth: .infinity) }
+            Button {
                 guard let s = song else { return }
                 UIPasteboard.general.string = (s.title.isEmpty ? "" : s.title + "\n\n") + s.lyrics
                 Haptics.success(); session.toast = "Copied"
-            }
+            } label: { Text("Copy Lyrics").foregroundStyle(Theme.tint).frame(maxWidth: .infinity) }
             if song?.artDataURL != nil {
-                Button("Remove Cover Art", role: .destructive) {
+                Button(role: .destructive) {
                     guard var s = song else { return }
                     s.raw["art"] = ""; s.touch(); library.put(s)
                     Haptics.tap(); dismiss()
-                }
+                } label: { Text("Remove Cover Art").frame(maxWidth: .infinity) }
             }
-            Button("Delete Song", role: .destructive) { confirmDelete = true }
+            Button(role: .destructive) { confirmDelete = true } label: { Text("Delete Song").frame(maxWidth: .infinity) }
         }
     }
 
@@ -399,11 +398,24 @@ struct DetailsSheet: View {
 
     // MARK: bindings
 
+    /// A row like the web's label.row: the name on the left, the value typed on the right in grey.
     private func field(_ label: String, _ kp: WritableKeyPath<Song, String>, prompt: String) -> some View {
         HStack {
             Text(label)
             Spacer()
-            TextField(prompt, text: binding(kp)).multilineTextAlignment(.trailing)
+            TextField(prompt, text: binding(kp)).multilineTextAlignment(.trailing).foregroundStyle(.secondary)
+        }
+    }
+
+    /// A row whose value is chosen from a list (the web's select): plain grey value, no chevrons.
+    private func menuRow<C: View>(_ label: String, value: String, @ViewBuilder _ items: () -> C) -> some View {
+        Menu { items() } label: {
+            HStack {
+                Text(label).foregroundStyle(.primary)
+                Spacer()
+                Text(value).foregroundStyle(.secondary)
+            }
+            .contentShape(Rectangle())
         }
     }
 
@@ -426,5 +438,40 @@ extension View {
         } else {
             safeAreaInset(edge: .top, spacing: 0) { content().background(.bar) }
         }
+    }
+}
+
+/// The web's .seg: a grey track with the chosen tab on a raised white pill.
+struct SegTabs<T: Hashable>: View {
+    let items: [(T, String)]
+    let selection: T
+    var onPick: (T) -> Void
+    @Namespace private var ns
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(items, id: \.0) { v, label in
+                let on = v == selection
+                Button { onPick(v) } label: {
+                    Text(label)
+                        .font(.system(size: 15, weight: on ? .semibold : .medium))
+                        .foregroundStyle(.primary)
+                        .frame(maxWidth: .infinity).frame(height: 34)
+                        .background {
+                            if on {
+                                Capsule().fill(Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 0.36, alpha: 1) : .white }))
+                                    .shadow(color: .black.opacity(0.16), radius: 2, y: 1)
+                                    .matchedGeometryEffect(id: "on", in: ns)
+                            }
+                        }
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(on ? .isSelected : [])
+            }
+        }
+        .padding(2)
+        .background(BarFill.color, in: Capsule())
+        .overlay(Capsule().strokeBorder(Color.primary.opacity(0.06), lineWidth: 0.5))
     }
 }

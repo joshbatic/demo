@@ -94,7 +94,11 @@ struct EditorScreen: View {
         .sheet(item: $detailsTab) { t in
             DetailsSheet(songID: songID, tab: t, onRestore: { reloadEditor() }, onDelete: { deleteSong() },
                          onPlayWithLyrics: { DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { showPlay = true } },
-                         onLeave: { dismiss() })
+                         onLeave: { dismiss() },
+                         onPerform: {
+                             guard session.plan.isPro else { session.upsell("perform"); return }
+                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { showPerform = true }
+                         })
         }
         .sheet(isPresented: $showShare) { ShareSheet(songID: songID) }
         // live co-writing: send what changed here (from typing, Details, anywhere) and file changes

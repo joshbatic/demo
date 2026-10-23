@@ -64,70 +64,70 @@ struct CollabSection: View {
     @ViewBuilder private func shared(_ s: Song) -> some View {
         Section {
             if isOwner {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 8) {
-                        Text("@").foregroundStyle(.secondary)
-                        TextField("Invite by username", text: $invite)
-                            .textInputAutocapitalization(.never).autocorrectionDisabled()
-                            .submitLabel(.send).onSubmit { send() }
-                        Button("Invite") { send() }
-                            .font(.subheadline.weight(.semibold))
-                            .disabled(invite.trimmingCharacters(in: .whitespaces).isEmpty || sending)
+                // the web's .clinv: "@", the field and a filled Invite pill
+                HStack(spacing: 8) {
+                    Text("@").font(.system(size: 17, weight: .medium)).foregroundStyle(.secondary)
+                    TextField("Invite by username", text: $invite)
+                        .font(.system(size: 16.5))
+                        .textInputAutocapitalization(.never).autocorrectionDisabled()
+                        .submitLabel(.send).onSubmit { send() }
+                    let empty = invite.trimmingCharacters(in: .whitespaces).isEmpty
+                    Button { send() } label: {
+                        Text("Invite").font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.onTint)
+                            .padding(.horizontal, 16).frame(height: 34).background(Theme.tint, in: Capsule())
                     }
-                    if let note { Text(note).font(.footnote).foregroundStyle(.secondary) }
-                    ForEach(suggestions) { p in
-                        Button { invite = p.username; send() } label: {
-                            HStack(spacing: 10) {
-                                Avatar(url: p.avatar, name: p.name, size: 30)
-                                VStack(alignment: .leading, spacing: 1) {
-                                    Text(p.name).foregroundStyle(.primary)
-                                    Text("@" + p.username).font(.caption).foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                Text(badge(for: p)).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                            }
-                        }
-                        .buttonStyle(.plain)
-                    }
+                    .buttonStyle(.borderless)
+                    .opacity(empty || sending ? 0.5 : 1)
+                    .disabled(empty || sending)
                 }
-                .task(id: invite) {
-                    try? await Task.sleep(for: .milliseconds(250))
-                    suggestions = await Collab.shared.suggest(invite)
+                .padding(.vertical, 2)
+                if let note { Text(note).font(.footnote).foregroundStyle(.secondary) }
+                ForEach(suggestions) { p in
+                    let b = badge(for: p)
+                    Button { if b == "Invite" { invite = p.username; send() } } label: {
+                        personRow(avatar: p.avatar, name: p.name, sub: "@" + p.username) { pill(b, kind: b == "Invite" ? .add : b == "Invited" ? .invited : .plain) }
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             ForEach(people) { p in
-                HStack(spacing: 12) {
-                    Avatar(url: p.avatar, name: p.name, size: 34)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(p.name + (p.isMe ? " (you)" : ""))
-                        Text(p.role == "invited" ? "Hasn’t accepted yet" : (p.username.isEmpty ? "" : "@" + p.username))
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    if isOwner && !p.isMe {
-                        Button(armed == p.id ? "Remove?" : "Remove", role: .destructive) {
+                personRow(avatar: p.avatar, name: p.name + (p.isMe ? " (you)" : ""),
+                          sub: p.role == "invited" ? "Hasn’t accepted yet" : (p.username.isEmpty ? "" : "@" + p.username)) {
+                    if p.role == "owner" {
+                        pill("Owner", kind: .owner)
+                    } else if p.role == "invited" {
+                        pill("Invited", kind: .invited)
+                    } else if isOwner && !p.isMe {
+                        Button {
                             if armed == p.id { Task { await Collab.shared.remove(p, from: songID); armed = nil; await load() } }
                             else { Haptics.selection(); armed = p.id }
+                        } label: {
+                            Text(armed == p.id ? "Remove?" : "Remove").font(.system(size: 14))
+                                .foregroundStyle(armed == p.id ? Color.red : .secondary)
+                                .padding(.horizontal, 10).padding(.vertical, 6)
+                                .background(armed == p.id ? Color.red.opacity(0.1) : .clear, in: Capsule())
                         }
-                        .font(.subheadline).buttonStyle(.borderless)
+                        .buttonStyle(.borderless)
                     } else {
-                        Text(p.role == "owner" ? "Owner" : p.role == "invited" ? "Invited" : "Co-writer")
-                            .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                        pill("Co-writer", kind: .plain)
                     }
                 }
             }
             if isOwner && people.count <= 1 {
-                Text("No one else yet. Invite a co-writer above.").font(.subheadline).foregroundStyle(.secondary)
+                Text("No one else yet. Invite a co-writer above.").font(.system(size: 13.5)).foregroundStyle(.secondary).padding(.leading, 46)
             }
-            if isOwner {
-                Button("Stop Sharing", role: .destructive) { confirmStop = true }
-            } else {
-                Button("Leave Song", role: .destructive) { confirmLeave = true }
+            Button(role: .destructive) { if isOwner { confirmStop = true } else { confirmLeave = true } } label: {
+                Text(isOwner ? "Stop Sharing" : "Leave Song").font(.system(size: 16)).frame(maxWidth: .infinity)
             }
         } header: { Text("Collaborators") } footer: {
             Text(isOwner ? "Co-writers need *[demo] and a username." : "Leaving removes the song from your library.")
         }
         .task(id: s.id) { await load() }
+        .task(id: invite) {
+            guard isOwner else { return }
+            try? await Task.sleep(for: .milliseconds(250))
+            suggestions = await Collab.shared.suggest(invite)
+        }
         .confirmationDialog("Stop sharing “\(s.displayTitle)”?", isPresented: $confirmStop, titleVisibility: .visible) {
             Button("Stop Sharing", role: .destructive) { Task { await Collab.shared.stopSharing(songID); people = [] } }
         } message: { Text("Your co-writers lose access. The song stays with you.") }
@@ -137,6 +137,36 @@ struct CollabSection: View {
                 Task { await session.removeSong(s); session.toast = "You left the song" }
             }
         } message: { Text("It’s removed from your devices. The owner can invite you again.") }
+    }
+
+    /// The web's .clrow: 34pt avatar, name and a grey line, something on the right.
+    private func personRow<R: View>(avatar: String?, name: String, sub: String, @ViewBuilder right: () -> R) -> some View {
+        HStack(spacing: 12) {
+            Avatar(url: avatar, name: name, size: 34)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(name).font(.system(size: 15.5, weight: .semibold)).foregroundStyle(.primary).lineLimit(1)
+                if !sub.isEmpty { Text(sub).font(.system(size: 13)).foregroundStyle(.secondary).lineLimit(1) }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            right()
+        }
+        .frame(minHeight: 44)
+    }
+
+    enum PillKind { case owner, invited, add, plain }
+
+    /// The web's .clbadge: Owner (filled), Invited (peach to lilac), Invite (filled), others grey.
+    private func pill(_ t: String, kind: PillKind) -> some View {
+        Text(t).font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(kind == .owner || kind == .add ? Theme.onTint : kind == .invited ? Color(hex: 0x3B2E5A) : .secondary)
+            .padding(.horizontal, 9).padding(.vertical, 4)
+            .background {
+                switch kind {
+                case .owner, .add: Capsule().fill(Theme.tint)
+                case .invited: Capsule().fill(LinearGradient(colors: [Color(hex: 0xFFD3BE), Color(hex: 0xE3CCFF)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                case .plain: Capsule().fill(BarFill.color)
+                }
+            }
     }
 
     private func badge(for p: Collab.Person) -> String {
