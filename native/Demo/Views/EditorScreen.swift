@@ -19,7 +19,6 @@ struct EditorScreen: View {
     @State private var showDictionary = false
     @State private var showMap = UserDefaults.standard.bool(forKey: "view.map")
     @State private var showSyl = UserDefaults.standard.bool(forKey: "view.syl")
-    @State private var showSide = false
     @State private var showPlay = false
     @State private var editorFrame = CGRect.zero
     @State private var topBarBottom: CGFloat = 0
@@ -89,7 +88,6 @@ struct EditorScreen: View {
         // the web's song bar instead of the system one: back + sidebar on the left,
         // map / syllables / share and ••• on the right, the lyrics fading under it
         .toolbar(.hidden, for: .navigationBar)
-        .overlay { SongSidebar(isOpen: $showSide, currentID: songID) }
         .sheet(item: $detailsTab) { t in
             DetailsSheet(songID: songID, tab: t, onRestore: { reloadEditor() }, onDelete: { deleteSong() },
                          onPlayWithLyrics: { DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { showPlay = true } })
@@ -186,22 +184,12 @@ struct EditorScreen: View {
 
     private var topBar: some View {
         HStack(spacing: 10) {
-            HStack(spacing: 0) {
-                Button { Haptics.tap(); dismiss() } label: {
-                    Icon("ic-back", 22).foregroundStyle(Theme.tint).frame(width: 44, height: 48).contentShape(Rectangle())
-                }
-                .buttonStyle(PressScale()).accessibilityLabel("Songs")
-                Button {
-                    Haptics.tap()
-                    bridge.textView?.resignFirstResponder()
-                    withAnimation(.snappy(duration: 0.32)) { showSide = true }
-                } label: {
-                    Icon("ic-sidebar", 24).foregroundStyle(Theme.tint).frame(width: 44, height: 48).contentShape(Rectangle())
-                }
-                .buttonStyle(PressScale()).accessibilityLabel("Show sidebar")
+            Button { Haptics.tap(); dismiss() } label: {
+                Icon("ic-back", 22).foregroundStyle(Theme.tint).frame(width: 48, height: 48).contentShape(Circle())
             }
-            .padding(.horizontal, 2)
-            .glassCapsule(interactive: true)
+            .buttonStyle(PressScale())
+            .glassCircle()
+            .accessibilityLabel("Songs")
 
             Spacer(minLength: 0)
 

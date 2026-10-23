@@ -78,7 +78,7 @@ struct SongPlayer: View {
                         .foregroundStyle(Theme.tint)
                     }
                     .padding(.horizontal, 12).padding(.bottom, 10)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    .transition(.opacity)
                 }
 
                 // the thin progress line

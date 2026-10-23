@@ -264,15 +264,29 @@ struct RichTextEditor: UIViewRepresentable {
         context.coordinator.placeholder.text = placeholder
         context.coordinator.attachPlaceholder(to: tv)
         if let header {
-            let hc = UIHostingController(rootView: header)
+            let hc = UIHostingController(rootView: Self.pinned(header, tv))
             hc.view.backgroundColor = .clear
-            hc.sizingOptions = [.intrinsicContentSize]
+            hc.view.clipsToBounds = false
+            hc.safeAreaRegions = []
             context.coordinator.headerHost = hc
             tv.header = hc
             tv.addSubview(hc.view)
             tv.onHeaderHeight = { [weak c = context.coordinator] h in c?.placeholderTop?.constant = h }
         }
         return tv
+    }
+
+    /// The header, pinned to the top of its host and reporting its own height whenever it changes
+    /// (the player opening, a title wrapping), so it grows downward and the lyrics follow it.
+    static func pinned(_ header: AnyView, _ tv: UITextView) -> AnyView {
+        AnyView(
+            header
+                .fixedSize(horizontal: false, vertical: true)
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { [weak tv] h in
+                    (tv as? LyricsTextView)?.setHeaderHeight(h)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        )
     }
 
     func updateUIView(_ tv: UITextView, context: Context) {
@@ -289,9 +303,7 @@ struct RichTextEditor: UIViewRepresentable {
             tv.verticalScrollIndicatorInsets.bottom = insets.bottom
         }
         if let header, let hc = context.coordinator.headerHost {
-            hc.rootView = header
-            (tv as? LyricsTextView)?.headerDirty = true
-            tv.setNeedsLayout()
+            hc.rootView = Self.pinned(header, tv)
         }
         let key = rich + "\u{0}" + lyrics
         // reload only for changes that didn't come from this view (another device, a restore)
@@ -469,9 +481,24 @@ final class LyricsTextView: UITextView {
     /// Empty space at the top of the page for the floating top bar.
     var topSpace: CGFloat = 0
     private var lastTop: CGFloat = -1
-    var headerDirty = true
+    /// Reported by the header itself (0 until it first lays out).
     private var headerHeight: CGFloat = 0
-    private var measuredWidth: CGFloat = 0
+
+    /// The header's new height: the lyrics move down (or up) to match, animated like the header.
+    func setHeaderHeight(_ h: CGFloat) {
+        let h = ceil(h)
+        guard abs(h - headerHeight) > 0.5 else { return }
+        let first = headerHeight == 0
+        headerHeight = h
+        if first || window == nil {
+            setNeedsLayout()
+        } else {
+            UIView.animate(withDuration: 0.33, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [.beginFromCurrentState, .allowUserInteraction]) {
+                self.setNeedsLayout()
+                self.layoutIfNeeded()
+            }
+        }
+    }
 
     override func layoutSubviews() {
         super.layoutSubviews()
@@ -481,14 +508,12 @@ final class LyricsTextView: UITextView {
         let space = max(topSpace, barRoom)
         var h: CGFloat = 0
         if let hc = header {
-            // measuring the header is the costly part, and layout runs on every scroll frame
-            if headerDirty || w != measuredWidth {
+            if headerHeight == 0 {
+                // until the header reports in, measure it once so the first frame is right
                 headerHeight = ceil(hc.sizeThatFits(in: CGSize(width: w, height: .greatestFiniteMagnitude)).height)
-                measuredWidth = w
-                headerDirty = false
             }
             h = headerHeight
-            let f = CGRect(x: 0, y: space, width: w, height: h)
+            let f = CGRect(x: 0, y: space, width: w, height: max(1, h))
             if hc.view.frame != f { hc.view.frame = f }
         }
         if abs(verticalScrollIndicatorInsets.top - space) > 0.5 { verticalScrollIndicatorInsets.top = space }
