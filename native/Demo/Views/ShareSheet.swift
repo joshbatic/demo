@@ -237,6 +237,8 @@ struct ShareSheet: View {
     @State private var busy: String?
     @State private var confirmStop = false
     @State private var shareURL: URL?
+    /// The content's height, so the sheet opens just tall enough for it.
+    @State private var contentHeight: CGFloat = 560
 
     private var song: Song? { library.song(songID) }
     private var myShare: [String: JSONValue]? {
@@ -267,7 +269,8 @@ struct ShareSheet: View {
                                 .padding(.horizontal, 20).padding(.top, 8)
                         }
                     }
-                    .padding(.top, 4).padding(.bottom, 24)
+                    .padding(.top, 4).padding(.bottom, 12)
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
                 }
             }
             .navigationTitle("Share")
@@ -280,7 +283,8 @@ struct ShareSheet: View {
                 ActivityView(items: [u.url])
             }
         }
-        .presentationDetents([.fraction(0.88)])
+        // content + the nav bar (about 56), never taller than most of the screen
+        .presentationDetents([.height(min(contentHeight + 64, UIScreen.main.bounds.height * 0.9))])
         .task { if let s = song { palette = SharePalette.palette(s) } }
     }
 
