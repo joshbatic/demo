@@ -46,6 +46,13 @@ struct AccountScreen: View {
                         } label: { Label { Text("Sync Now").foregroundStyle(.primary) } icon: { TileIcon("arrow.triangle.2.circlepath", Theme.Tile.blue) } }
                     }
                 }
+                Section {
+                    Toggle(isOn: Binding(get: { AIService.shared.consent == "yes" }, set: { AIService.shared.consent = $0 ? "yes" : "no"; Haptics.selection() })) {
+                        Label { Text("AI Features") } icon: { TileIcon("sparkles", Theme.Tile.purple) }
+                    }
+                } footer: {
+                    Text(AIService.consentMessage)
+                }
                 Section("About") {
                     Link(destination: URL(string: "https://hellodemo.app/privacy.html")!) {
                         Label { Text("Privacy Policy").foregroundStyle(.primary) } icon: { TileIcon("hand.raised.fill", Theme.Tile.gray) }

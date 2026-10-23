@@ -46,6 +46,19 @@ final class WordResults {
     @ObservationIgnored private var dmSyl: [String: Int] = [:]
     @ObservationIgnored private var token = 0
 
+    // the AI on top (engines.md §2.7): ranking for the song, and fallbacks when Datamuse can't answer
+    struct AIContext { var pro: Bool; var ctxOn: Bool; var env: PromptEnv? }
+    @ObservationIgnored var ai: (() -> AIContext)?
+    /// The caret's line, for ranking and meaning lookups.
+    var line = ""
+    /// A multi-word selection: Phrases rhymes it with the AI (Pro).
+    var phrase = ""
+    private(set) var ranking = false
+    private(set) var ranked = false
+    @ObservationIgnored private var rankCache: [String: [String]] = [:]
+    @ObservationIgnored private var aiCache: [String: [String]] = [:]
+    @ObservationIgnored private var defCache: [String: [(String, String)]] = [:]
+
     func show(_ w: String) {
         word = w
         refresh()
@@ -55,17 +68,30 @@ final class WordResults {
         token += 1
         let t = token, w = word, mode = mode
         definitions = []
+        ranked = false; ranking = false
         guard !w.isEmpty else { chips = []; message = nil; busy = false; return }
         if mode.isRhyme {
             build(local: true)
             busy = false
+            rank(t)
             Task {
                 if let r = await Datamuse.shared.rhymes(w) {
                     let s = await Datamuse.shared.syllables
                     remember(w, r)
                     guard t == token else { return }
                     dmSyl = s; build(local: false)
+                    rank(t)
                 }
+            }
+        } else if mode == .phr, !phrase.isEmpty, let a = ai?(), a.pro, let env = a.env {
+            chips = []; message = nil; busy = true
+            let sel = phrase
+            Task {
+                let list = await aiPhrases(sel, env: env)
+                guard t == token else { return }
+                busy = false
+                chips = list.map { WordChip(word: $0, syl: syl($0)) }
+                message = chips.isEmpty ? "No phrases found for “\(sel)”." : nil
             }
         } else if mode == .phr {
             chips = []; message = nil; busy = true
@@ -82,7 +108,11 @@ final class WordResults {
         } else if mode == .def {
             chips = []; message = nil; busy = true
             Task {
-                let d = await Datamuse.shared.define(w)
+                var d = await Datamuse.shared.define(w)
+                if d == nil || d?.isEmpty == true, let a = ai?(), a.pro, let env = a.env {
+                    let x = await aiDefine(w, env: env)
+                    if !x.isEmpty { d = x }
+                }
                 guard t == token else { return }
                 busy = false
                 if let d, !d.isEmpty { definitions = d } else { message = d == nil ? "Definitions need a connection." : "No definition found for “\(w)”." }
@@ -90,7 +120,8 @@ final class WordResults {
         } else {
             chips = []; message = nil; busy = true
             Task {
-                let l = await Datamuse.shared.list(mode.rawValue, w, topics: [])
+                var l = await Datamuse.shared.list(mode.rawValue, w, topics: [])
+                if l == nil, let a = ai?(), a.pro, let env = a.env { let x = await aiList(mode, w, env: env, ctxOn: a.ctxOn); if !x.isEmpty { l = x } }
                 let s = await Datamuse.shared.syllables
                 guard t == token else { return }
                 busy = false; dmSyl = s
@@ -141,6 +172,82 @@ final class WordResults {
         return WordChip(word: x, syl: s, fits: left > 0 && s == left)
     }
 
+    // MARK: AI
+
+    /// Re-ranks the rhymes for this song (Pro, "Listen to the whole song" on, ≥ 4 chips).
+    private func rank(_ t: Int) {
+        guard let a = ai?(), a.pro, a.ctxOn, let env = a.env, chips.count >= 4 else { return }
+        let list = chips.map(\.word)
+        let key = RhymeEngine.normalise(word) + "|" + RhymeEngine.normalise(line) + Prompts.pfk(env)
+        if let r = rankCache[key] { apply(r); ranked = true; return }
+        ranking = true
+        let w = word, ln = line
+        var p = "Songwriting helper." + Prompts.pfx(env) + "\n\n" + Prompts.songCtx(env, at: nil, section: [])
+        p += "\n\nThe writer wants a word that rhymes with \"" + w + "\" for the line: \"" + ln + "\". From the candidates below, choose the 30 that best fit this song's meaning, imagery and voice, best first. Use only words from the list, exactly as written.\nCandidates: " + list.joined(separator: ", ")
+        p += "\n\nReturn ONLY a JSON array of strings."
+        let prompt = p
+        Task {
+            let r = (try? await AIService.shared.json(prompt, ask: false))?.stringList.map { $0.lowercased() } ?? []
+            let ok = Set(list)
+            let picked = r.filter { ok.contains($0) }
+            rankCache[key] = picked
+            guard t == token else { return }
+            ranking = false
+            if !picked.isEmpty { apply(picked); ranked = true }
+        }
+    }
+
+    private func apply(_ order: [String]) {
+        var byWord: [String: WordChip] = [:]
+        for c in chips { byWord[c.word] = c }
+        var out: [WordChip] = order.compactMap { byWord.removeValue(forKey: $0) }
+        out += chips.filter { byWord[$0.word] != nil }
+        chips = out.map { var c = $0; c.nearStart = false; return c }
+    }
+
+    static let aiQ: [WordMode: String] = [
+        .phr: "short phrases (2 to 4 words) whose final word rhymes with it, to end a lyric line",
+        .syn: "synonyms and words with a similar meaning that could replace it in the line",
+        .rel: "words strongly associated with it (images, objects, places, feelings) to spark the next line",
+        .adj: "vivid adjectives that could describe it", .ant: "opposites and contrasting words",
+        .snd: "words that sound similar through assonance or consonance but are not exact rhymes"
+    ]
+
+    private func aiList(_ m: WordMode, _ w: String, env: PromptEnv, ctxOn: Bool) async -> [String] {
+        guard let what = Self.aiQ[m] else { return [] }
+        let k = m.rawValue + "|" + w + (ctxOn ? "|c" : "")
+        if let c = aiCache[k] { return c }
+        var p = "Songwriting helper." + Prompts.pfx(env) + "\n\nWord: \"" + w + "\"\nLyric line it appears in: \"" + line + "\""
+        if ctxOn { p += "\n\n" + Prompts.songCtx(env, at: nil, section: []) + "\nPick words that suit this song." }
+        p += "\n\nList 24 " + what + ". Fit the voice above. Lowercase, no duplicates, no explanations. Return ONLY a JSON array of strings."
+        let r = (try? await AIService.shared.json(p))?.stringList.map { $0.lowercased() }.filter { $0 != RhymeEngine.normalise(w) } ?? []
+        aiCache[k] = r
+        return r
+    }
+
+    private func aiDefine(_ w: String, env: PromptEnv) async -> [(String, String)] {
+        if let c = defCache[w] { return c }
+        let p = "You are a dictionary." + Prompts.pfx(env) + "\n\nDefine the word \"" + w + "\" as it is normally used, ordinary dictionary style. Give up to 3 concise senses, each under 18 words, no song-specific invention and no example sentences. Return ONLY a JSON array of objects like {\"pos\":\"noun\",\"text\":\"...\"}; pos may be empty if unsure."
+        let r = (try? await AIService.shared.json(p))?.array ?? []
+        let out = r.compactMap { x -> (String, String)? in
+            guard let t = x["text"]?.string?.trimmingCharacters(in: .whitespaces), !t.isEmpty else { return nil }
+            return ((x["pos"]?.string ?? "").trimmingCharacters(in: .whitespaces), t)
+        }.prefix(6)
+        defCache[w] = Array(out)
+        return Array(out)
+    }
+
+    private func aiPhrases(_ sel: String, env: PromptEnv) async -> [String] {
+        let n = RhymeEngine.shared.lineSyllables(sel), endw = RhymeContext.lastWord(sel)
+        let k = "PHR#" + RhymeEngine.normalise(sel) + "#\(n)" + Prompts.pfk(env)
+        if let c = aiCache[k] { return c }
+        var p = "Songwriting helper." + Prompts.pfx(env) + "\n\n" + Prompts.songCtx(env, at: nil, section: [])
+        p += "\n\nThe writer selected this phrase from the line: \"" + sel + "\" (\(n) syllables, ending in a word that rhymes with \"" + endw + "\"). Suggest 16 short alternative phrases of about the same length (\(n) syllables, give or take one) that end in a word rhyming with \"" + endw + "\" — match the ending sound closely, syllable by syllable — and fit the song's voice and context above, so swapping the phrase in keeps the line's rhythm and meaning going in the same direction. Avoid using the exact same end word on more than two or three of the sixteen — spread them across different words that share that rhyme, mixing perfect rhymes with slant/near rhymes (same vowel sound or final consonant, not identical) so the options feel varied, not repetitive. Return ONLY a JSON array of strings, each a short phrase, no explanations or numbering."
+        let r = (try? await AIService.shared.json(p))?.stringList.filter { RhymeEngine.normalise($0) != RhymeEngine.normalise(sel) } ?? []
+        aiCache[k] = r
+        return r
+    }
+
     /// Called when Datamuse answers, so rhyme modes can use it without awaiting.
     func remember(_ w: String, _ r: (perfect: [String], near: [String])) { dmSnapshot[RhymeEngine.normalise(w)] = (r.perfect, r.near) }
 }
@@ -183,6 +290,18 @@ struct RhymeBar: View {
     var onOpenDictionary: () -> Void
     var voiceTouched = false
     var onVoice: () -> Void = {}
+    // the AI pieces (spec §4.5): Muse, Listen to the whole song, Lines
+    var isPro = false
+    var onMuse: () -> Void = {}
+    var ctxOn = false
+    var onToggleCtx: () -> Void = {}
+    var linesOn = false
+    var onToggleLines: () -> Void = {}
+    var lines: LinesModel?
+    var env: () -> PromptEnv? = { nil }
+    var scheme = "auto"
+    var onScheme: (String) -> Void = { _ in }
+    var onCleanup: () -> Void = {}
     @AppStorage("view.fmt") private var showFormat = false
     @Namespace private var modeNS
 
@@ -197,9 +316,43 @@ struct RhymeBar: View {
 
             // status on the left, the tag buttons on the right
             HStack(spacing: 10) {
-                status.lineLimit(1).truncationMode(.tail).padding(.leading, 8)
+                (linesOn ? AnyView(linesStatus) : AnyView(status)).lineLimit(1).truncationMode(.tail).padding(.leading, 8)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Button { Haptics.selection(); withAnimation(.snappy(duration: 0.25)) { showFormat.toggle() } } label: {
+                    .layoutPriority(-1)
+                HStack(spacing: 6) { tagButtons }
+                    .fixedSize()
+            }
+            .padding(.bottom, 10)
+
+            if showFormat {
+                FormatRow(bridge: bridge, context: context, onCleanup: onCleanup)
+                    .padding(.bottom, 10)
+                    .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
+            }
+
+            if linesOn, let lines {
+                LinesPanel(bridge: bridge, context: context, model: lines, env: env, onScheme: onScheme, savedScheme: scheme)
+            } else {
+                if !context.word.isEmpty && !tooLong {
+                    modeTrack.padding(.bottom, 8)
+                }
+                resultsRow
+            }
+        }
+        .padding(12)
+        .glass(in: RoundedRectangle(cornerRadius: 30, style: .continuous))
+    }
+
+    @ViewBuilder private var tagButtons: some View {
+        Button { Haptics.tap(); onMuse() } label: {
+            Icon("ic-muse", 18)
+                .foregroundStyle(LinearGradient(colors: [Color(hex: 0xAF52DE), Color(hex: 0xFF6B9A), Color(hex: 0xFF9F0A)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .frame(width: 32, height: 32)
+                .background(BarFill.color, in: Circle())
+        }
+        .buttonStyle(PressScale())
+        .accessibilityLabel("Muse")
+        Button { Haptics.selection(); withAnimation(.snappy(duration: 0.25)) { showFormat.toggle() } } label: {
                     Icon("ic-brush", 17)
                         .foregroundStyle(showFormat ? Theme.onTint : Theme.tint)
                         .frame(width: 32, height: 32)
@@ -207,6 +360,15 @@ struct RhymeBar: View {
                 }
                 .buttonStyle(PressScale())
                 .accessibilityLabel("Text formatting").accessibilityAddTraits(showFormat ? .isSelected : [])
+
+                Button { Haptics.selection(); onToggleCtx() } label: {
+                    Icon("ic-listen", 17)
+                        .foregroundStyle(ctxOn ? Theme.onTint : Theme.tint)
+                        .frame(width: 32, height: 32)
+                        .background(ctxOn ? Theme.tint : BarFill.color, in: Circle())
+                }
+                .buttonStyle(PressScale())
+                .accessibilityLabel("Listen to the whole song").accessibilityAddTraits(ctxOn ? .isSelected : [])
 
                 // Writing voice, with a dot when it's been changed from the defaults
                 Button { Haptics.tap(); onVoice() } label: {
@@ -224,23 +386,36 @@ struct RhymeBar: View {
                 }
                 .buttonStyle(PressScale())
                 .accessibilityLabel("Writing voice")
-            }
-            .padding(.bottom, 10)
 
-            if showFormat {
-                FormatRow(bridge: bridge, context: context)
-                    .padding(.bottom, 10)
-                    .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
-            }
+                Button { Haptics.selection(); onToggleLines() } label: {
+                    HStack(spacing: 5) {
+                        Text("Lines").font(.system(size: 14, weight: .semibold))
+                        if !isPro {
+                            Text("Pro").font(.system(size: 10, weight: .bold)).padding(.horizontal, 5).padding(.vertical, 1)
+                                .background(Theme.proGreen, in: Capsule()).foregroundStyle(.white)
+                        }
+                    }
+                    .foregroundStyle(linesOn ? Theme.onTint : Theme.tint)
+                    .padding(.horizontal, 14).frame(height: 32)
+                    .background(linesOn ? Theme.tint : BarFill.color, in: Capsule())
+                }
+                .buttonStyle(PressScale())
+                .accessibilityAddTraits(linesOn ? .isSelected : [])
+    }
 
-            if !context.word.isEmpty && !tooLong {
-                modeTrack.padding(.bottom, 8)
-            }
-
-            resultsRow
+    /// Lines mode's status: "Line 3 · rhymes with line 1 · 8 syl", or about the selection.
+    private var linesStatus: some View {
+        let eng = RhymeEngine.shared
+        let sel = context.selection.trimmingCharacters(in: .whitespacesAndNewlines)
+        let text: String
+        if !sel.isEmpty {
+            let n = sel.components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }.count
+            text = (n > 1 ? "\(n) lines" : "Selection") + " · \(eng.lineSyllables(sel)) syl · ends “\(RhymeContext.lastWord(sel))”"
+        } else {
+            let p = context.stanza.count + 1
+            text = "Line \(p) · " + (context.partner.isEmpty ? "new rhyme" : "rhymes with line \(context.partnerIndex + 1)") + " · \(eng.lineSyllables(context.line)) syl"
         }
-        .padding(12)
-        .glass(in: RoundedRectangle(cornerRadius: 30, style: .continuous))
+        return Text(text).font(.system(size: 14)).foregroundStyle(.secondary)
     }
 
     private var tooLong: Bool {
@@ -294,7 +469,7 @@ struct RhymeBar: View {
         } else if !context.word.isEmpty {
             let parts = ["\(eng.syllables(context.word)) syl", context.via, results.left > 0 ? "\(results.left) to match" : ""].filter { !$0.isEmpty }
             (Text(context.word).font(.system(size: 16, weight: .semibold)).foregroundStyle(Theme.tint)
-             + Text(" · " + parts.joined(separator: " · ")))
+             + Text(" · " + parts.joined(separator: " · ") + (results.ranking ? " · … ranking for this song" : results.ranked ? " · ranked for this song" : "")))
                 .font(.system(size: 14)).foregroundStyle(.secondary)
         } else {
             Text("Tap any word for rhymes").font(.system(size: 14)).foregroundStyle(.secondary)
@@ -397,6 +572,7 @@ struct PressScale: ButtonStyle {
 struct FormatRow: View {
     let bridge: EditorBridge
     let context: RhymeContext   // changes as the caret moves, so the B / I / U / S states refresh
+    var onCleanup: () -> Void = {}
     @State private var tick = 0
 
     var body: some View {
@@ -435,6 +611,16 @@ struct FormatRow: View {
                     .buttonStyle(PressScale()).accessibilityLabel("Mark as \(name)")
                 }
                 sep
+                Button { Haptics.tap(); onCleanup() } label: {
+                    HStack(spacing: 6) {
+                        Icon("ic-clean", 16)
+                        Text("Clean up").font(.system(size: 15, weight: .medium))
+                    }
+                    .foregroundStyle(Theme.tint)
+                    .padding(.horizontal, 13).frame(height: 38)
+                    .background(BarFill.color, in: Capsule())
+                }
+                .buttonStyle(PressScale()).accessibilityLabel("Clean up lyrics")
                 Button { bridge.clearFormatting(); tick += 1 } label: {
                     Icon("ic-close", 15).foregroundStyle(Theme.tint)
                         .frame(width: 38, height: 38).background(BarFill.color, in: Circle())

@@ -19,6 +19,17 @@ struct RootView: View {
         }
         .animation(.smooth(duration: 0.35), value: session.phase)
         .overlay(alignment: .bottom) { ToastView() }
+        // the first AI request asks once (App Store guideline 5.1.2(i)); Account › AI Features changes it later
+        .alert("Use AI features?", isPresented: Binding(get: { AIService.shared.askingConsent }, set: { _ in })) {
+            Button("Not Now", role: .cancel) {
+                AIService.shared.answerConsent(false)
+                session.toast = "AI features are off. Turn them on any time in Account › AI Features."
+            }
+            Button("Allow") { AIService.shared.answerConsent(true) }
+        } message: {
+            Text(AIService.consentMessage + "\n\nNothing is sent unless you allow it. The Privacy Policy is in Account.")
+        }
+        .onAppear { AppToast.session = session }
     }
 }
 

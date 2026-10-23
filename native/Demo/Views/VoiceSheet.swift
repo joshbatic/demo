@@ -7,6 +7,9 @@ struct VoiceSheet: View {
     @Environment(LibraryStore.self) private var library
     @Environment(\.dismiss) private var dismiss
     @AppStorage("voice.more") private var moreOpen = false
+    @Environment(AppSession.self) private var session
+    @State private var profileDraft: String?
+    @State private var profileSave: Task<Void, Never>?
 
     private var pf: [String: JSONValue] { library.song(songID)?.voice ?? WritingVoice.defaults }
 
@@ -32,6 +35,7 @@ struct VoiceSheet: View {
                 Section("Who’s singing") {
                     TextField("e.g. 1970s Glasgow shipyard worker, Melbourne skater kid", text: stringBinding("dial"), axis: .vertical)
                 }
+                museProfile
                 Section {
                     DisclosureGroup(isExpanded: $moreOpen) {
                         fineTune
@@ -51,6 +55,40 @@ struct VoiceSheet: View {
             .toolbar { ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } } }
         }
         .presentationDetents([.fraction(0.84)])
+    }
+
+    /// "How the muse sees your writing" (engines.md §2.6): the learned profile, editable.
+    @ViewBuilder private var museProfile: some View {
+        let mz = MuseMemory.shared
+        let lines = Prompts.catalog(library.songs).count
+        Section {
+            if let p = mz.profile, !p.text.isEmpty {
+                TextField("", text: Binding(get: { profileDraft ?? p.text }, set: { profileDraft = $0 }), axis: .vertical)
+                    .lineLimit(4...18)
+                    .onChange(of: profileDraft) { _, v in
+                        guard let v else { return }
+                        profileSave?.cancel()
+                        profileSave = Task { try? await Task.sleep(for: .milliseconds(600)); if !Task.isCancelled { mz.editProfile(v) } }
+                    }
+            } else {
+                Text(lines < 16 ? "Write a few songs and the muse will describe your style here, then use it for every suggestion."
+                                : "Not learned yet. Tap Learn My Voice, or it will happen on its own as you write.")
+                    .foregroundStyle(.secondary)
+            }
+            Button(mz.profile?.text.isEmpty == false ? "Relearn" : "Learn My Voice") {
+                guard session.plan.isPro else { Haptics.warning(); session.toast = "Writing voice is part of *[demo] Pro"; return }
+                Task {
+                    profileDraft = nil
+                    if await mz.buildProfile(manual: true) != nil { Haptics.success() }
+                    else if !mz.building { session.toast = "Couldn’t learn it this time. Try again in a moment." }
+                }
+            }
+            .disabled(mz.building || lines < 8)
+        } header: { Text("How the muse sees your writing") } footer: {
+            if mz.building { Text("Learning from your songs…") }
+            else if mz.profile?.edited == true { Text("Your edits are kept. Relearn replaces them.") }
+            else if mz.profile != nil { Text("Learned from your songs and what you keep, rewrite and skip. Edit it if it’s off.") }
+        }
     }
 
     @ViewBuilder private var fineTune: some View {

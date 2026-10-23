@@ -19,6 +19,8 @@ final class EditorBridge {
     var showSyl = UserDefaults.standard.bool(forKey: "view.syl") { didSet { UserDefaults.standard.set(showSyl, forKey: "view.syl"); coordinator?.scheduleViews(now: true) } }
 
     var caretLocation: Int { textView?.selectedRange.location ?? 0 }
+    /// Rate mode: quotes to mark in the lyrics, green for what's working and red for issues.
+    var rateMarks: [(quote: String, good: Bool)] = [] { didSet { coordinator?.scheduleViews(now: true) } }
 
     // MARK: inserting words
 
@@ -395,6 +397,13 @@ struct RichTextEditor: UIViewRepresentable {
                           let e = tcm.location(s, offsetBy: r.length), let tr = NSTextRange(location: s, end: e) else { continue }
                     tlm.addRenderingAttribute(.backgroundColor, value: Self.mapColours[ci], for: tr)
                 }
+            }
+            // Rate's marks (rkgood / rkbad)
+            for m in bridge.rateMarks {
+                guard let r = EditorBridge.findQuote(m.quote, in: text),
+                      let s = tcm.location(tcm.documentRange.location, offsetBy: r.location),
+                      let e = tcm.location(s, offsetBy: r.length), let tr = NSTextRange(location: s, end: e) else { continue }
+                tlm.addRenderingAttribute(.backgroundColor, value: m.good ? UIColor.systemGreen.withAlphaComponent(0.2) : UIColor.systemRed.withAlphaComponent(0.18), for: tr)
             }
             // syllable gutter
             let wantLeft: CGFloat = bridge.showSyl ? 50 : 18

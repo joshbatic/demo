@@ -23,6 +23,17 @@ struct EditorScreen: View {
     @State private var editorFrame = CGRect.zero
     @State private var topBarBottom: CGFloat = 0
     @State private var rhymeTop: CGFloat = 0
+    // Phase C: the AI pieces
+    @State private var lines = LinesModel()
+    @State private var linesOn = false
+    @AppStorage("view.ctx") private var ctxPref = true
+    @State private var showMuse = false
+    @State private var showRate = false
+    @State private var showCleanup = false
+    @State private var rateMode = false
+    @State private var sprintEnd: Date?
+    @State private var sprintWords = 0
+    @State private var sprintNow = Date()
 
     private var song: Song? { library.song(songID) }
 
@@ -43,13 +54,28 @@ struct EditorScreen: View {
                         topBar
                             .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxY } action: { topBarBottom = $0 }
                         Spacer(minLength: 0)
-                        RhymeBar(bridge: bridge, context: context, results: results,
-                                 onOpenDictionary: { showDictionary = true },
-                                 voiceTouched: WritingVoice.isTouched(song.voice),
-                                 onVoice: openVoice)
-                            .padding(.horizontal, 10)
-                            .padding(.bottom, 6)
-                            .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY } action: { rhymeTop = $0 }
+                        if sprintEnd != nil {
+                            sprintPill.padding(.bottom, 10)
+                        } else {
+                            RhymeBar(bridge: bridge, context: context, results: results,
+                                     onOpenDictionary: { showDictionary = true },
+                                     voiceTouched: WritingVoice.isTouched(song.voice),
+                                     onVoice: openVoice,
+                                     isPro: session.plan.isPro,
+                                     onMuse: { bridge.textView?.resignFirstResponder(); showMuse = true },
+                                     ctxOn: ctxOn,
+                                     onToggleCtx: toggleCtx,
+                                     linesOn: linesOn,
+                                     onToggleLines: toggleLines,
+                                     lines: lines,
+                                     env: { promptEnv() },
+                                     scheme: song.raw["scheme"]?.string ?? "auto",
+                                     onScheme: setScheme,
+                                     onCleanup: { bridge.textView?.resignFirstResponder(); showCleanup = true })
+                                .padding(.horizontal, 10)
+                                .padding(.bottom, 6)
+                                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY } action: { rhymeTop = $0 }
+                        }
                     }
                 }
             } else {
@@ -67,7 +93,25 @@ struct EditorScreen: View {
             DetailsSheet(songID: songID, tab: t, onRestore: { reloadEditor() }, onDelete: { deleteSong() },
                          onPlayWithLyrics: { DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { showPlay = true } })
         }
-        .sheet(isPresented: $showVoice, onDismiss: { refreshResults() }) { VoiceSheet(songID: songID) }
+        .sheet(isPresented: $showVoice, onDismiss: { refreshResults(); lines.clear() }) { VoiceSheet(songID: songID) }
+        .sheet(isPresented: $showMuse) {
+            MuseSheet(songID: songID, bridge: bridge, section: context.stanza, env: { promptEnv() }, rateOn: rateMode,
+                      onRate: { DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { openRate() } },
+                      onRateOff: { setRateMode(false) },
+                      onSprint: { secs, noun in DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { startSprint(secs, scratch: noun) } })
+        }
+        .sheet(isPresented: $showRate) {
+            RateSheet(songID: songID, bridge: bridge, env: { promptEnv() },
+                      onRework: { if !linesOn { toggleLines() } },
+                      onExit: { setRateMode(false) })
+        }
+        .sheet(isPresented: $showCleanup) { CleanupSheet(songID: songID, onApplied: { reloadEditor() }) }
+        .onChange(of: song?.raw["rating"]) { _, _ in updateMarks() }
+        .onReceive(Timer.publish(every: 0.25, on: .main, in: .common).autoconnect()) { now in
+            guard let end = sprintEnd else { return }
+            sprintNow = now
+            if now >= end { endSprint(stopped: false) }
+        }
         .fullScreenCover(isPresented: $showPlay) { PlayWithLyrics(songID: songID) }
         .photosPicker(isPresented: $pickArt, selection: $artItem, matching: .images)
         .onChange(of: artItem) { _, item in if let item { loadArt(item) } }
@@ -83,11 +127,15 @@ struct EditorScreen: View {
             if var s = library.song(songID), s.autoSnap() { library.put(s) }
             bridge.onEdit = { attr in save(attr) }
             bridge.onSelection = { text, sel in updateContext(text, sel) }
+            results.ai = {
+                WordResults.AIContext(pro: session.plan.isPro, ctxOn: ctxOn, env: promptEnv())
+            }
         }
         .onDisappear {
             if library.editingID == songID { library.editingID = nil }
             // leaving the song pauses its audio (spec §4.10)
             if !showPlay { AudioPlayer.shared.pause(ifSong: songID) }
+            MuseMemory.shared.check(force: false)
             // a new song left untouched isn't kept (spec §1.6)
             if let s = library.song(songID), s.isEmptyDraft, !s.isPlaceholder { library.delete(s.id) }
         }
@@ -248,6 +296,89 @@ struct EditorScreen: View {
         detailsTab = t
     }
 
+    // MARK: AI
+
+    /// "Listen to the whole song": on by default for Pro, always off on Free (spec §4.15).
+    private var ctxOn: Bool { session.plan.isPro && ctxPref }
+
+    private func toggleCtx() {
+        guard session.plan.isPro else { Haptics.warning(); session.toast = "Listening to the whole song is part of *[demo] Pro"; return }
+        ctxPref.toggle()
+        session.toast = ctxPref ? "Listening to the whole song" : "Only listening to nearby lines"
+        results.refresh()
+    }
+
+    private func toggleLines() {
+        guard session.plan.isPro else { Haptics.warning(); session.toast = "Lines is part of *[demo] Pro"; return }
+        withAnimation(.snappy(duration: 0.25)) { linesOn.toggle() }
+    }
+
+    private func setScheme(_ s: String) {
+        guard var song = library.song(songID) else { return }
+        song.raw["scheme"] = .string(s)
+        library.put(song)
+        if let tv = bridge.textView { updateContext(tv.text, tv.selectedRange) }
+    }
+
+    /// What the prompts need: this song, the library, the editor's text and the context toggle.
+    private func promptEnv() -> PromptEnv? {
+        guard let s = library.song(songID) else { return nil }
+        return PromptEnv(song: s, songs: library.songs, text: bridge.textView?.text ?? s.lyrics, ctxOn: ctxOn)
+    }
+
+    private func openRate() {
+        guard session.plan.isPro else { Haptics.warning(); session.toast = "Rate is part of *[demo] Pro"; return }
+        bridge.textView?.resignFirstResponder()
+        setRateMode(true)
+        showRate = true
+    }
+
+    private func setRateMode(_ on: Bool) {
+        rateMode = on
+        updateMarks()
+    }
+
+    /// Rate mode marks what's working (green) and the issues (red) in the lyrics.
+    private func updateMarks() {
+        guard rateMode, let r = song?.raw["rating"]?.object else { bridge.rateMarks = []; return }
+        let good = (r["strengths"]?.array ?? []).compactMap { $0["quote"]?.string }.map { (quote: $0, good: true) }
+        let bad = (r["issues"]?.array ?? []).compactMap { $0["quote"]?.string }.map { (quote: $0, good: false) }
+        bridge.rateMarks = good + bad
+    }
+
+    // MARK: sprint (spec §2.12)
+
+    private var sprintPill: some View {
+        let left = max(0, (sprintEnd ?? sprintNow).timeIntervalSince(sprintNow))
+        return HStack(spacing: 14) {
+            Text(SongFiles.time(left.rounded(.up))).font(.system(size: 20, weight: .semibold).monospacedDigit())
+            Button("Stop") { endSprint(stopped: true) }
+                .font(.system(size: 16, weight: .semibold))
+        }
+        .padding(.horizontal, 20).frame(height: 50)
+        .glassCapsule(interactive: true)
+    }
+
+    private func startSprint(_ seconds: Int, scratch: String?) {
+        if let noun = scratch { bridge.appendAtEnd("\n\n[Scratch: \(noun)]\n") }
+        else {
+            bridge.textView?.becomeFirstResponder()
+            let end = (bridge.textView?.text as NSString?)?.length ?? 0
+            bridge.textView?.selectedRange = NSRange(location: end, length: 0)
+        }
+        sprintWords = bridge.wordCount
+        sprintNow = Date()
+        withAnimation(.snappy) { sprintEnd = Date().addingTimeInterval(TimeInterval(seconds)) }
+        Haptics.thud()
+    }
+
+    private func endSprint(stopped: Bool) {
+        let n = max(0, bridge.wordCount - sprintWords)
+        withAnimation(.snappy) { sprintEnd = nil }
+        Haptics.success()
+        session.toast = (stopped ? "Stopped. " : "Time. ") + "\(n) new \(n == 1 ? "word" : "words")."
+    }
+
     private func openVoice() {
         guard session.plan.isPro else {
             Haptics.warning(); session.toast = "Writing voice is part of *[demo] Pro"; return
@@ -312,6 +443,9 @@ struct EditorScreen: View {
         let leftChanged = results.left != max(0, need)
         results.left = max(0, need)
         if c != context { context = c }
+        results.line = c.line
+        let sel = c.selection.trimmingCharacters(in: .whitespacesAndNewlines)
+        results.phrase = sel.split(whereSeparator: { $0 == " " }).count > 1 && !sel.contains("\n") ? sel : ""
         if RhymeEngine.normalise(c.word) != RhymeEngine.normalise(results.word) || leftChanged { results.show(c.word) }
     }
 

@@ -173,7 +173,9 @@ struct AudioPane: View {
         let timed = s.syncLines.filter { $0.t != nil }.count
         return Section("Lyric sync") {
             Group {
-                if synced {
+                if LyricSync.shared.busySong == songID {
+                    HStack(spacing: 10) { ProgressView(); Text(LyricSync.shared.progressText(cur.name)) }
+                } else if synced {
                     Text(LocalizedStringKey("**Synced** to “\(cur.name)”: \(timed) of \(s.syncLines.count) lines heard." + (s.syncIsStale ? " Lyrics changed since. Sync again to update." : "")))
                 } else if s.syncAudioID != nil && !s.syncLines.isEmpty {
                     Text("Synced to another version.")
@@ -182,6 +184,10 @@ struct AudioPane: View {
                 }
             }
             .font(.subheadline).foregroundStyle(.secondary)
+            Button(synced ? "Sync Again" : "Sync Lyrics") {
+                Task { await LyricSync.shared.run(songID: songID, library: library, session: session) }
+            }
+            .disabled(LyricSync.shared.busySong != nil)
             Button("Play with Lyrics") {
                 guard session.plan.isPro else { Haptics.warning(); session.toast = "Play with Lyrics is part of *[demo] Pro"; return }
                 onPlayWithLyrics()
