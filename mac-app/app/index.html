@@ -539,6 +539,12 @@ html.devbuild #ag-apple,html.devbuild .agapple{display:none!important}
 .view.vout{display:block;pointer-events:none}
 /* once a slide finishes, don't let the default fade-up replay on the screen that just slid in */
 .view.on.navdone{animation:none}
+/* the interactive back-swipe: the song on top, the list peeking beneath */
+.view.bstop{z-index:3;background:var(--bg);box-shadow:-12px 0 30px rgba(0,0,0,.12);animation:none!important;will-change:transform}
+.view.bspeek{display:block;pointer-events:none;z-index:1;animation:none!important;will-change:transform}
+/* rows light up the moment a finger lands (iOS skips :active on quick taps), then fade out */
+html body .prs{background:var(--fill)!important;transition:none!important}
+button.cell,button.row,.drow,.accplan,.accme,#adm .alink,button.crrow{transition:background-color .28s ease-out}
 .view.on.nav-in-r,.view.on.nav-in-l,.view.nav-out-l,.view.nav-out-r{background:var(--bg);will-change:transform}
 .view.on.nav-in-r{animation:navInR .44s cubic-bezier(.32,.72,0,1) both;z-index:2;box-shadow:-14px 0 34px rgba(0,0,0,.12)}
 .view.nav-out-l{animation:navOutL .44s cubic-bezier(.32,.72,0,1) both;z-index:1}
@@ -15299,6 +15305,7 @@ function haptic(kind){
 /* screens by depth: going deeper pushes (slides in from the right), going back pops; same depth just fades */
 var NAV_DEPTH={vList:0,vIdeas:1,vEdit:1},navT=0;
 /* no slide in the Mac app (window.desktop is its bridge) - it keeps the quick fade, like a desktop app */
+var NAV_SKIP=false;
 function navCalm(){if(window.desktop)return true;try{return matchMedia('(prefers-reduced-motion: reduce)').matches||(document.body.classList.contains('side')&&matchMedia('(min-width:980px)').matches)}catch(e){return false}}
 /* the song list and Ideas scroll under a floating header whose height differs between iPhone (safe area), the Mac
    app (title bar) and the web; measure it instead of guessing so the first row never starts underneath it */
@@ -15312,6 +15319,7 @@ function show(id){setTimeout(fitHeads,0);requestAnimationFrame(fitHeads);
   clearTimeout(navT);document.querySelectorAll('.view').forEach(function(v){v.classList.remove('vout','nav-in-r','nav-out-l','nav-in-l','nav-out-r','navdone')});
   document.querySelectorAll('.view').forEach(function(v){v.classList.toggle('on',v.id===id)});document.body.classList.toggle('listv',id==='vList');if(typeof dashTabsPaint==='function')dashTabsPaint();if(typeof syncSideVisibility==='function')syncSideVisibility();
   var dir=(from&&to&&fromId!==id&&(id in NAV_DEPTH)&&(fromId in NAV_DEPTH))?NAV_DEPTH[id]-NAV_DEPTH[fromId]:0;
+  if(NAV_SKIP){NAV_SKIP=false;if(to)to.classList.add('navdone');return}
   if(!dir||navCalm())return;
   from.classList.add('vout',dir>0?'nav-out-l':'nav-out-r');to.classList.add(dir>0?'nav-in-r':'nav-in-l');
   navT=setTimeout(function(){from.classList.remove('vout','nav-out-l','nav-out-r');to.classList.add('navdone');to.classList.remove('nav-in-r','nav-in-l')},460)}
@@ -15940,13 +15948,22 @@ function syncSideVisibility(){
 syncSideVisibility();
 /* edge-swipe to open the sidebar, and swipe-to-close while it's open, matching native iOS drawer navigation */
 (function(){
-  var ES={on:false,open:false,moved:false,x:0,y:0,w:260,lastPx:0,lastX:0,lastT:0,vel:0},BS={on:false};
+  var ES={on:false,open:false,moved:false,x:0,y:0,w:260,lastPx:0,lastX:0,lastT:0,vel:0},BS={on:false,u:null};
+  /* the song list sits underneath while the song is dragged off it, drifting in from the left like iOS; on release
+     the swipe itself is the transition, so show() is told not to play its own slide on top */
+  function bsUnder(){var u=$('#vList');return u&&u!==BS.v?u:null}
+  function bsPaint(dx){var w=innerWidth,p=Math.min(1,dx/w);BS.v.style.transform='translate3d('+dx+'px,0,0)';if(BS.u)BS.u.style.transform='translate3d('+(-28*(1-p))+'%,0,0)';if(BS.u)BS.u.style.filter='brightness('+(.94+.06*p)+')'}
   document.addEventListener('touchmove',function(e){if(!BS.on)return;var t=e.touches[0],dx=t.clientX-BS.x,dy=t.clientY-BS.y;
-    if(!BS.moved){if(Math.abs(dy)>14&&Math.abs(dy)>Math.abs(dx)){BS.on=false;return}if(dx<10)return;BS.moved=true;BS.v.style.transition='none';BS.v.style.boxShadow='-12px 0 30px rgba(0,0,0,.12)'}
-    var now=performance.now();if(now>BS.lt)BS.vel=(t.clientX-BS.lx)/(now-BS.lt);BS.lx=t.clientX;BS.lt=now;BS.dx=Math.max(0,dx);BS.v.style.transform='translateX('+BS.dx+'px)'},{passive:true});
-  function bsEnd(cancel){if(!BS.on)return;BS.on=false;if(!BS.moved)return;var v=BS.v,go=!cancel&&(BS.vel>.35||BS.dx>innerWidth*.33);
-    v.style.transition='transform .22s cubic-bezier(.32,.72,0,1)';v.style.transform=go?'translateX('+innerWidth+'px)':'';
-    setTimeout(function(){v.style.transition='';v.style.transform='';v.style.boxShadow='';if(go){haptic('light');if(v.id==='vEdit')goBack();else show('vList')}},go?220:230)}
+    if(!BS.moved){if(Math.abs(dy)>14&&Math.abs(dy)>Math.abs(dx)){BS.on=false;return}if(dx<8)return;BS.moved=true;BS.x=t.clientX-dx;
+      var ae=document.activeElement;if(ae&&ae.blur&&ae!==document.body)try{ae.blur()}catch(_){}
+      BS.v.classList.add('bstop');BS.u=bsUnder();if(BS.u){if(BS.v.id==='vEdit'&&typeof renderList==='function')try{renderList()}catch(_){}BS.u.classList.add('bspeek')}}
+    var now=performance.now();if(now>BS.lt)BS.vel=(t.clientX-BS.lx)/(now-BS.lt);BS.lx=t.clientX;BS.lt=now;BS.dx=Math.max(0,dx);bsPaint(BS.dx)},{passive:true});
+  function bsClear(){var v=BS.v,u=BS.u;[v,u].forEach(function(x){if(!x)return;x.style.transition='';x.style.transform='';x.style.filter='';x.classList.remove('bstop','bspeek')});BS.u=null}
+  function bsEnd(cancel){if(!BS.on)return;BS.on=false;if(!BS.moved)return;var v=BS.v,u=BS.u,go=!cancel&&(BS.vel>.3||(BS.vel>-.2&&BS.dx>innerWidth*.35));
+    var rest=go?innerWidth-BS.dx:BS.dx,ms=Math.round(Math.max(140,Math.min(260,rest/Math.max(1.4,Math.abs(BS.vel)))));
+    var ease='transform '+ms+'ms cubic-bezier(.2,.8,.2,1),filter '+ms+'ms';v.style.transition=ease;if(u)u.style.transition=ease;
+    requestAnimationFrame(function(){bsPaint(go?innerWidth:0)});if(go)haptic('light');
+    setTimeout(function(){if(go){NAV_SKIP=true;if(v.id==='vEdit')goBack();else show('vList');NAV_SKIP=false}bsClear()},ms+10)}
   document.addEventListener('touchend',function(){bsEnd(false)},{passive:true});document.addEventListener('touchcancel',function(){bsEnd(true)},{passive:true});
   function sideEl(){return $('#side')}
   /* iOS-style rubber-band resistance: 'over' is how far past the edge the raw drag would go.
@@ -17593,6 +17610,15 @@ var HELDROW=null;
 function unholdRow(row){row.classList.remove('held','swdel','swiping');row.style.removeProperty('--pull');var ad=row.querySelector('.rdel.arm');if(ad){ad.classList.remove('arm');ad.innerHTML=TRASH}}
 function setHeld(row){if(HELDROW&&HELDROW!==row)unholdRow(HELDROW);HELDROW=row;row.classList.add('held')}
 function clearHeld(){if(HELDROW){unholdRow(HELDROW);HELDROW=null}}
+/* row press highlight, driven by touch so it shows on every tap, not just slow ones; a scroll cancels it */
+(function(){var SEL='button.cell,button.row,.drow,.accplan,.accme,#adm .alink,button.crrow',el=null,x0=0,y0=0,t0=0,tT=-1e4;
+  function off(){var e=el;el=null;if(!e)return;var held=performance.now()-t0;setTimeout(function(){e.classList.remove('prs')},Math.max(0,90-held))}
+  document.addEventListener('touchstart',function(e){if(e.touches.length!==1)return;var r=e.target.closest&&e.target.closest(SEL);if(!r||r.disabled)return;el=r;x0=e.touches[0].clientX;y0=e.touches[0].clientY;t0=tT=performance.now();r.classList.add('prs')},{passive:true});
+  document.addEventListener('touchmove',function(e){if(!el)return;var t=e.touches[0];if(Math.abs(t.clientX-x0)>8||Math.abs(t.clientY-y0)>8){el.classList.remove('prs');el=null}},{passive:true});
+  document.addEventListener('touchend',off,{passive:true});document.addEventListener('touchcancel',function(){if(el)el.classList.remove('prs');el=null},{passive:true});
+  /* mouse/trackpad on the Mac */
+  document.addEventListener('mousedown',function(e){if(e.button||performance.now()-tT<800)return;var r=e.target.closest&&e.target.closest(SEL);if(!r||r.disabled)return;el=r;t0=performance.now();r.classList.add('prs')});
+  document.addEventListener('mouseup',off)})();
 document.addEventListener('touchstart',function(e){if(HELDROW&&!(e.target.closest&&e.target.closest('.held')))clearHeld()},{capture:true,passive:true});
 document.addEventListener('scroll',function(){if(HELDROW)clearHeld()},{capture:true,passive:true});
 /* swipe left (or hover, on a Mac) to show a delete button; one tap arms it, a second deletes. Same feel as songs */
