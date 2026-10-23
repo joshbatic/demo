@@ -14,6 +14,8 @@ struct SongListScreen: View {
     // folders and backups (spec §3.6–3.7)
     @State private var renaming: String?
     @State private var renameText = ""
+    @State private var renameSel: TextSelection?
+    @FocusState private var renameFocus: Bool
     @State private var importing = false
     @State private var exportURL: URL?
 
@@ -27,15 +29,17 @@ struct SongListScreen: View {
                 }
                 ForEach(groups, id: \.key) { g in
                     Section {
-                        groupHeader(g)
-                        ForEach(Array(g.songs.enumerated()), id: \.element.id) { i, s in
+                        // header and songs in one ForEach, so a song dropped anywhere in the group lands in it
+                        ForEach(g.rows, id: \.id) { row in
+                            if case .header = row { groupHeader(g) }
+                            else if case .song(let i, let s) = row {
                             // no chevron, and a hairline only between songs, from the text to the edge (.song+.song)
                             ZStack {
                                 NavigationLink(value: s.id) { EmptyView() }.opacity(0)
                                 SongRow(song: s, showFolder: g.pinned)
                             }
-                            // press and drag a song onto a folder's title to move it there
-                            .draggable(SongDrag.prefix + s.id) { SongRow(song: s).frame(width: 300).padding(.horizontal, 12).background(.background, in: RoundedRectangle(cornerRadius: 16)) }
+                            // press, then drag a song into another group to move it there
+                            .draggable(SongDrag.prefix + s.id)
                             .overlay(alignment: .top) {
                                 if i > 0 { Rectangle().fill(Color(uiColor: .separator)).frame(height: 0.5).padding(.leading, 66).padding(.trailing, -24) }
                             }
@@ -69,6 +73,14 @@ struct SongListScreen: View {
                                 } preview: {
                                     SongPreview(song: s)
                                 }
+                            }
+                        }
+                        .onInsert(of: [.plainText, .utf8PlainText, .text]) { _, providers in
+                            guard let f = g.dropFolder, let p = providers.first else { return }
+                            _ = p.loadObject(ofClass: NSString.self) { obj, _ in
+                                guard let id = SongDrag.id(obj as? String) else { return }
+                                Task { @MainActor in moveSong(id, to: f) }
+                            }
                         }
                     }
                 }
@@ -109,11 +121,6 @@ struct SongListScreen: View {
             .sheet(item: Binding(get: { exportURL.map(ShareSheet.IdentURL.init) }, set: { exportURL = $0?.url })) { u in
                 ActivityView(items: [u.url])
             }
-            .alert("Rename Folder", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } })) {
-                TextField("Folder name", text: $renameText)
-                Button("Cancel", role: .cancel) { renaming = nil }
-                Button("Rename") { commitRename() }
-            }
             .confirmationDialog(deleteTitle, isPresented: Binding(get: { confirmDelete != nil }, set: { if !$0 { confirmDelete = nil } }), titleVisibility: .visible) {
                 if let s = confirmDelete {
                     Button(isMine(s) ? "Delete Song" : "Leave Song", role: .destructive) { Task { await session.removeSong(s) } }
@@ -142,29 +149,38 @@ struct SongListScreen: View {
         var isFolder: Bool { !pinned && name != "Songs" }
         /// what dropping a song here sets its folder to
         var dropFolder: String? { pinned ? nil : name == "Songs" ? "" : name }
+        enum Row { case header, song(Int, Song)
+            var id: String { if case .song(_, let s) = self { return s.id }; return "\u{1}header" }
+        }
+        var rows: [Row] { [.header] + songs.enumerated().map { .song($0.offset, $0.element) } }
     }
 
-    /// The web's .gh: a big bold group title that scrolls away with its songs, with a rename pencil
-    /// on folders. Drop a song on it to move it into that group.
-    private func groupHeader(_ g: SongGroup) -> some View {
-        HStack(spacing: 8) {
-            Text(g.name).font(.system(size: 20, weight: .bold)).lineLimit(1)
-            if g.isFolder {
-                Button { startRename(g.name) } label: {
-                    Image(systemName: "pencil").font(.system(size: 14, weight: .semibold)).foregroundStyle(.secondary)
-                        .frame(width: 28, height: 28).contentShape(Rectangle())
-                }
-                .buttonStyle(.borderless)
-                .accessibilityLabel("Rename folder " + g.name)
+    /// The web's .gh: a big bold group title that scrolls away with its songs. A folder's title is
+    /// renamed in place (press and hold it, or straight after New Folder), like the web.
+    @ViewBuilder private func groupHeader(_ g: SongGroup) -> some View {
+        Group {
+            if g.isFolder && renaming == g.name {
+                TextField("Folder name", text: $renameText, selection: $renameSel)
+                    .font(.system(size: 20, weight: .bold))
+                    .focused($renameFocus)
+                    .submitLabel(.done)
+                    .autocorrectionDisabled()
+                    .onSubmit { commitRename() }
+                    .onChange(of: renameFocus) { _, on in if !on { commitRename() } }
+                    .onAppear { DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { renameFocus = true } }
+            } else {
+                Text(g.name).font(.system(size: 20, weight: .bold)).lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+                    .contextMenu {
+                        if g.isFolder {
+                            Button { startRename(g.name) } label: { Label("Rename Folder", systemImage: "pencil") }
+                        }
+                    }
             }
-            Spacer(minLength: 0)
         }
         .padding(.top, 22).padding(.bottom, 6)
-        .contentShape(Rectangle())
-        .dropDestination(for: String.self) { items, _ in
-            guard let f = g.dropFolder, let id = SongDrag.id(items.first) else { return false }
-            moveSong(id, to: f); return true
-        }
+        .moveDisabled(true)
         .listRowSeparator(.hidden)
         .listRowInsets(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 24))
         .accessibilityAddTraits(.isHeader)
@@ -187,14 +203,6 @@ struct SongListScreen: View {
         .padding(.top, 26).padding(.bottom, 20)
         .listRowSeparator(.hidden)
         .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-        // a drop zone like the web's "Drop here for a new folder"
-        .dropDestination(for: String.self) { items, _ in
-            guard let id = SongDrag.id(items.first) else { return false }
-            let f = library.freeFolderName()
-            moveSong(id, to: f)
-            startRename(f)
-            return true
-        }
     }
 
     /// Long-press › Move to Folder: every folder, a new one, or out of folders.
@@ -225,7 +233,11 @@ struct SongListScreen: View {
         startRename(f)
     }
 
-    private func startRename(_ f: String) { renameText = f; renaming = f }
+    private func startRename(_ f: String) {
+        renameText = f
+        renameSel = TextSelection(range: renameText.startIndex..<renameText.endIndex)   // all selected, like the web
+        withAnimation(.snappy) { renaming = f }
+    }
 
     private func commitRename() {
         guard let old = renaming else { return }
