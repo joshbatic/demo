@@ -118,7 +118,18 @@ struct ShareCard: View {
         VStack(alignment: .leading, spacing: 0) {
             playerCard(ink)
             if lyrics {
-                let blocks = ShareLink_.blocks(song)
+                let all = ShareLink_.blocks(song)
+                // the sheet's preview shows the first 5 lines (with their headings), the picture all of them
+                let blocks: [ShareLink_.Block] = {
+                    guard preview else { return all }
+                    var n = 0, out: [ShareLink_.Block] = []
+                    for b in all {
+                        if case .line = b { n += 1 }
+                        out.append(b)
+                        if n == 5 { break }
+                    }
+                    return out
+                }()
                 VStack(alignment: .leading, spacing: 0) {
                     if blocks.isEmpty {
                         Text("No lyrics yet").font(.system(size: 19, weight: .bold)).foregroundStyle(ink.opacity(0.5))
@@ -291,17 +302,16 @@ struct ShareSheet: View {
     }
 
     /// The preview: at most about half the screen, fading out at the bottom.
-    /// The preview: as tall as the card, up to about half the screen; past that it fades out at the bottom.
+    /// The preview: the first 5 lines, up to about half the screen, always fading out at the bottom.
     private func card(_ s: Song, _ bg: SharePalette.Background) -> some View {
         let cap = min(UIScreen.main.bounds.height * 0.48, 440)
-        let cut = cardHeight > cap
         return ShareCard(song: s, bg: bg, audio: includeAudio ? s.currentAudio : nil, width: UIScreen.main.bounds.width - 40, preview: true)
             .fixedSize(horizontal: false, vertical: true)
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { cardHeight = $0 }
             .frame(height: min(cardHeight, cap), alignment: .top)
             .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
             .mask {
-                LinearGradient(stops: [.init(color: .black, location: cut ? 0.78 : 1), .init(color: cut ? .clear : .black, location: 1)], startPoint: .top, endPoint: .bottom)
+                LinearGradient(stops: [.init(color: .black, location: 0.72), .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom)
             }
             .shadow(color: .black.opacity(0.12), radius: 15, y: 10)
             .padding(.horizontal, 20).padding(.top, 4).padding(.bottom, 14)
