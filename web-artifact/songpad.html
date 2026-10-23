@@ -5,7 +5,8 @@
 /* iPhone app: the launch screen's record label carries on into a short animation (see splashOut) */
 try{var C0=window.Capacitor;if(C0&&C0.isNativePlatform&&C0.isNativePlatform()&&(!C0.getPlatform||C0.getPlatform()==='ios'))document.documentElement.classList.add('splashing')}catch(e){}
 /* nothing takes the keyboard while the launch animation plays; whatever asked for it gets it once the animation is done */
-document.addEventListener('focusin',function(e){var t=e.target;if(!document.documentElement.classList.contains('splashing')||!t||!t.blur)return;if(t.matches&&t.matches('input,textarea,select,[contenteditable],[contenteditable] *')){window.__splFocus=t;try{t.blur()}catch(x){}}},true);</script>
+/* nor while the sign-in screen is up: nothing behind it should bring up the keyboard */
+document.addEventListener('focusin',function(e){var t=e.target;if(!t||!t.blur)return;var ag=document.getElementById('authgate');if(ag&&ag.style.display!=='none'&&getComputedStyle(ag).display!=='none'&&!ag.contains(t)&&t.matches&&t.matches('input,textarea,select,[contenteditable],[contenteditable] *')){try{t.blur()}catch(x){}return}if(!document.documentElement.classList.contains('splashing'))return;if(t.matches&&t.matches('input,textarea,select,[contenteditable],[contenteditable] *')){window.__splFocus=t;try{t.blur()}catch(x){}}},true);</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>*[demo]</title>
@@ -18808,7 +18809,7 @@ sbClient();
   function out(){if(done)return;done=true;var sp=document.getElementById('splash');if(!sp){h.classList.remove('splashing');return}
     var img=[].filter.call(sp.querySelectorAll('img'),function(x){return getComputedStyle(x).display!=='none'})[0];
     var calm=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
-    var end=function(){h.classList.remove('splashing');try{sp.remove()}catch(e){}var f=window.__splFocus;window.__splFocus=null;if(f&&f.isConnected&&f.offsetParent!==null&&!document.body.classList.contains('side')&&(!document.activeElement||document.activeElement===document.body))try{f.focus()}catch(e){}};
+    var end=function(){h.classList.remove('splashing');try{sp.remove()}catch(e){}var f=window.__splFocus;window.__splFocus=null;var ag=document.getElementById('authgate');if(f&&f.isConnected&&f.offsetParent!==null&&!(ag&&getComputedStyle(ag).display!=='none')&&!document.body.classList.contains('side')&&(!document.activeElement||document.activeElement===document.body))try{f.focus()}catch(e){}};
     if(!sp.animate||!img){end();return}
     var fade=function(){img.animate([{transform:'rotate(360deg) scale(1)',opacity:1},{transform:'rotate(360deg) scale(1.18)',opacity:0}],{duration:260,easing:'ease-in',fill:'forwards'});
       sp.animate([{opacity:1},{opacity:0}],{duration:320,delay:60,easing:'ease-out',fill:'forwards'}).onfinish=end};
