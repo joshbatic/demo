@@ -228,7 +228,7 @@ struct DetailsSheet: View {
                 ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } }
             }
         }
-        .presentationDetents([.large])
+        .presentationDetents([.fraction(0.88)])   // the web's Details sheet is 88% of the screen
     }
 
     private func field(_ label: String, _ kp: WritableKeyPath<Song, String>, prompt: String) -> some View {

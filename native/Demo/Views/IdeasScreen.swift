@@ -110,7 +110,7 @@ struct IdeaSheet: View {
                 }
             }
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.medium, .fraction(0.84)])
         .onAppear { text = idea.text; library.ideaEditingID = idea.id }
         .onDisappear { commit(); library.ideaEditingID = nil }
     }

@@ -530,7 +530,7 @@ struct DictionarySheet: View {
             insertAt = bridge.caretLocation
             if !initialWord.isEmpty { query = initialWord; results.show(initialWord) }
         }
-        .presentationDetents([.large])
+        .presentationDetents([.fraction(0.84)])   // the web's Dictionary starts 16% down
         .presentationDragIndicator(.visible)
     }
 

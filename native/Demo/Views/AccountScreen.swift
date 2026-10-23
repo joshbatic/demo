@@ -71,6 +71,7 @@ struct AccountScreen: View {
                 Button("Sign Out", role: .destructive) { dismiss(); Task { await session.signOut() } }
             } message: { Text("Your songs stay in your account.") }
         }
+        .presentationDetents([.fraction(0.84)])   // the web's sheets stop at 84%
         .task { await session.refreshPlan() }
     }
 }
