@@ -19,6 +19,17 @@ struct SongListScreen: View {
                 }
                 ForEach(groups, id: \.name) { g in
                     Section {
+                        // the folder name is a plain row, not a section header, so it scrolls away
+                        // with its songs instead of pinning under the title
+                        if !g.name.isEmpty {
+                            Text(g.name)
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                                .padding(.top, 14)
+                                .listRowSeparator(.hidden)
+                                .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 2, trailing: 20))
+                                .accessibilityAddTraits(.isHeader)
+                        }
                         ForEach(g.songs) { s in
                             NavigationLink(value: s.id) { SongRow(song: s) }
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -49,8 +60,6 @@ struct SongListScreen: View {
                                     SongPreview(song: s)
                                 }
                         }
-                    } header: {
-                        if !g.name.isEmpty { Text(g.name) }
                     }
                 }
                 if !query.isEmpty && groups.isEmpty {
