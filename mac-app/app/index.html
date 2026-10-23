@@ -365,7 +365,7 @@ body.ios #dictSheet{top:16%;padding-top:0}
 .sh{display:flex;justify-content:space-between;align-items:center;padding:16px 20px 10px}
 .sh b{font-size:17px}
 .sh button{height:32px;padding:0 15px;border-radius:99px;font-size:14.5px;font-weight:600;color:var(--ink);background:var(--gl);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);box-shadow:0 0 0 .5px var(--ring),0 1px 2px var(--sh2),0 2px 10px var(--sh2),inset 0 1px 0 var(--hl)}
-#done,#done2,#done3,#done4,#done5,#done6,#dictdone{height:40px;padding:0 18px;border-radius:99px;color:var(--tint);font-weight:600}
+
 .seg{display:flex;background:var(--fill);border-radius:99px;padding:2px;margin:6px 20px 12px;box-shadow:inset 0 0 0 .5px var(--ring)}
 .seg button{flex:1;padding:6px 14px;border-radius:99px;font-size:14px;font-weight:500}
 .seg .on{background:var(--segon);box-shadow:0 1px 4px rgba(0,0,0,.16),inset 0 1px 0 var(--hl2);font-weight:600}
@@ -1091,6 +1091,23 @@ body.sprinting #rhy{display:none}
 .pbar span{flex:none;font-size:14px;color:var(--mute);min-width:36px;text-align:center;font-variant-numeric:tabular-nums}
 @media (hover:hover){#wm button:hover,.pbar button:hover{background:var(--fill)}.pbar #pf-play:hover{filter:brightness(1.15);background:var(--tint)}}
 @media (prefers-reduced-motion:reduce){*,*::before{animation:none!important;transition:none!important}}
+
+/* ---- Apple-style buttons (iOS 26): sheets get a centred title with round controls either side. Done is a
+   checkmark in the app's tint, back is a glass chevron, and full-screen views close with a glass ✕. Big actions
+   are 50pt capsules; secondary buttons are grey-filled rather than outlined. ---- */
+.sh{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;column-gap:10px;align-items:center;padding:12px 14px 10px;min-height:66px}
+.sh>b,#sheet6 .sh b{grid-column:2;grid-row:1;text-align:center;font-size:17px;font-weight:600;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sh>.accback,#sheet6 .sh .accback{grid-column:1;grid-row:1;width:44px;height:44px;margin:0;padding:0;border-radius:50%;display:grid;place-items:center}
+.sh>button.shok{grid-column:3;grid-row:1;width:44px;height:44px;padding:0;border-radius:50%;display:grid;place-items:center;background:var(--tint);color:var(--ontint);box-shadow:0 1px 2px var(--sh2),0 4px 14px var(--sh2),inset 0 1px 0 rgba(255,255,255,.18)}
+#lp-x,#pf-x{width:44px;height:44px;padding:0;border-radius:50%;display:grid;place-items:center;color:var(--ink);background:var(--gl);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);box-shadow:0 0 0 .5px var(--ring),0 1px 2px var(--sh2),0 2px 10px var(--sh2),inset 0 1px 0 var(--hl)}
+#lp-x:active,#pf-x:active,.sh>button:active{transform:scale(.9)}
+.sh>button,#lp-x,#pf-x{transition:transform .2s cubic-bezier(.34,1.4,.5,1),filter .18s}
+/* capsules: the main action is 50pt tall with 17pt semibold text, like a SwiftUI .borderedProminent .large button */
+#authgate .go,#betagate .go{min-height:50px;padding:0 20px;font-size:17px;font-weight:600;letter-spacing:-.2px}
+#aiask .go,#aiask #aiask-n{display:flex;align-items:center;justify-content:center;width:100%;min-height:50px;border-radius:99px;font-size:17px;font-weight:600}
+#aiask #aiask-n{margin-top:8px;background:var(--fill);color:var(--ink)}
+.go2.ghost,.cuacts .go2.ghost{background:var(--fill);color:var(--ink);box-shadow:none}
+.go,.go2{letter-spacing:-.1px}
 </style>
 </head>
 <body>
@@ -15790,6 +15807,11 @@ $('#logo').onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefau
 var delArm=0;$('#del').onclick=function(){var b=this,s0=cur;
   var nat=s0&&natDestroy({title:'Delete “'+(s0.title||'Untitled')+'”?',message:'This can’t be undone.',ok:'Delete Song'});if(nat){nat.then(function(ok){if(ok)removeSong(s0)});return}
   if(Date.now()-delArm>3000){delArm=Date.now();b.textContent='Tap Again to Delete';setTimeout(function(){b.textContent='Delete Song'},3000);return}delArm=0;b.textContent='Delete Song';removeSong(cur)};
+/* sheet headers: Done is a round checkmark and the full-screen players close with a round ✕ (iOS 26) */
+(function(){var CHK='<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.8l4.6 4.6L19 7.6"/></svg>',
+  X='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  document.querySelectorAll('.sh>button').forEach(function(b){if(b.id==='accback')return;b.classList.add('shok');b.setAttribute('aria-label','Done');b.title='Done';b.innerHTML=CHK});
+  ['#lp-x','#pf-x'].forEach(function(q){var b=document.querySelector(q);if(b){b.setAttribute('aria-label','Close');b.title='Close';b.innerHTML=X}})})();
 function sheet(on,w){if(on&&!wideMQ.matches&&document.body.classList.contains('side'))sideOn(false);
   if(on){var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'||ae.id==='q'))ae.blur()}
   if(!on){try{ideaCommit()}catch(e){}var fa=document.activeElement;if(fa&&fa.blur&&fa.closest&&fa.closest('[role=dialog]'))fa.blur();$('#sheet').classList.remove('on');$('#sheet2').classList.remove('on');$('#sheet3').classList.remove('on');$('#sheet4').classList.remove('on');$('#sheet5').classList.remove('on');$('#sheet6').classList.remove('on');$('#sheet7').classList.remove('on');$('#sheet8').classList.remove('on');var s10=$('#sheet10');if(s10)s10.classList.remove('on');var s11=$('#sheet11');if(s11)s11.classList.remove('on')}else $('#'+(w||'sheet')).classList.add('on');$('#scrim').classList.toggle('on',on)}
