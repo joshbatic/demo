@@ -21,10 +21,9 @@ struct EditorScreen: View {
     var body: some View {
         Group {
             if let song {
-                VStack(spacing: 0) {
-                    header(song)
-                    RichTextEditor(bridge: bridge, rich: song.rich, lyrics: song.lyrics)
-                }
+                // the cover and title sit inside the lyrics' scroll, so they scroll away with the song (like the web)
+                RichTextEditor(bridge: bridge, rich: song.rich, lyrics: song.lyrics,
+                               header: AnyView(header(song).environment(session).environment(library).tint(Theme.tint)))
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     RhymeBar(bridge: bridge, context: context, results: results) { showDictionary = true }
                         .padding(.horizontal, 10)

@@ -234,11 +234,13 @@ struct RichTextEditor: UIViewRepresentable {
     let rich: String
     let lyrics: String
     var placeholder = "Start writing…"
+    /// The song's cover and title: drawn inside the text view's scroll, above the lyrics, so they scroll away with it.
+    var header: AnyView? = nil
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
     func makeUIView(context: Context) -> UITextView {
-        let tv = UITextView()
+        let tv = LyricsTextView()
         tv.backgroundColor = .clear
         tv.font = EditorBridge.baseFont
         tv.typingAttributes = EditorBridge.baseAttributes
@@ -256,12 +258,25 @@ struct RichTextEditor: UIViewRepresentable {
         load(tv, context.coordinator)
         context.coordinator.placeholder.text = placeholder
         context.coordinator.attachPlaceholder(to: tv)
+        if let header {
+            let hc = UIHostingController(rootView: header)
+            hc.view.backgroundColor = .clear
+            hc.sizingOptions = [.intrinsicContentSize]
+            context.coordinator.headerHost = hc
+            tv.header = hc
+            tv.addSubview(hc.view)
+            tv.onHeaderHeight = { [weak c = context.coordinator] h in c?.placeholderTop?.constant = h }
+        }
         return tv
     }
 
     func updateUIView(_ tv: UITextView, context: Context) {
         bridge.textView = tv
         context.coordinator.bridge = bridge
+        if let header, let hc = context.coordinator.headerHost {
+            hc.rootView = header
+            tv.setNeedsLayout()
+        }
         let key = rich + "\u{0}" + lyrics
         // reload only for changes that didn't come from this view (another device, a restore)
         if key != bridge.lastKey && !(tv.isFirstResponder && Date().timeIntervalSince(bridge.lastEdit) < 4) {
@@ -286,15 +301,19 @@ struct RichTextEditor: UIViewRepresentable {
     final class Coordinator: NSObject, UITextViewDelegate {
         weak var bridge: EditorBridge?
         let placeholder = UILabel()
+        var placeholderTop: NSLayoutConstraint?
+        var headerHost: UIHostingController<AnyView>?
 
         func attachPlaceholder(to tv: UITextView) {
             placeholder.font = EditorBridge.baseFont
             placeholder.textColor = .tertiaryLabel
             placeholder.translatesAutoresizingMaskIntoConstraints = false
             tv.addSubview(placeholder)
+            let top = placeholder.topAnchor.constraint(equalTo: tv.topAnchor, constant: tv.textContainerInset.top)
+            placeholderTop = top
             NSLayoutConstraint.activate([
                 placeholder.leadingAnchor.constraint(equalTo: tv.leadingAnchor, constant: 18 + tv.textContainer.lineFragmentPadding),
-                placeholder.topAnchor.constraint(equalTo: tv.topAnchor, constant: 8)
+                top
             ])
             updatePlaceholder(tv)
         }
@@ -415,6 +434,30 @@ struct RichTextEditor: UIViewRepresentable {
                 }
             }
             if changed { tv.selectedRange = sel; tv.typingAttributes = EditorBridge.baseAttributes }
+        }
+    }
+}
+
+/// A text view that carries the song's header (cover and title) at the top of its scroll,
+/// and pushes the lyrics down below it.
+final class LyricsTextView: UITextView {
+    var header: UIHostingController<AnyView>?
+    var onHeaderHeight: ((CGFloat) -> Void)?
+    private var lastHeaderHeight: CGFloat = -1
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        guard let hc = header else { return }
+        let w = bounds.width
+        let h = ceil(hc.sizeThatFits(in: CGSize(width: w, height: .greatestFiniteMagnitude)).height)
+        hc.view.frame = CGRect(x: 0, y: 0, width: w, height: h)
+        let top = h + 8
+        if abs(textContainerInset.top - top) > 0.5 {
+            textContainerInset.top = top
+        }
+        if h != lastHeaderHeight {
+            lastHeaderHeight = h
+            onHeaderHeight?(top)
         }
     }
 }
