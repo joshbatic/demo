@@ -54,6 +54,9 @@ final class LibraryStore {
             // a fresh device starts empty *with no base*, so its first sync can't infer any deletes
             songs = []; ideas = []; tomb = Tombs(); base = nil; seenAt = nil
         }
+        // every library starts with the "How *[demo] works" song (once; deleting it is for good)
+        let seeded = Guide.seed(songs, uid: uid)
+        if seeded != songs { songs = seeded; flushSave() }
         sync()
         startPolling()
     }

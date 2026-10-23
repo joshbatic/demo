@@ -693,7 +693,7 @@ enum Prompts {
 
     static func writerContext(_ env: PromptEnv) -> String {
         var out = ""
-        let others = env.songs.filter { $0.id != env.song.id && !$0.lyrics.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }.sorted { $0.updated > $1.updated }.prefix(6)
+        let others = env.songs.filter { $0.id != env.song.id && !$0.isGuide && !$0.lyrics.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }.sorted { $0.updated > $1.updated }.prefix(6)
         if !others.isEmpty { out += "\n\nOther songs by this writer (for their style only, do not rate these):\n" + others.map { "- " + ($0.title.isEmpty ? "Untitled" : $0.title) + ": " + llines($0).prefix(6).joined(separator: " / ") }.joined(separator: "\n") }
         if let p = MuseMemory.shared.profile, !p.text.isEmpty { out += "\n\nHow this writer writes (their voice profile, learned from all their songs and from which suggestions they kept, rewrote and threw out; judge against this voice, not a generic ideal):\n" + String(p.text.prefix(1400)) }
         let w = rateReads(6, skip: env.song.id, songs: env.songs)

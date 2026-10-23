@@ -1,10 +1,13 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct AccountScreen: View {
     @Environment(AppSession.self) private var session
     @Environment(LibraryStore.self) private var library
     @Environment(\.dismiss) private var dismiss
     @State private var confirmSignOut = false
+    @State private var importing = false
+    @State private var exportURL: URL?
 
     var body: some View {
         NavigationStack {
@@ -40,6 +43,15 @@ struct AccountScreen: View {
                     LabeledContent {
                         Text("\(library.ideas.count)")
                     } label: { Label { Text("Ideas") } icon: { TileIcon("lightbulb.fill", Theme.Tile.orange) } }
+                    Button { Haptics.tap(); importing = true } label: {
+                        Label { Text("Import Songs").foregroundStyle(.primary) } icon: { TileIcon("square.and.arrow.down", Theme.Tile.green) }
+                    }
+                    Button {
+                        Haptics.tap()
+                        if let u = library.exportFile() { exportURL = u } else { session.toast = "No songs to export yet" }
+                    } label: {
+                        Label { Text("Export All Songs").foregroundStyle(.primary) } icon: { TileIcon("square.and.arrow.up", Theme.Tile.blue) }
+                    }
                     Button { Haptics.tap(); library.sync() } label: {
                         LabeledContent {
                             if library.syncing { ProgressView() } else { Text("Up to date").foregroundStyle(.secondary) }
@@ -73,6 +85,12 @@ struct AccountScreen: View {
                 ToolbarItem(placement: .confirmationAction) {
                     DoneButton { dismiss() }
                 }
+            }
+            .fileImporter(isPresented: $importing, allowedContentTypes: [.json, .plainText, .text], allowsMultipleSelection: true) { r in
+                if case .success(let urls) = r, !urls.isEmpty { Haptics.success(); session.toast = library.importFiles(urls) }
+            }
+            .sheet(item: Binding(get: { exportURL.map(ShareSheet.IdentURL.init) }, set: { exportURL = $0?.url })) { u in
+                ActivityView(items: [u.url])
             }
             .confirmationDialog("Sign out of *[demo]?", isPresented: $confirmSignOut, titleVisibility: .visible) {
                 Button("Sign Out", role: .destructive) { dismiss(); Task { await session.signOut() } }
