@@ -16,16 +16,18 @@ final class LibraryStore {
 
     /// The song open in the editor and when it was last typed in: it always keeps its local copy in a merge.
     var editingID: String?
-    var lastTyping = Date.distantPast
+    @ObservationIgnored var lastTyping = Date.distantPast
     var ideaEditingID: String?
 
-    private var tomb = Tombs()
-    private var base: BaseIDs?
-    private var seenAt: String?
-    private var saveTask: Task<Void, Never>?
-    private var pushTask: Task<Void, Never>?
-    private var pollTask: Task<Void, Never>?
-    private var running = false, again = false
+    // sync bookkeeping: not watched by any screen
+    @ObservationIgnored private var tomb = Tombs()
+    @ObservationIgnored private var base: BaseIDs?
+    @ObservationIgnored private var seenAt: String?
+    @ObservationIgnored private var saveTask: Task<Void, Never>?
+    @ObservationIgnored private var pushTask: Task<Void, Never>?
+    @ObservationIgnored private var pollTask: Task<Void, Never>?
+    @ObservationIgnored private var running = false
+    @ObservationIgnored private var again = false
 
     nonisolated struct Tombs: Codable { var songs: [String: Double] = [:]; var ideas: [String: Double] = [:] }
     nonisolated struct BaseIDs: Codable { var songs: [String]; var ideas: [String] }
