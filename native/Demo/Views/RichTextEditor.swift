@@ -476,8 +476,8 @@ final class LyricsTextView: UITextView {
     override func layoutSubviews() {
         super.layoutSubviews()
         let w = bounds.width
-        // the floating top bar: the status bar, then 8 + 44 + 12 pt (EditorScreen.topBar)
-        let barRoom = (window?.safeAreaInsets.top ?? safeAreaInsets.top) + 64
+        // the floating top bar: the status bar, then 8 + 48 + 12 pt (EditorScreen.topBar)
+        let barRoom = (window?.safeAreaInsets.top ?? safeAreaInsets.top) + 68
         let space = max(topSpace, barRoom)
         var h: CGFloat = 0
         if let hc = header {

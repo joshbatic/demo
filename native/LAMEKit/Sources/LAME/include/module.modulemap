@@ -1,0 +1,4 @@
+module LAME {
+    header "lame.h"
+    export *
+}

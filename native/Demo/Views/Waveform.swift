@@ -10,6 +10,8 @@ struct Waveform: View {
     let duration: Double
     var tickEvery: Double = 5
     var height: CGFloat = 44
+    /// Bars drawn at most; longer peak lists are pooled (max of each group).
+    var maxBars = 120
     var onSeek: (Double) -> Void
 
     @State private var dragX: CGFloat?
@@ -53,8 +55,17 @@ struct Waveform: View {
         }
     }
 
+    static func pool(_ p: [Double], _ n: Int) -> [Double] {
+        guard p.count > n, n > 0 else { return p }
+        let step = Double(p.count) / Double(n)
+        return (0..<n).map { i in
+            let a = Int(Double(i) * step), b = max(a + 1, min(p.count, Int(Double(i + 1) * step)))
+            return p[a..<b].max() ?? 0
+        }
+    }
+
     private func draw(_ ctx: GraphicsContext, size: CGSize) {
-        let bars = peaks.isEmpty ? Array(repeating: 12.0, count: 60) : peaks
+        let bars = Self.pool(peaks.isEmpty ? Array(repeating: 12.0, count: 60) : peaks, maxBars)
         let n = bars.count
         guard n > 0, size.width > 0 else { return }
         let unit = size.width / CGFloat(n)

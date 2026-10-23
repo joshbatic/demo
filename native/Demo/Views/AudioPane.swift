@@ -141,7 +141,7 @@ struct AudioPane: View {
                 .background(BarFill.color, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             HStack {
                 if audio && mine && SongFiles.needsConversion(a.ext) {
-                    Button("Convert to AAC") { Task { await convert(a) } }.buttonStyle(.bordered)
+                    Button("Convert to \(SongFiles.convertName)") { Task { await convert(a) } }.buttonStyle(.bordered)
                 }
                 Spacer()
                 Button(armedDelete == a.id ? "Tap Again to Delete" : "Delete", role: .destructive) { delete(a, audio: audio) }
@@ -303,11 +303,11 @@ struct AudioPane: View {
             var orig: JSONValue?
             var saved: Double = 0
             if audio && SongFiles.needsConversion(ext) {
-                status("Converting “\(display)” to AAC…")
+                status("Converting “\(display)” to \(SongFiles.convertName)…")
                 let before = (try? FileManager.default.attributesOfItem(atPath: local.path)[.size] as? NSNumber)?.doubleValue ?? 0
-                let converted = try await SongFiles.convertToAAC(local)
+                let (converted, newExt, _) = try await SongFiles.convertForUpload(local)
                 orig = .object(["name": .string(fileName), "size": .number(before), "mime": .string(SongFiles.mime(forExt: ext))])
-                local = converted; ext = "m4a"
+                local = converted; ext = newExt
                 let after = (try? FileManager.default.attributesOfItem(atPath: local.path)[.size] as? NSNumber)?.doubleValue ?? 0
                 saved = max(0, before - after)
             }
@@ -340,7 +340,7 @@ struct AudioPane: View {
             }
             s.touch(); library.put(s)
             Haptics.success()
-            session.toast = saved > 1_048_576 ? "Added “\(display)” as AAC, saving \(SongFiles.size(saved))" : "Added “\(display)”"
+            session.toast = saved > 1_048_576 ? "Added “\(display)” as \(ext.uppercased()), saving \(SongFiles.size(saved))" : "Added “\(display)”"
             try? FileManager.default.removeItem(at: dir)
         } catch {
             Haptics.warning()
@@ -350,27 +350,27 @@ struct AudioPane: View {
 
     /// An uploaded WAV / AIFF / FLAC becomes AAC: a new file id and path, the original noted in `orig`.
     private func convert(_ a: FileItem) async {
-        let b = Busy(audio: true, status: "Converting “\(a.name)” to AAC…")
+        let b = Busy(audio: true, status: "Converting “\(a.name)” to \(SongFiles.convertName)…")
         busy.append(b)
         defer { busy.removeAll { $0.id == b.id } }
         do {
             let src = try await SongFiles.namedCopy(a)
-            let out = try await SongFiles.convertToAAC(src)
+            let (out, ext, mime) = try await SongFiles.convertForUpload(src)
             let data = try Data(contentsOf: out)
             let id = UUID().uuidString.lowercased()
             var path = "local:\(id)"
             if let uid = session.userID, !a.isLocal {
-                path = "\(uid)/\(songID)/\(id).m4a"
-                try await SongFiles.upload(data, to: path, mime: "audio/mp4")
+                path = "\(uid)/\(songID)/\(id).\(ext)"
+                try await SongFiles.upload(data, to: path, mime: mime)
             } else {
-                try data.write(to: SongFiles.localURL(id, ext: "m4a"))
+                try data.write(to: SongFiles.localURL(id, ext: ext))
             }
             guard var s = library.song(songID), let i = s.audioItems.firstIndex(where: { $0.id == a.id }) else { return }
             var item = s.audioItems[i]
             item.raw["id"] = .string(id)
             item.raw["path"] = .string(path)
             item.raw["size"] = .number(Double(data.count))
-            item.raw["mime"] = "audio/mp4"
+            item.raw["mime"] = .string(mime)
             item.raw["orig"] = .object(["name": .string(a.name + "." + a.ext), "size": .number(a.size), "mime": .string(a.mime)])
             var l = s.audioItems; l[i] = item; s.audioItems = l
             if s.syncAudioID == a.id, var sync = s.raw["sync"]?.object { sync["audioId"] = .string(id); s.raw["sync"] = .object(sync) }

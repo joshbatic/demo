@@ -97,7 +97,7 @@ struct IdeasScreen: View {
     private var header: some View {
         HStack(spacing: 12) {
             Button { Haptics.tap(); dismiss() } label: {
-                Icon("ic-back", 20).foregroundStyle(Theme.tint).frame(width: 44, height: 44).contentShape(Circle())
+                Icon("ic-back", 22).foregroundStyle(Theme.tint).frame(width: 48, height: 48).contentShape(Circle())
             }
             .buttonStyle(PressScale())
             .glassCircle()

@@ -120,10 +120,14 @@ final class LyricSync {
         let total = Double(pcm.count) / sr
         let a = max(0, Double(k) * Self.chunk - Self.overlap), b = min(total, Double(k + 1) * Self.chunk + Self.overlap)
         let part = Array(pcm[Int(a * sr)..<min(pcm.count, Int((b * sr).rounded(.up)))])
-        let wav = Self.wav16(part, sr: Int(sr))
+        // a small 48 kbps MP3 like the web; WAV when LAME isn't there
+        let mp3 = MP3.encodeMono(part, sampleRate: Int(sr), kbps: 48)
+        let audio = mp3 ?? Self.wav16(part, sr: Int(sr))
+        let name = mp3 != nil ? "part\(k).mp3" : "part\(k).wav"
+        let type = mp3 != nil ? "audio/mpeg" : "audio/wav"
         func send() async throws -> JSONValue {
             try await withThrowingTaskGroup(of: JSONValue.self) { g in
-                g.addTask { try await Self.post(wav, name: "part\(k).wav", prompt: prompt) }
+                g.addTask { try await Self.post(audio, name: name, type: type, prompt: prompt) }
                 g.addTask { try await Task.sleep(for: .seconds(Self.wait)); throw SyncError.message("the sync server took too long to answer. Try again in a moment.") }
                 let r = try await g.next()!
                 g.cancelAll()
@@ -153,11 +157,11 @@ final class LyricSync {
     }
 
     /// One piece as multipart form data (`audio`, `prompt`) to the edge function.
-    nonisolated private static func post(_ wav: Data, name: String, prompt: String) async throws -> JSONValue {
+    nonisolated private static func post(_ wav: Data, name: String, type: String, prompt: String) async throws -> JSONValue {
         let boundary = "----demo" + UUID().uuidString
         var body = Data()
         func s(_ x: String) { body.append(Data(x.utf8)) }
-        s("--\(boundary)\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"\(name)\"\r\nContent-Type: audio/wav\r\n\r\n")
+        s("--\(boundary)\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"\(name)\"\r\nContent-Type: \(type)\r\n\r\n")
         body.append(wav)
         s("\r\n--\(boundary)\r\nContent-Disposition: form-data; name=\"prompt\"\r\n\r\n\(prompt)\r\n--\(boundary)--\r\n")
         do {

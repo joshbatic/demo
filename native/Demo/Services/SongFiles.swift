@@ -316,7 +316,17 @@ nonisolated enum SongFiles {
         return (0..<60).map { i in p180[(i * 3)..<min(p180.count, i * 3 + 3)].max() ?? 0 }
     }
 
-    /// WAV / AIFF / FLAC become AAC (.m4a) on the device before upload. iOS has no MP3 encoder, and AAC plays everywhere.
+    /// WAV / AIFF / FLAC are converted before upload: to MP3 with LAME (like the web), else AAC.
+    /// Returns the new file and its extension and MIME type.
+    static func convertForUpload(_ src: URL) async throws -> (URL, String, String) {
+        if MP3.available, let u = try? await MP3.encode(src) { return (u, "mp3", "audio/mpeg") }
+        return (try await convertToAAC(src), "m4a", "audio/mp4")
+    }
+
+    /// The format conversions turn into: "MP3", or "AAC" without LAME.
+    static var convertName: String { MP3.available ? "MP3" : "AAC" }
+
+    /// WAV / AIFF / FLAC to AAC (.m4a), when LAME isn't there.
     static func convertToAAC(_ src: URL) async throws -> URL {
         let asset = AVURLAsset(url: src)
         guard let ex = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A) else { throw FileError.convert }

@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 import PhotosUI
+import Combine
 
 struct EditorScreen: View {
     let songID: String
@@ -186,7 +187,7 @@ struct EditorScreen: View {
         HStack(spacing: 10) {
             HStack(spacing: 0) {
                 Button { Haptics.tap(); dismiss() } label: {
-                    Icon("ic-back", 20).foregroundStyle(Theme.tint).frame(width: 38, height: 44).contentShape(Rectangle())
+                    Icon("ic-back", 22).foregroundStyle(Theme.tint).frame(width: 44, height: 48).contentShape(Rectangle())
                 }
                 .buttonStyle(PressScale()).accessibilityLabel("Songs")
                 Button {
@@ -194,7 +195,7 @@ struct EditorScreen: View {
                     bridge.textView?.resignFirstResponder()
                     withAnimation(.snappy(duration: 0.32)) { showSide = true }
                 } label: {
-                    Icon("ic-sidebar", 22).foregroundStyle(Theme.tint).frame(width: 38, height: 44).contentShape(Rectangle())
+                    Icon("ic-sidebar", 24).foregroundStyle(Theme.tint).frame(width: 44, height: 48).contentShape(Rectangle())
                 }
                 .buttonStyle(PressScale()).accessibilityLabel("Show sidebar")
             }
@@ -213,7 +214,7 @@ struct EditorScreen: View {
                     session.toast = showSyl ? "Syllable counts on" : "Syllable counts off"
                 }
                 ShareLink(item: shareText) {
-                    Icon("ic-share", 20).foregroundStyle(Theme.tint).frame(width: 38, height: 44).contentShape(Rectangle())
+                    Icon("ic-share", 22).foregroundStyle(Theme.tint).frame(width: 44, height: 48).contentShape(Rectangle())
                 }
                 .buttonStyle(PressScale())
                 .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })
@@ -241,11 +242,11 @@ struct EditorScreen: View {
 
     private func barToggle(_ icon: String, _ label: String, on: Bool, _ action: @escaping () -> Void) -> some View {
         Button { Haptics.selection(); withAnimation(.snappy(duration: 0.2)) { action() } } label: {
-            Icon(icon, 20)
+            Icon(icon, 22)
                 .foregroundStyle(on ? Theme.onTint : Theme.tint)
-                .frame(width: 34, height: 34)
+                .frame(width: 38, height: 38)
                 .background(on ? Theme.tint : .clear, in: Circle())
-                .frame(width: 38, height: 44)
+                .frame(width: 44, height: 48)
                 .contentShape(Rectangle())
         }
         .buttonStyle(PressScale())
@@ -283,7 +284,7 @@ struct EditorScreen: View {
                 Button(role: .destructive) { confirmDelete = true } label: { Label("Delete Song", systemImage: "trash") }
             }
         } label: {
-            Icon("ic-more", 22).foregroundStyle(Theme.tint).frame(width: 44, height: 44).contentShape(Rectangle())
+            Icon("ic-more", 24).foregroundStyle(Theme.tint).frame(width: 48, height: 48).contentShape(Rectangle())
         }
         .accessibilityLabel("Details")
     }

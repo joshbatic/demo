@@ -236,7 +236,11 @@ struct BriefForm: View {
     @Environment(LibraryStore.self) private var library
     @Environment(AppSession.self) private var session
     @Environment(\.dismiss) private var dismiss
-    @State private var who = "", to = "", place = "", thing = "", more = ""
+    @State private var who = ""
+    @State private var to = ""
+    @State private var place = ""
+    @State private var thing = ""
+    @State private var more = ""
     @State private var loaded = false
 
     var body: some View {
