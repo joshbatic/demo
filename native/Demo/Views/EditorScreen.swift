@@ -39,13 +39,12 @@ struct EditorScreen: View {
                 Button {
                     showMap.toggle(); bridge.showMap = showMap; Haptics.selection()
                     session.toast = showMap ? "Rhyme map on" : "Rhyme map off"
-                } label: { Image(systemName: showMap ? "highlighter" : "highlighter") .symbolVariant(showMap ? .fill : .none) }
+                } label: { Icon("ic-map", 21).padding(5).background(showMap ? Color.primary.opacity(0.14) : .clear, in: Circle()) }
                     .accessibilityLabel("Rhyme map").accessibilityValue(showMap ? "On" : "Off")
-                    .tint(showMap ? Theme.tint : .primary)
                 Button {
                     showSyl.toggle(); bridge.showSyl = showSyl; Haptics.selection()
                     session.toast = showSyl ? "Syllable counts on" : "Syllable counts off"
-                } label: { Image(systemName: showSyl ? "number.square.fill" : "number") }
+                } label: { Icon("ic-syl", 21).padding(5).background(showSyl ? Color.primary.opacity(0.14) : .clear, in: Circle()) }
                     .accessibilityLabel("Syllable counts").accessibilityValue(showSyl ? "On" : "Off")
             }
             ToolbarItemGroup(placement: .topBarTrailing) {
@@ -117,7 +116,7 @@ struct EditorScreen: View {
             } label: { Label("Highlight", systemImage: "highlighter") }
             Button { bridge.clearFormatting() } label: { Label("Clear Formatting", systemImage: "textformat") }
         } label: {
-            Image(systemName: "textformat")
+            Icon("ic-brush", 20)
         }
         .accessibilityLabel("Text formatting")
     }
@@ -142,7 +141,7 @@ struct EditorScreen: View {
                 Button(role: .destructive) { confirmDelete = true } label: { Label("Delete Song", systemImage: "trash") }
             }
         } label: {
-            Image(systemName: "ellipsis")
+            Icon("ic-more", 22)
         }
         .accessibilityLabel("More")
     }
@@ -230,10 +229,7 @@ struct DetailsSheet: View {
             .navigationTitle("Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button { Haptics.tap(); dismiss() } label: { Image(systemName: "checkmark") }
-                        .accessibilityLabel("Done")
-                }
+                ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } }
             }
         }
         .presentationDetents([.large])

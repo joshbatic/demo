@@ -166,7 +166,7 @@ struct RhymeBar: View {
             HStack(spacing: 8) {
                 status.lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
                 Button { Haptics.selection(); withAnimation(.snappy) { showFormat.toggle() } } label: {
-                    Image(systemName: "textformat").frame(width: 34, height: 34)
+                    Icon("ic-brush", 17).frame(width: 34, height: 34)
                         .background(showFormat ? Color.primary.opacity(0.12) : .clear, in: Circle())
                 }
                 .buttonStyle(.plain)
@@ -289,10 +289,10 @@ struct FormatRow: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
-                fmt("bold") { bridge.toggle(.bold) }
-                fmt("italic") { bridge.toggle(.italic) }
-                fmt("underline") { bridge.toggle(.underline) }
-                fmt("strikethrough") { bridge.toggle(.strike) }
+                letter(Text("B").font(.system(size: 17, weight: .bold)), "Bold") { bridge.toggle(.bold) }
+                letter(Text("I").font(.system(size: 19, design: .serif)).italic(), "Italic") { bridge.toggle(.italic) }
+                letter(Text("U").font(.system(size: 17, weight: .semibold)).underline(), "Underline") { bridge.toggle(.underline) }
+                letter(Text("S").font(.system(size: 17, weight: .semibold)).strikethrough(), "Strikethrough") { bridge.toggle(.strike) }
                 Divider().frame(height: 22).padding(.horizontal, 2)
                 ForEach(RichText.textColors, id: \.0) { name, c in
                     Button { bridge.setColor(c) } label: { Circle().fill(Color(uiColor: c)).frame(width: 24, height: 24).padding(5) }
@@ -305,14 +305,16 @@ struct FormatRow: View {
                             .background(Color(uiColor: c), in: Capsule())
                     }.buttonStyle(.plain)
                 }
-                fmt("xmark") { bridge.clearFormatting() }.accessibilityLabel("Clear formatting")
+                Button { bridge.clearFormatting() } label: { Icon("ic-close", 15).frame(width: 36, height: 34) }
+                    .buttonStyle(.plain).accessibilityLabel("Clear formatting")
             }
         }
         .scrollClipDisabled()
     }
-    private func fmt(_ icon: String, _ action: @escaping () -> Void) -> some View {
-        Button(action: action) { Image(systemName: icon).font(.system(size: 16, weight: .semibold)).frame(width: 36, height: 34) }
-            .buttonStyle(.plain)
+    /// The web's B / I / U / S buttons are letters, not icons.
+    private func letter(_ t: Text, _ label: String, _ action: @escaping () -> Void) -> some View {
+        Button(action: action) { t.frame(width: 36, height: 34) }
+            .buttonStyle(.plain).accessibilityLabel(label)
     }
 }
 
@@ -392,7 +394,7 @@ struct DictionarySheet: View {
             }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button { Haptics.tap(); dismiss() } label: { Image(systemName: "checkmark") }.accessibilityLabel("Done")
+                    DoneButton { dismiss() }
                 }
             }
         }

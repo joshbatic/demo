@@ -64,7 +64,7 @@ struct AccountScreen: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button { Haptics.tap(); dismiss() } label: { Image(systemName: "checkmark") }.accessibilityLabel("Done")
+                    DoneButton { dismiss() }
                 }
             }
             .confirmationDialog("Sign out of *[demo]?", isPresented: $confirmSignOut, titleVisibility: .visible) {

@@ -106,7 +106,7 @@ struct IdeaSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button { commit(); dismiss() } label: { Image(systemName: "checkmark") }.accessibilityLabel("Done")
+                    DoneButton { commit(); dismiss() }
                 }
             }
         }

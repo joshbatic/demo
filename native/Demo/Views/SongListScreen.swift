@@ -67,7 +67,7 @@ struct SongListScreen: View {
                 ListHeader(title: "*[demo]") { AccountButton { showAccount = true } }
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                SearchDock(text: $query, prompt: "Search", icon: "square.and.pencil", label: "New song") { newSong() }
+                SearchDock(text: $query, prompt: "Search", icon: "ic-new", label: "New song") { newSong() }
             }
             .navigationDestination(for: String.self) { id in
                 if id == IdeasRow.route { IdeasScreen() } else { EditorScreen(songID: id) }
@@ -234,7 +234,7 @@ struct Avatar: View {
         .clipShape(Circle())
     }
     private var placeholder: some View {
-        Image(systemName: "person.crop.circle.fill").resizable().foregroundStyle(.secondary)
+        Icon("ic-person", size * 0.82).foregroundStyle(.primary).frame(width: size, height: size)
     }
     static func trusted(_ u: URL) -> Bool {
         guard u.scheme == "https", let h = u.host else { return false }
@@ -281,7 +281,7 @@ struct SearchDock: View {
         GlassGroup(spacing: 10) {
             HStack(spacing: 10) {
                 HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass").font(.system(size: 17, weight: .medium)).foregroundStyle(.secondary)
+                    Icon("ic-search", 18).foregroundStyle(.secondary)
                     TextField(prompt, text: $text)
                         .focused($focused)
                         .submitLabel(.search)
@@ -306,7 +306,7 @@ struct SearchDock: View {
                     Haptics.tap()
                     action()
                 } label: {
-                    Image(systemName: icon).font(.system(size: 21, weight: .medium)).foregroundStyle(.primary)
+                    Icon(icon, 24).foregroundStyle(.primary)
                         .frame(width: 52, height: 52)
                         .contentShape(Circle())
                 }
