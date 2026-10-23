@@ -144,7 +144,7 @@ struct ShareCard: View {
                 }
             }
         }
-        .padding(.horizontal, 24).padding(.top, 26).padding(.bottom, lyrics ? 0 : 26)
+        .padding(.horizontal, 24).padding(.top, 26).padding(.bottom, lyrics && !preview ? 0 : 26)
         .frame(width: width, alignment: .topLeading)
         .background {
             ZStack {
@@ -237,8 +237,10 @@ struct ShareSheet: View {
     @State private var busy: String?
     @State private var confirmStop = false
     @State private var shareURL: URL?
-    /// The content's height, so the sheet opens just tall enough for it.
-    @State private var contentHeight: CGFloat = 560
+    /// The content's height, so the sheet opens just tall enough for it. It starts at the
+    /// tallest the sheet can be and settles down to the content, so it never grows on open.
+    @State private var contentHeight: CGFloat = 10_000
+    @State private var cardHeight: CGFloat = 440
 
     private var song: Song? { library.song(songID) }
     private var myShare: [String: JSONValue]? {
@@ -289,17 +291,20 @@ struct ShareSheet: View {
     }
 
     /// The preview: at most about half the screen, fading out at the bottom.
+    /// The preview: as tall as the card, up to about half the screen; past that it fades out at the bottom.
     private func card(_ s: Song, _ bg: SharePalette.Background) -> some View {
-        GeometryReader { g in
-            ShareCard(song: s, bg: bg, audio: includeAudio ? s.currentAudio : nil, width: g.size.width, preview: true)
-        }
-        .frame(height: min(UIScreen.main.bounds.height * 0.48, 440))
-        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
-        .mask {
-            LinearGradient(stops: [.init(color: .black, location: 0.78), .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom)
-        }
-        .shadow(color: .black.opacity(0.12), radius: 15, y: 10)
-        .padding(.horizontal, 20).padding(.top, 4).padding(.bottom, 14)
+        let cap = min(UIScreen.main.bounds.height * 0.48, 440)
+        let cut = cardHeight > cap
+        return ShareCard(song: s, bg: bg, audio: includeAudio ? s.currentAudio : nil, width: UIScreen.main.bounds.width - 40, preview: true)
+            .fixedSize(horizontal: false, vertical: true)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { cardHeight = $0 }
+            .frame(height: min(cardHeight, cap), alignment: .top)
+            .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+            .mask {
+                LinearGradient(stops: [.init(color: .black, location: cut ? 0.78 : 1), .init(color: cut ? .clear : .black, location: 1)], startPoint: .top, endPoint: .bottom)
+            }
+            .shadow(color: .black.opacity(0.12), radius: 15, y: 10)
+            .padding(.horizontal, 20).padding(.top, 4).padding(.bottom, 14)
     }
 
     private var swatches: some View {
