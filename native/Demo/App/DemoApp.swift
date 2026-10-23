@@ -1,9 +1,17 @@
 import SwiftUI
+import UIKit
 
 @main
 struct DemoApp: App {
     @State private var session = AppSession()
     @Environment(\.scenePhase) private var scenePhase
+
+    init() {
+        // segmented controls (Details' tabs): a fuller label than the system's default
+        let seg = UISegmentedControl.appearance()
+        seg.setTitleTextAttributes([.font: UIFont.systemFont(ofSize: 15, weight: .medium)], for: .normal)
+        seg.setTitleTextAttributes([.font: UIFont.systemFont(ofSize: 15, weight: .semibold)], for: .selected)
+    }
 
     var body: some Scene {
         WindowGroup {

@@ -344,7 +344,8 @@ struct IdeaSheet: View {
                 }
             } message: { Text("This can’t be undone.") }
         }
-        .presentationDetents([.medium, .fraction(0.84)])
+        // full height: a shorter, floating sheet re-sizes (and looks like it zooms) when the keyboard comes up
+        .presentationDetents([.large])
         .onAppear {
             text = idea?.text ?? ""
             library.ideaEditingID = idea?.id

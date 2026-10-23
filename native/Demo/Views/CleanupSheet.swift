@@ -174,7 +174,8 @@ struct CleanupSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } } }
         }
-        .presentationDetents([.fraction(0.84)])
+        // full height: a shorter, floating sheet re-sizes (and looks like it zooms) when the keyboard comes up
+        .presentationDetents([.large])
         .onAppear { if !ready { caseMode = detected; ready = true } }
     }
 

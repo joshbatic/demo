@@ -96,7 +96,8 @@ struct AccountScreen: View {
                 Button("Sign Out", role: .destructive) { dismiss(); Task { await session.signOut() } }
             } message: { Text("Your songs stay in your account.") }
         }
-        .presentationDetents([.fraction(0.84)])   // the web's sheets stop at 84%
+        // full height: a shorter, floating sheet re-sizes (and looks like it zooms) when the keyboard comes up
+        .presentationDetents([.large])
         .task { await session.refreshPlan() }
     }
 }

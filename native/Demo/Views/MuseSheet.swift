@@ -23,6 +23,8 @@ struct MuseSheet: View {
     @State private var more = ""
     /// The list's content height, so the sheet opens just tall enough for it.
     @State private var contentHeight: CGFloat = 520
+    /// typing in the brief: the sheet holds its size so it doesn't jump with every line
+    @FocusState private var typing: Bool
 
     enum Output: Equatable {
         case none, busy(String), error(String), read(Read), stare(String), card(String), brief
@@ -57,7 +59,7 @@ struct MuseSheet: View {
             .environment(\.defaultMinListRowHeight, 0)
             .animation(.snappy(duration: 0.25), value: out)
             .scrollDismissesKeyboard(.interactively)
-            .onScrollGeometryChange(for: CGFloat.self) { $0.contentSize.height } action: { _, h in contentHeight = h }
+            .onScrollGeometryChange(for: CGFloat.self) { $0.contentSize.height } action: { _, h in if !typing { contentHeight = h } }
             .navigationTitle("Muse")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } } }
@@ -217,6 +219,7 @@ struct MuseSheet: View {
             TextField(ph, text: Binding(get: { b.wrappedValue }, set: { b.wrappedValue = String($0.prefix(max)) }), axis: multi ? .vertical : .horizontal)
                 .lineLimit(multi ? 3...8 : 1...1)
                 .font(.system(size: 16))
+                .focused($typing)
                 .padding(.horizontal, 12).padding(.vertical, 10)
                 .background(BarFill.color, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
