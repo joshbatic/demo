@@ -58,17 +58,16 @@ struct SongListScreen: View {
                 }
             }
             .listStyle(.plain)
-            .navigationTitle("*[demo]")
-            .searchable(text: $query, prompt: "Search")
+            .scrollDismissesKeyboard(.interactively)
             .refreshable { library.sync() }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    AccountButton { showAccount = true }
-                }
-                ToolbarItem(placement: .bottomBar) {
-                    Button { newSong() } label: { Image(systemName: "square.and.pencil") }
-                        .accessibilityLabel("New song")
-                }
+            // like the web app: a big title that stays put with the songs scrolling under it,
+            // and the search bar with the New Song button floating at the bottom
+            .toolbar(.hidden, for: .navigationBar)
+            .safeAreaInset(edge: .top, spacing: 0) {
+                ListHeader(title: "*[demo]") { AccountButton { showAccount = true } }
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                SearchDock(text: $query, prompt: "Search", icon: "square.and.pencil", label: "New song") { newSong() }
             }
             .navigationDestination(for: String.self) { id in
                 if id == IdeasRow.route { IdeasScreen() } else { EditorScreen(songID: id) }
@@ -206,7 +205,12 @@ struct AccountButton: View {
                 }
                 Avatar(url: session.profile.avatar_url, name: session.myName, size: 28)
             }
+            .padding(.leading, session.plan.isPro ? 8 : 6).padding(.trailing, 6)
+            .frame(minWidth: 40, minHeight: 40)
+            .contentShape(Capsule())
+            .glassCapsule(interactive: true)
         }
+        .buttonStyle(.plain)
         .accessibilityLabel("Account")
     }
 }
@@ -235,5 +239,83 @@ struct Avatar: View {
     static func trusted(_ u: URL) -> Bool {
         guard u.scheme == "https", let h = u.host else { return false }
         return h.hasSuffix("googleusercontent.com") || h.hasSuffix("cygfgurzvmbtcegkpnss.supabase.co") || h.hasSuffix("apple.com")
+    }
+}
+
+
+/// A screen title that stays put at the top while the list scrolls under it, fading the content
+/// beneath it like the web app's header.
+struct ListHeader<Trailing: View>: View {
+    let title: String
+    @ViewBuilder var trailing: Trailing
+    var body: some View {
+        HStack(alignment: .center) {
+            Text(title).font(.system(size: 34, weight: .bold)).tracking(-0.6).lineLimit(1)
+            Spacer(minLength: 12)
+            trailing
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 6)
+        .padding(.bottom, 14)
+        .background {
+            LinearGradient(stops: [.init(color: Color(uiColor: .systemBackground), location: 0),
+                                   .init(color: Color(uiColor: .systemBackground), location: 0.55),
+                                   .init(color: Color(uiColor: .systemBackground).opacity(0), location: 1)],
+                           startPoint: .top, endPoint: .bottom)
+                .ignoresSafeArea(edges: .top)
+                .allowsHitTesting(false)
+        }
+    }
+}
+
+/// The floating search bar with its round action button beside it (the web's bottom dock).
+struct SearchDock: View {
+    @Binding var text: String
+    let prompt: String
+    let icon: String
+    let label: String
+    let action: () -> Void
+    @FocusState private var focused: Bool
+
+    var body: some View {
+        GlassGroup(spacing: 10) {
+            HStack(spacing: 10) {
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass").font(.system(size: 17, weight: .medium)).foregroundStyle(.secondary)
+                    TextField(prompt, text: $text)
+                        .focused($focused)
+                        .submitLabel(.search)
+                        .autocorrectionDisabled()
+                        .onSubmit { focused = false }
+                    if !text.isEmpty {
+                        Button { text = ""; Haptics.tap() } label: {
+                            Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Clear search")
+                    }
+                }
+                .font(.system(size: 17))
+                .padding(.horizontal, 18)
+                .frame(height: 52)
+                .contentShape(Capsule())
+                .onTapGesture { focused = true }
+                .glassCapsule(interactive: true)
+
+                Button {
+                    Haptics.tap()
+                    action()
+                } label: {
+                    Image(systemName: icon).font(.system(size: 21, weight: .medium)).foregroundStyle(.primary)
+                        .frame(width: 52, height: 52)
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .glassCircle()
+                .accessibilityLabel(label)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.bottom, 8)
     }
 }
