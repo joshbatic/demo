@@ -1188,6 +1188,14 @@ html.ngsheet :is(#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,
   #invbanner.on,#probanner.on{transition:transform .6s var(--spring),opacity .2s}
   #toast.on{transition:opacity .2s,transform .5s var(--spring)}
 }
+
+/* iOS: an invisible link over each song row, so press-and-hold opens the system context menu (UIKit's lift, blur and
+   preview); taps still go to the row. The row's own pin and delete buttons sit above it. */
+.ngctx{position:absolute;inset:0;z-index:0;border-radius:inherit;-webkit-touch-callout:default;-webkit-user-select:none;user-select:none;color:transparent}
+body.ngctx .si{position:relative}
+body.ngctx :is(.song,.si)>:is(.rpin,.rdel){position:relative;z-index:1}
+/* on/off switches drawn natively (UISwitch) */
+body.nglass .ngsw{opacity:0!important}
 </style>
 </head>
 <body>
@@ -17764,7 +17772,7 @@ function ngSpec(){var out=[],late=[],rd=function(v){return Math.round(v*2)/2},li
       var dr=part('invdot1');if(dr){o.dot=true;o.dotRect=dr}}
     else if(g.kind==='search'){var inp=document.getElementById(g.input);o.input=g.input;o.ph=(inp&&inp.placeholder)||g.ph;o.text=inp?inp.value:''}
     else{o.items=g.items.filter(function(it){return ngShown(document.getElementById(it[0]))}).map(function(it){var b=document.getElementById(it[0]);var br=b.getBoundingClientRect(),ik=ngIcon(b);return{id:it[0],sf:it[1],ik:ik||undefined,menu:it[0]==='det'?ngSongMenu():undefined,label:b.getAttribute('aria-label')||it[2],on:b.getAttribute('aria-pressed')==='true',rx:rd(br.left-r.left),rw:rd(br.width)}});if(!o.items.length)o.show=false}
-    if(g.late){late.push(o);return}out.push(o)});ngSegs(out,rd);ngMirrorSpecs(out,rd);var und=[];ngSheetTick(und);return und.concat(out,late)}
+    if(g.late){late.push(o);return}out.push(o)});ngSegs(out,rd);ngSwitches(out,rd);ngMirrorSpecs(out,rd);var und=[];ngSheetTick(und);return und.concat(out,late)}
 /* mirrors go last so toasts and banners sit above every other glass */
 function ngMirrorSpecs(out,rd){
   NG_M.forEach(function(g){var el=document.querySelector(g.sel);if(!el)return;var r=el.getBoundingClientRect(),cs=getComputedStyle(el),op=parseFloat(cs.opacity);
@@ -17860,12 +17868,34 @@ function ngSegs(out,rd){var seen={},n=0;NG.reg={};
     out.push({id:key,kind:'seg',x:rd(r.left),y:rd(r.top),w:rd(r.width),h:rd(r.height),clip:{x:rd(c.l),y:rd(c.t),w:rd(c.r-c.l),h:rd(c.b-c.t)},
       fs:parseFloat(getComputedStyle(btns[0]).fontSize)||14,show:vis&&ngTop(el,cr),
       items:btns.map(function(b){return{id:ngId(b),label:b.textContent.replace(/\s+/g,' ').trim(),on:b.classList.contains('on')||b.getAttribute('aria-checked')==='true'||b.getAttribute('aria-selected')==='true',dis:b.disabled||undefined}})})})}
+/* ---- press-and-hold on a song: the system context menu ---- */
+function ngCtxLink(b,s){var a=document.createElement('a');a.className='ngctx';a.tabIndex=-1;a.setAttribute('aria-hidden','true');
+  var mine=!(s.shared&&s.owner&&AUTH_USER&&s.owner!==AUTH_USER.id),ls=(s.lyrics||'').split('\n').map(function(x){return x.trim()}).filter(Boolean),pin=isPinned(s);
+  var acts=[[{id:'open',t:'Open',sf:'arrow.up.forward.app'}],[{id:'pin',t:pin?'Unpin':'Pin',sf:pin?'pin.slash':'pin'},{id:'copy',t:'Copy Lyrics',sf:'doc.on.doc'}],[{id:'del',t:mine?'Delete Song':'Leave Song',sf:mine?'trash':'rectangle.portrait.and.arrow.right',d:1}]];
+  var q=new URLSearchParams({id:s.id,t:s.title||ls[0]||'New Song',s:[s.shared?'Shared':'',s.artist,s.status,s.key,fd(s.updated)].filter(Boolean).join(' · '),l:ls.slice(s.title?0:1,s.title?9:10).join('\n'),a:JSON.stringify(acts)});
+  a.href='demo-row://song?'+q.toString();a.addEventListener('click',function(e){e.preventDefault()});b.appendChild(a)}
+function ngRowAction(d){var s=d&&songs.filter(function(x){return x.id===d.id})[0];if(!s)return;NG.hz=Date.now();
+  if(d.action==='open'){openSong(s.id);if(!wideMQ.matches&&document.body.classList.contains('side'))sideOn(false);return}
+  if(d.action==='pin'){setPin(s,!isPinned(s));return}
+  if(d.action==='copy'){var t=(s.title?s.title+'\n\n':'')+(s.lyrics||'');try{navigator.clipboard.writeText(t).then(function(){toast('Lyrics copied')},function(){toast('Copy blocked')})}catch(e){toast('Copy not available')}return}
+  if(d.action==='del'){var mine=!(s.shared&&s.owner&&AUTH_USER&&s.owner!==AUTH_USER.id),nm=s.title||'this song';
+    var go=function(ok){if(ok)removeSong(s)};var nd=natDestroy({title:mine?'Delete “'+nm+'”?':'Leave “'+nm+'”?',message:mine?'This can’t be undone.':'It stays with its owner.',ok:mine?'Delete Song':'Leave Song'});
+    if(nd)nd.then(go);else go(confirm(mine?'Delete “'+nm+'”?':'Leave “'+nm+'”?'))}}
+/* ---- on/off switches: Apple's UISwitch over each .swtch ---- */
+function ngSwitches(out,rd){var seen={},n=0;
+  document.querySelectorAll('.swtch').forEach(function(el){if(el.closest(NG_MROOT))return;var ok=ngShown(el);el.classList.toggle('ngsw',ok);if(!ok)return;
+    var host=el.closest('[id]'),all=host?[].slice.call(host.querySelectorAll('.swtch')):[],key='g-sw-'+(el.id||((host?host.id:'x')+':'+all.indexOf(el)));if(seen[key])key+='-'+(++n);seen[key]=1;
+    var r=el.getBoundingClientRect(),c=ngClip(el),vis=c.r-c.l>4&&c.b-c.t>4;
+    out.push({id:key,kind:'switch',x:rd(r.left),y:rd(r.top),w:rd(r.width),h:rd(r.height),clip:{x:rd(c.l),y:rd(c.t),w:rd(Math.max(0,c.r-c.l)),h:rd(Math.max(0,c.b-c.t))},
+      show:vis&&ngTop(el,{left:c.l,top:c.t,width:c.r-c.l,height:c.b-c.t}),tap:ngId(el),on:el.classList.contains('on')||el.getAttribute('aria-checked')==='true',dis:el.disabled||undefined})})}
 function ngTheme(){var t=document.documentElement.getAttribute('data-theme');return t==='light'||t==='dark'?t:''}
 function ngLoop(){if(NG.on&&!document.hidden){try{var g=ngSpec(),th=ngTheme(),k=JSON.stringify(g)+th;if(k!==NG.last){NG.last=k;NG.P.sync({groups:g,theme:th})}}catch(e){}}requestAnimationFrame(ngLoop)}
 (function(){if(!NATIVE_IOS)return;var C=window.Capacitor,P=C&&C.Plugins&&C.Plugins.GlassBar;if(!P||!P.available)return;
   Promise.resolve(P.available()).then(function(r){if(!r||!r.glass)return;NG.P=P;NG.on=true;document.body.classList.add('nglass');
     P.addListener('tap',function(d){NG.hz=Date.now();var b=d&&(document.getElementById(d.id)||NG.reg[d.id]);if(b&&!b.disabled)b.click()});
     P.addListener('menu',function(){NG.hz=Date.now()});
+    P.addListener('rowmenu',ngRowAction);
+    if(typeof P.ctxReady==='function')Promise.resolve(P.ctxReady()).then(function(r){if(!r||!r.ok)return;NG.ctx=true;document.body.classList.add('ngctx');try{renderList();renderSide()}catch(e){}},function(){});
     /* a light tap on every button press in the page too, the moment the finger lifts (a drag or scroll doesn't count) */
     (function(){var t0=null;var SEL='button,[role=button],[role=switch],[role=tab],a[href],.cell,.song,.idea,.r,.ln,.tg,.drow,.chip';
       document.addEventListener('touchstart',function(e){var t=e.touches[0];t0=e.touches.length===1?{x:t.clientX,y:t.clientY,el:e.target}:null},{passive:true,capture:true});
@@ -17902,7 +17932,7 @@ function swipeDelete(b,what,onDel){var d=document.createElement('button');d.clas
   d.onclick=function(e){e.stopPropagation();if(!d.classList.contains('arm')){arm();return}onDel()};
   var lp=0,sx=0,sy=0,on=false,dx0=0,raf=0;
   function pull(){raf=0;var dx=Math.min(0,dx0),pl=dx<-56?-56+(dx+56)*.22:dx;b.style.setProperty('--pull',pl.toFixed(1)+'px');if(dx<-24){if(HELDROW!==b)setHeld(b);b.classList.add('swiping');b.classList.toggle('swdel',dx<-120)}else b.classList.remove('swdel')}
-  b.addEventListener('touchstart',function(e){clearTimeout(lp);on=false;lp=setTimeout(function(){setHeld(b);b._held=Date.now()},500);var t=e.touches[0];sx=t.clientX;sy=t.clientY},{passive:true});
+  b.addEventListener('touchstart',function(e){clearTimeout(lp);on=false;if(!(typeof NG!=='undefined'&&NG&&NG.ctx))lp=setTimeout(function(){setHeld(b);b._held=Date.now()},500);var t=e.touches[0];sx=t.clientX;sy=t.clientY},{passive:true});
   b.addEventListener('touchmove',function(e){clearTimeout(lp);var t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(!on){if(Math.abs(dx)>14&&Math.abs(dx)>Math.abs(dy)*1.5)on=true;else return}dx0=dx;if(!raf)raf=requestAnimationFrame(pull)},{passive:true});
   var end=function(){clearTimeout(lp);if(raf){cancelAnimationFrame(raf);raf=0}var armIt=on&&b.classList.contains('swdel');b.classList.remove('swiping','swdel');b.style.removeProperty('--pull');if(armIt)arm();if(on)b._held=Date.now();on=false;dx0=0};
   b.addEventListener('touchend',end,{passive:true});b.addEventListener('touchcancel',end,{passive:true});
@@ -17929,7 +17959,7 @@ function rowEl(cls,s){var b=document.createElement('div');b.className=cls;b.setA
     if(dx<-24){if(HELDROW!==b)setHeld(b);b.classList.add('swiping');b.classList.toggle('swdel',dx<-120)}
     else b.classList.remove('swdel')
   }
-  b.addEventListener('touchstart',function(e){clearTimeout(lp);swOn=false;swActive=false;lp=setTimeout(function(){setHeld(b);b._held=Date.now()},500);var t=e.touches[0];swSX=t.clientX;swSY=t.clientY},{passive:true});
+  b.addEventListener('touchstart',function(e){clearTimeout(lp);swOn=false;swActive=false;if(!(typeof NG!=='undefined'&&NG&&NG.ctx))lp=setTimeout(function(){setHeld(b);b._held=Date.now()},500);var t=e.touches[0];swSX=t.clientX;swSY=t.clientY},{passive:true});
   b.addEventListener('touchmove',function(e){clearTimeout(lp);var t=e.touches[0],dx=t.clientX-swSX,dy=t.clientY-swSY;
     if(!swOn){if(Math.abs(dx)>14&&Math.abs(dx)>Math.abs(dy)*1.5){swOn=true;swActive=true}else return}
     swDX=dx;if(!swRAF)swRAF=requestAnimationFrame(applyPull)
@@ -17942,7 +17972,7 @@ function rowEl(cls,s){var b=document.createElement('div');b.className=cls;b.setA
   b.addEventListener('touchcancel',function(){clearTimeout(lp);if(swRAF){cancelAnimationFrame(swRAF);swRAF=0}b.classList.remove('swiping','swdel');b.style.removeProperty('--pull');swOn=false;swActive=false;swDX=0},{passive:true});
   var pn=document.createElement('button');pn.className='rpin'+(isPinned(s)?' on':'');pn.setAttribute('aria-label',(isPinned(s)?'Unpin ':'Pin ')+(s.title||'song'));pn.title=isPinned(s)?'Unpin':'Pin to top';pn.innerHTML=PINI;
   pn.onclick=function(e){e.stopPropagation();setPin(s,!isPinned(s))};b.appendChild(pn);
-  b.appendChild(d);var go=b.onclick;Object.defineProperty(b,'onclick',{set:function(fn){go=fn},get:function(){return function(){if(b._held&&Date.now()-b._held<700)return;go&&go()}}});b.addEventListener('click',function(e){if(e.target.closest('.rdel'))return;b.onclick()});return b}
+  b.appendChild(d);var go=b.onclick;Object.defineProperty(b,'onclick',{set:function(fn){go=fn},get:function(){return function(){if(b._held&&Date.now()-b._held<700)return;go&&go()}}});b.addEventListener('click',function(e){if(e.target.closest('.rdel'))return;b.onclick()});if(typeof NG!=='undefined'&&NG&&NG.ctx)ngCtxLink(b,s);return b}
 var PINI='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6l-1 6 4 4H6l4-4z"/><path d="M12 14v6"/></svg>';
 var PINS={};try{PINS=JSON.parse(localStorage.getItem('songpad:pins'))||{}}catch(e){}
 /* ---------- collab hint: a small, quiet note on what a collaborator added since you last looked ---------- */

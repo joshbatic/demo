@@ -180,6 +180,11 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
     private var segIds: [String] = []
     private var segKey = ""
     private var segFrame = CGRect.zero
+    // on/off switches: Apple's own UISwitch
+    private var sw: UISwitch?
+    private var swId = ""
+    private var swFrame = CGRect.zero
+    private var swTouched = Date.distantPast
     // the dev app's tab bar: Apple's own UITabBar
     private var tabBar: UITabBar?
     private var tabIds: [String] = []
@@ -239,7 +244,7 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
             setNeedsLayout()
             return
         }
-        if kind == "search" { configureSearch(s) } else if kind == "account" { configureAccount(s) } else if kind == "tabbar" { configureTabBar(s) } else if kind == "seg" { configureSeg(s) } else { configureButtons(s) }
+        if kind == "search" { configureSearch(s) } else if kind == "account" { configureAccount(s) } else if kind == "tabbar" { configureTabBar(s) } else if kind == "seg" { configureSeg(s) } else if kind == "switch" { configureSwitch(s) } else { configureButtons(s) }
         setShown((s["show"] as? Bool) ?? true)
         setNeedsLayout()
     }
@@ -348,6 +353,35 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
         bounds = CGRect(origin: .zero, size: clip.size)
         center = CGPoint(x: clip.midX, y: clip.midY)
         segFrame = ctl.offsetBy(dx: -clip.minX, dy: -clip.minY)
+    }
+
+    private func configureSwitch(_ s: JSObject) {
+        let c: UISwitch
+        if let existing = sw { c = existing } else {
+            c = UISwitch()
+            c.addAction(UIAction { [weak self] _ in
+                guard let self = self else { return }
+                self.swTouched = Date()
+                self.plugin?.buzz("select")
+                self.plugin?.tapped(self.swId)
+            }, for: .valueChanged)
+            effectView.isHidden = true
+            clipsToBounds = true
+            addSubview(c)
+            sw = c
+        }
+        swId = (s["tap"] as? String) ?? ""
+        c.isEnabled = (s["dis"] as? Bool) != true
+        // the page may take a moment to save a change; don't flick the switch back while it does
+        let on = (s["on"] as? Bool) == true
+        if c.isOn != on && !c.isTracking && Date().timeIntervalSince(swTouched) > 1.5 { c.setOn(on, animated: true) }
+        let ctl = CGRect(x: glassNum(s["x"]), y: glassNum(s["y"]), width: glassNum(s["w"]), height: glassNum(s["h"]))
+        let clip = glassRect(s["clip"]) ?? ctl
+        bounds = CGRect(origin: .zero, size: clip.size)
+        center = CGPoint(x: clip.midX, y: clip.midY)
+        let size = c.intrinsicContentSize
+        // right-aligned where the page's switch ends, centred on its row
+        swFrame = CGRect(x: ctl.maxX - size.width - clip.minX, y: ctl.midY - size.height / 2 - clip.minY, width: size.width, height: size.height)
     }
 
     private func configureTabBar(_ s: JSObject) {
@@ -674,7 +708,9 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
             effectView.layer.cornerCurve = .continuous
         }
         if layer.shadowOpacity > 0 { layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: r).cgPath }
-        if kind == "seg" {
+        if kind == "switch" {
+            sw?.frame = swFrame
+        } else if kind == "seg" {
             seg?.frame = segFrame
         } else if kind == "tabbar" {
             tabBar?.frame = bounds
@@ -706,6 +742,92 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
     }
 }
 
+// Press-and-hold on a song row: the web view's own context menu (the lift, blur and spring are UIKit's),
+// with a preview card of the song and its actions. Each row carries an invisible demo-row:// link with
+// what the preview shows and which actions apply; everything else is handed to Capacitor's delegate.
+final class RowPreviewController: UIViewController {
+    private let titleText: String, subtitleText: String, bodyText: String
+    init(title: String, subtitle: String, body: String) {
+        titleText = title; subtitleText = subtitle; bodyText = body
+        super.init(nibName: nil, bundle: nil)
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .systemBackground
+        let t = UILabel(); t.text = titleText; t.font = .systemFont(ofSize: 24, weight: .bold); t.numberOfLines = 2
+        let st = UILabel(); st.text = subtitleText; st.font = .systemFont(ofSize: 14); st.textColor = .secondaryLabel; st.numberOfLines = 1
+        let b = UILabel(); b.text = bodyText.isEmpty ? "No lyrics yet" : bodyText; b.font = .systemFont(ofSize: 17); b.textColor = bodyText.isEmpty ? .tertiaryLabel : .label; b.numberOfLines = 10
+        let stack = UIStackView(arrangedSubviews: [t, st, b])
+        stack.axis = .vertical; stack.spacing = 6; stack.setCustomSpacing(16, after: st)
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 22),
+            stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -22),
+            stack.topAnchor.constraint(equalTo: view.topAnchor, constant: 22)
+        ])
+        let w: CGFloat = min(360, UIScreen.main.bounds.width - 32)
+        let h = stack.systemLayoutSizeFitting(CGSize(width: w - 44, height: 0), withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel).height
+        preferredContentSize = CGSize(width: w, height: min(440, max(140, h + 44)))
+    }
+}
+
+final class GlassUIDelegate: NSObject, WKUIDelegate {
+    weak var inner: WKUIDelegate?
+    weak var plugin: GlassBarPlugin?
+    override func responds(to aSelector: Selector!) -> Bool {
+        if super.responds(to: aSelector) { return true }
+        return inner?.responds(to: aSelector) ?? false
+    }
+    override func forwardingTarget(for aSelector: Selector!) -> Any? {
+        if let i = inner, i.responds(to: aSelector) { return i }
+        return super.forwardingTarget(for: aSelector)
+    }
+    private func query(_ url: URL?) -> [String: String]? {
+        guard let url = url, url.scheme == "demo-row", let c = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
+        var q: [String: String] = [:]
+        c.queryItems?.forEach { q[$0.name] = $0.value ?? "" }
+        return q
+    }
+    @objc(webView:contextMenuConfigurationForElement:completionHandler:)
+    func webView(_ webView: WKWebView, contextMenuConfigurationForElement elementInfo: WKContextMenuElementInfo, completionHandler: @escaping (UIContextMenuConfiguration?) -> Void) {
+        guard let q = query(elementInfo.linkURL) else {
+            if inner?.webView?(webView, contextMenuConfigurationForElement: elementInfo, completionHandler: completionHandler) == nil { completionHandler(nil) }
+            return
+        }
+        let id = q["id"] ?? ""
+        let groups = ((try? JSONSerialization.jsonObject(with: Data((q["a"] ?? "[]").utf8))) as? [[[String: Any]]]) ?? []
+        plugin?.buzz("medium")
+        let cfg = UIContextMenuConfiguration(identifier: id as NSString, previewProvider: {
+            RowPreviewController(title: q["t"] ?? "", subtitle: q["s"] ?? "", body: q["l"] ?? "")
+        }, actionProvider: { [weak self] _ in
+            UIMenu(title: "", children: groups.map { items in
+                UIMenu(title: "", options: .displayInline, children: items.map { m in
+                    let aid = (m["id"] as? String) ?? ""
+                    let img = (m["sf"] as? String).flatMap { UIImage(systemName: $0) }
+                    let destructive = (m["d"] as? Bool) == true || (m["d"] as? Int) == 1
+                    return UIAction(title: (m["t"] as? String) ?? "", image: img, attributes: destructive ? [.destructive] : []) { _ in
+                        self?.plugin?.rowAction(id, aid)
+                    }
+                })
+            })
+        })
+        completionHandler(cfg)
+    }
+    @objc(webView:contextMenuForElement:willCommitWithAnimator:)
+    func webView(_ webView: WKWebView, contextMenuForElement elementInfo: WKContextMenuElementInfo, willCommitWithAnimator animator: UIContextMenuInteractionCommitAnimating) {
+        guard let q = query(elementInfo.linkURL) else {
+            _ = inner?.webView?(webView, contextMenuForElement: elementInfo, willCommitWithAnimator: animator)
+            return
+        }
+        // tapping the preview opens the song
+        let id = q["id"] ?? ""
+        animator.preferredCommitStyle = .pop
+        animator.addCompletion { [weak self] in self?.plugin?.rowAction(id, "open") }
+    }
+}
+
 @objc(GlassBarPlugin)
 public class GlassBarPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "GlassBarPlugin"
@@ -717,8 +839,10 @@ public class GlassBarPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "blur", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "icon", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "sheetGlass", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "haptic", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "haptic", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "ctxReady", returnType: CAPPluginReturnPromise)
     ]
+    private var uiProxy: GlassUIDelegate?
     // haptics, kept warm so a tap is felt the instant it lands
     private lazy var hLight = UIImpactFeedbackGenerator(style: .light)
     private lazy var hMedium = UIImpactFeedbackGenerator(style: .medium)
@@ -749,7 +873,24 @@ public class GlassBarPlugin: CAPPlugin, CAPBridgedPlugin {
     override public func load() {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardChange(_:)), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+        DispatchQueue.main.async { self.installContextMenus() }
     }
+
+    private func installContextMenus() {
+        guard uiProxy == nil, let web = bridge?.webView else { return }
+        let d = GlassUIDelegate()
+        d.inner = web.uiDelegate
+        d.plugin = self
+        uiProxy = d
+        web.uiDelegate = d
+        web.allowsLinkPreview = true
+    }
+
+    @objc func ctxReady(_ call: CAPPluginCall) {
+        DispatchQueue.main.async { self.installContextMenus(); call.resolve(["ok": self.uiProxy != nil]) }
+    }
+
+    func rowAction(_ id: String, _ action: String) { notifyListeners("rowmenu", data: ["id": id, "action": action]) }
 
     @objc func available(_ call: CAPPluginCall) {
         var glass = false
