@@ -23,16 +23,13 @@ document.addEventListener('focusin',function(e){var t=e.target;if(!t||!t.blur)re
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000;--row:rgba(255,255,255,.1);--ink:#fff;--mute:rgba(235,235,245,.6);--sep:rgba(84,84,88,.6);--tint:#F2F2F7;--ontint:#000;--cv1:#3A3A3E;--cv2:#2A2A2D;--cvln:rgba(235,235,245,.55);--cvhl:rgba(255,255,255,.08);--fill:rgba(118,118,128,.28);--segon:#636366;--red:#FF453A;--sheet:rgba(28,28,30,.86);--gl:rgba(58,58,62,.58);--ring:rgba(255,255,255,.09);--sh:rgba(0,0,0,.7);--sh2:rgba(0,0,0,.45);--hl:rgba(255,255,255,.14);--hl2:rgba(255,255,255,.03);--spec:rgba(255,255,255,.06);--bgz:rgba(0,0,0,0);--proclr:#F2F2F7;--proon:#000;--protagbg:rgba(255,255,255,.16)}}
 :root[data-theme="dark"]{--bg:#000;--row:rgba(255,255,255,.1);--ink:#fff;--mute:rgba(235,235,245,.6);--sep:rgba(84,84,88,.6);--tint:#F2F2F7;--ontint:#000;--cv1:#3A3A3E;--cv2:#2A2A2D;--cvln:rgba(235,235,245,.55);--cvhl:rgba(255,255,255,.08);--fill:rgba(118,118,128,.28);--segon:#636366;--red:#FF453A;--sheet:rgba(28,28,30,.86);--gl:rgba(58,58,62,.58);--ring:rgba(255,255,255,.09);--sh:rgba(0,0,0,.7);--sh2:rgba(0,0,0,.45);--hl:rgba(255,255,255,.14);--hl2:rgba(255,255,255,.03);--spec:rgba(255,255,255,.06);--bgz:rgba(0,0,0,0);--proclr:#F2F2F7;--proon:#000;--protagbg:rgba(255,255,255,.16)}
-/* [developer] builds: the Graphite theme (deep charcoal), so the dev app is never mistaken for the public one (both light and dark mode) */
-html.devbuild:root,html.devbuild:root:not([data-theme="light"]),html.devbuild:root[data-theme]{--bg:#1F1F21;--row:rgba(255,255,255,.09);--ink:#fff;--mute:rgba(255,255,255,.66);--sep:rgba(255,255,255,.16);--tint:#fff;--ontint:#000;--cv1:#323235;--cv2:#1A1A1C;--cvln:rgba(255,255,255,.5);--cvhl:rgba(255,255,255,.1);--fill:rgba(255,255,255,.13);--segon:#3E3E42;--sheet:rgba(38,38,41,.96);--gl:rgba(50,50,54,.74);--ring:rgba(255,255,255,.1);--sh:rgba(0,0,0,.35);--sh2:rgba(0,0,0,.2);--hl:rgba(255,255,255,.14);--hl2:rgba(255,255,255,.04);--spec:rgba(255,255,255,.08);--bgz:rgba(31,31,33,0);--proclr:#fff;--proon:#000;--protagbg:rgba(255,255,255,.16);color-scheme:dark;background:#1F1F21}
-/* dev app: list tiles, default song covers and Account tiles in greyscale (real artwork keeps its colour) */
-html.devbuild .th.ath,html.devbuild .th.bth,html.devbuild .th.ith,html.devbuild .tile.gr{background:linear-gradient(150deg,#55555B,#323236)!important;color:#fff}
-html.devbuild .th.ith::after{opacity:0}
-html.devbuild .th:not(.ath):not(.bth):not(.ith):not(:has(img)){filter:grayscale(1) brightness(.62) contrast(1.15)}
-/* the DEV tag, in the glass-record icon's gradient */
-html.devbuild .devpill{background:linear-gradient(100deg,#C2AEFF 0%,#97C8FF 55%,#9BE8CF 100%);color:#1E1830}html.devbuild input::placeholder,html.devbuild textarea::placeholder{color:rgba(255,255,255,.55)}
-/* Graphite: status colours bright enough to read on grey */
-html.devbuild #adm .chips span{background:rgba(255,255,255,.12);color:#fff}html.devbuild #adm .chips .ok{background:rgba(48,209,88,.22);color:#86EFA6}html.devbuild #adm .chips .bad{background:rgba(255,69,58,.24);color:#FFA39C}html.devbuild #adm .chips .wait{background:rgba(255,179,64,.22);color:#FFCF85}html.devbuild #adm .chips .plan{background:rgba(175,150,255,.26);color:#DDD3FF}html.devbuild #adm .chips .free{background:rgba(255,255,255,.2);color:#fff}html.devbuild #adm .srow .sd{color:#FFA39C}html.devbuild #adm .srow .sd.slow{color:#FFCF85}html.devbuild #adm .astat.warn b{color:#FF7A70}html.devbuild #adm .bseg button.on,html.devbuild #brq .bseg button.on{background:var(--segon);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+/* [developer] builds look like the public app (system light and dark, colour covers). They're told apart by the
+   DEV tag beside the name and the DEV app icon, plus colour tiles for the developer-only rows */
+.devpill{background:linear-gradient(100deg,#C2AEFF 0%,#97C8FF 55%,#9BE8CF 100%)!important;color:#1E1830!important}
+.th.ath,.th.bth{position:relative;color:#fff;box-shadow:0 0 0 .5px var(--ring);display:grid;place-items:center}
+.th.ath svg,.th.bth svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,.18))}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .th.ath,:root:not([data-theme="light"]) .th.bth{filter:brightness(.82)}}
+:root[data-theme="dark"] .th.ath,:root[data-theme="dark"] .th.bth{filter:brightness(.82)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{touch-action:manipulation}
 /* touch-action doesn't reach inside scrolling panes (each starts its own), so double-tap zoom came back in
@@ -78,7 +75,7 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 .pllinks{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:8px}.pllinks button{font:inherit;font-size:13px;font-weight:600;color:var(--tint);padding:4px 0;background:none}
 .pllinks-pro{margin:10px 20px 0}
 .devpill{display:inline-flex;align-items:center;height:20px;padding:0 8px;margin-left:8px;border-radius:99px;font-size:11px;font-weight:800;letter-spacing:.4px;vertical-align:middle;color:#fff;background:linear-gradient(140deg,#FFAA7F,#FF8FA3)}
-.bth{color:#fff;background:linear-gradient(140deg,#FFE9A8,#FFAA7F)!important}.bth svg{filter:drop-shadow(0 .5px 1.5px rgba(0,0,0,.25))}
+.bth{color:#fff;background:linear-gradient(140deg,#BFF0D4,#7FCCDB)!important}.bth svg{filter:drop-shadow(0 .5px 1.5px rgba(0,0,0,.25))}
 .brow0 em{font-style:normal}.brow0 .bct{min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:#FF3B30;color:#fff;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-left:auto}
 #sbeta[hidden],#sadm[hidden]{display:none!important}#sadm{flex:none;margin:-4px 0 4px}#sadm em{font-style:normal;margin-left:auto}#sadm em:empty{display:none}#sadm em{min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:#FF3B30;color:#fff;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
 .ath{color:#fff;background:linear-gradient(140deg,#D7C4FF,#9CC8FF)!important}.ath svg{filter:drop-shadow(0 .5px 1.5px rgba(0,0,0,.25))}
@@ -121,7 +118,7 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 html.splashing #splash{display:flex;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center;background:#fff}
 #splash img{width:132px;height:132px;display:none;will-change:transform,opacity}#splash .spl-l{display:block}
 @media (prefers-color-scheme:dark){html.splashing #splash{background:#000}#splash .spl-l{display:none}#splash .spl-d{display:block}}
-html.devbuild.splashing #splash{background:#1F1F21}html.devbuild #splash .spl-l,html.devbuild #splash .spl-d{display:none}html.devbuild #splash .spl-v{display:block}
+html.devbuild #splash .spl-l,html.devbuild #splash .spl-d{display:none}html.devbuild #splash .spl-v{display:block}
 #adm>.bseg{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}#adm>.bseg::-webkit-scrollbar{display:none}#adm>.bseg button{flex:1 0 auto;padding:8px 11px;white-space:nowrap}
 #adm .bseg.small{margin:10px 0 0;background:var(--fill)}#adm .bseg.small button{font-size:13px;padding:6px 10px}
 #adm .ata,#adm .ain{display:block;width:100%;padding:10px 12px;border-radius:12px;border:.5px solid var(--sep);background:var(--bg);color:var(--ink);font:inherit;font-size:16px;line-height:1.4;margin-top:10px}
