@@ -159,6 +159,14 @@ final class EditorBridge {
         emit()
     }
 
+    /// Whether a style is on at the caret (or at the start of the selection), for the format buttons.
+    func isOn(_ t: Trait) -> Bool {
+        guard let tv = textView else { return false }
+        let r = tv.selectedRange
+        if r.length == 0 || tv.textStorage.length == 0 { return Self.has(t, tv.typingAttributes) }
+        return Self.has(t, tv.textStorage.attributes(at: min(r.location, tv.textStorage.length - 1), effectiveRange: nil))
+    }
+
     func setColor(_ c: UIColor?) { apply(.foregroundColor, c ?? .label) }
     func setHighlight(_ c: UIColor?) {
         guard let tv = textView else { return }

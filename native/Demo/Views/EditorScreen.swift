@@ -46,11 +46,11 @@ struct EditorScreen: View {
                     session.toast = showSyl ? "Syllable counts on" : "Syllable counts off"
                 } label: { Icon("ic-syl", 21).padding(5).background(showSyl ? Color.primary.opacity(0.14) : .clear, in: Circle()) }
                     .accessibilityLabel("Syllable counts").accessibilityValue(showSyl ? "On" : "Off")
+                ShareLink(item: shareText) { Icon("ic-share", 21).padding(5) }
+                    .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })
+                    .accessibilityLabel("Share")
             }
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                formatMenu
-                moreMenu
-            }
+            ToolbarItemGroup(placement: .topBarTrailing) { moreMenu }
         }
         .sheet(isPresented: $showDetails) { if song != nil { DetailsSheet(songID: songID) } }
         .sheet(isPresented: $showDictionary) {
@@ -94,31 +94,9 @@ struct EditorScreen: View {
 
     // MARK: menus
 
-    private var formatMenu: some View {
-        Menu {
-            ControlGroup {
-                Button { bridge.toggle(.bold) } label: { Label("Bold", systemImage: "bold") }
-                Button { bridge.toggle(.italic) } label: { Label("Italic", systemImage: "italic") }
-                Button { bridge.toggle(.underline) } label: { Label("Underline", systemImage: "underline") }
-                Button { bridge.toggle(.strike) } label: { Label("Strikethrough", systemImage: "strikethrough") }
-            }
-            Menu {
-                ForEach(RichText.textColors, id: \.0) { name, c in
-                    Button { bridge.setColor(c) } label: { Label { Text(name) } icon: { Image(systemName: "circle.fill").foregroundStyle(Color(uiColor: c)) } }
-                }
-                Button { bridge.setColor(nil) } label: { Label("Default", systemImage: "circle") }
-            } label: { Label("Text Colour", systemImage: "paintpalette") }
-            Menu {
-                ForEach(RichText.highlights, id: \.0) { name, c in
-                    Button { bridge.setHighlight(c) } label: { Label { Text(name) } icon: { Image(systemName: "highlighter").foregroundStyle(Color(uiColor: c.withAlphaComponent(1))) } }
-                }
-                Button { bridge.setHighlight(nil) } label: { Label("No Highlight", systemImage: "eraser") }
-            } label: { Label("Highlight", systemImage: "highlighter") }
-            Button { bridge.clearFormatting() } label: { Label("Clear Formatting", systemImage: "textformat") }
-        } label: {
-            Icon("ic-brush", 20)
-        }
-        .accessibilityLabel("Text formatting")
+    private var shareText: String {
+        guard let s = song else { return "" }
+        return (s.title.isEmpty ? "" : s.title + "\n\n") + s.lyrics
     }
 
     private var moreMenu: some View {

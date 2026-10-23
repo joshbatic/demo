@@ -147,48 +147,75 @@ final class WordResults {
 
 // MARK: - the rhyme bar
 
+/// The web's fill colour (--fill): the grey behind chips, tag buttons and the mode track.
+enum BarFill {
+    static let color = Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(red: 118/255, green: 118/255, blue: 128/255, alpha: 0.28) : UIColor(red: 118/255, green: 118/255, blue: 128/255, alpha: 0.12) })
+}
+
+/// A horizontal scroller that stays inside its container and fades its edges once there's more to see (the web's mask).
+struct FadingHScroll<Content: View>: View {
+    @ViewBuilder var content: Content
+    @State private var fadeL = false
+    @State private var fadeR = false
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) { content }
+            .onScrollGeometryChange(for: [Bool].self) { g in
+                [g.contentOffset.x + g.contentInsets.leading > 1,
+                 g.contentOffset.x + g.containerSize.width < g.contentSize.width - 1]
+            } action: { _, v in
+                withAnimation(.easeOut(duration: 0.15)) { fadeL = v[0]; fadeR = v[1] }
+            }
+            .mask {
+                HStack(spacing: 0) {
+                    LinearGradient(colors: [.clear, .black], startPoint: .leading, endPoint: .trailing).frame(width: fadeL ? 22 : 0)
+                    Rectangle()
+                    LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing).frame(width: fadeR ? 22 : 0)
+                }
+            }
+    }
+}
+
 struct RhymeBar: View {
     let bridge: EditorBridge
     let context: RhymeContext
     let results: WordResults
     var onOpenDictionary: () -> Void
-    @State private var showFormat = false
-    @Environment(\.colorScheme) private var scheme
+    @AppStorage("view.fmt") private var showFormat = false
+    @Namespace private var modeNS
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 9) {
-            Capsule().fill(Color.secondary.opacity(0.35)).frame(width: 36, height: 5)
-                .frame(maxWidth: .infinity)
-                .contentShape(Rectangle().inset(by: -10))
+        VStack(alignment: .leading, spacing: 0) {
+            Capsule().fill(Color.secondary.opacity(0.35)).frame(width: 34, height: 4)
+                .frame(maxWidth: .infinity, minHeight: 18)
+                .contentShape(Rectangle())
                 .onTapGesture { Haptics.tap(); onOpenDictionary() }
+                .padding(.top, -4).padding(.bottom, 4)
                 .accessibilityLabel("Open dictionary").accessibilityAddTraits(.isButton)
 
-            HStack(spacing: 8) {
-                status.lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
-                Button { Haptics.selection(); withAnimation(.snappy) { showFormat.toggle() } } label: {
-                    Icon("ic-brush", 17).frame(width: 34, height: 34)
-                        .background(showFormat ? Color.primary.opacity(0.12) : .clear, in: Circle())
+            // status on the left, the tag buttons on the right
+            HStack(spacing: 10) {
+                status.lineLimit(1).truncationMode(.tail).padding(.leading, 8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Button { Haptics.selection(); withAnimation(.snappy(duration: 0.25)) { showFormat.toggle() } } label: {
+                    Icon("ic-brush", 17)
+                        .foregroundStyle(showFormat ? Theme.onTint : Theme.tint)
+                        .frame(width: 32, height: 32)
+                        .background(showFormat ? Theme.tint : BarFill.color, in: Circle())
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Text formatting")
+                .buttonStyle(PressScale())
+                .accessibilityLabel("Text formatting").accessibilityAddTraits(showFormat ? .isSelected : [])
+            }
+            .padding(.bottom, 10)
+
+            if showFormat {
+                FormatRow(bridge: bridge, context: context)
+                    .padding(.bottom, 10)
+                    .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
             }
 
-            if showFormat { FormatRow(bridge: bridge).transition(.move(edge: .top).combined(with: .opacity)) }
-
-            if !context.word.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 6) {
-                        ForEach(WordMode.allCases) { m in
-                            Button { Haptics.selection(); results.mode = m; results.refresh() } label: {
-                                Text(m.title).font(.subheadline.weight(results.mode == m ? .semibold : .regular))
-                                    .padding(.horizontal, 12).padding(.vertical, 6)
-                                    .background(results.mode == m ? Color.primary.opacity(0.12) : .clear, in: Capsule())
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                }
-                .scrollClipDisabled()
+            if !context.word.isEmpty && !tooLong {
+                modeTrack.padding(.bottom, 8)
             }
 
             resultsRow
@@ -197,15 +224,61 @@ struct RhymeBar: View {
         .glass(in: RoundedRectangle(cornerRadius: 30, style: .continuous))
     }
 
+    private var tooLong: Bool {
+        context.selection.split(whereSeparator: { $0 == " " || $0 == "\n" }).count > 8 || context.selection.contains("\n")
+    }
+
+    /// The word modes on a grey track, the chosen one on a raised glass pill (the web's #wm).
+    private var modeTrack: some View {
+        FadingHScroll {
+            HStack(spacing: 2) {
+                ForEach(WordMode.allCases) { m in
+                    let on = results.mode == m
+                    Button {
+                        guard !on else { return }
+                        Haptics.selection()
+                        withAnimation(.snappy(duration: 0.28)) { results.mode = m }
+                        results.refresh()
+                    } label: {
+                        Text(m.title)
+                            .font(.system(size: 13, weight: on ? .semibold : .medium))
+                            .foregroundStyle(Theme.tint)
+                            .padding(.horizontal, 12).padding(.vertical, 5)
+                            .background {
+                                if on {
+                                    Capsule()
+                                        .fill(Color(uiColor: .tertiarySystemBackground))
+                                        .shadow(color: .black.opacity(0.12), radius: 2, y: 1)
+                                        .overlay(Capsule().strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.5))
+                                        .matchedGeometryEffect(id: "mode", in: modeNS)
+                                }
+                            }
+                            .contentShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(on ? .isSelected : [])
+                }
+            }
+            .padding(2)
+            .background(BarFill.color, in: Capsule())
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .clipShape(Capsule())
+    }
+
     @ViewBuilder private var status: some View {
         let eng = RhymeEngine.shared
         if !context.selection.isEmpty && context.selection.split(whereSeparator: { $0 == " " || $0 == "\n" }).count > 1 {
-            Text(shortSel(context.selection)).bold() + Text(" · \(eng.lineSyllables(context.selection)) syl · ends “\(context.word)”").foregroundStyle(.secondary)
+            (Text(shortSel(context.selection)).font(.system(size: 16, weight: .semibold)).foregroundStyle(Theme.tint)
+             + Text(" · \(eng.lineSyllables(context.selection)) syl · ends “\(context.word)”"))
+                .font(.system(size: 14)).foregroundStyle(.secondary)
         } else if !context.word.isEmpty {
             let parts = ["\(eng.syllables(context.word)) syl", context.via, results.left > 0 ? "\(results.left) to match" : ""].filter { !$0.isEmpty }
-            Text(context.word).font(.body.weight(.semibold)) + Text(" · " + parts.joined(separator: " · ")).foregroundStyle(.secondary)
+            (Text(context.word).font(.system(size: 16, weight: .semibold)).foregroundStyle(Theme.tint)
+             + Text(" · " + parts.joined(separator: " · ")))
+                .font(.system(size: 14)).foregroundStyle(.secondary)
         } else {
-            Text("Tap any word for rhymes").foregroundStyle(.secondary)
+            Text("Tap any word for rhymes").font(.system(size: 14)).foregroundStyle(.secondary)
         }
     }
 
@@ -221,9 +294,12 @@ struct RhymeBar: View {
         if context.word.isEmpty {
             if context.line.trimmingCharacters(in: .whitespaces).isEmpty && context.selection.isEmpty {
                 chipsRow(sectionChips.map { ($0.0, nil, false, false) }) { label in bridge.insertSection(label) }
+            } else {
+                Color.clear.frame(height: 0)
             }
-        } else if context.selection.split(whereSeparator: { $0 == " " || $0 == "\n" }).count > 8 || context.selection.contains("\n") {
+        } else if tooLong {
             Text("Select a word or short phrase to see rhymes.").font(.subheadline).foregroundStyle(.secondary)
+                .frame(minHeight: 38).padding(.leading, 8)
         } else if results.mode == .def {
             if !results.definitions.isEmpty {
                 ScrollView {
@@ -233,6 +309,7 @@ struct RhymeBar: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 8)
                 }
                 .frame(maxHeight: 96)
             } else { messageRow }
@@ -247,7 +324,8 @@ struct RhymeBar: View {
             Text(results.busy ? "Finding \(results.mode.noun) for “\(context.word)”" : (results.message ?? ""))
                 .font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
         }
-        .frame(minHeight: 36)
+        .padding(.leading, 8)
+        .frame(minHeight: 38)
     }
 
     /// On an empty line: section tags (the Chorus one brings the chorus's lines when there already is one).
@@ -258,63 +336,110 @@ struct RhymeBar: View {
 
     private func chipsRow(_ items: [(String, Int?, Bool, Bool)], tap: @escaping (String) -> Void) -> some View {
         ScrollViewReader { proxy in
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 7) {
-                    ForEach(Array(items.enumerated()), id: \.offset) { _, it in
+            FadingHScroll {
+                HStack(spacing: 6) {
+                    ForEach(Array(items.enumerated()), id: \.offset) { i, it in
                         if it.3 {
-                            Text("near").font(.caption.weight(.semibold)).foregroundStyle(.tertiary).padding(.leading, 4)
+                            Text("near").font(.system(size: 12)).foregroundStyle(.secondary).padding(.horizontal, 4)
                         }
                         Button { tap(it.0) } label: {
-                            HStack(spacing: 5) {
+                            HStack(spacing: 6) {
                                 Text(it.0).font(.system(size: 17, weight: .medium))
-                                if let s = it.1 { Text("\(s)").font(.caption2.weight(.semibold)).foregroundStyle(.secondary) }
+                                if let s = it.1 {
+                                    Text("\(s)").font(.system(size: 11)).opacity(it.2 ? 0.6 : 1)
+                                        .foregroundStyle(it.2 ? AnyShapeStyle(Theme.onTint) : AnyShapeStyle(.secondary))
+                                }
                             }
-                            .padding(.horizontal, 14).frame(height: 38)
-                            .background(it.2 ? Theme.tint.opacity(0.16) : Color.primary.opacity(0.07), in: Capsule())
-                            .overlay(Capsule().strokeBorder(it.2 ? Theme.tint.opacity(0.5) : .clear, lineWidth: 1))
+                            .foregroundStyle(it.2 ? Theme.onTint : Theme.tint)
+                            .padding(.horizontal, 15).frame(height: 38)
+                            .background(it.2 ? Theme.tint : BarFill.color, in: Capsule())
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(PressScale())
+                        .id(i)
                     }
                 }
             }
-            .scrollClipDisabled()
+            .frame(height: 38)
             .onChange(of: context.word) { _, _ in proxy.scrollTo(0, anchor: .leading) }
         }
     }
 }
 
-/// The Aa row: bold, italic, underline, strikethrough, the colours, the highlights and clear.
+/// The web's press: a quick shrink while held.
+struct PressScale: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.94 : 1)
+            .animation(.spring(response: 0.18, dampingFraction: 0.7), value: configuration.isPressed)
+    }
+}
+
+/// The Aa row: B / I / U / S, default colour plus the seven colours, the three highlights and clear (the web's #fmt).
 struct FormatRow: View {
     let bridge: EditorBridge
+    let context: RhymeContext   // changes as the caret moves, so the B / I / U / S states refresh
+    @State private var tick = 0
+
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
+        let _ = tick
+        FadingHScroll {
             HStack(spacing: 6) {
-                letter(Text("B").font(.system(size: 17, weight: .bold)), "Bold") { bridge.toggle(.bold) }
-                letter(Text("I").font(.system(size: 19, design: .serif)).italic(), "Italic") { bridge.toggle(.italic) }
-                letter(Text("U").font(.system(size: 17, weight: .semibold)).underline(), "Underline") { bridge.toggle(.underline) }
-                letter(Text("S").font(.system(size: 17, weight: .semibold)).strikethrough(), "Strikethrough") { bridge.toggle(.strike) }
-                Divider().frame(height: 22).padding(.horizontal, 2)
+                letter(Text("B").font(.system(size: 17, weight: .bold)), "Bold", .bold)
+                letter(Text("I").font(.system(size: 18, design: .serif)).italic(), "Italic", .italic)
+                letter(Text("U").font(.system(size: 17)).underline(), "Underline", .underline)
+                letter(Text("S").font(.system(size: 17)).strikethrough(), "Strikethrough", .strike)
+                sep
+                Button { bridge.setColor(nil); tick += 1 } label: {
+                    Circle()
+                        .fill(LinearGradient(stops: [.init(color: Color(hex: 0x1C1C1E), location: 0.5), .init(color: .white, location: 0.5)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .overlay(Circle().strokeBorder(Color.black.opacity(0.35), lineWidth: 0.5))
+                        .frame(width: 30, height: 30)
+                        .padding(3).background(BarFill.color, in: Circle())
+                }
+                .buttonStyle(PressScale()).accessibilityLabel("Default colour")
                 ForEach(RichText.textColors, id: \.0) { name, c in
-                    Button { bridge.setColor(c) } label: { Circle().fill(Color(uiColor: c)).frame(width: 24, height: 24).padding(5) }
-                        .buttonStyle(.plain).accessibilityLabel(name)
+                    Button { bridge.setColor(c); tick += 1 } label: {
+                        Circle().fill(Color(uiColor: c))
+                            .overlay(Circle().strokeBorder(Color.black.opacity(0.2), lineWidth: 0.5))
+                            .frame(width: 30, height: 30)
+                            .padding(3).background(BarFill.color, in: Circle())
+                    }
+                    .buttonStyle(PressScale()).accessibilityLabel(name)
                 }
-                Divider().frame(height: 22).padding(.horizontal, 2)
+                sep
                 ForEach(RichText.highlights, id: \.0) { name, c in
-                    Button { bridge.setHighlight(c) } label: {
-                        Text(name).font(.subheadline.weight(.medium)).padding(.horizontal, 10).frame(height: 32)
+                    Button { bridge.setHighlight(c); tick += 1 } label: {
+                        Text(name).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.tint)
+                            .padding(.horizontal, 15).frame(height: 38)
                             .background(Color(uiColor: c), in: Capsule())
-                    }.buttonStyle(.plain)
+                    }
+                    .buttonStyle(PressScale()).accessibilityLabel("Mark as \(name)")
                 }
-                Button { bridge.clearFormatting() } label: { Icon("ic-close", 15).frame(width: 36, height: 34) }
-                    .buttonStyle(.plain).accessibilityLabel("Clear formatting")
+                sep
+                Button { bridge.clearFormatting(); tick += 1 } label: {
+                    Icon("ic-close", 15).foregroundStyle(Theme.tint)
+                        .frame(width: 38, height: 38).background(BarFill.color, in: Circle())
+                }
+                .buttonStyle(PressScale()).accessibilityLabel("Clear formatting")
             }
         }
-        .scrollClipDisabled()
+        .frame(height: 38)
     }
-    /// The web's B / I / U / S buttons are letters, not icons.
-    private func letter(_ t: Text, _ label: String, _ action: @escaping () -> Void) -> some View {
-        Button(action: action) { t.frame(width: 36, height: 34) }
-            .buttonStyle(.plain).accessibilityLabel(label)
+
+    private var sep: some View {
+        Rectangle().fill(Color.secondary.opacity(0.3)).frame(width: 1, height: 22).padding(.horizontal, 4)
+    }
+
+    /// The web's B / I / U / S buttons are letters; they fill in when that style is on at the caret.
+    private func letter(_ t: Text, _ label: String, _ trait: EditorBridge.Trait) -> some View {
+        let on = bridge.isOn(trait)
+        return Button { bridge.toggle(trait); tick += 1 } label: {
+            t.foregroundStyle(on ? Theme.onTint : Theme.tint)
+                .frame(width: 38, height: 38)
+                .background(on ? Theme.tint : BarFill.color, in: Circle())
+        }
+        .buttonStyle(PressScale())
+        .accessibilityLabel(label).accessibilityAddTraits(on ? .isSelected : [])
     }
 }
 
