@@ -41,7 +41,7 @@ struct DetailsSheet: View {
             }
             // the tabs sit just under the title bar, full width, at the large iOS size
             .contentMargins(.top, 4, for: .scrollContent)
-            .safeAreaInset(edge: .top, spacing: 0) {
+            .topBar {
                 Picker("Details", selection: Binding(get: { tab }, set: { pick($0) })) {
                     ForEach(DetailsTab.allCases) { Text($0.title).tag($0) }
                 }
@@ -415,5 +415,17 @@ struct DetailsSheet: View {
 
     private func binding(_ kp: WritableKeyPath<Song, String>) -> Binding<String> {
         Binding(get: { song?[keyPath: kp] ?? "" }, set: { set(kp, $0) })
+    }
+}
+
+extension View {
+    /// A bar pinned under the title bar. On iOS 26 it joins the title bar's scroll edge effect, so content
+    /// blurs out softly as it passes under it (like the system bars); earlier, a bar material behind it.
+    @ViewBuilder func topBar<C: View>(@ViewBuilder _ content: () -> C) -> some View {
+        if #available(iOS 26.0, *) {
+            safeAreaBar(edge: .top, spacing: 0, content: content)
+        } else {
+            safeAreaInset(edge: .top, spacing: 0) { content().background(.bar) }
+        }
     }
 }
