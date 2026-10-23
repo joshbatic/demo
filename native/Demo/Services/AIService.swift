@@ -72,6 +72,7 @@ final class AIService {
     /// Sends a prompt and returns the JSON it answered with. `complex` uses the stronger model (Rate, the voice profile).
     func json(_ prompt: String, complex: Bool = false, ask: Bool = true) async throws -> JSONValue {
         try await ensureConsent(ask: ask)
+        guard !RemoteConfig.shared.aiOff else { throw AIError.message(RemoteConfig.aiOffMessage) }
         guard !prompt.isEmpty else { throw AIError.message("Empty prompt.") }
         guard prompt.count <= 24000 else { throw AIError.message("That request is too large to send (\(prompt.count) characters, limit 24000).") }
         try guardCall()

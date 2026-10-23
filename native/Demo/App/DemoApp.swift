@@ -4,6 +4,7 @@ import UIKit
 @main
 struct DemoApp: App {
     @State private var session = AppSession()
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
@@ -34,6 +35,9 @@ struct DemoApp: App {
             case .active:
                 Haptics.warm()
                 Task { await session.library.checkRemote() }
+                RemoteConfig.shared.foreground()
+                Task { await Push.shared.refreshStatus() }
+                if session.userID != nil && Date().timeIntervalSince(session.planAt) > 60 { Task { await session.refreshPlan() } }
             @unknown default: break
             }
         }

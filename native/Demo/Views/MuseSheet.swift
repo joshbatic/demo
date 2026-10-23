@@ -87,7 +87,7 @@ struct MuseSheet: View {
                 sub: rateOn ? "Notes are marked in your lyrics. Tap to hide them." : "Scores and notes on what’s landing and what isn’t",
                 pro: !session.plan.isPro && !rateOn, ring: rateOn) {
                 if rateOn { onRateOff(); session.toast = "Rate mode off"; dismiss(); return }
-                guard session.plan.isPro else { Haptics.warning(); session.toast = "Rate is part of *[demo] Pro"; return }
+                guard session.plan.isPro else { session.upsell("rate"); return }
                 dismiss(); onRate()
             }
             stc(title: "Stare at a thing", sub: "90 seconds on one object. Every sense. No rhyming.") { stare() }

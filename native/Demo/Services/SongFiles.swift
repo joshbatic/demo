@@ -231,6 +231,7 @@ nonisolated enum SongFiles {
 
     /// Whether there's room to upload `bytes` more (sfRoom: my_storage, cached 30 s).
     static func checkRoom(_ bytes: Int) async throws {
+        if await MainActor.run(body: { RemoteConfig.shared.uploadsOff }) { throw FileError.paused }
         if let st = try? await storageState(), let limit = st.limit, st.used + Int64(bytes) > limit {
             throw FileError.full(limit)
         }

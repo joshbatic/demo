@@ -194,8 +194,7 @@ struct IdeasScreen: View {
 
     private func record() {
         if !session.plan.isPro && IdeaMemos.memoCount(library) >= IdeaMemos.freeLimit {
-            Haptics.warning()
-            session.toast = "Free keeps 10 voice memos on this device, up to a minute each. Pro syncs them everywhere, with no limit."
+            session.upsell("memos")
             return
         }
         jotFocused = false

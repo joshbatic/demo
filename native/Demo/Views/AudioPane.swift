@@ -189,7 +189,7 @@ struct AudioPane: View {
             }
             .disabled(LyricSync.shared.busySong != nil)
             Button("Play with Lyrics") {
-                guard session.plan.isPro else { Haptics.warning(); session.toast = "Play with Lyrics is part of *[demo] Pro"; return }
+                guard session.plan.isPro else { session.upsell("play"); return }
                 onPlayWithLyrics()
             }
             if synced, let url = lrcFile(s) {
@@ -221,8 +221,7 @@ struct AudioPane: View {
 
     private func startImport(audio: Bool) {
         guard session.plan.isPro else {
-            Haptics.warning()
-            session.toast = audio ? "Adding audio is part of *[demo] Pro" : "Adding files is part of *[demo] Pro"
+            session.upsell("audio")
             return
         }
         importAudio = audio
@@ -230,9 +229,8 @@ struct AudioPane: View {
     }
 
     private func lockedToast(_ audio: Bool) {
-        Haptics.warning()
-        session.toast = audio ? "A co-writer added this recording. Go Pro to listen and add your own."
-                              : "A co-writer added this file. Go Pro to open it and add your own."
+        session.upsell("audio", audio ? "A co-writer added this recording. Go Pro to listen and add your own."
+                                      : "A co-writer added this file. Go Pro to open it and add your own.")
     }
 
     private func open(_ a: FileItem) {

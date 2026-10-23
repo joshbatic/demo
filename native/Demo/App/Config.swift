@@ -15,4 +15,13 @@ nonisolated enum Config {
     /// Build sequence, on the same scale as the web app's APP_SEQ (413 when the native app began), so the
     /// server's min_seq "time to update" switch works for both (spec §2.7). Raise it with every release.
     static let appSeq = 1000
+    /// Shown at Account › Version and sent with diagnostics: the app's version and build number.
+    static var appCommit: String {
+        let i = Bundle.main.infoDictionary
+        return "native " + (i?["CFBundleShortVersionString"] as? String ?? "?") + " (" + (i?["CFBundleVersion"] as? String ?? "?") + ")"
+    }
+    /// The [developer] build: its bundle id ends in ".dev" (it turns on dev features, and never shows "Time to update").
+    static var isDevBuild: Bool { (Bundle.main.bundleIdentifier ?? "").hasSuffix(".dev") }
+    /// Push topic = the bundle id.
+    static var pushTopic: String { Bundle.main.bundleIdentifier ?? "app.hellodemo.demo" }
 }

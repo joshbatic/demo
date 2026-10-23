@@ -129,7 +129,7 @@ enum IdeaMemos {
                     session.toast = "Couldn’t add the voice memo: " + SongFiles.message(error)
                 }
             } else {
-                session.toast = "Your voice memo stays in Ideas. Pro adds recordings to songs."
+                session.upsell("audio", "Your voice memo stays in Ideas. Pro adds recordings to songs.")
             }
         }
         s.touch()

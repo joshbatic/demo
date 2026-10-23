@@ -106,7 +106,6 @@ struct SongPlayer: View {
     }
 
     private func locked() {
-        Haptics.warning()
-        session.toast = "A co-writer added this recording. Go Pro to listen and add your own."
+        session.upsell("audio", "A co-writer added this recording. Go Pro to listen and add your own.")
     }
 }

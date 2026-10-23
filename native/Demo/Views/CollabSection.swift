@@ -40,8 +40,8 @@ struct CollabSection: View {
                 Text(session.userID == nil ? "Sign in to write with other people." : "Invite co-writers by username and write it together, live.")
                     .font(.subheadline).foregroundStyle(.secondary)
                 Button {
-                    guard session.plan.isPro else { Haptics.warning(); session.toast = "Writing together is part of *[demo] Pro"; return }
-                    Task { _ = await Collab.shared.share(songID); await load() }
+                    guard session.plan.isPro else { session.upsell("share"); return }
+                    Task { _ = await Collab.shared.share(songID); await load(); await Push.shared.ask() }
                 } label: {
                     HStack(spacing: 6) {
                         Text("Share Song").font(.system(size: 15, weight: .semibold))
@@ -176,7 +176,7 @@ struct InviteBanner: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(inv.ownerName) invited you to write “\(inv.title)” together").font(.subheadline.weight(.semibold)).lineLimit(3)
                     HStack(spacing: 8) {
-                        Button("Accept") { Task { await collab.accept(inv) } }
+                        Button("Accept") { Task { await collab.accept(inv); await Push.shared.ask() } }
                             .font(.subheadline.weight(.semibold)).foregroundStyle(Theme.onTint)
                             .padding(.horizontal, 14).frame(height: 32).background(Theme.tint, in: Capsule())
                         Button("Not now") { withAnimation { collab.banner = nil } }
@@ -191,6 +191,7 @@ struct InviteBanner: View {
             .padding(14)
             .glass(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
             .padding(.horizontal, 12)
+            .hudHit("invite")
             .transition(.move(edge: .top).combined(with: .opacity))
             .task(id: inv.id) {
                 try? await Task.sleep(for: .seconds(20))

@@ -62,8 +62,7 @@ struct DetailsSheet: View {
 
     private func pick(_ t: DetailsTab) {
         if t == .credits && !session.plan.isPro {
-            Haptics.warning()
-            session.toast = "Credits and release details are part of *[demo] Pro"
+            session.upsell("release")
             return
         }
         Haptics.selection()

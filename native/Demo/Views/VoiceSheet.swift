@@ -77,7 +77,7 @@ struct VoiceSheet: View {
                     .foregroundStyle(.secondary)
             }
             Button(mz.profile?.text.isEmpty == false ? "Relearn" : "Learn My Voice") {
-                guard session.plan.isPro else { Haptics.warning(); session.toast = "Writing voice is part of *[demo] Pro"; return }
+                guard session.plan.isPro else { session.upsell("voice"); return }
                 Task {
                     profileDraft = nil
                     if await mz.buildProfile(manual: true) != nil { Haptics.success() }

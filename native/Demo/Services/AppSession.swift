@@ -20,6 +20,16 @@ final class AppSession {
     var toastAvoidTop: CGFloat?
     var toast: String?
     var busy = false
+    /// The Pro banner (spec §1.7): a message and the upsell key it opens.
+    struct ProNote: Equatable { var msg: String; var key: String; var id = UUID() }
+    var proNote: ProNote?
+    /// The paywall, with the gate that opened it ("" from Account).
+    var paywallWhy: String?
+    /// Account, from anywhere (a notification, the Pro banner); `accountFocus` opens a section ("support").
+    var accountOpen = false
+    var accountFocus: String?
+    /// A song to open (from a notification).
+    var openSongID: String?
     let library = LibraryStore()
 
     nonisolated struct Profile: Codable, Equatable {
@@ -34,7 +44,9 @@ final class AppSession {
     struct Plan: Equatable {
         var tier = "free"
         var expiresAt: String?
+        var source: String?
         var heavyMonth = 0
+        var syncMonth = 0
         var storageLimit: Double?
         var storageUsed: Double = 0
         var isPro: Bool { tier != "free" }       // beta counts as Pro everywhere (spec §6.1)
@@ -98,7 +110,9 @@ final class AppSession {
         }
         if isNew {
             Task { await loadProfile() }
-            Task { await refreshPlan() }
+            Task { await refreshPlan(); await Store.shared.start(session: self) }
+            Task { await Push.shared.signedIn(session: self) }
+            Task { await seenPing() }
         }
     }
 
@@ -151,6 +165,8 @@ final class AppSession {
 
     func signOut() async {
         signedOutFlag = true
+        await Push.shared.forget()
+        Store.shared.logOut()
         Collab.shared.stop()
         library.flushSave()
         try? await Backend.client.auth.signOut()
@@ -229,14 +245,35 @@ final class AppSession {
         } catch {}
     }
 
-    func refreshPlan() async {
+    @ObservationIgnored private(set) var planAt = Date.distantPast
+
+    func refreshPlan(fromStore: Bool = false) async {
         guard let r = try? await Backend.rpc("my_plan") else { return }
+        planAt = Date()
         var p = Plan()
         p.tier = r["tier"]?.string ?? "free"
         p.expiresAt = r["expires_at"]?.string
+        p.source = r["source"]?.string
         p.heavyMonth = Int(r["heavy_month"]?.number ?? 0)
+        p.syncMonth = Int(r["sync_month"]?.number ?? 0)
         p.storageLimit = r["storage_limit"]?.number
         p.storageUsed = r["storage_used"]?.number ?? 0
         plan = p
+        // Apple said Pro on this device lately but the server hasn't caught up: ask it again
+        if !fromStore && !p.isPro { await Store.shared.recheckIfLagging(session: self) }
+    }
+
+    // MARK: Pro gates (spec §7)
+
+    /// upsell(k, msg): the Pro banner; tapping it opens the paywall (or the plan page on Pro).
+    func upsell(_ key: String, _ msg: String? = nil) {
+        Haptics.warning()
+        proNote = ProNote(msg: msg ?? Pro.message(key), key: key)
+    }
+
+    /// openAccount(k): on Free with a feature key, the paywall; otherwise Account.
+    func openAccount(_ key: String = "") {
+        if !key.isEmpty && !plan.isPro { paywallWhy = key; return }
+        accountOpen = true
     }
 }

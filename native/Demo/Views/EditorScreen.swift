@@ -20,6 +20,7 @@ struct EditorScreen: View {
     @State private var showMap = UserDefaults.standard.bool(forKey: "view.map")
     @State private var showSyl = UserDefaults.standard.bool(forKey: "view.syl")
     @State private var showPlay = false
+    @State private var showPerform = false
     @State private var showShare = false
     @State private var live = LiveSession()
     @State private var editorFrame = CGRect.zero
@@ -98,6 +99,8 @@ struct EditorScreen: View {
         .sheet(isPresented: $showShare) { ShareSheet(songID: songID) }
         // live co-writing: send what changed here (from typing, Details, anywhere) and file changes
         .onChange(of: liveKey) { _, _ in live.localChanged() }
+        // dropping to Free turns off what's Pro (applyPlan)
+        .onChange(of: session.plan.isPro) { _, pro in if !pro { linesOn = false; if rateMode { setRateMode(false) } } }
         .onChange(of: filesKey) { _, _ in if live.isOn && !live.applying { live.filesChanged() } }
         .onChange(of: song?.isShared ?? false) { _, on in
             if on, live.isOn == false { live.start(songID: songID, library: library, session: session, bridge: bridge) }
@@ -123,6 +126,7 @@ struct EditorScreen: View {
             if now >= end { endSprint(stopped: false) }
         }
         .fullScreenCover(isPresented: $showPlay) { PlayWithLyrics(songID: songID) }
+        .fullScreenCover(isPresented: $showPerform) { PerformView(songID: songID) }
         .photosPicker(isPresented: $pickArt, selection: $artItem, matching: .images)
         .onChange(of: artItem) { _, item in if let item { loadArt(item) } }
         .sheet(isPresented: $showDictionary) {
@@ -170,7 +174,7 @@ struct EditorScreen: View {
     }
 
     private func openPlay() {
-        guard session.plan.isPro else { Haptics.warning(); session.toast = "Play with Lyrics is part of *[demo] Pro"; return }
+        guard session.plan.isPro else { session.upsell("play"); return }
         guard song?.currentAudio != nil else { session.toast = "Add audio in Details › Audio first"; return }
         bridge.textView?.resignFirstResponder()
         showPlay = true
@@ -318,6 +322,11 @@ struct EditorScreen: View {
             }
             Section {
                 Button {
+                    guard session.plan.isPro else { session.upsell("perform"); return }
+                    bridge.textView?.resignFirstResponder()
+                    showPerform = true
+                } label: { Label("Perform", systemImage: "music.mic") }
+                Button {
                     guard let s = song else { return }
                     UIPasteboard.general.string = (s.title.isEmpty ? "" : s.title + "\n\n") + s.lyrics
                     Haptics.success(); session.toast = "Copied"
@@ -340,7 +349,7 @@ struct EditorScreen: View {
 
     private func openDetails(_ t: DetailsTab) {
         if t == .credits && !session.plan.isPro {
-            Haptics.warning(); session.toast = "Credits and release details are part of *[demo] Pro"; return
+            session.upsell("release"); return
         }
         bridge.textView?.resignFirstResponder()
         detailsTab = t
@@ -352,14 +361,14 @@ struct EditorScreen: View {
     private var ctxOn: Bool { session.plan.isPro && ctxPref }
 
     private func toggleCtx() {
-        guard session.plan.isPro else { Haptics.warning(); session.toast = "Listening to the whole song is part of *[demo] Pro"; return }
+        guard session.plan.isPro else { session.upsell("listen"); return }
         ctxPref.toggle()
         session.toast = ctxPref ? "Listening to the whole song" : "Only listening to nearby lines"
         results.refresh()
     }
 
     private func toggleLines() {
-        guard session.plan.isPro else { Haptics.warning(); session.toast = "Lines is part of *[demo] Pro"; return }
+        guard session.plan.isPro else { session.upsell("lines"); return }
         withAnimation(.snappy(duration: 0.25)) { linesOn.toggle() }
     }
 
@@ -377,7 +386,7 @@ struct EditorScreen: View {
     }
 
     private func openRate() {
-        guard session.plan.isPro else { Haptics.warning(); session.toast = "Rate is part of *[demo] Pro"; return }
+        guard session.plan.isPro else { session.upsell("rate"); return }
         bridge.textView?.resignFirstResponder()
         setRateMode(true)
         showRate = true
@@ -431,7 +440,7 @@ struct EditorScreen: View {
 
     private func openVoice() {
         guard session.plan.isPro else {
-            Haptics.warning(); session.toast = "Writing voice is part of *[demo] Pro"; return
+            session.upsell("voice"); return
         }
         bridge.textView?.resignFirstResponder()
         showVoice = true

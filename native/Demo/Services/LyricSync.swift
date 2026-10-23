@@ -27,7 +27,8 @@ final class LyricSync {
 
     func run(songID: String, library: LibraryStore, session: AppSession) async {
         guard let song = library.song(songID), let a = song.currentAudio else { return }
-        guard session.plan.isPro else { session.toast = "Lyric sync is part of *[demo] Pro"; return }
+        guard session.plan.isPro else { session.upsell("sync"); return }
+        guard !RemoteConfig.shared.syncOff else { session.toast = RemoteConfig.syncOffMessage; return }
         do { try await AIService.shared.ensureConsent(ask: true) } catch { return }
         guard session.userID != nil else { session.toast = "Sign in to sync lyrics."; return }
         let lines = song.syncableLines

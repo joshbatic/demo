@@ -9,7 +9,6 @@ struct SongListScreen: View {
     @Environment(LibraryStore.self) private var library
     @State private var path: [String] = []
     @State private var query = ""
-    @State private var showAccount = false
     @State private var confirmDelete: Song?
     // folders and backups (spec §3.6–3.7)
     @State private var renaming: String?
@@ -96,7 +95,7 @@ struct SongListScreen: View {
             // and the search bar with the New Song button floating at the bottom
             .toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .top, spacing: 0) {
-                ListHeader(title: "*[demo]") { AccountButton { showAccount = true } }
+                ListHeader(title: "*[demo]") { AccountButton { session.accountFocus = nil; session.accountOpen = true } }
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 SearchDock(text: $query, prompt: "Search", icon: "ic-new", label: "New song") { newSong() }
@@ -104,7 +103,13 @@ struct SongListScreen: View {
             .navigationDestination(for: String.self) { id in
                 if id == IdeasRow.route { IdeasScreen() } else { EditorScreen(songID: id) }
             }
-            .sheet(isPresented: $showAccount) { AccountScreen() }
+            .sheet(isPresented: Binding(get: { session.accountOpen }, set: { session.accountOpen = $0 })) { AccountScreen() }
+            // a notification opened a song (or "" for the list)
+            .onChange(of: session.openSongID) { _, id in
+                guard let id else { return }
+                session.openSongID = nil
+                if id.isEmpty { path = [] } else if library.song(id) != nil { path = [id] }
+            }
             .fileImporter(isPresented: $importing, allowedContentTypes: [.json, .plainText, .text], allowsMultipleSelection: true) { r in
                 if case .success(let urls) = r, !urls.isEmpty { Haptics.success(); session.toast = library.importFiles(urls) }
             }
@@ -377,6 +382,12 @@ struct AccountButton: View {
                         .foregroundStyle(session.plan.tier == "pro" ? Color.white : Color.primary)
                 }
                 Avatar(url: session.profile.avatar_url, name: session.myName, size: 28)
+                    // pending co-writing invites
+                    .overlay(alignment: .topTrailing) {
+                        if !Collab.shared.invites.isEmpty {
+                            Circle().fill(Color.red).frame(width: 9, height: 9).overlay(Circle().stroke(Color(uiColor: .systemBackground), lineWidth: 1.5)).offset(x: 2, y: -2)
+                        }
+                    }
             }
             .padding(.leading, session.plan.isPro ? 8 : 6).padding(.trailing, 6)
             .frame(minWidth: 40, minHeight: 40)
