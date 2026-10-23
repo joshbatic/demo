@@ -103,74 +103,95 @@ enum SharePalette {
 
 // MARK: - the card
 
-/// The share card: pastel background, a player card, then the lyrics (spec §2.7).
+/// The share card (spec §2.7, the web's .shcard): pastel background, the player card, then the lyrics.
 struct ShareCard: View {
     let song: Song
     let bg: SharePalette.Background
     var audio: FileItem?
     var lyrics = true
     var width: CGFloat = 360
+    /// The sheet's preview fades out at the bottom (max height); the shared picture shows everything.
+    var preview = false
 
     var body: some View {
         let ink = SharePalette.color(bg.ink)
         VStack(alignment: .leading, spacing: 0) {
             playerCard(ink)
             if lyrics {
+                let blocks = ShareLink_.blocks(song)
                 VStack(alignment: .leading, spacing: 0) {
-                    ForEach(Array(ShareLink_.blocks(song).prefix(40).enumerated()), id: \.offset) { _, b in
+                    if blocks.isEmpty {
+                        Text("No lyrics yet").font(.system(size: 19, weight: .bold)).foregroundStyle(ink.opacity(0.5))
+                    }
+                    ForEach(Array(blocks.prefix(40).enumerated()), id: \.offset) { i, b in
                         switch b {
                         case .sec(let name):
-                            Text(name).font(.system(size: 12, weight: .semibold)).foregroundStyle(ink.opacity(0.5))
-                                .padding(.top, 6).padding(.bottom, 4)
+                            Text(name).font(.system(size: 12.5, weight: .semibold)).foregroundStyle(ink.opacity(0.5))
+                                .padding(.top, i == 0 ? 0 : 14).padding(.bottom, 5)
                         case .gap:
-                            Color.clear.frame(height: 12)
+                            Color.clear.frame(height: 8)
                         case .line(let t, _):
-                            Text(t).font(.system(size: 19, weight: .bold)).foregroundStyle(ink).lineSpacing(3)
+                            Text(t).font(.system(size: 19, weight: .bold)).tracking(-0.19).foregroundStyle(ink.opacity(0.95))
+                                .lineSpacing(2)
                                 .fixedSize(horizontal: false, vertical: true)
-                                .padding(.bottom, 4)
+                                .padding(.bottom, 5)
                         }
                     }
                 }
-                .padding(.top, 22)
-                Text("Written in *[demo]").font(.system(size: 11, weight: .semibold)).foregroundStyle(ink.opacity(0.42)).padding(.top, 20)
+                .padding(.top, 26)
+                if !preview {
+                    Text("Written in *[demo]").font(.system(size: 11, weight: .semibold)).foregroundStyle(ink.opacity(0.42)).padding(.top, 20).padding(.bottom, 26)
+                }
             }
         }
-        .padding(28)
-        .frame(width: width, alignment: .leading)
+        .padding(.horizontal, 24).padding(.top, 26).padding(.bottom, lyrics ? 0 : 26)
+        .frame(width: width, alignment: .topLeading)
         .background {
             ZStack {
-                LinearGradient(colors: [SharePalette.color(bg.top), SharePalette.color(bg.bot)], startPoint: UnitPoint(x: 0.2, y: 0), endPoint: UnitPoint(x: 0.8, y: 1))
-                RadialGradient(colors: [SharePalette.color(bg.glow), SharePalette.color(bg.glow).opacity(0)], center: UnitPoint(x: 0.88, y: 0.04), startRadius: 0, endRadius: width * 0.8)
+                LinearGradient(colors: [SharePalette.color(bg.top), SharePalette.color(bg.bot)], startPoint: UnitPoint(x: 0.25, y: 0), endPoint: UnitPoint(x: 0.75, y: 1))
+                RadialGradient(colors: [SharePalette.color(bg.glow), SharePalette.color(bg.glow).opacity(0)], center: UnitPoint(x: 0.88, y: 0.04), startRadius: 0, endRadius: width * 0.72)
             }
         }
     }
 
+    /// shCardDraw: white glass card, cover, title and details; with audio a play circle, the waveform and times.
     private func playerCard(_ ink: Color) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .center, spacing: 12) {
                 CoverView(song: song, size: 58)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .shadow(color: ink.opacity(0.18), radius: 6, y: 4)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(song.displayTitle).font(.system(size: 18, weight: .bold)).foregroundStyle(ink).lineLimit(2)
-                    let meta = [song.artist, song.key.isEmpty ? "" : "Key of " + song.key, song.bpm.isEmpty ? "" : song.bpm + " BPM"].filter { !$0.isEmpty }.joined(separator: " · ")
-                    if !meta.isEmpty { Text(meta).font(.system(size: 13)).foregroundStyle(ink.opacity(0.6)).lineLimit(1) }
+                    Text(song.displayTitle).font(.system(size: 17, weight: .semibold)).foregroundStyle(ink).lineLimit(1)
+                    let sub = [song.artist, song.key.isEmpty ? "" : "Key of " + song.key, song.bpm.isEmpty ? "" : song.bpm + " BPM"].filter { !$0.isEmpty }.joined(separator: " · ")
+                    if !sub.isEmpty { Text(sub).font(.system(size: 13.5)).foregroundStyle(ink.opacity(0.6)).lineLimit(1) }
+                }
+                Spacer(minLength: 0)
+                if audio != nil {
+                    Image(systemName: "play.fill").font(.system(size: 15, weight: .bold)).foregroundStyle(.white)
+                        .offset(x: 1.5)
+                        .frame(width: 40, height: 40).background(ink, in: Circle())
                 }
             }
+            .padding(12)
             if let a = audio {
-                HStack(spacing: 10) {
-                    Image(systemName: "play.fill").font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
-                        .frame(width: 34, height: 34).background(ink, in: Circle())
-                    Waveform(peaks: a.peaks, progress: 0, duration: a.dur, height: 30) { _ in }
-                        .foregroundStyle(ink)
-                        .allowsHitTesting(false)
+                Waveform(peaks: a.peaks, progress: 0, duration: a.dur, height: 58) { _ in }
+                    .allowsHitTesting(false)
+                    .padding(.horizontal, 14)
+                ZStack {
+                    HStack { Text("0:00"); Spacer(); Text("-" + SongFiles.time(a.dur)) }
+                        .font(.system(size: 12.5).monospacedDigit()).foregroundStyle(ink.opacity(0.6))
+                    HStack(spacing: 30) {
+                        Image(systemName: "gobackward.15"); Image(systemName: "goforward.15")
+                    }
+                    .font(.system(size: 18)).foregroundStyle(ink)
                 }
-                HStack {
-                    Text("0:00"); Spacer(); Text("-" + SongFiles.time(a.dur))
-                }
-                .font(.system(size: 11).monospacedDigit()).foregroundStyle(ink.opacity(0.55))
+                .padding(.horizontal, 16).padding(.top, 6).padding(.bottom, 12)
             }
         }
-        .padding(14)
-        .background(Color.white.opacity(0.52), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .background(Color.white.opacity(0.52), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(ink.opacity(0.1), lineWidth: 0.5))
+        .shadow(color: ink.opacity(0.14), radius: 15, y: 10)
     }
 }
 
@@ -225,78 +246,37 @@ struct ShareSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
+            ScrollView {
                 if let s = song {
                     let bg = SharePalette.background(palette, pick)
-                    Section {
-                        ShareCard(song: s, bg: bg, audio: includeAudio ? s.currentAudio : nil, width: 320)
-                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                            .frame(maxWidth: .infinity)
-                            .listRowBackground(Color.clear)
-                            .listRowInsets(EdgeInsets())
-                    }
-                    if palette.count > 1 {
-                        Section {
-                            HStack(spacing: 10) {
-                                ForEach(palette.indices, id: \.self) { i in
-                                    let b = SharePalette.background(palette, i)
-                                    Button { Haptics.selection(); pick = i } label: {
-                                        Circle().fill(LinearGradient(colors: [SharePalette.color(b.top), SharePalette.color(b.bot)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                            .frame(width: 32, height: 32)
-                                            .overlay(Circle().strokeBorder(Theme.tint, lineWidth: pick == i ? 2 : 0).padding(-3))
-                                    }
-                                    .buttonStyle(.plain)
-                                    .accessibilityLabel("Colour \(i + 1)").accessibilityAddTraits(pick == i ? .isSelected : [])
-                                }
+                    VStack(spacing: 0) {
+                        card(s, bg)
+                        if palette.count > 1 { swatches }
+                        linkGroup(s, bg)
+                        if let m = myShare, let id = m["id"]?.string, busy == nil, let u = URL(string: ShareLink_.url(id)) {
+                            HStack(spacing: 8) {
+                                ShareLink(item: u) { pill("Share Link", filled: true) }
+                                Button { confirmStop = true } label: { pill("Stop Sharing", filled: false, red: true) }
                             }
-                            .frame(maxWidth: .infinity)
+                            .buttonStyle(PressScale())
+                            .padding(.horizontal, 20).padding(.bottom, 8)
                         }
-                    }
-                    Section {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Link")
-                                if session.userID == nil {
-                                    Text("Sign in to make a link").font(.footnote).foregroundStyle(.secondary)
-                                } else if let m = myShare, let id = m["id"]?.string {
-                                    Text(Config.listenHost + "/" + id).font(.footnote).foregroundStyle(.secondary)
-                                    if let at = m["at"]?.number { Text("Updated " + RelativeDateTimeFormatter().localizedString(for: Date(timeIntervalSince1970: at / 1000), relativeTo: Date())).font(.footnote).foregroundStyle(.secondary) }
-                                } else {
-                                    Text("Anyone can open it, no account needed").font(.footnote).foregroundStyle(.secondary)
-                                }
-                            }
-                            Spacer()
-                            if let b = busy {
-                                HStack(spacing: 6) { ProgressView(); Text(b).font(.footnote).foregroundStyle(.secondary) }
-                            } else {
-                                Button(myShare == nil ? "Create Link" : "Update") { makeLink(s, bg) }
-                                    .font(.subheadline.weight(.semibold))
-                                    .disabled(session.userID == nil)
-                            }
+                        HStack(spacing: 8) {
+                            Button { shareImage(s, bg) } label: { pill("Share Image", filled: myShare == nil) }
+                            Button {
+                                UIPasteboard.general.string = (s.title.isEmpty ? "" : s.title + (s.artist.isEmpty ? "" : " – " + s.artist) + "\n\n") + s.lyrics
+                                Haptics.success(); session.toast = "Copied"
+                            } label: { pill("Copy Lyrics", filled: false) }
                         }
-                        if let a = s.currentAudio {
-                            Toggle(isOn: $includeAudio) {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Include audio")
-                                    Text(includeAudio ? a.name + " · " + (s.syncAudioID == a.id && !s.syncLines.isEmpty ? "Plays with the lyrics lit in time" : "Plays from the link") : "Lyrics only")
-                                        .font(.footnote).foregroundStyle(.secondary)
-                                }
-                            }
+                        .buttonStyle(PressScale())
+                        .padding(.horizontal, 20)
+                        if myShare != nil {
+                            Text("The link shows the song as of your last update.")
+                                .font(.system(size: 13)).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                                .padding(.horizontal, 20).padding(.top, 8)
                         }
                     }
-                    Section {
-                        Button("Share Image") { shareImage(s, bg) }
-                        Button("Copy Lyrics") {
-                            UIPasteboard.general.string = (s.displayTitle + (s.artist.isEmpty ? "" : " – " + s.artist)) + "\n\n" + s.lyrics
-                            Haptics.success(); session.toast = "Copied"
-                        }
-                        if let m = myShare, let id = m["id"]?.string, let u = URL(string: ShareLink_.url(id)) {
-                            ShareLink(item: u) { Text("Share Link") }
-                            Button("Stop Sharing", role: .destructive) { confirmStop = true }
-                        }
-                    } footer: {
-                        if myShare != nil { Text("The link shows the song as of your last update.") }
-                    }
+                    .padding(.top, 4).padding(.bottom, 24)
                 }
             }
             .navigationTitle("Share")
@@ -311,6 +291,104 @@ struct ShareSheet: View {
         }
         .presentationDetents([.fraction(0.88)])
         .task { if let s = song { palette = SharePalette.palette(s) } }
+    }
+
+    /// The preview: at most about half the screen, fading out at the bottom.
+    private func card(_ s: Song, _ bg: SharePalette.Background) -> some View {
+        GeometryReader { g in
+            ShareCard(song: s, bg: bg, audio: includeAudio ? s.currentAudio : nil, width: g.size.width, preview: true)
+        }
+        .frame(height: min(UIScreen.main.bounds.height * 0.48, 440))
+        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+        .mask {
+            LinearGradient(stops: [.init(color: .black, location: 0.78), .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom)
+        }
+        .shadow(color: .black.opacity(0.12), radius: 15, y: 10)
+        .padding(.horizontal, 20).padding(.top, 4).padding(.bottom, 14)
+    }
+
+    private var swatches: some View {
+        HStack(spacing: 12) {
+            ForEach(palette.indices, id: \.self) { i in
+                let b = SharePalette.background(palette, i)
+                Button { guard pick != i else { return }; Haptics.selection(); pick = i } label: {
+                    ZStack {
+                        RadialGradient(colors: [SharePalette.color(b.glow), SharePalette.color(b.glow).opacity(0)], center: UnitPoint(x: 0.88, y: 0.04), startRadius: 0, endRadius: 24)
+                            .background(LinearGradient(colors: [SharePalette.color(b.top), SharePalette.color(b.bot)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    }
+                    .frame(width: 30, height: 30)
+                    .clipShape(Circle())
+                    .overlay(Circle().strokeBorder(Color.primary.opacity(0.12), lineWidth: 0.5))
+                    .padding(2.5)
+                    .overlay(Circle().strokeBorder(Theme.tint, lineWidth: pick == i ? 2 : 0))
+                }
+                .buttonStyle(PressScale())
+                .accessibilityLabel("Colour \(i + 1)").accessibilityAddTraits(pick == i ? .isSelected : [])
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 20).padding(.top, 2).padding(.bottom, 16)
+    }
+
+    /// The glass group: Link (with Create Link / Update) and Include audio.
+    private func linkGroup(_ s: Song, _ bg: SharePalette.Background) -> some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Link").font(.system(size: 17))
+                    ForEach(linkLines, id: \.self) { Text($0).font(.system(size: 13)).foregroundStyle(.secondary).lineLimit(1).truncationMode(.head) }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                if busy != nil {
+                    ProgressView()
+                } else if session.userID != nil {
+                    Button { makeLink(s, bg) } label: {
+                        Text(myShare == nil ? "Create Link" : "Update").font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(myShare == nil ? Theme.onTint : Theme.tint)
+                            .padding(.horizontal, 16).frame(height: 32)
+                            .background(myShare == nil ? Theme.tint : BarFill.color, in: Capsule())
+                    }
+                    .buttonStyle(PressScale())
+                }
+            }
+            .padding(.horizontal, 20).padding(.vertical, 10).frame(minHeight: 58)
+            if let a = s.currentAudio {
+                Divider().padding(.leading, 20)
+                Toggle(isOn: $includeAudio) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Include audio").font(.system(size: 17))
+                        if includeAudio {
+                            Text(a.name).font(.system(size: 13)).foregroundStyle(.secondary).lineLimit(1)
+                            Text(s.syncAudioID == a.id && !s.syncLines.isEmpty ? "Plays with the lyrics lit in time" : "Plays from the link").font(.system(size: 13)).foregroundStyle(.secondary)
+                        } else {
+                            Text("Lyrics only").font(.system(size: 13)).foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .padding(.horizontal, 20).padding(.vertical, 10).frame(minHeight: 58)
+            }
+        }
+        .glass(in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .padding(.horizontal, 20).padding(.bottom, 16)
+    }
+
+    private var linkLines: [String] {
+        if let b = busy { return [b] }
+        if session.userID == nil { return ["Sign in to make a link"] }
+        if let m = myShare, let id = m["id"]?.string {
+            var l = [Config.listenHost + "/" + id]
+            if let at = m["at"]?.number { l.append("Updated " + RelativeDateTimeFormatter().localizedString(for: Date(timeIntervalSince1970: at / 1000), relativeTo: Date())) }
+            return l
+        }
+        return ["Anyone can open it, no account needed"]
+    }
+
+    /// The web's .go2 pills: filled, or a light "ghost" (red for Stop Sharing).
+    private func pill(_ t: String, filled: Bool, red: Bool = false) -> some View {
+        Text(t).font(.system(size: 15.5, weight: .semibold))
+            .foregroundStyle(red ? Color.red : filled ? Theme.onTint : Theme.tint)
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .background(filled ? Theme.tint : BarFill.color, in: Capsule())
     }
 
     struct IdentURL: Identifiable { let url: URL; var id: String { url.absoluteString } }

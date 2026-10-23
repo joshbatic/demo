@@ -11,6 +11,8 @@ struct DemoApp: App {
                 .environment(session)
                 .environment(session.library)
                 .tint(Theme.tint)
+                // switches are iOS green when on, whatever the app tint
+                .toggleStyle(SwitchToggleStyle(tint: Color(uiColor: .systemGreen)))
                 .task { await session.start() }
                 // the rhyme dictionary loads in the background so it's ready when a song opens
                 .task(priority: .utility) { await Task.detached(priority: .utility) { RhymeEngine.shared.load() }.value }
