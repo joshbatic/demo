@@ -32,20 +32,22 @@ struct DetailsSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section {
-                    Picker("Details", selection: Binding(get: { tab }, set: { pick($0) })) {
-                        ForEach(DetailsTab.allCases) { Text($0.title).tag($0) }
-                    }
-                    .pickerStyle(.segmented)
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                }
                 switch tab {
                 case .info: info
                 case .audio: audio
                 case .chords: chords
                 case .credits: creditsPane
                 }
+            }
+            // the tabs sit just under the title bar, full width, at the large iOS size
+            .contentMargins(.top, 4, for: .scrollContent)
+            .safeAreaInset(edge: .top, spacing: 0) {
+                Picker("Details", selection: Binding(get: { tab }, set: { pick($0) })) {
+                    ForEach(DetailsTab.allCases) { Text($0.title).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .controlSize(.large)
+                .padding(.horizontal, 16).padding(.top, 2).padding(.bottom, 8)
             }
             .navigationTitle("Details")
             .navigationBarTitleDisplayMode(.inline)
