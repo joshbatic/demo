@@ -246,3 +246,13 @@ nonisolated enum RichText {
         ("Idea", UIColor(red: 0.039, green: 0.518, blue: 1, alpha: 0.22))
     ]
 }
+
+
+extension RichText {
+    /// Two colours are the same swatch if their RGB is within 2%.
+    static func sameSwatch(_ a: UIColor, _ b: UIColor) -> Bool {
+        var r1: CGFloat = 0, g1: CGFloat = 0, b1: CGFloat = 0, a1: CGFloat = 0, r2: CGFloat = 0, g2: CGFloat = 0, b2: CGFloat = 0, a2: CGFloat = 0
+        a.getRed(&r1, green: &g1, blue: &b1, alpha: &a1); b.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
+        return abs(r1 - r2) < 0.02 && abs(g1 - g2) < 0.02 && abs(b1 - b2) < 0.02
+    }
+}

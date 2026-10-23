@@ -169,6 +169,26 @@ final class EditorBridge {
         return Self.has(t, tv.textStorage.attributes(at: min(r.location, tv.textStorage.length - 1), effectiveRange: nil))
     }
 
+    /// The attributes at the caret (typing attributes), or at the start of the selection.
+    private var attributesHere: [NSAttributedString.Key: Any] {
+        guard let tv = textView else { return [:] }
+        let r = tv.selectedRange
+        if r.length == 0 || tv.textStorage.length == 0 { return tv.typingAttributes }
+        return tv.textStorage.attributes(at: min(r.location, tv.textStorage.length - 1), effectiveRange: nil)
+    }
+
+    /// The text colour in use here: one of RichText.textColors, or nil for the default (black / white).
+    var activeColor: UIColor? {
+        guard let c = attributesHere[.foregroundColor] as? UIColor else { return nil }
+        return RichText.textColors.map(\.1).first { RichText.sameSwatch(c, $0) }
+    }
+
+    /// The highlight here, if it's one of the three.
+    var activeHighlight: UIColor? {
+        guard let c = attributesHere[.backgroundColor] as? UIColor else { return nil }
+        return RichText.highlights.map(\.1).first { RichText.sameSwatch(c.withAlphaComponent(1), $0.withAlphaComponent(1)) }
+    }
+
     func setColor(_ c: UIColor?) { apply(.foregroundColor, c ?? .label) }
     func setHighlight(_ c: UIColor?) {
         guard let tv = textView else { return }

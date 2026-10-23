@@ -584,13 +584,16 @@ struct FormatRow: View {
                 letter(Text("U").font(.system(size: 17)).underline(), "Underline", .underline)
                 letter(Text("S").font(.system(size: 17)).strikethrough(), "Strikethrough", .strike)
                 sep
+                let active = bridge.activeColor
                 Button { bridge.setColor(nil); tick += 1 } label: {
                     Circle()
                         .fill(LinearGradient(stops: [.init(color: Color(hex: 0x1C1C1E), location: 0.5), .init(color: .white, location: 0.5)], startPoint: .topLeading, endPoint: .bottomTrailing))
                         .overlay(Circle().strokeBorder(Color.black.opacity(0.35), lineWidth: 0.5))
                         .frame(width: 30, height: 30)
                         .padding(3).background(BarFill.color, in: Circle())
+                        .overlay(Circle().strokeBorder(Theme.tint, lineWidth: active == nil ? 2 : 0))
                 }
+                .accessibilityAddTraits(active == nil ? .isSelected : [])
                 .buttonStyle(PressScale()).accessibilityLabel("Default colour")
                 ForEach(RichText.textColors, id: \.0) { name, c in
                     Button { bridge.setColor(c); tick += 1 } label: {
@@ -598,16 +601,22 @@ struct FormatRow: View {
                             .overlay(Circle().strokeBorder(Color.black.opacity(0.2), lineWidth: 0.5))
                             .frame(width: 30, height: 30)
                             .padding(3).background(BarFill.color, in: Circle())
+                            // the colour in use where the cursor is gets a ring
+                            .overlay(Circle().strokeBorder(Theme.tint, lineWidth: active == c ? 2 : 0))
                     }
                     .buttonStyle(PressScale()).accessibilityLabel(name)
+                    .accessibilityAddTraits(active == c ? .isSelected : [])
                 }
                 sep
+                let hl = bridge.activeHighlight
                 ForEach(RichText.highlights, id: \.0) { name, c in
-                    Button { bridge.setHighlight(c); tick += 1 } label: {
+                    Button { bridge.setHighlight(hl == c ? nil : c); tick += 1 } label: {
                         Text(name).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.tint)
                             .padding(.horizontal, 15).frame(height: 38)
                             .background(Color(uiColor: c), in: Capsule())
+                            .overlay(Capsule().strokeBorder(Theme.tint, lineWidth: hl == c ? 2 : 0))
                     }
+                    .accessibilityAddTraits(hl == c ? .isSelected : [])
                     .buttonStyle(PressScale()).accessibilityLabel("Mark as \(name)")
                 }
                 sep
