@@ -171,6 +171,10 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
     static var avatars: [String: UIImage] = [:]
     // pop-up menus on buttons (the editor's •••)
     private var menuKeys: [String] = []
+    // mirror: the page's own content (text, chips, icons) redrawn natively on the glass; touches pass through to the page
+    private var mirrorViews: [UIView] = []
+    private var mirrorKinds: [String] = []
+    private var cornerRadiusHint: CGFloat = 0
     // the dev app's tab bar: Apple's own UITabBar
     private var tabBar: UITabBar?
     private var tabIds: [String] = []
@@ -209,6 +213,17 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
         bounds = CGRect(x: 0, y: 0, width: w, height: h)
         center = CGPoint(x: x + w / 2, y: y + h / 2)
         isBottom = (s["bottom"] as? Bool) ?? false
+        cornerRadiusHint = glassNum(s["r"])
+        if kind == "mirror" {
+            configureMirror(s)
+            // the page animates these in and out with opacity; follow it exactly, and never take touches
+            let show = (s["show"] as? Bool) ?? true
+            shownTarget = show
+            isUserInteractionEnabled = false
+            alpha = show ? (s["op"] != nil ? glassNum(s["op"]) : 1) : 0
+            setNeedsLayout()
+            return
+        }
         if kind == "search" { configureSearch(s) } else if kind == "account" { configureAccount(s) } else if kind == "tabbar" { configureTabBar(s) } else { configureButtons(s) }
         setShown((s["show"] as? Bool) ?? true)
         setNeedsLayout()
@@ -392,6 +407,132 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
         } else { dotView.isHidden = true }
     }
 
+    private func configureMirror(_ s: JSObject) {
+        let parts = ((s["parts"] as? JSArray) ?? []).compactMap { $0 as? JSObject }
+        let kinds = parts.map { ($0["k"] as? String) ?? "t" }
+        if kinds != mirrorKinds {
+            mirrorViews.forEach { $0.removeFromSuperview() }
+            mirrorViews = kinds.map { k in
+                let wrap = UIView()
+                wrap.clipsToBounds = true
+                wrap.isUserInteractionEnabled = false
+                let content: UIView
+                switch k {
+                case "t":
+                    let l = UILabel()
+                    l.lineBreakMode = .byTruncatingTail
+                    content = l
+                case "i":
+                    let iv = UIImageView()
+                    iv.contentMode = .scaleAspectFit
+                    content = iv
+                case "img":
+                    let iv = UIImageView()
+                    iv.contentMode = .scaleAspectFill
+                    iv.clipsToBounds = true
+                    content = iv
+                default:
+                    content = UIView()
+                }
+                content.isUserInteractionEnabled = false
+                wrap.addSubview(content)
+                effectView.contentView.addSubview(wrap)
+                return wrap
+            }
+            mirrorKinds = kinds
+        }
+        for (i, p) in parts.enumerated() where i < mirrorViews.count {
+            let wrap = mirrorViews[i]
+            guard let content = wrap.subviews.first else { continue }
+            var r = CGRect(x: glassNum(p["x"]), y: glassNum(p["y"]), width: glassNum(p["w"]), height: glassNum(p["h"]))
+            let k = kinds[i]
+            if k == "t" {
+                // the page measures text tightly; give UIKit a little room so it never truncates
+                r = r.insetBy(dx: -3, dy: -1)
+            }
+            let clip = glassRect(p["clip"]) ?? r
+            wrap.frame = clip
+            content.frame = r.offsetBy(dx: -clip.minX, dy: -clip.minY)
+            content.alpha = p["op"] != nil ? glassNum(p["op"]) : 1
+            let color = glassColor(p["fc"]) ?? .label
+            switch k {
+            case "t":
+                guard let l = content as? UILabel else { break }
+                let fs = max(1, glassNum(p["fs"]))
+                let fw = glassNum(p["fw"])
+                let weight: UIFont.Weight = fw >= 750 ? .heavy : fw >= 650 ? .bold : fw >= 550 ? .semibold : fw >= 450 ? .medium : .regular
+                var font = UIFont.systemFont(ofSize: fs, weight: weight)
+                if (p["it"] as? Bool) == true, let d = font.fontDescriptor.withSymbolicTraits(.traitItalic) { font = UIFont(descriptor: d, size: fs) }
+                if (p["tab"] as? Bool) == true { font = UIFont.monospacedDigitSystemFont(ofSize: fs, weight: weight) }
+                l.font = font
+                l.textColor = color
+                let multi = (p["ml"] as? Bool) == true
+                l.numberOfLines = multi ? 0 : 1
+                let al = (p["al"] as? String) ?? ""
+                l.textAlignment = !multi ? .center : (al == "center" ? .center : (al == "right" || al == "end") ? .right : .left)
+                l.text = (p["tx"] as? String) ?? ""
+            case "i":
+                guard let iv = content as? UIImageView else { break }
+                if let k2 = p["ik"] as? String, let img = GlassBarPlugin.icons[k2] { iv.image = img }
+                iv.tintColor = color
+            case "img":
+                guard let iv = content as? UIImageView else { break }
+                iv.layer.cornerRadius = min(glassNum(p["r"]), min(r.width, r.height) / 2)
+                GlassGroupView.loadImage((p["src"] as? String) ?? "", into: iv)
+            default:
+                content.backgroundColor = glassColor(p["bg"]) ?? .clear
+                content.layer.cornerRadius = min(glassNum(p["r"]), min(r.width, r.height) / 2)
+                content.layer.cornerCurve = .continuous
+                content.layer.borderWidth = glassNum(p["bw"])
+                content.layer.borderColor = (glassColor(p["bc"]) ?? .clear).cgColor
+                // CSS gradients (the Muse button's tint, icon tiles) as a native gradient layer
+                let existing = content.layer.sublayers?.first { $0 is CAGradientLayer } as? CAGradientLayer
+                if let gr = p["gr"] as? JSObject, let cols = gr["c"] as? JSArray {
+                    let gl = existing ?? CAGradientLayer()
+                    if existing == nil { content.layer.insertSublayer(gl, at: 0) }
+                    gl.frame = content.bounds
+                    gl.cornerRadius = content.layer.cornerRadius
+                    gl.cornerCurve = .continuous
+                    gl.colors = cols.compactMap { glassColor($0)?.cgColor }
+                    if (gr["t"] as? String) == "r" {
+                        gl.type = .radial
+                        gl.startPoint = CGPoint(x: 0.5, y: 0.5)
+                        gl.endPoint = CGPoint(x: 1, y: 1)
+                    } else {
+                        // CSS angles: 0deg points up, 90deg right
+                        let a = Double(glassNum(gr["a"])) * .pi / 180
+                        let dx = CGFloat(sin(a)) / 2, dy = CGFloat(-cos(a)) / 2
+                        gl.type = .axial
+                        gl.startPoint = CGPoint(x: 0.5 - dx, y: 0.5 - dy)
+                        gl.endPoint = CGPoint(x: 0.5 + dx, y: 0.5 + dy)
+                    }
+                } else {
+                    existing?.removeFromSuperlayer()
+                }
+            }
+        }
+    }
+
+    static func loadImage(_ url: String, into iv: UIImageView) {
+        guard iv.accessibilityIdentifier != url else { return }
+        iv.accessibilityIdentifier = url
+        if url.isEmpty { iv.image = nil; return }
+        if let img = avatars[url] { iv.image = img; return }
+        iv.image = nil
+        if url.hasPrefix("data:"), let comma = url.firstIndex(of: ",") {
+            if let d = Data(base64Encoded: String(url[url.index(after: comma)...])), let img = UIImage(data: d) { avatars[url] = img; iv.image = img }
+            return
+        }
+        guard let u = URL(string: url), u.scheme == "https" else { return }
+        URLSession.shared.dataTask(with: u) { [weak iv] data, _, _ in
+            guard let data = data, let img = UIImage(data: data) else { return }
+            DispatchQueue.main.async {
+                avatars[url] = img
+                if iv?.accessibilityIdentifier == url { iv?.image = img }
+            }
+        }.resume()
+    }
+
     private func loadAvatar(_ url: String) {
         guard url != avatarURL else { return }
         avatarURL = url
@@ -466,10 +607,14 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
         // glass ignores layer.cornerRadius on iOS 26; it takes a corner configuration instead
         var rounded = false
         #if compiler(>=6.2)
-        if #available(iOS 26.0, *) { effectView.cornerConfiguration = .capsule(); rounded = true }
+        if #available(iOS 26.0, *) {
+            // a capsule, or a rounded rectangle when the page's panel has a smaller radius (the rhyme bar, banners)
+            effectView.cornerConfiguration = cornerRadiusHint > 0 && cornerRadiusHint < r ? .capsule(maximumRadius: cornerRadiusHint) : .capsule()
+            rounded = true
+        }
         #endif
         if !rounded {
-            effectView.layer.cornerRadius = r
+            effectView.layer.cornerRadius = cornerRadiusHint > 0 ? min(cornerRadiusHint, r) : r
             effectView.layer.cornerCurve = .continuous
         }
         if layer.shadowOpacity > 0 { layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: r).cgPath }

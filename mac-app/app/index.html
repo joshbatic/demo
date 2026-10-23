@@ -1171,7 +1171,8 @@ body.sprinting #rhy{display:none}
 
 /* iOS 26: these bars are drawn natively with real Liquid Glass (GlassBarPlugin); the page keeps laying them out,
    invisibly, so the native ones can follow them */
-body.nglass #vList .dock>*,body.nglass #vIdeas .dock>*,body.nglass #ideaBack,body.nglass #vEdit .bar .lgrp,body.nglass #vEdit .bar .bl>.grp2,body.nglass #dtabs,body.nglass #det,body.nglass #acctb,body.nglass .sh>button.shok,body.nglass #accback,body.nglass #lp-x,body.nglass #pf-x,body.nglass #pwx{opacity:0!important;transition:none!important}
+body.nglass #vList .dock>*,body.nglass #vIdeas .dock>*,body.nglass #ideaBack,body.nglass #vEdit .bar .lgrp,body.nglass #vEdit .bar .bl>.grp2,body.nglass :is(#rhy,#perf .pbar,#sprint,#toast,#probanner,#invbanner){filter:opacity(0)!important}
+body.nglass #dtabs,body.nglass #det,body.nglass #acctb,body.nglass .sh>button.shok,body.nglass #pb-x,body.nglass #ib-x,body.nglass #accback,body.nglass #lp-x,body.nglass #pf-x,body.nglass #pwx{opacity:0!important;transition:none!important}
 </style>
 </head>
 <body>
@@ -17724,11 +17725,13 @@ var NG_G=[
   {id:'eright',sel:'#vEdit .bar .bl>.grp2',items:[['vmap','highlighter','Rhyme map'],['vsyl','number','Syllable counts'],['shareb','square.and.arrow.up','Share'],['rateb','star','Rate song']]},
   {id:'edet',sel:'#det',items:[['det','ellipsis','Details']]}];
 function ngShown(el){return!!el&&el.getClientRects().length>0&&getComputedStyle(el).display!=='none'&&getComputedStyle(el).visibility!=='hidden'}
-function ngTop(el,r){var x=r.left+r.width/2,y=r.top+r.height/2;if(x<1||y<1||x>innerWidth-1||y>innerHeight-1)return false;var h=document.elementFromPoint(x,y);return!!h&&(h===el||el.contains(h))}
+function ngTop(el,r){var pts=[[.5,.5],[.2,.5],[.8,.5],[.5,.2],[.5,.8]];
+  for(var i=0;i<pts.length;i++){var x=r.left+r.width*pts[i][0],y=r.top+r.height*pts[i][1];if(x<1||y<1||x>innerWidth-1||y>innerHeight-1)continue;var h=document.elementFromPoint(x,y);if(h&&(h===el||el.contains(h)))return true}
+  return false}
 /* round buttons that come and go with their sheet or screen: each one found on the page becomes its own glass circle */
-var NG_DQ='.sh>button.shok,#accback,#lp-x,#pf-x,#pwx';
-function ngSpec(){var out=[],rd=function(v){return Math.round(v*2)/2},list=NG_G.slice();
-  document.querySelectorAll(NG_DQ).forEach(function(el){if(el.id)list.push({id:'d-'+el.id,el:el,items:[[el.id,el.classList.contains('shok')?'checkmark':el.id==='accback'?'chevron.left':'xmark',el.getAttribute('aria-label')||'']]})});
+var NG_DQ='.sh>button.shok,#accback,#lp-x,#pf-x,#pwx,#pb-x,#ib-x',NG_SKIP='#pb-x,#ib-x';
+function ngSpec(){var out=[],late=[],rd=function(v){return Math.round(v*2)/2},list=NG_G.slice();
+  document.querySelectorAll(NG_DQ).forEach(function(el){if(el.id)list.push({id:'d-'+el.id,el:el,late:el.matches(NG_SKIP),items:[[el.id,el.classList.contains('shok')?'checkmark':el.id==='accback'?'chevron.left':'xmark',el.getAttribute('aria-label')||'']]})});
   list.forEach(function(g){var el=g.el||document.querySelector(g.sel);if(!el)return;var r=el.getBoundingClientRect(),vis=r.width>4&&r.height>4&&ngShown(el);
     var o={id:g.id,kind:g.kind||'buttons',x:rd(r.left),y:rd(r.top),w:rd(r.width),h:rd(r.height),show:vis&&ngTop(el,r),bottom:!!g.bottom};
     if(g.kind==='tabbar'){o.items=[].slice.call(el.querySelectorAll('button')).filter(ngShown).map(function(b){var bd=b.querySelector('.dbadge'),sp=b.querySelector('span');
@@ -17741,7 +17744,14 @@ function ngSpec(){var out=[],rd=function(v){return Math.round(v*2)/2},list=NG_G.
       var dr=part('invdot1');if(dr){o.dot=true;o.dotRect=dr}}
     else if(g.kind==='search'){var inp=document.getElementById(g.input);o.input=g.input;o.ph=(inp&&inp.placeholder)||g.ph;o.text=inp?inp.value:''}
     else{o.items=g.items.filter(function(it){return ngShown(document.getElementById(it[0]))}).map(function(it){var b=document.getElementById(it[0]);var br=b.getBoundingClientRect(),ik=ngIcon(b);return{id:it[0],sf:it[1],ik:ik||undefined,menu:it[0]==='det'?ngSongMenu():undefined,label:b.getAttribute('aria-label')||it[2],on:b.getAttribute('aria-pressed')==='true',rx:rd(br.left-r.left),rw:rd(br.width)}});if(!o.items.length)o.show=false}
-    out.push(o)});return out}
+    if(g.late){late.push(o);return}out.push(o)});ngMirrorSpecs(out,rd);return out.concat(late)}
+/* mirrors go last so toasts and banners sit above every other glass */
+function ngMirrorSpecs(out,rd){
+  NG_M.forEach(function(g){var el=document.querySelector(g.sel);if(!el)return;var r=el.getBoundingClientRect(),cs=getComputedStyle(el),op=parseFloat(cs.opacity);
+    var vis=r.width>4&&r.height>4&&ngShown(el)&&op>.01&&!(el.hidden);
+    var o={id:g.id,kind:'mirror',x:rd(r.left),y:rd(r.top),w:rd(r.width),h:rd(r.height),r:parseFloat(cs.borderTopLeftRadius)||0,op:Math.round(op*100)/100,show:vis&&(g.top||ngTop(el,r))};
+    o.parts=o.show?ngMirror(g,el):[];out.push(o)});
+}
 /* the editor's ••• opens Apple's pop-up menu: the Details tabs, then Perform and Copy Lyrics, then the red ones */
 function ngSongMenu(){var vis=function(id){var e=document.getElementById(id);return!!e&&getComputedStyle(e).display!=='none'};
   var a=[{id:'d:inf',title:'Details',sf:'info.circle'},{id:'d:aud',title:'Audio',sf:'waveform'},{id:'d:chd',title:'Chords',sf:'music.note.list'},{id:'d:rel',title:'Credits',sf:'person.2'}],
@@ -17749,6 +17759,50 @@ function ngSongMenu(){var vis=function(id){var e=document.getElementById(id);ret
   if(vis('rmart'))c.push({id:'rmart',title:'Remove Cover Art',sf:'photo',destructive:true});
   if(vis('del'))c.push({id:'del',title:'Delete Song',sf:'trash',destructive:true});
   return c.length?[a,b,c]:[a,b]}
+/* ---- mirrored panels: the rhyme bar, Perform's controls, the sprint timer, toasts and banners. The glass is native and
+   so is everything drawn on it (text, chips, icons, fills, in the same places and styles); the page's own panel stays
+   in place but invisible (filter:opacity(0)), so every tap and scroll still lands on it and behaves exactly as before. */
+var NG_M=[{id:'m-rhy',sel:'#rhy'},{id:'m-pbar',sel:'#perf .pbar'},{id:'m-sprint',sel:'#sprint'},{id:'m-toast',sel:'#toast',top:1},{id:'m-pro',sel:'#probanner',top:1},{id:'m-inv',sel:'#invbanner',top:1}];
+var NG_MC={};
+function ngClear(c){return!c||/rgba\(0, 0, 0, 0\)|transparent/.test(c)}
+function ngPart(k,r,R,clip,x){var rd=function(v){return Math.round(v*2)/2},o={k:k,x:rd(r.left-R.left),y:rd(r.top-R.top),w:rd(r.width),h:rd(r.height)};
+  if(clip.l>R.left+.5||clip.t>R.top+.5||clip.r<R.right-.5||clip.b<R.bottom-.5)o.clip={x:rd(clip.l-R.left),y:rd(clip.t-R.top),w:rd(Math.max(0,clip.r-clip.l)),h:rd(Math.max(0,clip.b-clip.t))};
+  for(var q in x)if(x[q]!==undefined&&x[q]!=='')o[q]=x[q];return o}
+function ngWalk(el,root,R,clip,parts,op){if(el!==root&&el.matches(NG_SKIP))return;var cs=getComputedStyle(el);if(cs.display==='none'||cs.visibility==='hidden')return;
+  var o=el===root?1:op*(parseFloat(cs.opacity)||0);if(o<.02)return;
+  var r=el.getBoundingClientRect();if(r.right<=clip.l||r.left>=clip.r||r.bottom<=clip.t||r.top>=clip.b)return;
+  var cl=clip;if(el!==root&&(cs.overflowX!=='visible'||cs.overflowY!=='visible'))cl={l:Math.max(clip.l,r.left),t:Math.max(clip.t,r.top),r:Math.min(clip.r,r.right),b:Math.min(clip.b,r.bottom)};
+  var tag=el.tagName.toLowerCase(),rad=parseFloat(cs.borderTopLeftRadius)||0;
+  if(el!==root&&r.width>0&&r.height>0){var bg=cs.backgroundColor,bw=parseFloat(cs.borderTopWidth)||0,sh=cs.boxShadow,ring=null;
+    if(sh&&sh!=='none'){var m=sh.match(/(rgba?\([^)]*\))\s+0px\s+0px\s+0px\s+([\d.]+)px/);if(m)ring={c:m[1],w:parseFloat(m[2])}}
+    var gr=ngGrad(cs.backgroundImage);
+    if(!ngClear(bg)||gr||(bw>0&&!ngClear(cs.borderTopColor))||ring)parts.push(ngPart('x',r,R,clip,{bg:ngClear(bg)?undefined:bg,gr:gr||undefined,r:rad,bc:bw>0?cs.borderTopColor:ring&&ring.c,bw:bw>0?bw:ring&&ring.w,op:o<1?o:undefined}))}
+  if(tag==='svg'){var ik=ngIcon(el);if(ik)parts.push(ngPart('i',r,R,clip,{ik:ik,fc:cs.color,op:o<1?o:undefined}));return}
+  if(tag==='img'){var src=el.currentSrc||el.src;if(src)parts.push(ngPart('img',r,R,clip,{src:src,r:rad,op:o<1?o:undefined}));return}
+  if(tag==='canvas'||tag==='video'||tag==='audio'||tag==='select')return;
+  if(tag==='input'||tag==='textarea'){if(el.type==='range'||el.type==='checkbox'||el.type==='file'||el.type==='hidden')return;var v=el.value,t=v||el.placeholder||'';
+    if(t){var pl=parseFloat(cs.paddingLeft)||0,pr=parseFloat(cs.paddingRight)||0,pt=parseFloat(cs.paddingTop)||0,pb=parseFloat(cs.paddingBottom)||0;
+      parts.push(ngPart('t',{left:r.left+pl,top:r.top+pt,width:Math.max(0,r.width-pl-pr),height:Math.max(0,r.height-pt-pb),right:r.right-pr,bottom:r.bottom-pb},R,cl,{tx:t,fs:parseFloat(cs.fontSize),fw:parseFloat(cs.fontWeight)||400,fc:v?cs.color:getComputedStyle(document.body).getPropertyValue('--mute').trim(),ml:tag==='textarea',al:'left'}))}return}
+  for(var n=el.firstChild;n;n=n.nextSibling){
+    if(n.nodeType===3){var tx=n.textContent.replace(/\s+/g,' ').trim();if(!tx)continue;var rg=document.createRange();rg.selectNodeContents(n);var rr=rg.getBoundingClientRect();
+      if(rr.width>0&&rr.height>0)parts.push(ngPart('t',rr,R,cl,{tx:tx,fs:parseFloat(cs.fontSize),fw:parseFloat(cs.fontWeight)||400,fc:cs.color,it:cs.fontStyle==='italic'||undefined,ml:rg.getClientRects().length>1||undefined,al:cs.textAlign,tab:/tabular/.test(cs.fontVariantNumeric)||undefined,op:o<1?o:undefined}))}
+    else if(n.nodeType===1)ngWalk(n,root,R,cl,parts,o)}}
+/* CSS gradients for the native side: the angle and colour stops of a linear gradient; a radial one becomes its colours, centre out */
+function ngGrad(bi){if(!bi||bi==='none'||bi.indexOf('gradient')<0)return null;
+  var last=bi.split(/,(?![^()]*\))/).length,m=bi.match(/(linear|radial)-gradient\((.*)\)\s*$/);
+  /* several layered gradients: the bottom (last) layer is the base colour, which reads best on its own */
+  var layers=[],depth=0,cur='';for(var i=0;i<bi.length;i++){var ch=bi[i];if(ch==='(')depth++;if(ch===')')depth--;if(ch===','&&depth===0){layers.push(cur);cur=''}else cur+=ch}layers.push(cur);
+  var L=layers[layers.length-1].trim(),mm=L.match(/^(linear|radial)-gradient\((.*)\)$/);if(!mm)return null;
+  var cols=L.match(/rgba?\([^)]*\)/g);if(!cols||!cols.length)return null;
+  var ang=180,a=mm[2].match(/^\s*(-?[\d.]+)deg/);if(a)ang=parseFloat(a[1]);else if(/^\s*to /.test(mm[2])){var t=mm[2].match(/^\s*to ([a-z ]+),/);var d={'top':0,'right':90,'bottom':180,'left':270,'top right':45,'right top':45,'bottom right':135,'right bottom':135,'bottom left':225,'left bottom':225,'top left':315,'left top':315};if(t&&d[t[1].trim()]!==undefined)ang=d[t[1].trim()]}
+  return{t:mm[1]==='radial'?'r':'l',a:ang,c:cols}}
+function ngMirror(g,root){var c=NG_MC[g.id];
+  if(!c||c.root!==root){if(c&&c.mo)c.mo.disconnect();c=NG_MC[g.id]={root:root,dirty:true,t:0,w:0,h:0,parts:[]};
+    c.mo=new MutationObserver(function(){c.dirty=true});c.mo.observe(root,{subtree:true,childList:true,attributes:true,characterData:true});
+    root.addEventListener('scroll',function(){c.dirty=true},true)}
+  var R=root.getBoundingClientRect(),now=performance.now();
+  if(c.dirty||Math.abs(R.width-c.w)>.5||Math.abs(R.height-c.h)>.5||now-c.t>400){var parts=[];ngWalk(root,root,R,{l:R.left,t:R.top,r:R.right,b:R.bottom},parts,1);c.parts=parts;c.dirty=false;c.w=R.width;c.h=R.height;c.t=now}
+  return c.parts}
 function ngTheme(){var t=document.documentElement.getAttribute('data-theme');return t==='light'||t==='dark'?t:''}
 function ngLoop(){if(NG.on&&!document.hidden){try{var g=ngSpec(),th=ngTheme(),k=JSON.stringify(g)+th;if(k!==NG.last){NG.last=k;NG.P.sync({groups:g,theme:th})}}catch(e){}}requestAnimationFrame(ngLoop)}
 (function(){if(!NATIVE_IOS)return;var C=window.Capacitor,P=C&&C.Plugins&&C.Plugins.GlassBar;if(!P||!P.available)return;
