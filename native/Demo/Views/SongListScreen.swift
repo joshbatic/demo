@@ -81,6 +81,10 @@ struct SongListScreen: View {
                 Text(confirmDelete.map { isMine($0) ? "This can’t be undone." : "It stays with its owner." } ?? "")
             }
         }
+        // the editor's sidebar swaps the open song for another (or for Ideas)
+        .environment(\.openRoute) { id in
+            if path.isEmpty { path.append(id) } else { path[path.count - 1] = id }
+        }
     }
 
     private var deleteTitle: String {

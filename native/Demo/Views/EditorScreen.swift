@@ -14,6 +14,7 @@ struct EditorScreen: View {
     @State private var showDictionary = false
     @State private var showMap = UserDefaults.standard.bool(forKey: "view.map")
     @State private var showSyl = UserDefaults.standard.bool(forKey: "view.syl")
+    @State private var showSide = false
 
     private var song: Song? { library.song(songID) }
 
@@ -33,30 +34,11 @@ struct EditorScreen: View {
                 ContentUnavailableView("Song deleted", systemImage: "music.note", description: Text("That song was deleted on another device."))
             }
         }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            // one pill like the web's: 38-wide buttons, no gaps, a dark circle behind a toggle that's on
-            ToolbarItem(placement: .topBarTrailing) {
-                HStack(spacing: 0) {
-                    barToggle("ic-map", "Rhyme map", on: showMap) {
-                        showMap.toggle(); bridge.showMap = showMap
-                        session.toast = showMap ? "Rhyme map on" : "Rhyme map off"
-                    }
-                    barToggle("ic-syl", "Syllable counts", on: showSyl) {
-                        showSyl.toggle(); bridge.showSyl = showSyl
-                        session.toast = showSyl ? "Syllable counts on" : "Syllable counts off"
-                    }
-                    ShareLink(item: shareText) {
-                        Icon("ic-share", 20).foregroundStyle(Theme.tint).frame(width: 38, height: 44).contentShape(Rectangle())
-                    }
-                    .buttonStyle(PressScale())
-                    .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })
-                    .accessibilityLabel("Share")
-                }
-                .padding(.horizontal, 2)
-            }
-            ToolbarItemGroup(placement: .topBarTrailing) { moreMenu }
-        }
+        // the web's song bar instead of the system one: back + sidebar on the left,
+        // map / syllables / share and ••• on the right, the lyrics fading under it
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top, spacing: 0) { topBar }
+        .overlay { SongSidebar(isOpen: $showSide, currentID: songID) }
         .sheet(isPresented: $showDetails) { if song != nil { DetailsSheet(songID: songID) } }
         .sheet(isPresented: $showDictionary) {
             DictionarySheet(bridge: bridge, initialWord: context.word, register: voice("reg") ?? "Conversational", perfectOnly: voiceStrict)
@@ -98,6 +80,63 @@ struct EditorScreen: View {
     }
 
     // MARK: menus
+
+    private var topBar: some View {
+        HStack(spacing: 10) {
+            HStack(spacing: 0) {
+                Button { Haptics.tap(); dismiss() } label: {
+                    Icon("ic-back", 20).foregroundStyle(Theme.tint).frame(width: 38, height: 44).contentShape(Rectangle())
+                }
+                .buttonStyle(PressScale()).accessibilityLabel("Songs")
+                Button {
+                    Haptics.tap()
+                    bridge.textView?.resignFirstResponder()
+                    withAnimation(.snappy(duration: 0.32)) { showSide = true }
+                } label: {
+                    Icon("ic-sidebar", 22).foregroundStyle(Theme.tint).frame(width: 38, height: 44).contentShape(Rectangle())
+                }
+                .buttonStyle(PressScale()).accessibilityLabel("Show sidebar")
+            }
+            .padding(.horizontal, 2)
+            .glassCapsule(interactive: true)
+
+            Spacer(minLength: 0)
+
+            HStack(spacing: 0) {
+                barToggle("ic-map", "Rhyme map", on: showMap) {
+                    showMap.toggle(); bridge.showMap = showMap
+                    session.toast = showMap ? "Rhyme map on" : "Rhyme map off"
+                }
+                barToggle("ic-syl", "Syllable counts", on: showSyl) {
+                    showSyl.toggle(); bridge.showSyl = showSyl
+                    session.toast = showSyl ? "Syllable counts on" : "Syllable counts off"
+                }
+                ShareLink(item: shareText) {
+                    Icon("ic-share", 20).foregroundStyle(Theme.tint).frame(width: 38, height: 44).contentShape(Rectangle())
+                }
+                .buttonStyle(PressScale())
+                .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })
+                .accessibilityLabel("Share")
+            }
+            .padding(.horizontal, 2)
+            .glassCapsule(interactive: true)
+
+            moreMenu
+                .buttonStyle(PressScale())
+                .glassCircle()
+        }
+        .padding(.horizontal, 14)
+        .padding(.top, 8)
+        .padding(.bottom, 12)
+        .background {
+            LinearGradient(stops: [.init(color: Color(uiColor: .systemBackground), location: 0),
+                                   .init(color: Color(uiColor: .systemBackground), location: 0.5),
+                                   .init(color: Color(uiColor: .systemBackground).opacity(0), location: 1)],
+                           startPoint: .top, endPoint: .bottom)
+                .ignoresSafeArea(edges: .top)
+                .allowsHitTesting(false)
+        }
+    }
 
     private func barToggle(_ icon: String, _ label: String, on: Bool, _ action: @escaping () -> Void) -> some View {
         Button { Haptics.selection(); withAnimation(.snappy(duration: 0.2)) { action() } } label: {
