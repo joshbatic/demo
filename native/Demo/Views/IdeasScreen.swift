@@ -108,7 +108,6 @@ struct IdeasScreen: View {
         .padding(.horizontal, 14)
         .padding(.top, 6)
         .padding(.bottom, 14)
-        .background { EdgeFade(edge: .top, solidTo: 0.76) }
     }
 
     // MARK: the jot box

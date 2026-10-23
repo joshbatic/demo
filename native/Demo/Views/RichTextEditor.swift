@@ -276,13 +276,16 @@ struct RichTextEditor: UIViewRepresentable {
     func updateUIView(_ tv: UITextView, context: Context) {
         bridge.textView = tv
         context.coordinator.bridge = bridge
-        let old = tv.contentInset
-        if abs(old.top - insets.top) > 0.5 || abs(old.bottom - insets.bottom) > 0.5 {
-            let atTop = tv.contentOffset.y <= -old.top + 1
-            tv.contentInset = insets
-            tv.verticalScrollIndicatorInsets = insets
-            if atTop { tv.contentOffset.y = -insets.top }
+        // the room for the top bar is part of the page (the header starts below it), so the title can
+        // never end up under the bar however the view first scrolls; the bottom is a normal inset
+        if let lt = tv as? LyricsTextView, abs(lt.topSpace - insets.top) > 0.5 {
+            lt.topSpace = insets.top
+            lt.setNeedsLayout()
         }
+        if abs(tv.contentInset.bottom - insets.bottom) > 0.5 {
+            tv.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: insets.bottom, right: 0)
+        }
+        tv.verticalScrollIndicatorInsets = insets
         if let header, let hc = context.coordinator.headerHost {
             hc.rootView = header
             tv.setNeedsLayout()
@@ -453,20 +456,24 @@ struct RichTextEditor: UIViewRepresentable {
 final class LyricsTextView: UITextView {
     var header: UIHostingController<AnyView>?
     var onHeaderHeight: ((CGFloat) -> Void)?
-    private var lastHeaderHeight: CGFloat = -1
+    /// Empty space at the top of the page for the floating top bar.
+    var topSpace: CGFloat = 0
+    private var lastTop: CGFloat = -1
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        guard let hc = header else { return }
         let w = bounds.width
-        let h = ceil(hc.sizeThatFits(in: CGSize(width: w, height: .greatestFiniteMagnitude)).height)
-        hc.view.frame = CGRect(x: 0, y: 0, width: w, height: h)
-        let top = h + 8
+        var h: CGFloat = 0
+        if let hc = header {
+            h = ceil(hc.sizeThatFits(in: CGSize(width: w, height: .greatestFiniteMagnitude)).height)
+            hc.view.frame = CGRect(x: 0, y: topSpace, width: w, height: h)
+        }
+        let top = topSpace + h + 8
         if abs(textContainerInset.top - top) > 0.5 {
             textContainerInset.top = top
         }
-        if h != lastHeaderHeight {
-            lastHeaderHeight = h
+        if top != lastTop {
+            lastTop = top
             onHeaderHeight?(top)
         }
     }

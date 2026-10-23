@@ -270,7 +270,6 @@ struct ListHeader<Trailing: View>: View {
         .padding(.horizontal, 20)
         .padding(.top, 6)
         .padding(.bottom, 14)
-        .background { EdgeFade(edge: .top, solidTo: 0.76) }
     }
 }
 

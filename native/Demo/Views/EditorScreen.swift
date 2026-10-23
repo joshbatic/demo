@@ -50,7 +50,6 @@ struct EditorScreen: View {
                             .padding(.horizontal, 10)
                             .padding(.bottom, 6)
                             .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY } action: { rhymeTop = $0 }
-                            .background(alignment: .bottom) { bottomFade }
                     }
                 }
             } else {
@@ -182,12 +181,6 @@ struct EditorScreen: View {
         .padding(.horizontal, 14)
         .padding(.top, 8)
         .padding(.bottom, 12)
-        .background { EdgeFade(edge: .top) }
-    }
-
-    /// The web's .fadeB: the lyrics blur out under the rhyme bar.
-    private var bottomFade: some View {
-        EdgeFade(edge: .bottom).frame(height: 130).offset(y: 6)
     }
 
     /// Room at the top and bottom of the lyrics for the bars floating over them.
