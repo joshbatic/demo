@@ -175,6 +175,11 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
     private var mirrorViews: [UIView] = []
     private var mirrorKinds: [String] = []
     private var cornerRadiusHint: CGFloat = 0
+    // segmented controls (Details tabs, Rate, Clean up, Beta Requests, the dashboard): Apple's own UISegmentedControl
+    private var seg: UISegmentedControl?
+    private var segIds: [String] = []
+    private var segKey = ""
+    private var segFrame = CGRect.zero
     // the dev app's tab bar: Apple's own UITabBar
     private var tabBar: UITabBar?
     private var tabIds: [String] = []
@@ -234,7 +239,7 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
             setNeedsLayout()
             return
         }
-        if kind == "search" { configureSearch(s) } else if kind == "account" { configureAccount(s) } else if kind == "tabbar" { configureTabBar(s) } else { configureButtons(s) }
+        if kind == "search" { configureSearch(s) } else if kind == "account" { configureAccount(s) } else if kind == "tabbar" { configureTabBar(s) } else if kind == "seg" { configureSeg(s) } else { configureButtons(s) }
         setShown((s["show"] as? Bool) ?? true)
         setNeedsLayout()
     }
@@ -302,6 +307,46 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
         }
         b.menu = UIMenu(title: "", children: menus)
         b.showsMenuAsPrimaryAction = true
+    }
+
+    private func configureSeg(_ s: JSObject) {
+        let c: UISegmentedControl
+        if let existing = seg { c = existing } else {
+            c = UISegmentedControl()
+            c.addAction(UIAction { [weak self, weak c] _ in
+                guard let self = self, let c = c else { return }
+                let i = c.selectedSegmentIndex
+                if i >= 0 && i < self.segIds.count { self.plugin?.tapped(self.segIds[i]) }
+            }, for: .valueChanged)
+            effectView.isHidden = true
+            clipsToBounds = true
+            addSubview(c)
+            seg = c
+        }
+        let items = ((s["items"] as? JSArray) ?? []).compactMap { $0 as? JSObject }
+        let key = items.map { ($0["label"] as? String) ?? "" }.joined(separator: "\u{1F}")
+        if key != segKey {
+            segKey = key
+            c.removeAllSegments()
+            for (i, it) in items.enumerated() { c.insertSegment(withTitle: (it["label"] as? String) ?? "", at: i, animated: false) }
+        }
+        segIds = items.map { ($0["id"] as? String) ?? "" }
+        for (i, it) in items.enumerated() where i < c.numberOfSegments {
+            c.setEnabled((it["dis"] as? Bool) != true, forSegmentAt: i)
+        }
+        let sel = items.firstIndex { ($0["on"] as? Bool) == true } ?? UISegmentedControl.noSegment
+        if c.selectedSegmentIndex != sel { c.selectedSegmentIndex = sel }
+        let fs = glassNum(s["fs"])
+        if fs > 0 {
+            c.setTitleTextAttributes([.font: UIFont.systemFont(ofSize: fs, weight: .medium)], for: .normal)
+            c.setTitleTextAttributes([.font: UIFont.systemFont(ofSize: fs, weight: .semibold)], for: .selected)
+        }
+        // only the part of the control inside its scrolling sheet or page shows
+        let ctl = CGRect(x: glassNum(s["x"]), y: glassNum(s["y"]), width: glassNum(s["w"]), height: glassNum(s["h"]))
+        let clip = glassRect(s["clip"]) ?? ctl
+        bounds = CGRect(origin: .zero, size: clip.size)
+        center = CGPoint(x: clip.midX, y: clip.midY)
+        segFrame = ctl.offsetBy(dx: -clip.minX, dy: -clip.minY)
     }
 
     private func configureTabBar(_ s: JSObject) {
@@ -628,7 +673,9 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
             effectView.layer.cornerCurve = .continuous
         }
         if layer.shadowOpacity > 0 { layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: r).cgPath }
-        if kind == "tabbar" {
+        if kind == "seg" {
+            seg?.frame = segFrame
+        } else if kind == "tabbar" {
             tabBar?.frame = bounds
         } else if kind == "account" {
             hitButton?.frame = bounds
@@ -728,7 +775,10 @@ public class GlassBarPlugin: CAPPlugin, CAPBridgedPlugin {
                 }
                 g.apply(s)
             }
-            for (id, g) in self.groups where !seen.contains(id) { g.setShown(false) }
+            for (id, g) in self.groups where !seen.contains(id) {
+                // controls the page builds and rebuilds (segmented controls) are let go of once they're gone
+                if id.hasPrefix("g-") { g.removeFromSuperview(); self.groups[id] = nil } else { g.setShown(false) }
+            }
             self.applyKeyboardLift(animated: false)
             call.resolve()
         }
