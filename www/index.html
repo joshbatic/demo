@@ -22,39 +22,6 @@ document.addEventListener('focusin',function(e){var t=e.target;if(!document.docu
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000;--row:rgba(255,255,255,.1);--ink:#fff;--mute:rgba(235,235,245,.6);--sep:rgba(84,84,88,.6);--tint:#F2F2F7;--ontint:#000;--cv1:#3A3A3E;--cv2:#2A2A2D;--cvln:rgba(235,235,245,.55);--cvhl:rgba(255,255,255,.08);--fill:rgba(118,118,128,.28);--segon:#636366;--red:#FF453A;--sheet:rgba(28,28,30,.86);--gl:rgba(58,58,62,.58);--ring:rgba(255,255,255,.09);--sh:rgba(0,0,0,.7);--sh2:rgba(0,0,0,.45);--hl:rgba(255,255,255,.14);--hl2:rgba(255,255,255,.03);--spec:rgba(255,255,255,.06);--bgz:rgba(0,0,0,0);--proclr:#F2F2F7;--proon:#000;--protagbg:rgba(255,255,255,.16)}}
 :root[data-theme="dark"]{--bg:#000;--row:rgba(255,255,255,.1);--ink:#fff;--mute:rgba(235,235,245,.6);--sep:rgba(84,84,88,.6);--tint:#F2F2F7;--ontint:#000;--cv1:#3A3A3E;--cv2:#2A2A2D;--cvln:rgba(235,235,245,.55);--cvhl:rgba(255,255,255,.08);--fill:rgba(118,118,128,.28);--segon:#636366;--red:#FF453A;--sheet:rgba(28,28,30,.86);--gl:rgba(58,58,62,.58);--ring:rgba(255,255,255,.09);--sh:rgba(0,0,0,.7);--sh2:rgba(0,0,0,.45);--hl:rgba(255,255,255,.14);--hl2:rgba(255,255,255,.03);--spec:rgba(255,255,255,.06);--bgz:rgba(0,0,0,0);--proclr:#F2F2F7;--proon:#000;--protagbg:rgba(255,255,255,.16)}
-/* ---- Catalogue ---- */
-#clist{min-height:calc(100% + 1px)}
-.th.cth{background:radial-gradient(circle at 70% 25%,rgba(255,255,255,.5) 0,rgba(255,255,255,0) 60%),linear-gradient(140deg,#D7C4FF,#9CC8FF);color:#fff;box-shadow:0 0 0 .5px var(--ring);display:grid;place-items:center}
-.th.cth svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,.18))}.crow0{margin-top:0}
-html.devbuild .th.cth{background:linear-gradient(150deg,#55555B,#323236)!important}
-.catstats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:4px 16px 12px}
-.catstats div{background:var(--row);border-radius:16px;padding:12px 6px 10px;text-align:center;box-shadow:0 0 0 .5px var(--ring)}
-.catstats b{display:block;font-size:22px;font-weight:700;letter-spacing:-.02em}.catstats span{display:block;font-size:11.5px;color:var(--mute);margin-top:2px}
-.catf{display:flex;gap:6px;align-items:center;overflow-x:auto;padding:2px 16px 10px;scrollbar-width:none}.catf::-webkit-scrollbar{display:none}
-.catf button{flex:none;height:32px;padding:0 13px;border-radius:99px;background:var(--fill);color:var(--ink);font-size:14px;font-weight:600}
-.catf button.on{background:var(--ink);color:var(--bg)}
-.catf select{flex:none;margin-left:auto;height:32px;border:0;border-radius:99px;background:var(--fill);color:var(--ink);font:600 14px/1 inherit;padding:0 12px;-webkit-appearance:none;appearance:none}
-.catsel{display:flex;align-items:center;gap:8px;margin:0 16px 10px;padding:10px 10px 10px 16px;border-radius:16px;background:var(--row);box-shadow:0 0 0 .5px var(--ring)}
-.catsel span{flex:1;font-size:14px;color:var(--mute)}.catsel .go2{height:34px;padding:0 14px;font-size:14px;flex:none}.catsel .go2[disabled]{opacity:.4}
-.catrow .catb{flex:none;margin-left:8px;min-width:26px;height:24px;padding:0 9px;border-radius:99px;display:grid;place-items:center;font-size:12.5px;font-weight:700}
-.catrow .catb.ok{background:rgba(52,199,89,.16);color:#1E9E4A}.catrow .catb.warn{background:rgba(255,149,0,.18);color:#C76A00}
-.catrow .catb.pick{width:24px;min-width:24px;padding:0;border-radius:50%;box-shadow:inset 0 0 0 2px var(--sep)}
-.catrow .catb.pick.on{background:var(--ink);box-shadow:none}.catrow .catb.pick.on::after{content:'';width:7px;height:12px;border:solid var(--bg);border-width:0 2.4px 2.4px 0;transform:translateY(-1px) rotate(45deg)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .catrow .catb.ok{color:#5EE38A}:root:not([data-theme="light"]) .catrow .catb.warn{color:#FFB347}}
-:root[data-theme="dark"] .catrow .catb.ok{color:#5EE38A}:root[data-theme="dark"] .catrow .catb.warn{color:#FFB347}
-.catm{position:absolute;right:16px;top:calc(100% + 4px);z-index:30;min-width:240px;padding:6px;border-radius:16px;background:var(--bg);box-shadow:0 0 0 .5px var(--ring),0 12px 36px var(--sh2)}
-.catm button{display:block;width:100%;text-align:left;padding:11px 12px;border-radius:10px;font-size:15px;color:var(--ink);background:none}.catm button:hover{background:var(--fill)}
-#vCat .lhead{position:absolute}
-.relrow.relsub{padding-top:0;margin-top:-6px}.relrow.relsub::before{display:none}
-.relrow.relsub input{font-size:14px;padding:6px 0}.relrow .ri{width:96px;flex:none}.relrow .rp{flex:1 1 0;min-width:40px}
-.relrow .rok{flex:none;font-size:12px;font-weight:600;color:var(--mute);padding:3px 8px;border-radius:99px;background:var(--fill)}.relrow .rok.on{color:#1E9E4A;background:rgba(52,199,89,.16)}
-.relrow .rcf{flex:none;height:28px;padding:0 11px;border-radius:99px;background:var(--ink);color:var(--bg);font-size:12.5px;font-weight:650}
-.catgap,.catok{padding:12px 16px 12px 40px;font-size:14.5px;line-height:1.35;position:relative}.catgap+.catgap{border-top:.5px solid var(--sep)}
-.catgap::before{content:'';position:absolute;left:16px;top:16px;width:10px;height:10px;border-radius:50%;background:#FF9500}
-.catok::before{content:'';position:absolute;left:15px;top:14px;width:7px;height:12px;border:solid #34C759;border-width:0 2.4px 2.4px 0;transform:rotate(45deg)}
-.relacts{padding-top:14px}
-#p-rel .cell.form select{flex:1;min-width:0;border:0;background:none;outline:0;color:var(--ink);font:inherit;font-size:16px;-webkit-appearance:none;appearance:none;padding:0}
-.catrow .tx span,.catrow .tx em{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.relacts .go2.dim{opacity:.45}
 /* [developer] builds: the Graphite theme (deep charcoal), so the dev app is never mistaken for the public one (both light and dark mode) */
 html.devbuild:root,html.devbuild:root:not([data-theme="light"]),html.devbuild:root[data-theme]{--bg:#1F1F21;--row:rgba(255,255,255,.09);--ink:#fff;--mute:rgba(255,255,255,.66);--sep:rgba(255,255,255,.16);--tint:#fff;--ontint:#000;--cv1:#323235;--cv2:#1A1A1C;--cvln:rgba(255,255,255,.5);--cvhl:rgba(255,255,255,.1);--fill:rgba(255,255,255,.13);--segon:#3E3E42;--sheet:rgba(38,38,41,.96);--gl:rgba(50,50,54,.74);--ring:rgba(255,255,255,.1);--sh:rgba(0,0,0,.35);--sh2:rgba(0,0,0,.2);--hl:rgba(255,255,255,.14);--hl2:rgba(255,255,255,.04);--spec:rgba(255,255,255,.08);--bgz:rgba(31,31,33,0);--proclr:#fff;--proon:#000;--protagbg:rgba(255,255,255,.16);color-scheme:dark;background:#1F1F21}
 /* dev app: list tiles, default song covers and Account tiles in greyscale (real artwork keeps its colour) */
@@ -241,7 +208,7 @@ html.devbuild.splashing #splash{background:#1F1F21}html.devbuild #splash .spl-l,
    during scroll repaints, even though it's later in the DOM. Pinning it to its own top layer fixes it. */
 .dock{position:absolute;left:14px;right:14px;bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;z-index:2;transform:translateZ(0);will-change:transform}
 .sbox{flex:1;height:52px;border-radius:99px;display:flex;align-items:center;gap:8px;padding:0 18px;color:var(--mute)}
-#q,#iq,#cq{flex:1;min-width:0;width:auto;margin:0;height:auto;padding:0;border:0;background:none;outline:0;font-size:17px;color:var(--ink)}
+#q,#iq{flex:1;min-width:0;width:auto;margin:0;height:auto;padding:0;border:0;background:none;outline:0;font-size:17px;color:var(--ink)}
 .cbtn{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;color:var(--tint);position:relative;z-index:2;transform:translateZ(0)}
 .cbtn:active,.ib:active{transform:scale(.94)}
 /* editor */
@@ -1091,13 +1058,6 @@ body.sprinting #rhy{display:none}
   <button class="gl cbtn" id="inew" aria-label="New idea"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
 </div>
 
-<div class="view" id="vCat">
-  <div class="scroll"><div id="clist" class="list"></div></div>
-  <div class="abs fadeT lhf"></div>
-  <div class="lhead"><div style="display:flex;align-items:center;gap:6px;padding-left:10px;flex:1"><button class="gl ib" id="catBack" aria-label="Back"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h1 style="padding:0 0 0 10px;flex:1">Catalogue</h1><button class="gl ib" id="catMore" aria-label="Catalogue options" style="margin-right:14px"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg></button></div><div id="catm" class="catm" hidden></div></div>
-  <div class="dock"><div class="gl sbox"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="cq" type="search" placeholder="Search writers, codes, genres"></div></div>
-</div>
-
 <div class="view" id="vEdit">
   <div id="sc"><div id="gut" aria-hidden="true"></div><div id="pres" aria-hidden="true"></div><div class="hd"><span class="covwrap"><button class="cov" id="cov" aria-label="Cover art"></button></span><div><input id="title" placeholder="Untitled" aria-label="Title" autocorrect="on"><div id="artist"></div><div id="sub"></div><div id="savestate" class="savestate" hidden></div><div id="here" hidden></div></div></div><div id="np" hidden role="group" aria-label="Song audio"><div class="np-top"><button class="np-pp" id="np-pp" aria-label="Play"></button><div class="np-meta"><b id="np-name"></b><span id="np-sub"></span></div><span id="np-t"></span><button class="np-full" id="np-full" aria-label="Play with lyrics" title="Play with lyrics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button></div><div class="np-more"><div class="np-in"><canvas class="np-wave" id="np-wave" tabindex="0" role="slider" aria-label="Position in the song" aria-valuemin="0"></canvas><div class="np-bot"><span id="np-at">0:00</span><div class="np-skip"><button id="np-back" aria-label="Back 15 seconds"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 11.5A9.5 9.5 0 1 1 4.5 15"/><path d="M4.6 6.2v5.4H10"/><text x="14.6" y="17.8" text-anchor="middle" font-size="7.4" font-weight="700" fill="currentColor" stroke="none" font-family="-apple-system,system-ui,sans-serif">15</text></svg></button><button id="np-fwd" aria-label="Forward 15 seconds"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.8 11.5A9.5 9.5 0 1 0 23.5 15"/><path d="M23.4 6.2v5.4H18"/><text x="13.4" y="17.8" text-anchor="middle" font-size="7.4" font-weight="700" fill="currentColor" stroke="none" font-family="-apple-system,system-ui,sans-serif">15</text></svg></button></div><span id="np-left">-0:00</span></div></div></div><i class="np-prog" aria-hidden="true"></i></div><div id="lyr" contenteditable="true" role="textbox" aria-label="Lyrics" aria-multiline="true" spellcheck="false" autocapitalize="sentences" autocorrect="on" data-ph="Start with a line…"></div></div>
   <div class="abs fadeT"></div>
@@ -1140,7 +1100,7 @@ body.sprinting #rhy{display:none}
       <label class="row">Key<select id="f-key"></select></label>
       <label class="row">Tempo<input id="f-bpm" type="number" inputmode="numeric" placeholder="BPM"></label>
       <label class="row">Tuning<input id="f-tuning" placeholder="Standard"></label>
-      <label class="row">Status<select id="f-status"><option>Idea</option><option>Draft</option><option>Demo</option><option>Finished</option><option>Released</option></select></label>
+      <label class="row">Status<select id="f-status"><option>Idea</option><option>Draft</option><option>Demo</option><option>Finished</option></select></label>
       <label class="row">Folder<input id="f-folder" placeholder="None" list="fl"></label><datalist id="fl"></datalist>
     </div>
     <div class="gf"><textarea id="f-notes" placeholder="Notes: melody ideas, references, co-writers"></textarea></div>
@@ -15012,7 +14972,7 @@ function guideSong(){
     '[Writing together]',
     'Choose a username in Account so co-writers can find you.',
     'Invite them from Details › Collaborators. Shared songs stay in sync for everyone.',
-    'Songs you mark Finished or Released show up under Credits in Account.'
+    'Songs you mark Finished show up under Credits in Account.'
   ];
   var lyrics=L.map(function(l){return l.replace(/[{}]/g,'')}).join('\n');
   var rich=L.map(function(l){
@@ -15725,7 +15685,7 @@ function llines(s){return(s.lyrics||'').split('\n').filter(function(x){return x.
 function renderList(){setTimeout(function(){addNewZone($('#list'))},0);
   var q=$('#q').value.toLowerCase(),L=$('#list');L.innerHTML='';
   var rows=songs.filter(function(s){return!q||(s.title+' '+s.lyrics).toLowerCase().indexOf(q)>=0}).sort(function(a,b){return b.updated-a.updated});
-  if(!q){if(DEV_BUILD){L.appendChild(admCard());L.appendChild(betaCard())}L.appendChild(ideasCard());if(songs.length)L.appendChild(catCard())}
+  if(!q){if(DEV_BUILD){L.appendChild(admCard());L.appendChild(betaCard())}L.appendChild(ideasCard())}
   if(!rows.length){L.insertAdjacentHTML('beforeend',songs.length?'<div class="empty">No Results</div>':'<div class="empty"><b>No songs yet</b><p>Tap the pencil to write your first line.</p></div>');return}
   var g={},pin=[];rows.forEach(function(s){if(isPinned(s)){pin.push(s);return}var f=s.folder||'Songs';(g[f]=g[f]||[]).push(s)});
   if(pin.length)g['\u0000pin']=pin;
@@ -16151,7 +16111,6 @@ if(DEV_BUILD)devBuildStart();
 (function(){try{var C=window.Capacitor,A=C&&C.Plugins&&C.Plugins.App;if(!DEV_BUILD&&A&&A.getInfo&&C.isNativePlatform&&C.isNativePlatform())
   A.getInfo().then(function(i){if(i&&/\.dev$/.test(i.id||'')){AUTH_SCHEME='demo-dev';devBuildStart()}}).catch(function(){})}catch(e){}})();
 $('#ideaBack').onclick=function(){show('vList')};
-$('#catBack').onclick=function(){CAT.sel=null;show('vList');renderList()};$('#cq').oninput=renderCat;$('#catMore').onclick=catMenu;
 $('#inew').onclick=function(){editIdea(null)};
 $('#iq').addEventListener('input',renderIdeas);
 setTimeout(fitHeads,0);window.addEventListener('load',fitHeads);
@@ -18867,7 +18826,7 @@ var PLAN={tier:'free'};try{var _pl=JSON.parse(localStorage.getItem('songpad:plan
 var PRICE={month:'A$8.99',year:'A$69.99',trial:7},FREE_MEMOS=10,FREE_MEMO_SECS=60;
 function isPro(){return PLAN.tier!=='free'}
 function planName(){return PLAN.tier==='pro'?'Pro':PLAN.tier==='beta'?'Beta':'Free'}
-var FEAT={lines:'Lines',rate:'Rate',perform:'Perform mode',voice:'Writing voice',listen:'Listening to the whole song',melody:'Melody',share:'Inviting co-writers',muse:'Muse',audio:'Adding music and files',sync:'Lyric sync',play:'Play with Lyrics',release:'Release details',memos:'More voice memos',ai:'More AI',catalogue:'The Catalogue'};
+var FEAT={lines:'Lines',rate:'Rate',perform:'Perform mode',voice:'Writing voice',listen:'Listening to the whole song',melody:'Melody',share:'Inviting co-writers',muse:'Muse',audio:'Adding music and files',sync:'Lyric sync',play:'Play with Lyrics',release:'Release details',memos:'More voice memos',ai:'More AI'};
 function planSave(p){var was=PLAN.tier;PLAN=p;if(AUTH_USER&&!PLAN.uid)PLAN.uid=AUTH_USER.id;try{localStorage.setItem('songpad:plan',JSON.stringify(PLAN))}catch(e){}if(was!==PLAN.tier){applyPlan();try{refreshAccount()}catch(e){}if(cur){try{paintPlayer()}catch(e){}if($('#p-aud')&&$('#p-aud').classList.contains('on'))try{renderAud()}catch(e){}}if(PLAN.tier!=='free')try{ideaMemosPending()}catch(e){}}}
 function planRefresh(){var c=sbClient();if(!c||!AUTH_USER)return Promise.resolve();if(PLAN.uid&&PLAN.uid!==AUTH_USER.id)planSave({tier:'free'});
   return c.rpc('my_plan').then(function(r){if(r.error||!r.data||!r.data.tier)return;var d=r.data;
@@ -18955,7 +18914,7 @@ function iapManage(){var P=iapPlugin();
   if(P&&RC_KEY&&P.showManageSubscriptions){Promise.resolve(P.showManageSubscriptions()).catch(function(){openLink('https://apps.apple.com/account/subscriptions')});return}
   openLink('https://apps.apple.com/account/subscriptions')}
 var accWhy='';
-function openAccount(k){accWhy=k||'';if(k==='pub'){ACC_EDIT='pub';ACC_DRAFT={}}renderAccount();sheet(true,'sheet6')}
+function openAccount(k){accWhy=k||'';renderAccount();sheet(true,'sheet6')}
 function devProfileGet(){try{return JSON.parse(localStorage.getItem('songpad:devprofile'))||{}}catch(e){return{}}}
 function devProfileSet(p){try{localStorage.setItem('songpad:devprofile',JSON.stringify(p))}catch(e){}}
 /* ---------- Account sheet building blocks: Settings-style rows and section headers ---------- */
@@ -19054,15 +19013,6 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
           else pushAsk('Notifications are on')}}));
         if(npOpen)npRows(pg2)}
     }
-    /* ---- publishing: your IPI, PRO and publisher, filled into your credits and split sheets ---- */
-    if(!devFake){var pubing=ACC_EDIT==='pub',pm=pubMe(),pubIn={};
-      var pbg=accSection(o,'Publishing',pubing?[['Cancel',function(){ACC_EDIT=null;ACC_DRAFT={};renderAccount()},'ghost'],['Save',function(){['ipi','pro','publisher'].forEach(function(k){var v=pubIn[k].value.trim();if(k==='ipi')v=v.replace(/\D/g,'');if(v!==pm[k])pubMeSet(k,v)});ACC_EDIT=null;ACC_DRAFT={};toast('Saved');renderAccount()},'strong']]:[['Edit',function(){ACC_EDIT='pub';ACC_DRAFT={};renderAccount()}]]);
-      if(pubing){pubIn.ipi=formCell(pbg,'IPI number','9 to 11 digits','p_ipi',pm.ipi);pubIn.ipi.inputMode='numeric';pubIn.pro=formCell(pbg,'PRO','e.g. APRA AMCOS, ASCAP, PRS','p_pro',pm.pro);pubIn.publisher=formCell(pbg,'Publisher','Self-published','p_pub',pm.publisher);try{pubIn.ipi.focus({preventScroll:true})}catch(e){}}
-      else{pbg.appendChild(accCell({label:'IPI number',value:pm.ipi||'Add',valueCls:pm.ipi?'':'add',onclick:function(){ACC_EDIT='pub';ACC_DRAFT={};renderAccount()}}));
-        pbg.appendChild(accCell({label:'PRO',value:pm.pro||'Add',valueCls:pm.pro?'':'add',onclick:function(){ACC_EDIT='pub';ACC_DRAFT={};renderAccount()}}));
-        pbg.appendChild(accCell({label:'Publisher',value:pm.publisher||'Add',valueCls:pm.publisher?'':'add',onclick:function(){ACC_EDIT='pub';ACC_DRAFT={};renderAccount()}}));
-        var ncat=songs.filter(inCatalogue).length;pbg.appendChild(accCell({label:'Catalogue',value:ncat?(ncat===1?'1 song':ncat+' songs'):'',chev:true,onclick:function(){sheet(false);setTimeout(openCat,250)}}))}
-      var pbn=document.createElement('div');pbn.className='relnote';pbn.style.padding='6px 20px 2px';pbn.textContent='Filled into your credits, split sheets and catalogue exports.';o.appendChild(pbn)}
     /* ---- links: one row per network with its own icon, showing the handle, like contact details ---- */
     var linking=ACC_EDIT==='links';
     var lg=accSection(o,'Links',linking?[['Cancel',function(){ACC_EDIT=null;ACC_DRAFT={};renderAccount()},'ghost'],['Save',saveLinksNow,'strong']]:[['Edit',function(){ACC_EDIT='links';ACC_DRAFT={};ACC_AUTOFOCUS='links';renderAccount()}]]);
@@ -19173,7 +19123,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
     [['Manage Subscription',iapManage],['Restore Purchases',iapRestore]].forEach(function(x){var a3=document.createElement('button');a3.textContent=x[0];a3.onclick=x[1];gm.appendChild(a3)});o.appendChild(gm)}
   if(AUTH_USER){
     /* Credits: a small discography of finished songs you wrote or co-wrote */
-    var credited=songs.filter(function(s){return s.title&&(s.status==='Finished'||s.status==='Released')&&(s.owner===AUTH_USER.id||(s.members||[]).indexOf(AUTH_USER.id)>=0||(!s.shared&&!s.owner))}).sort(function(a,b){return b.updated-a.updated});
+    var credited=songs.filter(function(s){return s.title&&s.status==='Finished'&&(s.owner===AUTH_USER.id||(s.members||[]).indexOf(AUTH_USER.id)>=0||(!s.shared&&!s.owner))}).sort(function(a,b){return b.updated-a.updated});
     var g4=accSection(o,'Credits'),me=(myName()||'').toLowerCase();
     if(!credited.length){var ce=document.createElement('div');ce.className='crempty';ce.innerHTML='<b>No credits yet</b><span>Mark a song Finished and it shows up here.</span>';g4.appendChild(ce)}
     else{var isMe=function(c){return c&&c.name&&me&&String(c.name).toLowerCase()===me},coOf=function(s){return(s.shared&&s.owner!==AUTH_USER.id)||(s.credits||[]).some(function(c){return c&&c.name&&!isMe(c)})};
@@ -20105,7 +20055,7 @@ function renderRel(){var o=$('#rel-body');if(!o||!cur)return;var song=cur,keepTo
       sp.oninput=function(){var v=sp.value.replace(/[^0-9.]/g,'');if(v!==sp.value)sp.value=v;c.split=v;sfTouch(song);paintSplit()};r.appendChild(sp);
       var pc=document.createElement('span');pc.className='pct';pc.textContent='%';r.appendChild(pc)}
     var x=document.createElement('button');x.className='rx';x.innerHTML=SVG_X;x.setAttribute('aria-label','Remove '+(c.name||'credit'));x.onclick=function(){song.credits.splice(i,1);sfTouch(song);renderRel()};r.appendChild(x);
-    cg.appendChild(r);relWriterExtra(cg,c,song)});
+    cg.appendChild(r)});
   var note=document.createElement('div');o.appendChild(note);
   function paintSplit(){var ws=(song.credits||[]).filter(function(c){return SPLIT_ROLES[c.role]});note.className='relnote';
     if(!ws.length){note.textContent='Splits should add up to 100%.';return}
@@ -20127,197 +20077,7 @@ function renderRel(){var o=$('#rel-body');if(!o||!cur)return;var song=cur,keepTo
     if(rr.upc&&!/^\d{12,13}$/.test(rr.upc))bad.push('A UPC is 12 digits (13 for an EAN).');
     rnote.className='relnote'+(bad.length?' warn':'');rnote.textContent=bad.length?bad.join(' '):'';rnote.hidden=!bad.length}
   paintRel();
-  relExtras(o,song);
   var pr=$('#p-rel');if(pr)pr.scrollTop=keepTop}
-
-/* ---------- Catalogue (Pro): finished and released songs, ready to register, pitch and get paid for ----------
-   Built on what each song already has (Credits, Release) plus:
-     song.release.iswc / work / publisher / regdate     publishing and registration
-     song.release.mood / vocal / tags                   for pitching (genre is already there)
-     credit.ipi / credit.pro                            per writer
-     credit.uid                                         the writer's *[demo] account, once they confirm
-     credit.ok = {s, n, by, at}                         a confirmed split: valid only while the split (s) and name (n) still match
-   Your own IPI and PRO are kept on your account (user metadata) and filled in for you.
-   Split sheets and catalogue exports wait until every writer has confirmed their split. */
-var PUB_FIELDS=[['iswc','ISWC','T-123.456.789-0','text'],['work','Work number','From your PRO','text'],['publisher','Publisher','Self-published','text'],['regdate','Registered','','date']];
-var VOCALS=['','Male','Female','Mixed','Instrumental'];
-var CAT={f:'all',sort:'recent',sel:null};
-function relDone(s){var d=s&&s.release&&s.release.date;return!!(s&&(s.status==='Released'||(d&&d<=new Date().toISOString().slice(0,10))))}
-function inCatalogue(s){return!!(s&&(s.status==='Finished'||relDone(s)))}
-function catWriters(s){return(s.credits||[]).filter(function(c){return SPLIT_ROLES[c.role]})}
-function splitTotal(s){return Math.round(catWriters(s).reduce(function(t,c){return t+(parseFloat(c.split)||0)},0)*100)/100}
-function creditOk(c){return!!(c&&c.ok&&c.ok.s===String(c.split||'')&&c.ok.n===String(c.name||'').trim())}
-function splitsConfirmed(s){var w=catWriters(s);return w.length>0&&w.every(creditOk)}
-function isMeCredit(c){if(!AUTH_USER)return false;if(c.uid)return c.uid===AUTH_USER.id;var me=(myName()||'').trim().toLowerCase();return!!me&&(c.name||'').trim().toLowerCase()===me}
-/* your publishing details, kept on the account so every device has them */
-function pubMe(){var m=(AUTH_USER&&AUTH_USER.user_metadata)||{};var l={};try{l=JSON.parse(localStorage.getItem('songpad:pubme')||'{}')}catch(e){}return{ipi:m.ipi||l.ipi||'',pro:m.pro||l.pro||'',publisher:m.publisher||l.publisher||''}}
-function pubMeSet(k,v){var p=pubMe();p[k]=v;try{localStorage.setItem('songpad:pubme',JSON.stringify(p))}catch(e){}
-  var c=sbClient();if(c&&AUTH_USER){var d={};d[k]=v;c.auth.updateUser({data:d}).then(function(r){if(r&&r.data&&r.data.user)AUTH_USER=r.data.user},function(){})}}
-/* what's missing before a song can be registered or pitched */
-function catGaps(s){var g=[],w=catWriters(s),R=s.release||{};
-  if(!w.length)g.push('Add the writers and their splits');
-  else{var t=splitTotal(s);if(Math.abs(t-100)>=.01)g.push('Splits add up to '+t+'%, not 100%');
-    var un=w.filter(function(c){return!creditOk(c)}).length;if(un)g.push(un===1?'1 writer hasn’t confirmed their split':un+' writers haven’t confirmed their splits');
-    var noid=w.filter(function(c){return!(c.ipi&&c.pro)});if(noid.length)g.push('Add the IPI number and PRO for '+noid.map(function(c){return c.name||'a writer'}).join(', '))}
-  if(!R.work&&!R.iswc)g.push('Not registered yet: add the work number or ISWC');
-  if(relDone(s)&&!R.isrc)g.push('Released without an ISRC');
-  if(!(s.lyrics||'').trim()&&R.vocal!=='Instrumental')g.push('No lyrics');
-  return g}
-
-/* ---- the extra parts of Details › Credits ---- */
-function relWriterExtra(cg,c,song){if(!SPLIT_ROLES[c.role])return;
-  var me=isMeCredit(c);if(me&&!c.ipi&&!c.pro){var pm=pubMe();if(pm.ipi||pm.pro){c.ipi=pm.ipi;c.pro=pm.pro}}
-  var r=document.createElement('div');r.className='relrow relsub';
-  var ip=document.createElement('input');ip.className='ri';ip.placeholder='IPI number';ip.inputMode='numeric';ip.value=c.ipi||'';ip.setAttribute('aria-label','IPI number for '+(c.name||'this writer'));
-  ip.oninput=function(){var v=ip.value.replace(/\D/g,'').slice(0,11);if(v!==ip.value)ip.value=v;c.ipi=v;sfTouch(song);if(isMeCredit(c))pubMeSet('ipi',v)};r.appendChild(ip);
-  var pr=document.createElement('input');pr.className='rp';pr.placeholder='PRO';pr.value=c.pro||'';pr.autocapitalize='characters';pr.setAttribute('aria-label','Performing rights organisation for '+(c.name||'this writer'));
-  pr.oninput=function(){c.pro=pr.value;sfTouch(song);if(isMeCredit(c))pubMeSet('pro',pr.value)};r.appendChild(pr);
-  var st=document.createElement('span');st.className='rok'+(creditOk(c)?' on':'');st.textContent=creditOk(c)?'Confirmed':'Not confirmed';
-  if(!creditOk(c)){var can=me||(!c.uid&&AUTH_USER&&song.shared&&!isMeCredit(c));
-    var b=document.createElement('button');b.className='rcf';
-    if(me){b.textContent='Confirm';b.onclick=function(){confirmCredit(c,song,AUTH_USER?AUTH_USER.id:'me')}}
-    else if(!c.uid&&song.shared&&!isOwnerOf(song)){b.textContent='This Is Me';b.onclick=function(){confirmCredit(c,song,AUTH_USER.id)}}
-    else if(!c.uid&&(!song.shared||isOwnerOf(song))){b.textContent='Mark Confirmed';b.title='For a writer who isn’t on *[demo]: you’ve agreed the split with them yourself';
-      b.onclick=function(){var go=function(){confirmCredit(c,song,'owner')};var n=natConfirm&&natConfirm({title:'Mark '+(c.name||'this writer')+'’s split confirmed?',message:'Only do this if they’ve agreed '+(c.split||0)+'% with you. Co-writers on *[demo] confirm their own split.',ok:'Mark Confirmed'});
-        if(n&&n.then)n.then(function(ok){if(ok)go()});else go()}}
-    else can=false;
-    if(b.textContent)r.appendChild(b);else r.appendChild(st)}
-  else r.appendChild(st);
-  cg.appendChild(r)}
-function confirmCredit(c,song,by){if(!(c.name||'').trim())return toast('Add the writer’s name first');
-  if(by&&by!=='owner'&&by!=='me')c.uid=by;c.ok={s:String(c.split||''),n:String(c.name||'').trim(),by:by,at:Date.now()};sfTouch(song);haptic('success');renderRel();if($('#vCat')&&$('#vCat').classList.contains('on'))renderCat()}
-function relExtras(o,song){var R=song.release||{};
-  var pg=accSection(o,'Publishing');
-  PUB_FIELDS.forEach(function(f){var r=document.createElement('label');r.className='cell form notile';var l=document.createElement('span');l.className='ct fl';l.textContent=f[1];r.appendChild(l);
-    var ip=document.createElement('input');ip.type=f[3];ip.placeholder=f[2];ip.setAttribute('aria-label',f[1]);
-    ip.value=R[f[0]]||(f[0]==='publisher'?'':'');if(f[0]==='publisher'&&!R.publisher&&pubMe().publisher)ip.placeholder=pubMe().publisher;
-    if(f[0]==='iswc'){ip.autocapitalize='characters';ip.spellcheck=false;ip.autocomplete='off'}
-    ip.oninput=function(){var v=ip.value;if(f[0]==='iswc'){v=v.toUpperCase();if(v!==ip.value)ip.value=v}song.release=song.release||{};song.release[f[0]]=v;sfTouch(song)};r.appendChild(ip);pg.appendChild(r)});
-  var tg=accSection(o,'Pitching');
-  var mr=document.createElement('label');mr.className='cell form notile';mr.innerHTML='<span class="ct fl">Mood</span>';var mi=document.createElement('input');mi.placeholder='e.g. Bittersweet, driving';mi.value=R.mood||'';mi.setAttribute('aria-label','Mood');
-  mi.oninput=function(){song.release=song.release||{};song.release.mood=mi.value;sfTouch(song)};mr.appendChild(mi);tg.appendChild(mr);
-  var vr=document.createElement('label');vr.className='cell form notile';vr.innerHTML='<span class="ct fl">Vocal</span>';var vs=document.createElement('select');vs.setAttribute('aria-label','Vocal');
-  VOCALS.forEach(function(v){var op=document.createElement('option');op.value=v;op.textContent=v||'Not set';if((R.vocal||'')===v)op.selected=true;vs.appendChild(op)});
-  vs.onchange=function(){song.release=song.release||{};song.release.vocal=vs.value;sfTouch(song)};vr.appendChild(vs);tg.appendChild(vr);
-  var gr=document.createElement('label');gr.className='cell form notile';gr.innerHTML='<span class="ct fl">Tags</span>';var gi=document.createElement('input');gi.placeholder='sync, upbeat, female-led';gi.value=R.tags||'';gi.setAttribute('aria-label','Tags');
-  gi.oninput=function(){song.release=song.release||{};song.release.tags=gi.value;sfTouch(song)};gr.appendChild(gi);tg.appendChild(gr);
-  /* what's left, and the paperwork */
-  if(inCatalogue(song)){var gaps=catGaps(song),ck=accSection(o,'Ready to Register');
-    if(!gaps.length){var okc=document.createElement('div');okc.className='catok';okc.textContent='Everything’s in. This song is ready to register and pitch.';ck.appendChild(okc)}
-    gaps.forEach(function(t){var d=document.createElement('div');d.className='catgap';d.textContent=t;ck.appendChild(d)})}
-  else{var hn=document.createElement('div');hn.className='relnote';hn.textContent='Mark the song Finished or Released to add it to your Catalogue.';o.appendChild(hn)}
-  var acts=document.createElement('div');acts.className='shacts relacts';
-  var ss=document.createElement('button');ss.className='go2';ss.textContent='Split Sheet';ss.onclick=function(){splitSheet(song)};acts.appendChild(ss);
-  var ps=document.createElement('button');ps.className='go2 ghost';ps.textContent='Pitch Sheet';ps.onclick=function(){pitchSheet([song])};acts.appendChild(ps);
-  o.appendChild(acts);
-  var why=document.createElement('div');why.className='relnote';o.appendChild(why);
-  if(!splitsConfirmed(song)||Math.abs(splitTotal(song)-100)>=.01){ss.classList.add('dim');why.textContent='A split sheet needs every writer’s split confirmed, adding up to 100%.'}else why.hidden=true}
-
-/* ---- the Catalogue view ---- */
-function catCard(){var cs=songs.filter(inCatalogue),n=cs.length,need=cs.filter(function(s){return catGaps(s).length}).length;
-  var b=document.createElement('div');b.className='song irow0 crow0';b.setAttribute('role','button');b.tabIndex=0;b.setAttribute('aria-label','Catalogue');
-  b.innerHTML='<i class="th cth">'+CAT_ICO+'</i><div class="tx"><b>Catalogue</b><span></span><em></em></div>';
-  b.querySelector('span').textContent=n?(n===1?'1 song':n+' songs')+' finished or released':'Finished and released songs, ready to register';
-  b.querySelector('em').textContent=n?(need?need+(need===1?' needs':' need')+' details':'All ready to register'):'Mark a song Finished to start';
-  b.onclick=openCat;b.onkeydown=function(e){if((e.key==='Enter'||e.key===' ')&&e.target===b){e.preventDefault();openCat()}};return b}
-var CAT_ICO='<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><rect x="3" y="4" width="4.2" height="16" rx="1.4"/><rect x="8.6" y="4" width="4.2" height="16" rx="1.4" opacity=".85"/><path d="M14.6 5.7l3.9-1.2c.75-.23 1.54.2 1.77.95l3.6 11.8c.23.75-.2 1.54-.95 1.77l-.07.02-3.83 1.17c-.75.23-1.54-.2-1.77-.95L13.65 7.47c-.23-.75.2-1.54.95-1.77z" opacity=".7"/></svg>';
-function openCat(){if(!isPro())return upsell('catalogue');sheet(false);if(document.body.classList.contains('side'))sideOn(false);CAT.sel=null;$('#cq').value='';show('vCat');renderCat()}
-function catRows(){var q=($('#cq').value||'').toLowerCase().trim();
-  return songs.filter(inCatalogue).filter(function(s){
-    if(CAT.f==='finished'&&relDone(s))return false;if(CAT.f==='released'&&!relDone(s))return false;if(CAT.f==='todo'&&!catGaps(s).length)return false;if(CAT.f==='ready'&&catGaps(s).length)return false;
-    if(!q)return true;var R=s.release||{};
-    return[s.title,s.artist,s.key,s.bpm,R.genre,R.mood,R.vocal,R.tags,R.isrc,R.iswc,R.work,R.label,(R.date||'').slice(0,4)].concat((s.credits||[]).map(function(c){return c.name})).join(' ').toLowerCase().indexOf(q)>=0})
-  .sort(function(a,b){if(CAT.sort==='title')return(a.title||'').localeCompare(b.title||'');if(CAT.sort==='release')return((b.release||{}).date||'').localeCompare((a.release||{}).date||'');return b.updated-a.updated})}
-function renderCat(){var L=$('#clist');if(!L)return;L.innerHTML='';var all=songs.filter(inCatalogue);
-  /* stats */
-  var rel=all.filter(relDone).length,reg=all.filter(function(s){var R=s.release||{};return R.work||R.iswc}).length,need=all.filter(function(s){return catGaps(s).length}).length;
-  var st=document.createElement('div');st.className='catstats';[[all.length,'Songs'],[rel,'Released'],[reg,'Registered'],[need,'Need details']].forEach(function(x){var d=document.createElement('div');d.innerHTML='<b></b><span></span>';d.firstChild.textContent=x[0];d.lastChild.textContent=x[1];st.appendChild(d)});L.appendChild(st);
-  /* filters and sort */
-  var fr=document.createElement('div');fr.className='catf';[['all','All'],['finished','Finished'],['released','Released'],['todo','Needs Details'],['ready','Ready']].forEach(function(x){var b=document.createElement('button');b.textContent=x[1];b.className=CAT.f===x[0]?'on':'';b.onclick=function(){CAT.f=x[0];renderCat()};fr.appendChild(b)});
-  var so=document.createElement('select');so.setAttribute('aria-label','Sort');[['recent','Recent'],['title','Title'],['release','Release date']].forEach(function(x){var op=document.createElement('option');op.value=x[0];op.textContent=x[1];if(CAT.sort===x[0])op.selected=true;so.appendChild(op)});
-  so.onchange=function(){CAT.sort=so.value;renderCat()};fr.appendChild(so);L.appendChild(fr);
-  var rows=catRows();
-  if(CAT.sel){var bar=document.createElement('div');bar.className='catsel';var n=Object.keys(CAT.sel).length;bar.innerHTML='<span></span>';bar.firstChild.textContent=n?n+(n===1?' song':' songs')+' in the pitch list':'Tap songs to add them to a pitch list';
-    var ex=document.createElement('button');ex.className='go2';ex.textContent='Export';ex.disabled=!n;ex.onclick=function(){var pick=songs.filter(function(s){return CAT.sel[s.id]});pitchExport(pick)};bar.appendChild(ex);
-    var cx=document.createElement('button');cx.className='go2 ghost';cx.textContent='Cancel';cx.onclick=function(){CAT.sel=null;renderCat()};bar.appendChild(cx);L.appendChild(bar)}
-  if(!all.length){var e=document.createElement('div');e.className='empty';e.innerHTML='<b>Nothing here yet</b><p>Mark a song Finished in Details › Info and it joins your catalogue, with what it needs to be registered and pitched.</p>';L.appendChild(e);return}
-  if(!rows.length){var e2=document.createElement('div');e2.className='empty';e2.textContent='No songs match.';L.appendChild(e2);return}
-  rows.forEach(function(s){var b=rowEl('song catrow',s);var gaps=catGaps(s),R=s.release||{};
-    b.insertAdjacentHTML('afterbegin','<i class="th"></i><div class="tx"><b></b><span></span><em></em></div><span class="catb"></span>');var th=b.firstChild;if(s.art)th.style.backgroundImage=artCss(s.art);else th.innerHTML=cover(s);
-    b.querySelector('b').textContent=s.title||'Untitled';
-    var w=catWriters(s);b.querySelector('span').textContent=w.length?w.map(function(c){return(c.name||'?')+(c.split?' '+c.split+'%':'')}).join(' · '):'No writers yet';
-    b.querySelector('em').textContent=[relDone(s)?'Released'+(R.date?' '+R.date.slice(0,4):''):'Finished',R.genre,s.key,s.bpm?s.bpm+' BPM':''].filter(Boolean).join(' · ');
-    var bd=b.querySelector('.catb');if(CAT.sel){bd.className='catb pick'+(CAT.sel[s.id]?' on':'');bd.setAttribute('aria-label',CAT.sel[s.id]?'In the pitch list':'Not in the pitch list')}
-    else{bd.className='catb'+(gaps.length?' warn':' ok');bd.textContent=gaps.length?String(gaps.length):'Ready';bd.title=gaps.length?gaps.join('\n'):'Ready to register and pitch'}
-    b.onclick=function(){if(CAT.sel){if(CAT.sel[s.id])delete CAT.sel[s.id];else CAT.sel[s.id]=1;haptic('light');renderCat();return}openSong(s.id);dtab('rel');renderRel();sheet(true)};L.appendChild(b)})}
-function catMenu(){var o=[['Export Catalogue (CSV)',function(){catCsv(catRows())}],['Make a Pitch List',function(){CAT.sel={};renderCat()}],['Your Publishing Details',function(){openAccount('pub')}]];
-  if(typeof natSheet==='function')return natSheet('Catalogue',o);var m=$('#catm');m.innerHTML='';o.forEach(function(x){var b=document.createElement('button');b.textContent=x[0];b.onclick=function(){m.hidden=true;x[1]()};m.appendChild(b)});m.hidden=!m.hidden}
-
-/* ---- exports ---- */
-function csvCell(v){v=v==null?'':String(v);return/[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
-function catCsv(list){var ok=list.filter(function(s){return splitsConfirmed(s)&&Math.abs(splitTotal(s)-100)<.01}),left=list.length-ok.length;
-  if(!ok.length)return toast(list.length?'None of these songs have every split confirmed yet, so there’s nothing to export.':'No songs to export');
-  var max=ok.reduce(function(m,s){return Math.max(m,catWriters(s).length)},1),head=['Title','Artist','Status','ISWC','Work number','Publisher','Registered','ISRC','UPC','Release date','Label','Genre','Mood','Vocal','Tags','Key','BPM','Explicit'];
-  for(var i=1;i<=max;i++)head.push('Writer '+i,'Writer '+i+' role','Writer '+i+' share %','Writer '+i+' IPI','Writer '+i+' PRO');
-  var lines=[head.map(csvCell).join(',')];
-  ok.forEach(function(s){var R=s.release||{},row=[s.title||'Untitled',s.artist,relDone(s)?'Released':'Finished',R.iswc,R.work,R.publisher||pubMe().publisher,R.regdate,R.isrc,R.upc,R.date,R.label,R.genre,R.mood,R.vocal,R.tags,s.key,s.bpm,R.explicit?'Yes':'No'];
-    var w=catWriters(s);for(var j=0;j<max;j++){var c=w[j]||{};row.push(c.name,c.role,c.split,c.ipi,c.pro)}lines.push(row.map(csvCell).join(','))});
-  saveTextFile('Catalogue '+new Date().toISOString().slice(0,10)+'.csv','﻿'+lines.join('\r\n'),'text/csv');
-  if(left)setTimeout(function(){toast(left+(left===1?' song was':' songs were')+' left out until every writer confirms their split')},1800)}
-function pitchExport(list){if(!list.length)return;pitchSheet(list)}
-
-/* ---- PDFs: a small writer for plain text pages (Helvetica, A4) ---- */
-var PDF_W=595.28,PDF_H=841.89,PDF_CV=null;
-function pdfMeasure(t,size,bold){if(!PDF_CV)PDF_CV=document.createElement('canvas').getContext('2d');PDF_CV.font=(bold?'bold ':'')+size+'px Helvetica, Arial, sans-serif';return PDF_CV.measureText(t).width}
-function pdfWin(t){var map={8364:128,8218:130,402:131,8222:132,8230:133,8224:134,8225:135,710:136,8240:137,352:138,8249:139,338:140,381:142,8216:145,8217:146,8220:147,8221:148,8226:149,8211:150,8212:151,732:152,8482:153,353:154,8250:155,339:156,382:158,376:159};
-  var o='';for(var i=0;i<t.length;i++){var c=t.charCodeAt(i),b=c<128||(c>=160&&c<256)?c:map[c]||63;var ch=String.fromCharCode(b);o+=ch==='('||ch===')'||ch==='\\'?'\\'+ch:ch}return o}
-function pdfDoc(){var pages=[],cur=null,y=0;var d={
-  page:function(){cur=[];pages.push(cur);y=PDF_H-56;return d},
-  y:function(v){if(v!=null)y=v;return y},
-  need:function(h){if(!cur||y-h<56)d.page();return d},
-  text:function(t,x,size,bold,grey){cur.push('BT /'+(bold?'F2':'F1')+' '+size+' Tf '+(grey?'0.42 0.42 0.45 rg ':'0 0 0 rg ')+x.toFixed(2)+' '+y.toFixed(2)+' Td ('+pdfWin(String(t))+') Tj ET');return d},
-  line:function(x1,x2,g){cur.push((g||0.85)+' G 0.6 w '+x1+' '+y.toFixed(2)+' m '+x2+' '+y.toFixed(2)+' l S');return d},
-  wrap:function(t,x,w,size,bold,lead,grey){String(t||'').split('\n').forEach(function(par){var words=par.split(/\s+/),ln='';if(!par.trim()){y-=lead*.6;return}
-    words.forEach(function(wd){var tr=ln?ln+' '+wd:wd;if(pdfMeasure(tr,size,bold)>w&&ln){d.need(lead);d.text(ln,x,size,bold,grey);y-=lead;ln=wd}else ln=tr});if(ln){d.need(lead);d.text(ln,x,size,bold,grey);y-=lead}});return d},
-  blob:function(){var objs=[],add=function(s){objs.push(s);return objs.length};
-    add('<< /Type /Catalog /Pages 2 0 R >>');add('');add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
-    var kids=[];pages.forEach(function(p){var st=p.join('\n');var sid=add('<< /Length '+st.length+' >>\nstream\n'+st+'\nendstream');kids.push(add('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+PDF_W+' '+PDF_H+'] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents '+sid+' 0 R >>'))});
-    objs[1]='<< /Type /Pages /Kids ['+kids.map(function(k){return k+' 0 R'}).join(' ')+'] /Count '+kids.length+' >>';
-    var out='%PDF-1.4\n',offs=[];objs.forEach(function(o,i){offs.push(out.length);out+=(i+1)+' 0 obj\n'+o+'\nendobj\n'});
-    var xref=out.length;out+='xref\n0 '+(objs.length+1)+'\n0000000000 65535 f \n'+offs.map(function(o){return('0000000000'+o).slice(-10)+' 00000 n \n'}).join('')+'trailer\n<< /Size '+(objs.length+1)+' /Root 1 0 R >>\nstartxref\n'+xref+'\n%%EOF';
-    var bytes=new Uint8Array(out.length);for(var i=0;i<out.length;i++)bytes[i]=out.charCodeAt(i)&255;return new Blob([bytes],{type:'application/pdf'})}};return d}
-function saveBlobFile(name,blob,type){var file=null;try{file=new File([blob],name,{type:type})}catch(e){}
-  if(file&&!window.desktop&&navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:name}).catch(function(){});return}
-  try{var u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},6000);toast('Saved '+name)}catch(e){toast('Saving files isn’t available here')}}
-function fileSafe(t){return String(t||'Untitled').replace(/[\\\/:*?"<>|]+/g,'').trim()||'Untitled'}
-function splitSheet(song){var w=catWriters(song);
-  if(!w.length)return toast('Add the writers and their splits first');
-  if(Math.abs(splitTotal(song)-100)>=.01)return toast('The splits add up to '+splitTotal(song)+'%. They need to total 100%.');
-  var un=w.filter(function(c){return!creditOk(c)});if(un.length)return toast('Waiting on '+un.map(function(c){return c.name||'a writer'}).join(', ')+' to confirm '+(un.length===1?'their split':'their splits'));
-  var R=song.release||{},d=pdfDoc().page(),X=56,W=PDF_W-112;
-  d.text('Split Sheet',X,26,true);d.y(d.y()-34);
-  d.text(song.title||'Untitled',X,16,true);d.y(d.y()-20);
-  [['Performed by',song.artist],['ISWC',R.iswc],['Work number',R.work],['Publisher',R.publisher||pubMe().publisher],['ISRC',R.isrc],['Release date',R.date]].forEach(function(r){if(!r[1])return;d.text(r[0],X,10,false,true);d.text(r[1],X+110,10);d.y(d.y()-15)});
-  d.y(d.y()-14);d.line(X,X+W);d.y(d.y()-18);
-  var cols=[[X,'Writer'],[X+148,'Role'],[X+222,'Share'],[X+270,'IPI'],[X+340,'PRO'],[X+412,'Confirmed']];cols.forEach(function(c){d.text(c[1],c[0],9,true,true)});d.y(d.y()-8);d.line(X,X+W);d.y(d.y()-16);
-  w.forEach(function(c){d.need(30);d.text(c.name||'',cols[0][0],10.5,true);d.text(c.role||'',cols[1][0],10);d.text((c.split||0)+'%',cols[2][0],10);d.text(c.ipi||'',cols[3][0],10);d.text(c.pro||'',cols[4][0],10);
-    d.text(new Date(c.ok.at).toLocaleDateString(),cols[5][0],10);d.y(d.y()-13);d.text(c.ok.by==='owner'?'Agreed outside the app':'Confirmed in *[demo]',cols[5][0],8,false,true);d.y(d.y()-16)});
-  d.line(X,X+W);d.y(d.y()-16);d.text('Total 100%',cols[2][0]-20,10,true);d.y(d.y()-40);
-  d.wrap('Each writer listed confirmed their share of this song on the date shown. Made with *[demo] on '+new Date().toLocaleDateString()+'.',X,W,9,false,13,true);
-  d.y(d.y()-30);w.forEach(function(c){d.need(46);d.line(X,X+220);d.y(d.y()-12);d.text((c.name||'')+'  ·  signature (optional)',X,8.5,false,true);d.y(d.y()-30)});
-  saveBlobFile('Split sheet - '+fileSafe(song.title)+'.pdf',d.blob(),'application/pdf')}
-function pitchSheet(list){var d=pdfDoc(),X=56,W=PDF_W-112;
-  list.forEach(function(song){d.page();var R=song.release||{};
-    d.text(song.title||'Untitled',X,24,true);d.y(d.y()-22);if(song.artist){d.text(song.artist,X,12,false,true);d.y(d.y()-18)}
-    var meta=[R.genre,R.mood,R.vocal&&R.vocal!=='Instrumental'?R.vocal+' vocal':R.vocal,song.key?'Key of '+song.key:'',song.bpm?song.bpm+' BPM':'',R.explicit?'Explicit':''].filter(Boolean).join('  ·  ');
-    if(meta){d.wrap(meta,X,W,10,false,14);d.y(d.y()-2)}
-    var w=(song.credits||[]).filter(function(c){return c.name});if(w.length){d.y(d.y()-6);d.wrap('Written by '+w.filter(function(c){return SPLIT_ROLES[c.role]}).map(function(c){return c.name}).join(', ')+(w.some(function(c){return!SPLIT_ROLES[c.role]})?'  ·  '+w.filter(function(c){return!SPLIT_ROLES[c.role]}).map(function(c){return c.name+' ('+c.role.toLowerCase()+')'}).join(', '):''),X,W,10,false,14,true)}
-    var codes=[R.isrc?'ISRC '+R.isrc:'',R.iswc?'ISWC '+R.iswc:'',R.date?'Released '+R.date:''].filter(Boolean).join('  ·  ');if(codes){d.wrap(codes,X,W,9,false,13,true)}
-    if(R.tags){d.wrap('Tags: '+R.tags,X,W,9,false,13,true)}
-    d.y(d.y()-10);d.line(X,X+W);d.y(d.y()-22);
-    var ly=(song.lyrics||'').replace(/\n{3,}/g,'\n\n').trim();if(ly)ly.split('\n').forEach(function(l){var t=l.trim();if(/^\[.*\]$/.test(t)){d.y(d.y()-4);d.wrap(t.slice(1,-1),X,W,9.5,true,14,true)}else d.wrap(l||' ',X,W,11,false,15)});
-    else d.wrap(R.vocal==='Instrumental'?'Instrumental':'No lyrics yet',X,W,11,false,15,true)});
-  saveBlobFile((list.length===1?'Pitch - '+fileSafe(list[0].title):'Pitch list - '+list.length+' songs')+'.pdf',d.blob(),'application/pdf')}
 
 /* ---------- perform mode ---------- */
 var pfRaf=0,pfOn=false,pfSpd=1,pfSize=34,pfLock=null,SPD=[.5,.75,1,1.25,1.5,2,3];
