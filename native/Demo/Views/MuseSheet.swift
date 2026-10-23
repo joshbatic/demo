@@ -39,17 +39,21 @@ struct MuseSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 12) {
-                    if out != .none {
-                        outputCard.transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
+            // a list (not a plain scroll) so the ways forward can be swiped away
+            List {
+                if out != .none {
+                    outputCard.listRow(top: 4)
+                    if case .read(let r) = out {
+                        ForEach(r.moves) { m in moveRow(m).listRow(h: 20) }
+                        acts([("Read again", true, { readSong() })]).padding(.horizontal, 20).listRow()
                     }
-                    grid
                 }
-                .padding(.top, 4)
-                .padding(.bottom, 24)
-                .animation(.snappy(duration: 0.25), value: out)
+                grid.listRow(top: 4, bottom: 24)
             }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .environment(\.defaultMinListRowHeight, 0)
+            .animation(.snappy(duration: 0.25), value: out)
             .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Muse")
             .navigationBarTitleDisplayMode(.inline)
@@ -173,8 +177,6 @@ struct MuseSheet: View {
                 ForEach(r.questions, id: \.self) { Text("• " + $0).font(.system(size: 16)) }
             }
             h4("Ways forward (tap to add the line)")
-            ForEach(r.moves) { m in moveRow(m) }
-            acts([("Read again", true, { readSong() })])
         }
     }
 
@@ -254,40 +256,48 @@ struct MuseSheet: View {
     @ViewBuilder private func moveRow(_ m: Move) -> some View {
         if whyFor == m.line {
             FlowLayout(spacing: 6) {
-                Text("Why not?").font(.footnote.weight(.semibold)).foregroundStyle(.secondary).frame(height: 30)
-                ForEach(MuseMemory.whyReasons, id: \.0) { r in
-                    Button(r.1) { reject(m, r.0) }.buttonStyle(.bordered).controlSize(.small)
-                }
-                Button("Just Hide It") { reject(m, "") }.buttonStyle(.bordered).controlSize(.small)
+                Text("Why not?").font(.system(size: 13, weight: .semibold)).foregroundStyle(.secondary).frame(height: 32)
+                ForEach(MuseMemory.whyReasons, id: \.0) { r in reasonChip(r.1) { reject(m, r.0) } }
+                reasonChip("Just Hide It") { reject(m, "") }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         } else {
-            HStack(alignment: .top) {
-                Button {
-                    MuseMemory.shared.used(m.line, src: "muse", song: songID)
-                    dismiss()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                        bridge.textView?.becomeFirstResponder()
-                        bridge.insertLine(m.line)
-                        session.toast = "Added to your song"
-                    }
-                } label: {
-                    VStack(alignment: .leading, spacing: 6) {
-                        if !m.idea.isEmpty { Text(m.idea).font(.system(size: 15, weight: .semibold)).foregroundStyle(.primary) }
-                        Text(m.line).font(.system(size: 16)).foregroundStyle(.primary)
-                        Text("\(RhymeEngine.shared.lineSyllables(m.line)) syl · tap to add").font(.system(size: 12)).foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 14).padding(.vertical, 12)
-                    .background(BarFill.color, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            Button {
+                MuseMemory.shared.used(m.line, src: "muse", song: songID)
+                dismiss()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                    bridge.textView?.becomeFirstResponder()
+                    bridge.insertLine(m.line)
+                    session.toast = "Added to your song"
                 }
-                .buttonStyle(PressScale())
-                Button { Haptics.selection(); withAnimation(.snappy) { whyFor = m.line } } label: {
-                    Icon("ic-close", 12).foregroundStyle(.secondary).frame(width: 28, height: 28)
+            } label: {
+                VStack(alignment: .leading, spacing: 6) {
+                    if !m.idea.isEmpty { Text(m.idea).font(.system(size: 15, weight: .semibold)).foregroundStyle(.primary) }
+                    Text(m.line).font(.system(size: 16)).foregroundStyle(.primary)
+                    Text("\(RhymeEngine.shared.lineSyllables(m.line)) syl · tap to add").font(.system(size: 12)).foregroundStyle(.secondary)
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Not this one")
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 14).padding(.vertical, 12)
+                .background(BarFill.color, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(PressScale())
+            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                Button { Haptics.thud(); withAnimation(.snappy) { whyFor = m.line } } label: {
+                    Label("Not this one", systemImage: "xmark")
+                }
+                .tint(.red)
             }
         }
+    }
+
+    private func reasonChip(_ t: String, _ action: @escaping () -> Void) -> some View {
+        Button { Haptics.selection(); action() } label: {
+            Text(t).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.tint)
+                .padding(.horizontal, 14).frame(height: 32)
+                .background(BarFill.color, in: Capsule())
+        }
+        .buttonStyle(PressScale())
     }
 
     private func reject(_ m: Move, _ why: String) {
@@ -350,5 +360,14 @@ struct MuseSheet: View {
                 out = .error(msg)
             }
         }
+    }
+}
+
+private extension View {
+    /// A row in the Muse list: no separator or background, set insets.
+    func listRow(h: CGFloat = 0, top: CGFloat = 3, bottom: CGFloat = 3) -> some View {
+        self.listRowInsets(EdgeInsets(top: top, leading: h, bottom: bottom, trailing: h))
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
     }
 }

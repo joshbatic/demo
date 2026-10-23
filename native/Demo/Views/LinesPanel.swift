@@ -271,9 +271,10 @@ struct LinesPanel: View {
 
     @ViewBuilder private func results(_ e: LinesModel.Entry, key: String, apply: @escaping (LinesModel.Option) -> Void) -> some View {
         if e.best > 0 && !e.judged { hint("No exact match this time. Closest fits first.") }
-        ScrollView {
-            VStack(spacing: 6) {
-                ForEach(e.list) { o in
+        // a native list so a suggestion can be swiped away (full width, no ✕)
+        List {
+            ForEach(e.list) { o in
+                Group {
                     if whyFor == o.id {
                         FlowLayout(spacing: 6) {
                             Text("Why not?").font(.system(size: 13, weight: .semibold)).foregroundStyle(.secondary).frame(height: 32)
@@ -284,34 +285,41 @@ struct LinesPanel: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                     } else {
-                        HStack(spacing: 6) {
-                            Button {
-                                model.markUsed(key)
-                                if let env = env() { MuseMemory.shared.used(o.line, src: "lines", song: env.song.id) }
-                                Prompts.recordLineAccept(o.type)
-                                apply(o)
-                            } label: {
-                                HStack(alignment: .firstTextBaseline, spacing: 12) {
-                                    Text(o.line).font(.system(size: 17)).foregroundStyle(Theme.tint).multilineTextAlignment(.leading)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                    Text(o.meta).font(.system(size: 12)).foregroundStyle(.secondary).multilineTextAlignment(.trailing)
-                                }
-                                .padding(.horizontal, 15).padding(.vertical, 11)
-                                .background(BarFill.color, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        Button {
+                            model.markUsed(key)
+                            if let env = env() { MuseMemory.shared.used(o.line, src: "lines", song: env.song.id) }
+                            Prompts.recordLineAccept(o.type)
+                            apply(o)
+                        } label: {
+                            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                                Text(o.line).font(.system(size: 17)).foregroundStyle(Theme.tint).multilineTextAlignment(.leading)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                Text(o.meta).font(.system(size: 12)).foregroundStyle(.secondary).multilineTextAlignment(.trailing)
                             }
-                            .buttonStyle(PressScale())
-                            Button { Haptics.selection(); withAnimation(.snappy) { whyFor = o.id } } label: {
-                                Icon("ic-close", 13).foregroundStyle(.secondary).frame(width: 30, height: 30)
+                            .padding(.horizontal, 15).padding(.vertical, 11)
+                            .frame(maxWidth: .infinity)
+                            .background(BarFill.color, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(PressScale())
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button { Haptics.thud(); withAnimation(.snappy) { whyFor = o.id } } label: {
+                                Label("Not this one", systemImage: "xmark")
                             }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Not this one")
+                            .tint(.red)
                         }
                     }
                 }
+                .listRowInsets(EdgeInsets(top: 3, leading: 0, bottom: 3, trailing: 0))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
             }
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .environment(\.defaultMinListRowHeight, 0)
         // as tall as the options, up to about a third of the screen, then it scrolls
-        .frame(height: min(CGFloat(e.list.count) * 56, 300))
+        .frame(height: min(e.list.reduce(0) { $0 + ($1.id == whyFor ? 92 : (CGFloat(max(1, $1.line.count / 34 + 1)) * 22 + 28)) }, 300))
     }
 
     private func reject(_ o: LinesModel.Option, key: String, why: String) {
