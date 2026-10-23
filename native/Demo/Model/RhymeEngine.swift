@@ -174,8 +174,10 @@ nonisolated final class RhymeEngine: @unchecked Sendable {
         }
         let o = a.filter { !rare($0) } + a.filter(rare)
         guard left > 0 else { return o }
-        let fit = { (x: String) in syl(x) == left && !rare(x) }
-        return o.filter(fit) + o.filter { !fit($0) }
+        func fit(_ x: String) -> Bool { syl(x) == left && !rare(x) }
+        var first: [String] = [], rest: [String] = []
+        for x in o { if fit(x) { first.append(x) } else { rest.append(x) } }
+        return first + rest
     }
 
     func rhymesWith(_ a: String, _ b: String) -> Bool {
