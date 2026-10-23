@@ -17712,7 +17712,7 @@ function clearHeld(){if(HELDROW){unholdRow(HELDROW);HELDROW=null}}
 var NG={on:false,P:null,last:'',edit:null,ic:{}};
 /* the native buttons draw the app's own SVG icons: each one is rendered to a 3x PNG once and handed over by key */
 function ngHash(t){var h=5381;for(var i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return(h>>>0).toString(36)}
-function ngIcon(b){var sv=b&&(b.tagName.toLowerCase()==='svg'?b:b.querySelector('svg'));if(!sv)return null;var r=sv.getBoundingClientRect();if(!r.width||!r.height)return null;
+function ngIcon(b){if(typeof NG.P.icon!=='function')return null;var sv=b&&(b.tagName.toLowerCase()==='svg'?b:b.querySelector('svg'));if(!sv)return null;var r=sv.getBoundingClientRect();if(!r.width||!r.height)return null;
   var w=Math.round(r.width),h=Math.round(r.height),src=sv.outerHTML,k=ngHash(src+w+'x'+h),st=NG.ic[k];
   if(st==='ok')return k;if(st)return null;NG.ic[k]='busy';
   var x=src.replace(/currentColor/g,'#000');if(!/xmlns=/.test(x))x=x.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"');
@@ -17816,7 +17816,7 @@ var NG_SHON=NG_SH.split(',').map(function(q){return q+'.on'}).join(',');
 NG.under=false;NG.offT=null;
 function ngSheetOpen(){return document.querySelector(NG_SHON)}
 /* called just before a sheet opens, so the picture of the page is taken before the sheet starts to move */
-function ngSheetPre(){if(!NG.on||NG.under||ngSheetOpen())return;NG.under='pending';
+function ngSheetPre(){if(!NG.on||NG.under||ngSheetOpen()||typeof NG.P.sheetGlass!=='function')return;NG.under='pending';
   Promise.resolve(NG.P.sheetGlass({on:true})).then(function(r){NG.under=!!(r&&r.ok);if(!NG.under)return;if(!ngSheetOpen())ngSheetOff()},function(){NG.under=false})}
 function ngSheetOff(){clearTimeout(NG.offT);NG.offT=null;document.documentElement.classList.remove('ngsheet');if(NG.under===true){NG.under=false;Promise.resolve(NG.P.sheetGlass({on:false})).catch(function(){})}}
 /* each frame: glass on while a sheet is open; the moment it starts closing, the page and the sheet's own frosted
