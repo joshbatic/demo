@@ -1196,6 +1196,15 @@ body.ngctx .si{position:relative}
 body.ngctx :is(.song,.si)>:is(.rpin,.rdel){position:relative;z-index:1}
 /* on/off switches drawn natively (UISwitch) */
 body.nglass .ngsw{opacity:0!important}
+
+/* sheets scroll right to the bottom edge, like iOS: no padding under the scrolling body (that left an empty strip
+   above the home indicator); the room for the home indicator is inside each scrolling body instead */
+#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet10,#sheet11,#dictSheet{padding-bottom:0!important}
+#acc,#opts,.sbd,#ibd{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+#sheet .pane{padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+#p-aud,#p-rel{padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
+.dictout{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+#acc.kbpad{padding-bottom:50vh}
 </style>
 </head>
 <body>
