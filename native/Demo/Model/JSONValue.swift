@@ -3,7 +3,7 @@ import Foundation
 /// Any JSON value. Songs and ideas are kept as their full JSON objects so that fields the
 /// native app doesn't know about yet (written by the web or Mac app) are never dropped when
 /// the library syncs back up as one document.
-enum JSONValue: Codable, Hashable, Sendable {
+nonisolated enum JSONValue: Codable, Hashable, Sendable {
     case string(String)
     case number(Double)
     case bool(Bool)
@@ -92,7 +92,7 @@ enum JSONValue: Codable, Hashable, Sendable {
     }
 }
 
-extension JSONValue: ExpressibleByStringLiteral, ExpressibleByIntegerLiteral, ExpressibleByBooleanLiteral, ExpressibleByFloatLiteral {
+nonisolated extension JSONValue: ExpressibleByStringLiteral, ExpressibleByIntegerLiteral, ExpressibleByBooleanLiteral, ExpressibleByFloatLiteral {
     init(stringLiteral value: String) { self = .string(value) }
     init(integerLiteral value: Int) { self = .number(Double(value)) }
     init(booleanLiteral value: Bool) { self = .bool(value) }
