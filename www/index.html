@@ -51,6 +51,21 @@ html.devbuild #sadm,html.devbuild #sbeta{display:none!important}
 #adm .aset.wrapset{flex-wrap:wrap}#adm .aset.wrapset .ain{flex-basis:100%;margin:8px 0 0 42px;width:calc(100% - 42px);text-align:left}
 #adm .bhead{padding:2px 0 10px}#adm .bhead::before{display:none}
 #adm .arow.brow{display:flex;align-items:center;gap:12px}#adm .arow.brow .bx{flex:1;min-width:0}#adm .arow.brow+.arow.brow::before{left:58px}
+/* ---- Account main page: you, your plan, then short groups ---- */
+#sheet6 #acc{min-height:min(62vh,560px)}#sheet6 .sh b{flex:1}#sheet6 .sh .accback{width:32px;padding:0;margin-right:10px;display:grid;place-items:center;flex:none}#sheet6 .sh .accback[hidden]{display:none}
+.accme,.accplan{display:flex;align-items:center;gap:14px;width:calc(100% - 40px);margin:4px 20px 12px;padding:12px 14px;border-radius:18px;background:var(--row);box-shadow:0 0 0 .5px var(--ring);color:var(--ink);text-align:left}
+.accme:active,.accplan:active{background:var(--fill)}
+.accmeav{width:58px;height:58px;border-radius:50%;flex:none;overflow:hidden;display:grid;place-items:center;background:linear-gradient(150deg,#A1A1AA,#76767E);color:#fff;font-weight:650;font-size:21px}
+.accmeav img{width:100%;height:100%;object-fit:cover}.accmeav svg{width:28px;height:28px}
+.accmetx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.accmetx b{font-size:18px;font-weight:650;display:flex;align-items:center;gap:7px;min-width:0}
+.accmetx>span{font-size:13.5px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.accplan .accmetx b{font-size:16px}.accplan .plic{width:40px;height:40px;border-radius:11px;flex:none;display:grid;place-items:center;color:#fff;background:radial-gradient(circle at 72% 28%,#FFD6A5 0,rgba(255,214,165,0) 58%),linear-gradient(140deg,#FFC2DA,#B9A6FF)}
+.accplan .plic svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,.2))}
+.accme .chev,.accplan .chev{color:var(--mute);opacity:.6;display:grid}
+/* the green Pro badge */
+.probadge{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.2px;line-height:1;padding:4px 7px;border-radius:99px;background:#34C759;color:#fff;flex:none}
+.prohero .proname .probadge{margin-left:8px;vertical-align:4px}
+body.plan-pro #acctplan,body.plan-pro .protag#acctplan{background:#34C759!important;color:#fff!important}
 /* [developer] builds look like the public app (system light and dark, colour covers). They're told apart by the
    DEV tag beside the name and the DEV app icon, plus colour tiles for the developer-only rows */
 .devpill{background:linear-gradient(100deg,#C2AEFF 0%,#97C8FF 55%,#9BE8CF 100%)!important;color:#1E1830!important}
@@ -18970,7 +18985,7 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden&&AUT
 /* admins only: preview the Free plan on your own account (the server keeps it, so it's real) */
 function setPlan(tier){var c=sbClient();if(!c||!AUTH_USER)return Promise.resolve();
   return c.rpc('admin_set_plan',{p_user:AUTH_USER.id,p_tier:tier==='free'?'free':'beta'}).then(function(r){if(r.error){toast('Couldn’t change your plan: '+r.error.message);return}return planRefresh()})}
-function applyPlan(){var pro=isPro();document.body.classList.toggle('pro',pro);var ap=$('#acctplan');if(ap){ap.hidden=!pro;ap.textContent=planName()}var acb=$('#acctb');if(acb)acb.classList.toggle('nobadge',!pro);
+function applyPlan(){var pro=isPro();document.body.classList.toggle('pro',pro);document.body.classList.toggle('plan-pro',PLAN.tier==='pro');var ap=$('#acctplan');if(ap){ap.hidden=!pro;ap.textContent=planName()}var acb=$('#acctb');if(acb)acb.classList.toggle('nobadge',!pro);
   if(!pro){if(VIEW.ctx){VIEW.ctx=false;vset()}if(lines){lines=false}if(typeof rateMode!=='undefined'&&rateMode)setRateMode(false)}
   else if(!VIEW.ctx){VIEW.ctx=true;vset()}
   ['#rateb','#gear','#ctxb'].forEach(function(s){var el=$(s);if(el)el.classList.toggle('prolock',!pro)});
@@ -19047,7 +19062,7 @@ function iapManage(){var P=iapPlugin();
   if(P&&RC_KEY&&P.showManageSubscriptions){Promise.resolve(P.showManageSubscriptions()).catch(function(){openLink('https://apps.apple.com/account/subscriptions')});return}
   openLink('https://apps.apple.com/account/subscriptions')}
 var accWhy='';
-function openAccount(k){accWhy=k||'';renderAccount();sheet(true,'sheet6')}
+function openAccount(k){accWhy=k||'';ACC_PAGE=k?'plan':'main';ACC_EDIT=null;renderAccount();sheet(true,'sheet6')}
 function devProfileGet(){try{return JSON.parse(localStorage.getItem('songpad:devprofile'))||{}}catch(e){return{}}}
 function devProfileSet(p){try{localStorage.setItem('songpad:devprofile',JSON.stringify(p))}catch(e){}}
 /* ---------- Account sheet building blocks: Settings-style rows and section headers ---------- */
@@ -19096,7 +19111,13 @@ var ACC_EDIT=null,ACC_DRAFT={},ACC_AUTOFOCUS=null,ACC_PENDING=false;
    mid-edit in it; otherwise they wait until focus leaves the sheet */
 function refreshAccount(){if(!$('#sheet6').classList.contains('on'))return;var ae=document.activeElement;if(ae&&isTextField(ae)&&$('#acc').contains(ae)){ACC_PENDING=true;return}ACC_PENDING=false;renderAccount()}
 document.addEventListener('focusout',function(){if(!ACC_PENDING)return;setTimeout(function(){var ae=document.activeElement;if(!(ae&&isTextField(ae)&&$('#acc').contains(ae)))refreshAccount()},80)});
-function renderAccount(){var o=$('#acc'),pro=isPro();
+/* Account has a short main page (Settings-style) and sub-pages: your profile, your plan, your credits */
+var ACC_PAGE='main';
+function accGo(pg){ACC_PAGE=pg||'main';ACC_EDIT=null;ACC_DRAFT={};renderAccount();var a=$('#acc');if(a)a.scrollTop=0}
+function accHead(pg){var sh=$('#sheet6 .sh');if(!sh)return;var b=sh.querySelector('b'),bk=$('#accback');
+  if(!bk){bk=document.createElement('button');bk.id='accback';bk.className='accback';bk.setAttribute('aria-label','Account');bk.innerHTML='<svg width="11" height="18" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';bk.onclick=function(){accGo('main')};sh.insertBefore(bk,b)}
+  bk.hidden=pg==='main';b.textContent={main:'Account',profile:'Profile',plan:'*[demo] Pro',credits:'Credits'}[pg]||'Account'}
+function renderAccount(){var o=$('#acc'),pro=isPro(),page=ACC_PAGE||'main';accHead(page);var hero=null;
   var fae=document.activeElement,keepF=(fae&&fae.dataset&&fae.dataset.dk&&o.contains(fae))?{dk:fae.dataset.dk,s:fae.selectionStart,e:fae.selectionEnd}:null;
   o.innerHTML='';
   /* Dev Mode has no real Supabase session, so devFake fills the profile with a fake, clearly-labeled
@@ -19110,8 +19131,15 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
     var shownName=devFake?(dp.display_name||dp.username||'Dev User'):(myName()||'Your account');
     var handle=prof('username');
     /* ---- hero: photo, name, handle, email - straight on the sheet, the way Settings shows your account ---- */
-    var hero=document.createElement('div');hero.className='prohero';o.appendChild(hero);
     var avSrc=devFake?(dp.avatar_url||''):((MY_PROFILE&&MY_PROFILE.avatar_url)||meta.avatar_url);
+    /* main page: one row for you, like the Apple Account row at the top of Settings */
+    if(page==='main'){var me0=document.createElement('button');me0.className='accme';
+      var mav=document.createElement('span');mav.className='accmeav';if(avSrc){var mi=document.createElement('img');mi.src=avSrc;mi.alt='';mi.referrerPolicy='no-referrer';mav.appendChild(mi)}else{mav.textContent=initialsOf(shownName)||'';if(!mav.textContent)mav.innerHTML=ACC_ICO.person}
+      me0.appendChild(mav);var mt=document.createElement('span');mt.className='accmetx';mt.innerHTML='<b></b><span></span>';mt.firstChild.textContent=shownName;
+      if(PLAN.tier==='pro'){var pb0=document.createElement('i');pb0.className='probadge';pb0.textContent='Pro';mt.firstChild.appendChild(pb0)}
+      mt.lastChild.textContent=[handle?'@'+handle:'',devFake?'Local only':(AUTH_USER.email||'')].filter(Boolean).join(' · ');me0.appendChild(mt);
+      var mc=document.createElement('span');mc.className='chev';mc.innerHTML=ACC_ICO.chev;me0.appendChild(mc);me0.onclick=function(){accGo('profile')};o.appendChild(me0)}
+    if(page==='profile'){hero=document.createElement('div');hero.className='prohero';o.appendChild(hero);
     var avWrap=document.createElement('button');avWrap.className='proav';avWrap.setAttribute('aria-label','Change photo');
     if(avSrc){var av=document.createElement('img');av.src=avSrc;av.alt='';av.referrerPolicy='no-referrer';avWrap.appendChild(av)}
     else{var avph=document.createElement('span');avph.className='proavph';var ini=initialsOf(shownName);if(ini)avph.textContent=ini;else avph.innerHTML=ACC_ICO.person;avWrap.appendChild(avph)}
@@ -19121,9 +19149,9 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
     var sub=document.createElement('div');sub.className='prosub';
     var subt=[handle?'@'+handle:'',devFake?'Local only, nothing here syncs':(AUTH_USER.email||'')].filter(Boolean);
     subt.forEach(function(t,ix){var sp=document.createElement('span');sp.textContent=t;if(ix)sp.className='dim';sub.appendChild(sp)});
-    hero.appendChild(sub);
+    hero.appendChild(sub);if(PLAN.tier==='pro'){var pb1=document.createElement('i');pb1.className='probadge';pb1.textContent='Pro';nm.appendChild(pb1)}}
     /* ---- name & username ---- */
-    if(ACC_EDIT==='profile'){
+    if(page==='profile'&&ACC_EDIT==='profile'){
       var pg=accSection(o,'Name & username',[['Cancel',function(){ACC_EDIT=null;ACC_DRAFT={};renderAccount()},'ghost'],['Save',saveProfile,'strong']]);
       var di=formCell(pg,'Name','Shown on song credits','name',devFake?(dp.display_name||''):((MY_PROFILE&&MY_PROFILE.display_name)||myName()));
       var ui=formCell(pg,'Username','username','user',handle);
@@ -19136,10 +19164,10 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
         if(devFake){dp.username=rawUser;dp.display_name=dn;devProfileSet(dp);renameMyArtistCredit(oldName,dn||rawUser);ACC_EDIT=null;ACC_DRAFT={};toast('Saved (dev only)');renderAccount()}
         else saveUsername(rawUser,dn).then(function(){renameMyArtistCredit(oldName,myName());ACC_EDIT=null;ACC_DRAFT={};toast('Saved');renderAccount();if(rawUser)setTimeout(function(){pushAsk('You’ll get a notification when someone invites you to a song.')},1800)},function(err){if(btn)btn.disabled=false;toast(err.message)})}
     }else{
-      var pg2=accSection(o,'');
-      pg2.appendChild(accCell({tile:ACC_ICO.person,grad:1,label:'Name & Username',value:handle?'@'+handle:'Not set',valueCls:handle?'':'add',chev:true,onclick:function(){ACC_EDIT='profile';ACC_DRAFT={};ACC_AUTOFOCUS='profile';renderAccount()}}));
+      if(page==='profile'){var pg1=accSection(o,'');
+      pg1.appendChild(accCell({tile:ACC_ICO.person,grad:1,label:'Name & Username',value:handle?'@'+handle:'Not set',valueCls:handle?'':'add',chev:true,onclick:function(){ACC_EDIT='profile';ACC_DRAFT={};ACC_AUTOFOCUS='profile';renderAccount()}}))}
       /* iPhone: notifications for invites and help desk replies */
-      if(pushPlugin()&&!devFake){var pg=PUSH.perm==='granted'?'On':PUSH.perm==='denied'?'Off':'Turn On';
+      if(page==='main'&&pushPlugin()&&!devFake){var pg2=accSection(o,'');var pg=PUSH.perm==='granted'?'On':PUSH.perm==='denied'?'Off':'Turn On';
         var npOpen=ACC_EDIT==='notif'&&PUSH.perm==='granted';
         pg2.appendChild(accCell({tile:ACC_ICO.bell,grad:4,label:'Notifications',value:pg,valueCls:pg==='Turn On'?'add':'',chev:PUSH.perm==='granted',cls:npOpen?'open':'',onclick:function(){
           if(PUSH.perm==='granted'){ACC_EDIT=npOpen?null:'notif';if(!npOpen)npLoad();renderAccount();return}
@@ -19149,13 +19177,13 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
     }
     /* ---- links: one row per network with its own icon, showing the handle, like contact details ---- */
     var linking=ACC_EDIT==='links';
-    var lg=accSection(o,'Links',linking?[['Cancel',function(){ACC_EDIT=null;ACC_DRAFT={};renderAccount()},'ghost'],['Save',saveLinksNow,'strong']]:[['Edit',function(){ACC_EDIT='links';ACC_DRAFT={};ACC_AUTOFOCUS='links';renderAccount()}]]);
+    if(page==='profile'){var lg=accSection(o,'Links',linking?[['Cancel',function(){ACC_EDIT=null;ACC_DRAFT={};renderAccount()},'ghost'],['Save',saveLinksNow,'strong']]:[['Edit',function(){ACC_EDIT='links';ACC_DRAFT={};ACC_AUTOFOCUS='links';renderAccount()}]]);
     var linkInputs={};
     SOCIALS.forEach(function(sx,ix){
       var k=sx[0],v=prof('link_'+k);
       if(linking){var hm=(k==='instagram'||k==='tiktok')&&/(?:instagram|tiktok)\.com\/@?([^\/?#]+)/i.exec(v||'');var ip=formCell(lg,sx[1],k==='spotify'?'Paste your artist link':'@username','l_'+k,hm?'@'+hm[1]:v,sx[3],'soc-'+k);ip.autocapitalize='off';ip.autocomplete='off';ip.spellcheck=false;ip.inputMode='url';linkInputs[k]=ip;if(!ix&&ACC_AUTOFOCUS==='links'){ACC_AUTOFOCUS=null;try{ip.focus({preventScroll:true})}catch(e){}}}
       else lg.appendChild(accCell({tile:sx[3],tileCls:'soc-'+k,label:sx[1],value:v?socialShown(k,v):'Add',valueCls:v?'':'add',chev:v?'ext':true,onclick:function(){if(v)openLink(v);else{ACC_EDIT='links';ACC_DRAFT={};ACC_AUTOFOCUS='links';renderAccount()}}}));
-    });
+    })}
     function saveLinksNow(e){var btn=e&&e.target;if(btn)btn.disabled=true;
       var fields={};SOCIALS.forEach(function(sx){fields['link_'+sx[0]]=normalizeLink(sx[0],linkInputs[sx[0]].value)});
       if(devFake){Object.keys(fields).forEach(function(kk){dp[kk]=fields[kk]});devProfileSet(dp);ACC_EDIT=null;ACC_DRAFT={};toast('Saved (dev only)');renderAccount()}
@@ -19202,7 +19230,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
       };
       ga.appendChild(nc)
     }
-    if(!devFake){var invBox=document.createElement('div');invBox.id='acc-invites';invBox.hidden=true;o.appendChild(invBox);renderInvites();pullInvites()}
+    if(!devFake&&page==='main'){var invBox=document.createElement('div');invBox.id='acc-invites';invBox.hidden=true;o.appendChild(invBox);renderInvites();pullInvites()}
   }else{
     ga=accSection(o,'');
     var gb=document.createElement('button');gb.className='row';gb.style.justifyContent='center';gb.style.gap='10px';gb.style.background='#000';gb.style.color='#fff';
@@ -19212,9 +19240,16 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
     ab.innerHTML='<svg width="17" height="17" viewBox="0 0 170 170" aria-hidden="true" fill="currentColor"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.197-2.12-9.973-3.17-14.34-3.17-4.58 0-9.492 1.05-14.746 3.17-5.262 2.13-9.501 3.24-12.742 3.35-4.929.21-9.842-1.96-14.746-6.52-3.13-2.73-7.045-7.41-11.735-14.04-5.032-7.08-9.169-15.29-12.41-24.65-3.471-10.11-5.211-19.9-5.211-29.378 0-10.857 2.345-20.221 7.045-28.068 3.693-6.303 8.606-11.275 14.755-14.925 6.149-3.65 12.792-5.51 19.946-5.629 3.915 0 9.045 1.211 15.42 3.591 6.356 2.388 10.44 3.599 12.238 3.599 1.342 0 5.877-1.416 13.57-4.239 7.275-2.618 13.415-3.702 18.445-3.275 13.63 1.1 23.87 6.473 30.68 16.153-12.19 7.386-18.22 17.731-18.1 31.002.11 10.337 3.86 18.939 11.23 25.769 3.34 3.17 7.07 5.62 11.22 7.36-.9 2.61-1.85 5.11-2.86 7.51zM119.11 7.24c0 8.102-2.96 15.667-8.86 22.669-7.12 8.324-15.732 13.134-25.071 12.375a25.21 25.21 0 0 1-.188-3.07c0-7.772 3.384-16.089 9.399-22.877 3.002-3.43 6.82-6.282 11.45-8.56 4.62-2.245 8.99-3.486 13.1-3.685.12 1.056.17 2.111.17 3.148z"/></svg><span>Sign in with Apple</span>';
     ab.className+=' agapple';ab.onclick=function(){signInApple(true)};ga.appendChild(ab);
   }
-  if(accWhy&&!pro){var w=document.createElement('div');w.className='accwhy';w.textContent=upsellMsg(accWhy);o.appendChild(w)}
   var tier=PLAN.tier,isAdm=typeof BETA!=='undefined'&&BETA&&BETA.admin;
-  if(tier==='beta'&&!isAdm){if(typeof hero!=='undefined'&&hero){var bb=document.createElement('div');bb.className='prbeta';bb.textContent='Beta · everything unlocked';hero.appendChild(bb)}}else{
+  /* main page: the plan as one clean row; everything about it is one tap in */
+  if(page==='main'){var pr=document.createElement('button');pr.className='accplan'+(tier==='pro'?' pro':'');
+    pr.innerHTML='<span class="plic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 3.5v17M4.6 7.75l14.8 8.5M4.6 16.25l14.8-8.5" stroke-width="3.2"/></svg></span><span class="accmetx"><b></b><span></span></span><span class="chev">'+ACC_ICO.chev+'</span>';
+    pr.querySelector('b').textContent=tier==='pro'?'*[demo] Pro':tier==='beta'?'*[demo] Beta':'Get *[demo] Pro';
+    pr.querySelector('.accmetx span').textContent=tier==='pro'?(PLAN.expires_at?'Active until '+new Date(PLAN.expires_at).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}):'Active'):tier==='beta'?'Everything’s unlocked during the beta':'Demos, co-writing, lyric sync and more. '+PRICE.trial+' days free';
+    pr.onclick=function(){accGo('plan')};o.appendChild(pr)}
+  if(page==='plan'){
+  if(accWhy&&!pro){var w=document.createElement('div');w.className='accwhy';w.textContent=upsellMsg(accWhy);o.appendChild(w)}
+  if(tier==='beta'&&!isAdm){var bb=document.createElement('div');bb.className='plancard';bb.innerHTML='<span class="plic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 3.5v17M4.6 7.75l14.8 8.5M4.6 16.25l14.8-8.5" stroke-width="3.2"/></svg></span><span class="pltx"><b>*[demo] Beta</b><p>Everything’s unlocked while *[demo] is in beta.</p></span>';o.appendChild(bb)}else{
   var card=document.createElement('div');card.className='plancard'+(pro?' pro':'');
   card.innerHTML='<span class="plic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 3.5v17M4.6 7.75l14.8 8.5M4.6 16.25l14.8-8.5" stroke-width="3.2"/></svg></span><span class="pltx"><b></b><p></p></span>';
   card.querySelector('b').textContent=tier==='pro'?'*[demo] Pro':planName();
@@ -19255,7 +19290,8 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
   /* Pro through the App Store: manage it here (Apple asks apps to make this easy) */
   if(tier==='pro'&&iapPlugin()){var gm=document.createElement('div');gm.className='pllinks pllinks-pro';
     [['Manage Subscription',iapManage],['Restore Purchases',iapRestore]].forEach(function(x){var a3=document.createElement('button');a3.textContent=x[0];a3.onclick=x[1];gm.appendChild(a3)});o.appendChild(gm)}
-  if(AUTH_USER){
+  }
+  if(AUTH_USER&&page==='credits'){
     /* Credits: a small discography of finished songs you wrote or co-wrote */
     var credited=songs.filter(function(s){return s.title&&s.status==='Finished'&&(s.owner===AUTH_USER.id||(s.members||[]).indexOf(AUTH_USER.id)>=0||(!s.shared&&!s.owner))}).sort(function(a,b){return b.updated-a.updated});
     var g4=accSection(o,'Credits'),me=(myName()||'').toLowerCase();
@@ -19272,7 +19308,7 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
         r.appendChild(mid);var ch=document.createElement('span');ch.className='chev';ch.innerHTML=ACC_ICO.chev;r.appendChild(ch);
         r.onclick=function(){sheet(false);openSong(s.id)};g4.appendChild(r)})}
   }
-  if(BETA.admin&&AUTH_USER&&!DEV_MODE){betaAdminLoad();var sm=BETA.sum||{},bOpen2=ACC_EDIT==='beta';
+  if(page==='main'&&BETA.admin&&AUTH_USER&&!DEV_MODE&&!DEV_BUILD){betaAdminLoad();var sm=BETA.sum||{},bOpen2=ACC_EDIT==='beta';
     var gq=accSection(o,'Beta Requests');
     gq.appendChild(accCell({tile:ACC_ICO.person,grad:11,label:'Requests',value:BETA.sum?String(sm.pending||0)+' waiting':'…',chev:true,cls:bOpen2?'open':'',onclick:function(){ACC_EDIT=bOpen2?null:'beta';betaAdminLoad(true);renderAccount()}}));
     if(bOpen2){if(BETA.list&&!BETA.list.length){var be=document.createElement('div');be.className='crempty';be.innerHTML='<b>No requests waiting</b><span></span>';be.lastChild.textContent='New requests from hellodemo.app/beta show up here.';gq.appendChild(be)}
@@ -19288,7 +19324,10 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
         ac.appendChild(ok);ac.appendChild(no);d.appendChild(ac);gq.appendChild(d)})}
     gq.appendChild(accCell({tile:ACC_ICO.lock,grad:2,label:'Waitlist Lock',value:BETA.sum?(sm.gate?'On':'Off'):'…',valueCls:sm.gate?'':'add',onclick:function(){if(BETA.sum)betaSetGate(!sm.gate)}}));
     var nq=document.createElement('div');nq.className='note';nq.style.paddingTop='8px';nq.textContent=BETA.sum?(sm.approved||0)+' approved · '+(sm.declined||0)+' declined. With the lock on, only approved accounts can use *[demo].':'Only you can see this.';o.appendChild(nq)}
+  if(page==='main'){
   var g2=accSection(o,'Your songs');
+  if(AUTH_USER){var nCred=songs.filter(function(s){return s.title&&s.status==='Finished'}).length;
+    g2.appendChild(accCell({tile:ACC_ICO.doc,grad:3,label:'Credits',value:nCred?String(nCred):'',chev:true,onclick:function(){accGo('credits')}}))}
   g2.appendChild(accCell({tile:ACC_ICO.down,grad:2,label:'Import Songs',chev:true,onclick:function(){sheet(false);$('#impin').click()}}));
   g2.appendChild(accCell({tile:ACC_ICO.up,grad:7,label:'Export All Songs',chev:true,onclick:function(){sheet(false);$('#expb').click()}}));
   /* storage used against the account's limit; fetched fresh each time Account opens, then shown */
@@ -19313,22 +19352,23 @@ function renderAccount(){var o=$('#acc'),pro=isPro();
     gl.appendChild(accCell({tile:ACC_ICO.help,grad:8,label:'Contact Support',value:sAns?sAns+(sAns===1?' reply':' replies'):'',chev:true,cls:sOpen?'open':'',onclick:function(){ACC_EDIT=sOpen?null:'support';if(!sOpen)supLoad(true);renderAccount()}}));
     if(sOpen)supForm(gl)}
   else gl.appendChild(accCell({tile:ACC_ICO.help,grad:8,label:'Contact Support',value:'help@hellodemo.app',chev:'ext',onclick:function(){openLink('mailto:help@hellodemo.app')}}));
+  }
   /* developer tools ([developer] only), then the account actions last, where Settings keeps Sign Out */
-  if(ga&&(devFake||DEV_BUILD)&&dvl){o.appendChild(dvl);o.appendChild(ga)}
+  if(page==='main'&&ga&&(devFake||DEV_BUILD)&&dvl){o.appendChild(dvl);o.appendChild(ga)}
   if(AUTH_USER||devFake){
-    var ag=accSection(o,'');
-    ag.appendChild(accCell({tile:ACC_ICO.swap,grad:9,label:'Switch Account',chev:true,onclick:function(){/* back to the sign-in screen, which offers Apple and Google */signOutGoogle();SWITCH_PICK=true}}));
-    var og=accSection(o,'');
-    og.appendChild(accCell({label:'Sign Out',cls:'danger',onclick:function(){var nat=natDestroy({title:'Sign out of *[demo]?',message:'Your songs stay safe in your account.',ok:'Sign Out'});if(nat){nat.then(function(ok){if(ok)signOutGoogle()});return}signOutGoogle()}}));
+    if(page==='profile'){var ag=accSection(o,'');
+    ag.appendChild(accCell({tile:ACC_ICO.swap,grad:9,label:'Switch Account',chev:true,onclick:function(){/* back to the sign-in screen, which offers Apple and Google */signOutGoogle();SWITCH_PICK=true}}))}
+    if(page==='main'){var og=accSection(o,'');
+    og.appendChild(accCell({label:'Sign Out',cls:'danger',onclick:function(){var nat=natDestroy({title:'Sign out of *[demo]?',message:'Your songs stay safe in your account.',ok:'Sign Out'});if(nat){nat.then(function(ok){if(ok)signOutGoogle()});return}signOutGoogle()}}))}
     /* deleting the account: a second, deliberate step that says exactly what goes */
-    if(AUTH_USER&&!devFake){
+    if(AUTH_USER&&!devFake&&page==='profile'){
       if(ACC_EDIT!=='delete'){var dg=accSection(o,'');dg.appendChild(accCell({label:'Delete Account',cls:'danger',onclick:function(){var nat=natDestroy({title:'Delete your account?',message:'Your songs, ideas, recordings, share links and profile are deleted from your account, and songs you share stop being shared. Copies on your other devices go when you sign out there. If you pay for Pro through Apple, cancel it in Settings › your name › Subscriptions: deleting your account doesn’t stop billing. This can’t be undone.',ok:'Delete Account'});if(nat){nat.then(function(ok){if(ok)deleteAccount()});return}ACC_EDIT='delete';renderAccount();setTimeout(function(){var x=$('#acc .delcard');if(x)x.scrollIntoView({block:'center',behavior:'smooth'})},60)}}))}
       else{var dc=document.createElement('div');dc.className='gf delcard';dc.innerHTML='<b>Delete your account?</b><p>Your songs, ideas, recordings, share links and profile are deleted from your account, and songs you share stop being shared. Copies on your other devices go when you sign out there. If you pay for Pro through Apple, cancel it in Settings › your name › Subscriptions: deleting your account doesn’t stop billing. This can’t be undone.</p>';
         var dbt=document.createElement('button');dbt.className='delgo';dbt.textContent=DEL_BUSY?'Deleting…':'Delete Account';dbt.disabled=DEL_BUSY;dbt.onclick=deleteAccount;dc.appendChild(dbt);
         var dcx=document.createElement('button');dcx.className='delno';dcx.textContent='Cancel';dcx.disabled=DEL_BUSY;dcx.onclick=function(){ACC_EDIT=null;renderAccount()};dc.appendChild(dcx);o.appendChild(dc)}
     }
   }
-  var ver=document.createElement('div');ver.className='note';ver.style.cssText='text-align:center;padding:18px 0 6px;font-variant-numeric:tabular-nums;-webkit-user-select:text;user-select:text';ver.textContent='Version '+APP_COMMIT;o.appendChild(ver);
+  var ver=document.createElement('div');ver.className='note';ver.style.cssText='text-align:center;padding:18px 0 6px;font-variant-numeric:tabular-nums;-webkit-user-select:text;user-select:text';ver.textContent='Version '+APP_COMMIT;if(page==='main')o.appendChild(ver);
   if(keepF){var kf=o.querySelector('[data-dk="'+keepF.dk+'"]');if(kf){try{kf.focus({preventScroll:true});kf.setSelectionRange(keepF.s,keepF.e)}catch(e){}}}
 }
 $('#acctb').onclick=function(){openAccount('')};$('#sacct').onclick=function(){openAccount('')};$('#done6').onclick=function(){sheet(false)};
