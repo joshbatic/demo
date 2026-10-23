@@ -344,7 +344,7 @@ body.ios #dictSheet{top:16%;padding-top:0}
 /* Liquid Glass notification-style banner — a single tappable row (icon badge, text, chevron),
    the way iOS's own system banners read, rather than a boxed card with two stacked buttons */
 #invbanner{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);max-width:420px;margin:0 auto;z-index:221;border-radius:24px;padding:14px 16px 14px;transform:translateY(140%) scale(.96);opacity:0;transition:transform .38s cubic-bezier(.32,.72,0,1),opacity .2s;pointer-events:none}
-#invbanner.on{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+#invbanner.on{transform:translateY(calc(-1 * var(--lift,0px))) scale(1);opacity:1;pointer-events:auto}
 #invbanner .ib-row{display:flex;align-items:center;gap:12px}
 #invbanner .ib-av{width:42px;height:42px;border-radius:50%;flex:none;overflow:hidden;display:grid;place-items:center;font-weight:700;font-size:16px;color:#3B2E5A;background:linear-gradient(135deg,#FFD3BE,#E3CCFF 52%,#BFDDFF);box-shadow:0 0 0 2px var(--bg),0 2px 8px rgba(0,0,0,.14)}
 #invbanner .ib-av img{width:100%;height:100%;object-fit:cover}
@@ -15305,6 +15305,7 @@ function fit(){var d=document,r=d.documentElement,vv=window.visualViewport,ih=wi
      the keyboard opens on a freshly created song. */
   var blankSong=cur&&!cur.lyrics&&!cur.title;
   if(nowKb&&!kbWasOpen&&ae===lyr&&!blankSong)setTimeout(function(){if(document.activeElement===lyr)reveal(true)},260);
+  if(nowKb!==kbWasOpen&&typeof invPlace==='function'){invPlace();setTimeout(invPlace,320)}
   kbWasOpen=nowKb}
 if(window.visualViewport){visualViewport.addEventListener('resize',fit);visualViewport.addEventListener('scroll',fit)}
 window.addEventListener('resize',fit);
@@ -18332,14 +18333,19 @@ function ensureNotifPermission(){
   if(Notification.permission==='granted'){notifPerm=true;return}
   if(Notification.permission!=='denied')Notification.requestPermission().then(function(p){notifPerm=p==='granted'});
 }
+/* the banner sits just above the keyboard toolbar while the keyboard is up, and goes back to the bottom of the
+   screen when the keyboard closes (fit() calls this whenever the keyboard opens or closes) */
+function invPlace(){var b=$('#invbanner');if(!b)return;var rhy=$('#rhy'),r=document.documentElement.classList.contains('kb')&&rhy&&rhy.offsetParent&&rhy.getBoundingClientRect();
+  /* lifted with a transform rather than moved, so it glides between the two spots */
+  var lift=0;if(r&&r.width&&r.height&&r.top>200){var base=b.offsetTop+b.offsetHeight;lift=Math.max(0,base-(r.top-14))}
+  b.style.top='';b.style.bottom='';b.style.setProperty('--lift',lift+'px')}
 /* invitation banner: who invited you, to which song, Accept / Not now. Invites stay in Account either way. */
 var INV_Q=[],INV_CUR=null,invT=null;
 function showInviteBanner(inv,owner){if(INV_CUR&&INV_CUR.inv.id===inv.id)return;if(INV_CUR){if(!INV_Q.some(function(x){return x.inv.id===inv.id}))INV_Q.push({inv:inv,owner:owner});return}
   INV_CUR={inv:inv,owner:owner};var from=(owner&&(owner.display_name||owner.username))||inv.owner_name||(inv.owner_email||'').split('@')[0]||'Someone';
   var av=$('#ib-av');av.innerHTML='';if(owner&&avOk(owner.avatar_url)){var im=document.createElement('img');im.src=owner.avatar_url;im.alt='';im.referrerPolicy='no-referrer';av.appendChild(im)}else av.textContent=(from.trim()[0]||'?').toUpperCase();
   $('#ib-t').textContent=from+' invited you';$('#ib-d').textContent='to write “'+(inv.song_title||'a song')+'” together';
-  var b=$('#invbanner'),rhy=$('#rhy'),r=rhy&&rhy.offsetParent&&rhy.getBoundingClientRect();
-  if(r&&r.width&&r.height&&r.top>200){var bh=b.getBoundingClientRect().height||120;b.style.bottom='auto';b.style.top=(r.top-bh-14)+'px'}else{b.style.top='';b.style.bottom=''}
+  var b=$('#invbanner');invPlace();
   var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'||ae.id==='q'))ae.blur();
   b.classList.add('on');haptic('success');clearTimeout(invT);invT=setTimeout(hideInviteBanner,20000)}
 function hideInviteBanner(){$('#invbanner').classList.remove('on');clearTimeout(invT);INV_CUR=null;var n=INV_Q.shift();if(n)setTimeout(function(){showInviteBanner(n.inv,n.owner)},450)}
