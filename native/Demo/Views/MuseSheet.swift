@@ -21,6 +21,8 @@ struct MuseSheet: View {
     @State private var place = ""
     @State private var thing = ""
     @State private var more = ""
+    /// The list's content height, so the sheet opens just tall enough for it.
+    @State private var contentHeight: CGFloat = 520
 
     enum Output: Equatable {
         case none, busy(String), error(String), read(Read), stare(String), card(String), brief
@@ -55,11 +57,13 @@ struct MuseSheet: View {
             .environment(\.defaultMinListRowHeight, 0)
             .animation(.snappy(duration: 0.25), value: out)
             .scrollDismissesKeyboard(.interactively)
+            .onScrollGeometryChange(for: CGFloat.self) { $0.contentSize.height } action: { _, h in contentHeight = h }
             .navigationTitle("Muse")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } } }
         }
-        .presentationDetents([.fraction(0.84)])
+        // content + the nav bar, never taller than most of the screen (results then scroll)
+        .presentationDetents([.height(min(contentHeight + 64, UIScreen.main.bounds.height * 0.9))])
     }
 
     // MARK: the cards (the web's .stg grid of .stc buttons)
