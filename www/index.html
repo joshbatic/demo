@@ -1181,6 +1181,13 @@ html.ngsheet,html.ngsheet body{background:transparent!important}
 html.ngsheet body>.view,html.ngsheet body>#side,html.ngsheet body>#scrim2,html.ngsheet body>.dragbar{visibility:hidden!important}
 html.ngsheet #scrim{filter:opacity(0)!important}
 html.ngsheet :is(#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet10,#sheet11,#dictSheet){background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}
+
+/* a gentle iOS spring (a touch of overshoot) for things that pop in: banners and toasts */
+:root{--spring:linear(0,0.02,0.071,0.144,0.229,0.321,0.413,0.503,0.588,0.666,0.735,0.796,0.849,0.893,0.929,0.958,0.981,0.999,1.012,1.021,1.027,1.03,1.031,1.031,1.03,1.028,1.025,1.022,1.019,1.017,1.014,1.011,1.009,1.007,1.005,1.004,1)}
+@supports (transition-timing-function:linear(0,1)){
+  #invbanner.on,#probanner.on{transition:transform .6s var(--spring),opacity .2s}
+  #toast.on{transition:opacity .2s,transform .5s var(--spring)}
+}
 </style>
 </head>
 <body>
@@ -15382,6 +15389,11 @@ function toast(m){dbgLog('toast',m);if(/^Couldn[’']t /.test(String(m||'')))rep
   t.classList.add('on');setTimeout(function(){t.classList.remove('on')},1600);haptic('light')}
 /* Minimal haptics on iOS native builds (Capacitor); silently does nothing on Mac/web */
 function haptic(kind){
+  /* iOS 26 builds: straight to the native generators (kept warm), and a light tap that's already been felt (the
+     button-press tap below, or a native glass button) isn't repeated by the button's own handler */
+  try{var now=Date.now(),soft=!kind||kind==='light'||kind==='select';
+    if(typeof NG!=='undefined'&&NG&&NG.P&&typeof NG.P.haptic==='function'){if(soft&&now-(NG.hz||0)<160)return;NG.hz=now;NG.P.haptic({kind:kind||'light'});return}
+  }catch(e){}
   try{
     var C=window.Capacitor;
     if(!C||!C.isNativePlatform||!C.isNativePlatform()||!C.Plugins||!C.Plugins.Haptics)return;
@@ -17823,11 +17835,13 @@ function ngSheetOff(){clearTimeout(NG.offT);NG.offT=null;document.documentElemen
 /* each frame: glass on while a sheet is open; the moment it starts closing, the page and the sheet's own frosted
    background come straight back, and the native layer is taken down once the slide has finished */
 function ngSheetTick(out){var open=ngSheetOpen(),de=document.documentElement;
-  if(open){if(NG.offT){clearTimeout(NG.offT);NG.offT=null}if(NG.under===true&&!de.classList.contains('ngsheet'))de.classList.add('ngsheet')}
-  else{if(de.classList.contains('ngsheet'))de.classList.remove('ngsheet');if(NG.under===true&&!NG.offT)NG.offT=setTimeout(function(){NG.offT=null;if(!ngSheetOpen())ngSheetOff()},450)}
+  /* the glass stays on while a sheet slides away (the picture behind it is the page), and comes off once it's gone */
+  var onScreen=open||[].some.call(document.querySelectorAll(NG_SH),function(el){return el.getBoundingClientRect().top<innerHeight-1});
+  if(open||onScreen){if(NG.offT){clearTimeout(NG.offT);NG.offT=null}if(open&&NG.under===true&&!de.classList.contains('ngsheet'))de.classList.add('ngsheet')}
+  else if(de.classList.contains('ngsheet')||NG.under===true)ngSheetOff()
   if(NG.under!==true||!de.classList.contains('ngsheet'))return;
   var sc=document.getElementById('scrim'),so=sc?parseFloat(getComputedStyle(sc).opacity)||0:0;
-  out.push({id:'u-dim',kind:'dim',layer:'under',x:0,y:0,w:innerWidth,h:innerHeight,op:Math.round(so*30)/100,show:true});
+  out.push({id:'u-dim',kind:'dim',layer:'under',x:0,y:0,w:innerWidth,h:innerHeight,op:Math.round(so*30)/100,p:Math.round(so*100)/100,show:true});
   document.querySelectorAll(NG_SH).forEach(function(el){var r=el.getBoundingClientRect();if(r.top>=innerHeight-1||r.height<4)return;
     out.push({id:'u-'+el.id,kind:'mirror',layer:'under',parts:[],x:Math.round(r.left),y:Math.round(r.top*2)/2,w:Math.round(r.width),h:Math.round(r.height+80),r:parseFloat(getComputedStyle(el).borderTopLeftRadius)||38,op:1,show:true})})}
 /* ---- segmented controls: Apple's UISegmentedControl in place of each .seg / .bseg / #dseg (one that scrolls sideways stays as it is) ---- */
@@ -17850,7 +17864,13 @@ function ngTheme(){var t=document.documentElement.getAttribute('data-theme');ret
 function ngLoop(){if(NG.on&&!document.hidden){try{var g=ngSpec(),th=ngTheme(),k=JSON.stringify(g)+th;if(k!==NG.last){NG.last=k;NG.P.sync({groups:g,theme:th})}}catch(e){}}requestAnimationFrame(ngLoop)}
 (function(){if(!NATIVE_IOS)return;var C=window.Capacitor,P=C&&C.Plugins&&C.Plugins.GlassBar;if(!P||!P.available)return;
   Promise.resolve(P.available()).then(function(r){if(!r||!r.glass)return;NG.P=P;NG.on=true;document.body.classList.add('nglass');
-    P.addListener('tap',function(d){var b=d&&(document.getElementById(d.id)||NG.reg[d.id]);if(b&&!b.disabled)b.click()});
+    P.addListener('tap',function(d){NG.hz=Date.now();var b=d&&(document.getElementById(d.id)||NG.reg[d.id]);if(b&&!b.disabled)b.click()});
+    P.addListener('menu',function(){NG.hz=Date.now()});
+    /* a light tap on every button press in the page too, the moment the finger lifts (a drag or scroll doesn't count) */
+    (function(){var t0=null;var SEL='button,[role=button],[role=switch],[role=tab],a[href],.cell,.song,.idea,.r,.ln,.tg,.drow,.chip';
+      document.addEventListener('touchstart',function(e){var t=e.touches[0];t0=e.touches.length===1?{x:t.clientX,y:t.clientY,el:e.target}:null},{passive:true,capture:true});
+      document.addEventListener('touchmove',function(e){if(!t0)return;var t=e.touches[0];if(Math.abs(t.clientX-t0.x)>10||Math.abs(t.clientY-t0.y)>10)t0=null},{passive:true,capture:true});
+      document.addEventListener('touchend',function(){var s=t0;t0=null;if(!s||!s.el.closest)return;var b=s.el.closest(SEL);if(!b||b.disabled||b.getAttribute('aria-disabled')==='true')return;if(isTextField(s.el))return;haptic('light')},{passive:true,capture:true})})();
     P.addListener('menu',function(d){var id=d&&d.id||'';if(!id)return;
       if(id.indexOf('d:')===0){dtab(id.slice(2));renderVers();renderCollab();sheet(true);return}
       var b=document.getElementById(id);if(b&&!b.disabled)b.click()});

@@ -267,7 +267,8 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
             for it in items {
                 let id = (it["id"] as? String) ?? ""
                 let b = UIButton(type: .system)
-                b.addAction(UIAction { [weak self] _ in self?.plugin?.tapped(id) }, for: .touchUpInside)
+                b.addAction(UIAction { [weak self] _ in self?.plugin?.warm() }, for: .touchDown)
+                b.addAction(UIAction { [weak self] _ in self?.plugin?.buzz("light"); self?.plugin?.tapped(id) }, for: .touchUpInside)
                 effectView.contentView.addSubview(b)
                 buttons.append(b)
                 onStates.append(false)
@@ -301,7 +302,7 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
                 let id = (m["id"] as? String) ?? ""
                 let img = (m["sf"] as? String).flatMap { UIImage(systemName: $0) }
                 return UIAction(title: (m["title"] as? String) ?? "", image: img, attributes: (m["destructive"] as? Bool) == true ? [.destructive] : []) { [weak self] _ in
-                    self?.plugin?.menuPicked(id)
+                    self?.plugin?.buzz("light"); self?.plugin?.menuPicked(id)
                 }
             })
         }
@@ -316,7 +317,7 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
             c.addAction(UIAction { [weak self, weak c] _ in
                 guard let self = self, let c = c else { return }
                 let i = c.selectedSegmentIndex
-                if i >= 0 && i < self.segIds.count { self.plugin?.tapped(self.segIds[i]) }
+                if i >= 0 && i < self.segIds.count { self.plugin?.buzz("select"); self.plugin?.tapped(self.segIds[i]) }
             }, for: .valueChanged)
             effectView.isHidden = true
             clipsToBounds = true
@@ -387,7 +388,7 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
     }
 
     func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
-        if item.tag >= 0 && item.tag < tabIds.count { plugin?.tapped(tabIds[item.tag]) }
+        if item.tag >= 0 && item.tag < tabIds.count { plugin?.buzz("select"); plugin?.tapped(tabIds[item.tag]) }
     }
 
     private func style(_ b: UIButton, sf: String, icon: String?, label: String, on: Bool) {
@@ -426,7 +427,7 @@ final class GlassGroupView: UIView, UITextFieldDelegate, UITabBarDelegate {
             }
             let b = UIButton(type: .custom)
             let tapId = (s["tap"] as? String) ?? ""
-            b.addAction(UIAction { [weak self] _ in self?.plugin?.tapped(tapId) }, for: .touchUpInside)
+            b.addAction(UIAction { [weak self] _ in self?.plugin?.buzz("light"); self?.plugin?.tapped(tapId) }, for: .touchUpInside)
             effectView.contentView.addSubview(b)
             hitButton = b
         }
@@ -715,8 +716,25 @@ public class GlassBarPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "focus", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "blur", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "icon", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "sheetGlass", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "sheetGlass", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "haptic", returnType: CAPPluginReturnPromise)
     ]
+    // haptics, kept warm so a tap is felt the instant it lands
+    private lazy var hLight = UIImpactFeedbackGenerator(style: .light)
+    private lazy var hMedium = UIImpactFeedbackGenerator(style: .medium)
+    private lazy var hSelect = UISelectionFeedbackGenerator()
+    private lazy var hNotify = UINotificationFeedbackGenerator()
+    func buzz(_ kind: String) {
+        switch kind {
+        case "select": hSelect.selectionChanged(); hSelect.prepare()
+        case "medium": hMedium.impactOccurred(); hMedium.prepare()
+        case "success": hNotify.notificationOccurred(.success); hNotify.prepare()
+        case "warning": hNotify.notificationOccurred(.warning); hNotify.prepare()
+        case "rigid": hLight.impactOccurred(intensity: 1); hLight.prepare()
+        default: hLight.impactOccurred(intensity: 0.7); hLight.prepare()
+        }
+    }
+    func warm() { hLight.prepare(); hSelect.prepare() }
     // the page's own button icons, rendered by the page to PNG once and kept here by key
     static var icons: [String: UIImage] = [:]
     private var overlay: GlassPassthroughView?
@@ -774,6 +792,15 @@ public class GlassBarPlugin: CAPPlugin, CAPBridgedPlugin {
                     self.groups[id] = g
                 }
                 g.apply(s)
+                // the page behind a sheet shrinks back with rounded corners as the sheet comes up, like iOS
+                if id == "u-dim", let snap = self.under?.subviews.first {
+                    let p = max(0, min(1, glassNum(s["p"])))
+                    let sc = 1 - 0.065 * p
+                    snap.transform = CGAffineTransform(translationX: 0, y: 8 * p).scaledBy(x: sc, y: sc)
+                    snap.layer.cornerRadius = 38 * p
+                    snap.layer.cornerCurve = .continuous
+                    snap.layer.masksToBounds = true
+                }
             }
             for (id, g) in self.groups where !seen.contains(id) {
                 // controls the page builds and rebuilds (segmented controls) are let go of once they're gone
@@ -813,7 +840,7 @@ public class GlassBarPlugin: CAPPlugin, CAPBridgedPlugin {
                     let u = UIView(frame: web.bounds)
                     u.autoresizingMask = [.flexibleWidth, .flexibleHeight]
                     u.isUserInteractionEnabled = false
-                    u.backgroundColor = .systemBackground
+                    u.backgroundColor = .black
                     // the page exactly as it looks right now (taken before the sheet has moved)
                     if let snap = web.snapshotView(afterScreenUpdates: false) {
                         snap.frame = u.bounds
@@ -843,6 +870,11 @@ public class GlassBarPlugin: CAPPlugin, CAPBridgedPlugin {
             }
             call.resolve(["ok": true])
         }
+    }
+
+    @objc func haptic(_ call: CAPPluginCall) {
+        let kind = call.getString("kind") ?? "light"
+        DispatchQueue.main.async { self.buzz(kind); call.resolve() }
     }
 
     @objc func blur(_ call: CAPPluginCall) {
