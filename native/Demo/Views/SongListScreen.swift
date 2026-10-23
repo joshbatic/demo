@@ -16,22 +16,29 @@ struct SongListScreen: View {
             List {
                 if query.isEmpty {
                     IdeasRow()
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 20))
                 }
                 ForEach(groups, id: \.name) { g in
                     Section {
-                        // the folder name is a plain row, not a section header, so it scrolls away
-                        // with its songs instead of pinning under the title
-                        if !g.name.isEmpty {
-                            Text(g.name)
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundStyle(.secondary)
-                                .padding(.top, 14)
-                                .listRowSeparator(.hidden)
-                                .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 2, trailing: 20))
-                                .accessibilityAddTraits(.isHeader)
-                        }
-                        ForEach(g.songs) { s in
-                            NavigationLink(value: s.id) { SongRow(song: s) }
+                        // the web's .gh: a big bold group title that scrolls away with its songs
+                        Text(g.name)
+                            .font(.system(size: 20, weight: .bold))
+                            .padding(.top, 22).padding(.bottom, 6)
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 24))
+                            .accessibilityAddTraits(.isHeader)
+                        ForEach(Array(g.songs.enumerated()), id: \.element.id) { i, s in
+                            // no chevron, and a hairline only between songs, from the text to the edge (.song+.song)
+                            ZStack {
+                                NavigationLink(value: s.id) { EmptyView() }.opacity(0)
+                                SongRow(song: s)
+                            }
+                            .overlay(alignment: .top) {
+                                if i > 0 { Rectangle().fill(Color(uiColor: .separator)).frame(height: 0.5).padding(.leading, 66).padding(.trailing, -24) }
+                            }
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 24))
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     Button(role: .destructive) { confirmDelete = s } label: {
                                         Label(isMine(s) ? "Delete" : "Leave", systemImage: isMine(s) ? "trash" : "rectangle.portrait.and.arrow.right")
@@ -122,8 +129,6 @@ struct SongListScreen: View {
         var out: [SongGroup] = []
         if !pinned.isEmpty { out.append(SongGroup(name: "Pinned", songs: pinned)) }
         out += folders.map { SongGroup(name: $0, songs: byFolder[$0]!) }
-        // with nothing else to group, the songs don't need a header
-        if out.count == 1 && out[0].name == "Songs" { return [SongGroup(name: "", songs: out[0].songs)] }
         return out
     }
 
@@ -150,15 +155,18 @@ struct SongListScreen: View {
 struct SongRow: View {
     let song: Song
     var body: some View {
+        // the web's .song: 52pt cover, 17 semibold title, 15 line, 13 details
         HStack(spacing: 14) {
-            CoverView(song: song, size: 56)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(song.displayTitle).font(.headline).lineLimit(1)
-                Text(song.previewLine).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
-                if !meta.isEmpty { Text(meta).font(.caption).foregroundStyle(.tertiary).lineLimit(1) }
+            CoverView(song: song, size: 52)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(song.displayTitle).font(.system(size: 17, weight: .semibold)).lineLimit(1)
+                Text(song.previewLine).font(.system(size: 15)).foregroundStyle(.secondary).lineLimit(1)
+                if !meta.isEmpty { Text(meta).font(.system(size: 13)).foregroundStyle(.secondary).lineLimit(1).padding(.top, 1) }
             }
+            Spacer(minLength: 0)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 13)
+        .contentShape(Rectangle())
     }
 
     private var meta: String {

@@ -7,20 +7,24 @@ struct IdeasRow: View {
     @State private var newIdea = false
 
     var body: some View {
-        NavigationLink(value: Self.route) {
+        ZStack {
+            NavigationLink(value: Self.route) { EmptyView() }.opacity(0)
             HStack(spacing: 14) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 14.5, style: .continuous)
-                        .fill(LinearGradient(colors: [Color(hex: 0xFFD6A5), Color(hex: 0xEE8F82)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    Image(systemName: "lightbulb.fill").font(.system(size: 22, weight: .semibold)).foregroundStyle(.white)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(LinearGradient(colors: [Color(hex: 0xFFD59E), Color(hex: 0xFF9E8A)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    RadialGradient(colors: [Color(hex: 0xFFF1B8), Color(hex: 0xFFF1B8).opacity(0)], center: UnitPoint(x: 0.7, y: 0.25), startRadius: 0, endRadius: 34)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    Image(systemName: "lightbulb.fill").font(.system(size: 21, weight: .semibold)).foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.18), radius: 1, y: 1)
                 }
-                .frame(width: 56, height: 56)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Ideas").font(.headline)
-                    Text(latest?.text.components(separatedBy: "\n").first ?? "A quick jot for lines, ideas and concepts")
-                        .font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
-                    Text(library.ideas.isEmpty ? "Tap to jot one" : "\(library.ideas.count) \(library.ideas.count == 1 ? "idea" : "ideas") · \(ShortDate.string(latest?.updated ?? 0))")
-                        .font(.caption).foregroundStyle(.tertiary)
+                .frame(width: 52, height: 52)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Ideas").font(.system(size: 17, weight: .semibold))
+                    Text(latest.map { $0.text.isEmpty ? "Voice memo · " + SongFiles.time($0.raw["memo"]?["dur"]?.number ?? 0) : $0.text.components(separatedBy: "\n").first ?? "" } ?? "A quick jot for lines, ideas and concepts")
+                        .font(.system(size: 15)).foregroundStyle(.secondary).lineLimit(1)
+                    Text(library.ideas.isEmpty ? "Tap + to jot one" : "\(library.ideas.count) \(library.ideas.count == 1 ? "idea" : "ideas") · \(ShortDate.string(latest?.updated ?? 0))")
+                        .font(.system(size: 13)).foregroundStyle(.secondary).padding(.top, 1)
                 }
                 Spacer(minLength: 8)
                 // a new idea straight from the song list
@@ -32,7 +36,8 @@ struct IdeasRow: View {
                 .buttonStyle(.borderless)
                 .accessibilityLabel("New idea")
             }
-            .padding(.vertical, 4)
+            .padding(.vertical, 13)
+            .contentShape(Rectangle())
         }
         .sheet(isPresented: $newIdea) { IdeaSheet(idea: nil) }
     }
