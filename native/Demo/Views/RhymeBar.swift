@@ -542,14 +542,14 @@ struct RhymeBar: View {
                         }
                         Button { tap(it.0) } label: {
                             HStack(spacing: 6) {
-                                Text(it.0).font(.system(size: 17, weight: .medium))
+                                Text(it.0).font(.system(size: 15.5, weight: .medium))
                                 if let s = it.1 {
-                                    Text("\(s)").font(.system(size: 11)).opacity(it.2 ? 0.6 : 1)
+                                    Text("\(s)").font(.system(size: 10.5)).opacity(it.2 ? 0.6 : 1)
                                         .foregroundStyle(it.2 ? AnyShapeStyle(Theme.onTint) : AnyShapeStyle(.secondary))
                                 }
                             }
                             .foregroundStyle(it.2 ? Theme.onTint : Theme.tint)
-                            .padding(.horizontal, 15).frame(height: 38)
+                            .padding(.horizontal, 13).frame(height: 34)
                             .background(it.2 ? Theme.tint : BarFill.color, in: Capsule())
                         }
                         .buttonStyle(PressScale())
@@ -557,7 +557,7 @@ struct RhymeBar: View {
                     }
                 }
             }
-            .frame(height: 38)
+            .frame(height: 34)
             .onChange(of: context.word) { _, _ in proxy.scrollTo(0, anchor: .leading) }
         }
     }

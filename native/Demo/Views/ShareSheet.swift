@@ -259,17 +259,8 @@ struct ShareSheet: View {
                                 Button { confirmStop = true } label: { pill("Stop Sharing", filled: false, red: true) }
                             }
                             .buttonStyle(PressScale())
-                            .padding(.horizontal, 20).padding(.bottom, 8)
+                            .padding(.horizontal, 20)
                         }
-                        HStack(spacing: 8) {
-                            Button { shareImage(s, bg) } label: { pill("Share Image", filled: myShare == nil) }
-                            Button {
-                                UIPasteboard.general.string = (s.title.isEmpty ? "" : s.title + (s.artist.isEmpty ? "" : " – " + s.artist) + "\n\n") + s.lyrics
-                                Haptics.success(); session.toast = "Copied"
-                            } label: { pill("Copy Lyrics", filled: false) }
-                        }
-                        .buttonStyle(PressScale())
-                        .padding(.horizontal, 20)
                         if myShare != nil {
                             Text("The link shows the song as of your last update.")
                                 .font(.system(size: 13)).foregroundStyle(.secondary).multilineTextAlignment(.center)
