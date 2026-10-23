@@ -332,11 +332,15 @@ struct RhymeBar: View {
 
             if linesOn, let lines {
                 LinesPanel(bridge: bridge, context: context, model: lines, env: env, onScheme: onScheme, savedScheme: scheme)
-            } else {
-                if !context.word.isEmpty && !tooLong {
-                    modeTrack.padding(.bottom, 8)
+            } else if !showFormat {
+                // with the formatting row open the rhymes step aside, to keep the bar short
+                Group {
+                    if !context.word.isEmpty && !tooLong {
+                        modeTrack.padding(.bottom, 8)
+                    }
+                    resultsRow
                 }
-                resultsRow
+                .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .bottom)))
             }
         }
         .padding(12)
