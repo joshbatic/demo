@@ -276,7 +276,8 @@ struct ListHeader<Trailing: View>: View {
             trailing
         }
         .padding(.horizontal, 20)
-        .padding(.top, 6)
+        // the web's .lhead: 28pt below the status bar
+        .padding(.top, 28)
         .padding(.bottom, 14)
     }
 }
