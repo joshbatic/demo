@@ -47,6 +47,10 @@ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:en
 body.dtabs #vList .dock{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
 body.dtabs #vList #list{min-height:calc(100% - 120px)}body.dtabs #vList .ioln{padding-bottom:120px}
 html.devbuild #sadm,html.devbuild #sbeta{display:none!important}
+#adm .aset.iset{justify-content:flex-start}#adm .aset.iset>div{flex:1;min-width:0}#adm .aset.iset+.aset::before,#adm .aset+.aset.iset::before{left:58px}
+#adm .aset.wrapset{flex-wrap:wrap}#adm .aset.wrapset .ain{flex-basis:100%;margin:8px 0 0 42px;width:calc(100% - 42px);text-align:left}
+#adm .bhead{padding:2px 0 10px}#adm .bhead::before{display:none}
+#adm .arow.brow{display:flex;align-items:center;gap:12px}#adm .arow.brow .bx{flex:1;min-width:0}#adm .arow.brow+.arow.brow::before{left:58px}
 /* [developer] builds look like the public app (system light and dark, colour covers). They're told apart by the
    DEV tag beside the name and the DEV app icon, plus colour tiles for the developer-only rows */
 .devpill{background:linear-gradient(100deg,#C2AEFF 0%,#97C8FF 55%,#9BE8CF 100%)!important;color:#1E1830!important}
@@ -15846,6 +15850,8 @@ function tagBold(only){var s=getSel(),v=getText(),pos=0,done=false;
     if(!document.queryCommandState('bold')){document.execCommand('styleWithCSS',false,true);document.execCommand('bold');document.execCommand('foreColor',false,slate);done=true}}}pos+=l.length+1});
   setSel(s.s,s.e);if(done)refreshViews()}
 lyr.addEventListener('beforeinput',function(e){if(e.inputType==='insertParagraph'){e.preventDefault();document.execCommand('insertLineBreak')}});
+/* the word under the caret is only marked when you tap or click into it, never while typing */
+var LYR_TAP=0,LYR_TYPE=0;lyr.addEventListener('input',function(){LYR_TYPE=Date.now();try{setHL('tw')}catch(e){}});['pointerdown','touchstart','mousedown'].forEach(function(ev){lyr.addEventListener(ev,function(){LYR_TAP=Date.now()+1},{passive:true})});
 lyr.addEventListener('paste',function(e){e.preventDefault();ins(lyr,((e.clipboardData||window.clipboardData).getData('text/plain')||'').replace(/\r/g,''))});
 lyr.addEventListener('drop',function(e){e.preventDefault()});
 /* formatting */
@@ -15915,7 +15921,14 @@ function syncSideVisibility(){
 syncSideVisibility();
 /* edge-swipe to open the sidebar, and swipe-to-close while it's open, matching native iOS drawer navigation */
 (function(){
-  var ES={on:false,open:false,moved:false,x:0,y:0,w:260,lastPx:0,lastX:0,lastT:0,vel:0};
+  var ES={on:false,open:false,moved:false,x:0,y:0,w:260,lastPx:0,lastX:0,lastT:0,vel:0},BS={on:false};
+  document.addEventListener('touchmove',function(e){if(!BS.on)return;var t=e.touches[0],dx=t.clientX-BS.x,dy=t.clientY-BS.y;
+    if(!BS.moved){if(Math.abs(dy)>14&&Math.abs(dy)>Math.abs(dx)){BS.on=false;return}if(dx<10)return;BS.moved=true;BS.v.style.transition='none';BS.v.style.boxShadow='-12px 0 30px rgba(0,0,0,.12)'}
+    var now=performance.now();if(now>BS.lt)BS.vel=(t.clientX-BS.lx)/(now-BS.lt);BS.lx=t.clientX;BS.lt=now;BS.dx=Math.max(0,dx);BS.v.style.transform='translateX('+BS.dx+'px)'},{passive:true});
+  function bsEnd(cancel){if(!BS.on)return;BS.on=false;if(!BS.moved)return;var v=BS.v,go=!cancel&&(BS.vel>.35||BS.dx>innerWidth*.33);
+    v.style.transition='transform .22s cubic-bezier(.32,.72,0,1)';v.style.transform=go?'translateX('+innerWidth+'px)':'';
+    setTimeout(function(){v.style.transition='';v.style.transform='';v.style.boxShadow='';if(go){haptic('light');if(v.id==='vEdit')goBack();else show('vList')}},go?220:230)}
+  document.addEventListener('touchend',function(){bsEnd(false)},{passive:true});document.addEventListener('touchcancel',function(){bsEnd(true)},{passive:true});
   function sideEl(){return $('#side')}
   /* iOS-style rubber-band resistance: 'over' is how far past the edge the raw drag would go.
      The cap is a small fixed distance (not the drawer's width) so the give stays subtle and the
@@ -15928,6 +15941,8 @@ syncSideVisibility();
     var scr=$('#scrim');if(scr&&scr.classList.contains('on'))return;
     var t=e.touches[0],open=document.body.classList.contains('side');
     if(!open&&t.clientX>24)return;
+    /* from the left edge of a song or Ideas, the swipe goes back to the song list, like iOS's back gesture */
+    if(!open){var vw=document.querySelector('.view.on');if(vw&&(vw.id==='vEdit'||vw.id==='vIdeas')){BS.on=true;BS.moved=false;BS.x=t.clientX;BS.y=t.clientY;BS.v=vw;BS.vel=0;BS.lx=t.clientX;BS.lt=performance.now();return}}
     if(open&&!(e.target.closest&&e.target.closest('#side')))return;
     ES.x=t.clientX;ES.y=t.clientY;ES.on=true;ES.open=open;ES.moved=false;ES.w=(sideEl()&&sideEl().offsetWidth)||260;
     ES.lastX=t.clientX;ES.lastT=performance.now();ES.vel=0
@@ -16379,7 +16394,7 @@ function rhyme(){
   else if(c.word){var b=document.createElement('b');b.textContent=c.word;rs.appendChild(b);rs.appendChild(document.createTextNode(' · '+syl(c.word)+' syl'+(c.via?' · '+c.via:'')+(left?' · '+left+' to match':'')))}
   else rs.textContent='Tap any word for rhymes';
   $('#lm').setAttribute('aria-pressed',lines);
-  var sp=null;(function(){if(!lines&&!c.sel&&c.cur.trim()&&!c.via){var col=getSel().s-c.ls,m,re=/[A-Za-z']+/g;while((m=re.exec(c.raw))){var s=m.index,e=s+m[0].length;if(col>=s&&col<=e){sp=[c.ls+s,c.ls+e];break}}}if(sp)setHL('tw',sp[0],sp[1]);else setHL('tw')})();
+  var sp=null;(function(){if(!lines&&!c.sel&&c.cur.trim()&&!c.via){var col=getSel().s-c.ls,m,re=/[A-Za-z']+/g;while((m=re.exec(c.raw))){var s=m.index,e=s+m[0].length;if(col>=s&&col<=e){sp=[c.ls+s,c.ls+e];break}}}if(sp&&LYR_TAP>LYR_TYPE)setHL('tw',sp[0],sp[1]);else setHL('tw')})();
   function chip(txt,cls,badge,fn){var b=document.createElement('button');b.className='r '+cls;b.textContent=txt;if(badge){var i=document.createElement('i');i.textContent=badge;b.appendChild(i)}b.onmousedown=function(e){e.preventDefault()};b.onclick=fn;rc.appendChild(b)}
   $('#wm').hidden=!!lines||!c.word;
   /* Lines mode writes whole new lines with AI (runGen/lineView below), so it has nothing to show
@@ -17874,8 +17889,18 @@ var DI={
   term:'<rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M7 10l3 2.5L7 15M12.5 15H17"/>',
   check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   chev:'<path d="M9 5l7 7-7 7"/>',
-  back:'<path d="M15 5l-7 7 7 7"/>'
+  back:'<path d="M15 5l-7 7 7 7"/>',
+  lock:'<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',
+  up:'<path d="M12 19V6M6.5 11.5L12 6l5.5 5.5"/><path d="M5 20h14"/>',
+  mega:'<path d="M4 10v4h3l6 4V6L7 10zM16.5 9a4 4 0 0 1 0 6"/>',
+  down:'<path d="M12 4v12M6.5 10.5L12 16l5.5-5.5M5 20h14"/>',
+  text:'<path d="M5 6h14M5 11h14M5 16h9"/>',
+  phone:'<rect x="7" y="2.8" width="10" height="18.4" rx="2.6"/><path d="M11 18h2"/>',
+  mac:'<rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M8.5 20h7M12 16.5V20"/>',
+  globe:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 2.5 14.4 0 17M12 3.5c-2.5 2.6-2.5 14.4 0 17"/>'
 };
+/* Admin › Settings rows get the same solid icon tiles as More */
+function admIco(r,k,col){if(!r)return r;r.classList.add('iset');r.insertAdjacentHTML('afterbegin',dTile(k,DCOL[col]||col));return r}
 function dIco(k,w){return'<svg width="'+(w||22)+'" height="'+(w||22)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'+DI[k]+'</svg>'}
 /* the solid colour square behind each admin icon */
 function dTile(k,col){return'<i class="dtile" style="background:'+col+'">'+dIco(k,17)+'</i>'}
@@ -18003,21 +18028,21 @@ function admRender(o){
       d.onclick=function(){ADM.open=ADM.open==='e'+i?null:'e'+i;renderAdmin()};bx3.appendChild(d)});
     var n3=document.createElement('div');n3.className='anote';n3.textContent='Grouped by message. Reports never include lyrics, and song and file names are removed.';o.appendChild(n3);return}
   if(ADM.tab==='settings'){
-    var bx4=document.createElement('div');bx4.className='abox';o.appendChild(bx4);
+    lab('Access');var bx4=document.createElement('div');bx4.className='abox';o.appendChild(bx4);
     var lk=document.createElement('div');lk.className='aset';lk.innerHTML='<div><b>Waitlist Lock</b><span></span></div>';lk.querySelector('span').textContent=ov.gate?'On: only approved accounts can use *[demo]':'Off: anyone who signs in can use *[demo]';
-    var sw=document.createElement('button');sw.className='swtch'+(ov.gate?' on':'');sw.setAttribute('role','switch');sw.setAttribute('aria-checked',ov.gate?'true':'false');sw.setAttribute('aria-label','Waitlist Lock');sw.innerHTML='<i></i>';sw.onclick=function(){betaSetGate(!ov.gate)};lk.appendChild(sw);bx4.appendChild(lk);
+    var sw=document.createElement('button');sw.className='swtch'+(ov.gate?' on':'');sw.setAttribute('role','switch');sw.setAttribute('aria-checked',ov.gate?'true':'false');sw.setAttribute('aria-label','Waitlist Lock');sw.innerHTML='<i></i>';sw.onclick=function(){betaSetGate(!ov.gate)};lk.appendChild(sw);bx4.appendChild(admIco(lk,'lock','orange'));
     if(ov.beta_unlocks!=null){var bu=document.createElement('div');bu.className='aset';bu.innerHTML='<div><b>Beta Unlocks Everything</b><span></span></div>';
       bu.querySelector('span').textContent=ov.beta_unlocks?'On: beta testers get every Pro feature for free':'Off: only Pro accounts get Pro features. Everyone else is on Free';
       var sw2=document.createElement('button');sw2.className='swtch'+(ov.beta_unlocks?' on':'');sw2.setAttribute('role','switch');sw2.setAttribute('aria-checked',ov.beta_unlocks?'true':'false');sw2.setAttribute('aria-label','Beta Unlocks Everything');sw2.innerHTML='<i></i>';
       sw2.onclick=function(){if(ov.beta_unlocks&&!confirm('Turn off Beta Unlocks Everything? Testers without Pro move to the Free plan straight away.'))return;
         admRpc('admin_set_beta_unlocks',{p_on:!ov.beta_unlocks}).then(function(on){ov.beta_unlocks=!!on;toast(on?'Beta testers have every feature again':'Beta testers are on Free unless they have Pro');admLoadOverview(true);planRefresh();renderAdmin()},function(e){toast('Couldn’t change it: '+(e.message||e))})};
-      bu.appendChild(sw2);bx4.appendChild(bu)}
-    [['signups_per_day','New accounts per day','0 pauses sign-ups. Empty means no limit.',ov.signups_per_day],['storage_mb','Storage per account (MB)','Empty means no limit. The free plan has 1 GB in total.',ov.storage_mb]].forEach(function(x){
+      bu.appendChild(sw2);bx4.appendChild(admIco(bu,'spark','purple'))}
+    [['signups_per_day','New Accounts per Day','0 pauses sign-ups. Empty means no limit.',ov.signups_per_day,'plus','green'],['storage_mb','Storage per Account (MB)','Empty means no limit. The free plan has 1 GB in total.',ov.storage_mb,'disk','gray']].forEach(function(x){
       var r=document.createElement('div');r.className='aset';r.innerHTML='<div><b></b><span></span></div>';r.querySelector('b').textContent=x[1];r.querySelector('span').textContent=x[2];
       var ip=document.createElement('input');ip.type='number';ip.min='0';ip.inputMode='numeric';ip.value=x[3]==null?'':x[3];ip.placeholder='None';
       var save=function(){var v=ip.value.trim(),n=v===''?null:Math.max(0,Math.round(+v));if(v!==''&&!isFinite(+v))return;if((x[3]==null?null:+x[3])===n)return;
         admRpc('admin_set_setting',{p_key:x[0],p_value:n}).then(function(){toast(x[1]+': '+(n==null?'no limit':n));admLoadOverview(true)},function(e){toast('Couldn’t save: '+(e.message||e));ip.value=x[3]==null?'':x[3]})};
-      ip.onchange=save;ip.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();ip.blur()}};r.appendChild(ip);bx4.appendChild(r)});
+      ip.onchange=save;ip.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();ip.blur()}};r.appendChild(ip);bx4.appendChild(admIco(r,x[4],x[5]))});
     var n4=document.createElement('div');n4.className='anote';n4.textContent='Changes apply straight away for everyone.';o.appendChild(n4);
     admRemote(o,lab)}}
 function admPlan(u,t){ADM.busy[u.id]=1;renderAdmin();admRpc('admin_set_plan',{p_user:u.id,p_tier:t,p_days:null}).then(function(r){delete ADM.busy[u.id];
@@ -18251,6 +18276,7 @@ function admSw(bx,title,desc,on,fn){var r=document.createElement('div');r.classN
   var sw=document.createElement('button');sw.type='button';sw.className='swtch'+(on?' on':'');sw.setAttribute('role','switch');sw.setAttribute('aria-checked',on?'true':'false');sw.setAttribute('aria-label',title);sw.innerHTML='<i></i>';sw.onclick=fn;r.appendChild(sw);bx.appendChild(r)}
 function admRemote(o,lab){
   lab('Banner for everyone');var bb=document.createElement('div');bb.className='abox apad';o.appendChild(bb);
+  var bh=document.createElement('div');bh.className='aset iset bhead';bh.innerHTML=dTile('mega',DCOL.blue)+'<div><b>Banner</b><span>A short note at the top of everyone’s app</span></div>';bb.appendChild(bh);
   var now=document.createElement('div');now.className='am';now.textContent=CFG.banner?'Showing now'+(CFG.banner_kind==='warn'?' as a warning':'')+': “'+CFG.banner+'”':'No banner showing.';bb.appendChild(now);
   var ta=document.createElement('textarea');ta.className='ata note';ta.maxLength=300;ta.placeholder='For example: Sync is slow right now. We’re on it.';ta.value=ADM.bn!=null?ADM.bn:(CFG.banner||'');ta.oninput=function(){ADM.bn=ta.value};bb.appendChild(ta);
   var kind=ADM.bk||CFG.banner_kind||'info',ks=document.createElement('div');ks.className='bseg small';[['info','Note'],['warn','Warning']].forEach(function(x){var b=document.createElement('button');b.type='button';b.className=kind===x[0]?'on':'';b.textContent=x[1];b.onmousedown=prevent;b.onclick=function(){ADM.bk=x[0];var ae=document.activeElement;if(ae&&ae.blur)ae.blur();renderAdmin()};ks.appendChild(b)});bb.appendChild(ks);
@@ -18258,9 +18284,9 @@ function admRemote(o,lab){
   ba.appendChild(admBtn('Publish Banner',function(){var t=(ADM.bn!=null?ADM.bn:(CFG.banner||'')).trim();if(!t){toast('Write the banner first');return}cfgSet({banner:t,banner_kind:ADM.bk||CFG.banner_kind||'info'},'Banner is showing for everyone').then(function(ok){if(!ok)return;ADM.bn=null;ADM.bk=null;try{localStorage.removeItem('songpad:banner-x')}catch(e){}cfgPaint();renderAdmin()})},'ok'));
   if(CFG.banner)ba.appendChild(admBtn('Remove Banner',function(){cfgSet({banner:''},'Banner removed').then(function(ok){if(ok){ADM.bn=null;renderAdmin()}})}));
   lab('Pause features');var pb=document.createElement('div');pb.className='abox';o.appendChild(pb);
-  [['ai_off','Pause AI','Lines, Muse, Rate and writing voice say they’re paused for maintenance.'],['sync_off','Pause Lyric Sync','Syncing lyrics to audio says it’s paused. Play with Lyrics still works.'],['uploads_off','Pause Uploads','Adding music, files and share-link audio says it’s paused. Playing what’s there still works.']].forEach(function(x){
-    var on=!!CFG[x[0]];admSw(pb,x[1],x[2],on,function(){if(!on&&!confirm(x[1]+' for everyone now?'))return;var p={};p[x[0]]=!on;cfgSet(p,on?x[1].replace('Pause','')+' is back on':x[1].replace('Pause ','')+' is paused for everyone')})});
-  lab('Minimum build');var mb=document.createElement('div');mb.className='abox';o.appendChild(mb);
+  [['ai_off','Pause AI','Lines, Muse, Rate and writing voice say they’re paused for maintenance.','spark','purple'],['sync_off','Pause Lyric Sync','Syncing lyrics to audio says it’s paused. Play with Lyrics still works.','note','pink'],['uploads_off','Pause Uploads','Adding music, files and share-link audio says it’s paused. Playing what’s there still works.','up','blue']].forEach(function(x){
+    var on=!!CFG[x[0]];admSw(pb,x[1],x[2],on,function(){if(!on&&!confirm(x[1]+' for everyone now?'))return;var p={};p[x[0]]=!on;cfgSet(p,on?x[1].replace('Pause','')+' is back on':x[1].replace('Pause ','')+' is paused for everyone')});admIco(pb.lastChild,x[3],x[4])});
+  lab('Updates');var mb=document.createElement('div');mb.className='abox';o.appendChild(mb);
   var r=document.createElement('div');r.className='aset';r.innerHTML='<div><b>Minimum Build</b><span></span></div>';
   r.querySelector('span').textContent='Older builds see “Time to update” and can’t be used until they update. 0 turns it off. This build is '+(APP_SEQ||'not stamped')+'; [developer] builds are never blocked.';
   var ip=document.createElement('input');ip.type='number';ip.min='0';ip.inputMode='numeric';ip.dataset.ak='minseq';ip.value=CFG.min_seq||0;
@@ -18268,14 +18294,14 @@ function admRemote(o,lab){
     var hit=(ADM.builds||[]).filter(function(b){return b.seq&&b.seq<n&&!/-dev$/.test(b.platform||'')}).reduce(function(s,b){return s+(b.people||0)},0);
     if(n&&!confirm('Set the minimum build to '+n+'?'+(hit?' About '+hit+(hit===1?' person is':' people are')+' on an older build and will be asked to update.':'')+(n>APP_SEQ&&APP_SEQ?' That’s newer than this build ('+APP_SEQ+').':''))){ip.value=CFG.min_seq||0;return}
     cfgSet({min_seq:n},n?'Builds older than '+n+' must update':'Minimum build is off')};
-  ip.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();ip.blur()}};r.appendChild(ip);mb.appendChild(r);
-  var r2=document.createElement('div');r2.className='aset';r2.style.display='block';r2.innerHTML='<div><b>Update Message</b><span>Shown on the update screen. Leave it empty for the standard one.</span></div>';
+  ip.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();ip.blur()}};r.appendChild(ip);mb.appendChild(admIco(r,'down','red'));
+  var r2=document.createElement('div');r2.className='aset iset wrapset';r2.innerHTML=dTile('text',DCOL.gray)+'<div><b>Update Message</b><span>Shown on the update screen. Leave it empty for the standard one.</span></div>';
   var ui=document.createElement('input');ui.className='ain';ui.dataset.ak='unote';ui.maxLength=300;ui.placeholder='This version is out of date…';ui.value=CFG.update_note||'';
   ui.onchange=function(){if(ui.value.trim()!==(CFG.update_note||''))cfgSet({update_note:ui.value.trim()},'Update message saved')};ui.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();ui.blur()}};r2.appendChild(ui);mb.appendChild(r2);
   lab('Builds in use, last 30 days');var bl=document.createElement('div');bl.className='abox';o.appendChild(bl);
   if(!ADM.builds){bl.innerHTML='<div class="aempty">Loading…</div>'}
   else if(!ADM.builds.length){bl.innerHTML='<div class="aempty">None yet. Each device reports its build the first time it opens this version or later.</div>'}
-  else ADM.builds.forEach(function(b){var rr=document.createElement('div');rr.className='arow';rr.style.cursor='default';rr.innerHTML='<b></b><div class="am"></div>';
+  else ADM.builds.forEach(function(b){var rr=document.createElement('div');rr.className='arow brow';rr.style.cursor='default';var pk=/^ios/.test(b.platform||'')?'phone':/^mac/.test(b.platform||'')?'mac':'globe';rr.innerHTML=dTile(pk,/-dev$/.test(b.platform||'')?DCOL.indigo:DCOL.gray)+'<div class="bx"><b></b><div class="am"></div></div>';
     rr.querySelector('b').textContent=(b.seq?'Build '+b.seq+' · ':'')+(b.build||'?');
     rr.querySelector('.am').textContent=[{ios:'iPhone',mac:'Mac',web:'Web','ios-dev':'iPhone [developer]','mac-dev':'Mac [developer]','web-dev':'Web [developer]'}[b.platform]||b.platform,b.people+(b.people===1?' person':' people'),'seen '+admAgo(b.last_seen),CFG.min_seq&&b.seq&&b.seq<CFG.min_seq?'below the minimum':''].filter(Boolean).join(' · ');bl.appendChild(rr)});
   var n=document.createElement('div');n.className='anote';n.textContent='Apps check these on launch, when they come back to the front, and every 3 minutes. The banner shows for a few seconds each time the app opens (a warning for longer) until someone taps it away. Pauses also apply on the server, so older builds are covered too.';o.appendChild(n)}
