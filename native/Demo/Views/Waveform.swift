@@ -11,7 +11,7 @@ struct Waveform: View {
     var tickEvery: Double = 5
     var height: CGFloat = 44
     /// Bars drawn at most; longer peak lists are pooled (max of each group).
-    var maxBars = 120
+    var maxBars = 80
     var onSeek: (Double) -> Void
 
     @State private var dragX: CGFloat?

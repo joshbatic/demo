@@ -4,6 +4,7 @@ import SwiftUI
 struct IdeasRow: View {
     static let route = "__ideas__"
     @Environment(LibraryStore.self) private var library
+    @State private var newIdea = false
 
     var body: some View {
         NavigationLink(value: Self.route) {
@@ -21,9 +22,19 @@ struct IdeasRow: View {
                     Text(library.ideas.isEmpty ? "Tap to jot one" : "\(library.ideas.count) \(library.ideas.count == 1 ? "idea" : "ideas") · \(ShortDate.string(latest?.updated ?? 0))")
                         .font(.caption).foregroundStyle(.tertiary)
                 }
+                Spacer(minLength: 8)
+                // a new idea straight from the song list
+                Button { Haptics.tap(); newIdea = true } label: {
+                    Icon("ic-plus", 18).foregroundStyle(Theme.tint)
+                        .frame(width: 38, height: 38)
+                        .background(BarFill.color, in: Circle())
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel("New idea")
             }
             .padding(.vertical, 4)
         }
+        .sheet(isPresented: $newIdea) { IdeaSheet(idea: nil) }
     }
 
     private var latest: Idea? { library.ideas.max { $0.updated < $1.updated } }

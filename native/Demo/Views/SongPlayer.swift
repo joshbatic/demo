@@ -56,30 +56,27 @@ struct SongPlayer: View {
                 .contentShape(Rectangle())
                 .onTapGesture { Haptics.selection(); withAnimation(.snappy(duration: 0.33)) { open.toggle() } }
 
-                if open {
-                    VStack(spacing: 6) {
-                        Waveform(peaks: item.peaks, progress: dur > 0 ? t / dur : 0, duration: dur, tickEvery: 5, height: 48) { f in
-                            guard canPlay else { locked(); return }
-                            if active { player.seek(f * dur) } else {
-                                player.load(k, item: item, fallbackDuration: item.dur, autoplay: false, at: f * dur)
-                            }
+                // always there, revealed by animating its height, so it slides open and closed
+                VStack(spacing: 6) {
+                    Waveform(peaks: item.peaks, progress: dur > 0 ? t / dur : 0, duration: dur, tickEvery: 5, height: 48) { f in
+                        guard canPlay else { locked(); return }
+                        if active { player.seek(f * dur) } else {
+                            player.load(k, item: item, fallbackDuration: item.dur, autoplay: false, at: f * dur)
                         }
-                        HStack {
-                            Text(SongFiles.time(t)).font(.system(size: 12).monospacedDigit()).foregroundStyle(.secondary)
-                            Spacer()
-                            Button { Haptics.tap(); player.skip(-15) } label: { Image(systemName: "gobackward.15").font(.system(size: 20)) }
-                                .buttonStyle(PressScale()).accessibilityLabel("Back 15 seconds").disabled(!active)
-                            Spacer().frame(width: 28)
-                            Button { Haptics.tap(); player.skip(15) } label: { Image(systemName: "goforward.15").font(.system(size: 20)) }
-                                .buttonStyle(PressScale()).accessibilityLabel("Forward 15 seconds").disabled(!active)
-                            Spacer()
-                            Text("-" + SongFiles.time(max(0, dur - t))).font(.system(size: 12).monospacedDigit()).foregroundStyle(.secondary)
-                        }
-                        .foregroundStyle(Theme.tint)
                     }
-                    .padding(.horizontal, 12).padding(.bottom, 10)
-                    .transition(.opacity)
+                    HStack {
+                        Text(SongFiles.time(t)).font(.system(size: 12).monospacedDigit()).foregroundStyle(.secondary)
+                        Spacer()
+                        Text("-" + SongFiles.time(max(0, dur - t))).font(.system(size: 12).monospacedDigit()).foregroundStyle(.secondary)
+                    }
                 }
+                .padding(.horizontal, 12).padding(.bottom, 10)
+                .frame(height: open ? 82 : 0, alignment: .top)
+                .clipped()
+                .opacity(open ? 1 : 0)
+                .scaleEffect(y: open ? 1 : 0.85, anchor: .top)
+                .allowsHitTesting(open)
+                .accessibilityHidden(!open)
 
                 // the thin progress line
                 GeometryReader { g in
