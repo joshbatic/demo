@@ -15,19 +15,11 @@ struct AccountScreen: View {
 
     // profile
     @State private var photo: PhotosPickerItem?
-    @State private var editingName = false
-    @State private var nameDraft = ""
-    @State private var userDraft = ""
-    @State private var nameError: String?
-    @State private var savingName = false
+    @State private var path: [String] = []
     // notifications
     @State private var notifOpen = false
     @State private var prefs: [String: Bool] = [:]
     // links
-    @State private var editingLinks = false
-    @State private var spotify = ""
-    @State private var instagram = ""
-    @State private var tiktok = ""
     // songs
     @State private var importing = false
     @State private var exportURL: URL?
@@ -38,7 +30,6 @@ struct AccountScreen: View {
     @State private var confirmBlock: Collab.Invite?
     @State private var confirmReset = false
     // support
-    @State private var supportOpen = false
     @State private var tickets: [AppSession.Ticket] = []
     // actions
     @State private var confirmSignOut = false
@@ -46,7 +37,7 @@ struct AccountScreen: View {
     @State private var deleting = false
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             List {
                 hero
                 planSection
@@ -62,7 +53,13 @@ struct AccountScreen: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } } }
             .navigationDestination(for: String.self) { page in
-                if page == "plan" { PlanPage() } else if page == "credits" { CreditsPage(onOpen: { id in dismiss(); session.openSongID = id }) }
+                switch page {
+                case "plan": PlanPage()
+                case "credits": CreditsPage(onOpen: { id in dismiss(); session.openSongID = id })
+                case "name": NameEditPage()
+                case "links": LinksEditPage()
+                default: SupportPage(tickets: $tickets)
+                }
             }
             .fileImporter(isPresented: $importing, allowedContentTypes: [.json, .plainText, .text], allowsMultipleSelection: true) { r in
                 if case .success(let urls) = r, !urls.isEmpty { Haptics.success(); session.toast = library.importFiles(urls) }
@@ -99,7 +96,7 @@ struct AccountScreen: View {
         }
         .belowIslandSheet()
         .task {
-            if session.accountFocus == "support" { supportOpen = true; session.accountFocus = nil }
+            if session.accountFocus == "support" { path.append("support"); session.accountFocus = nil }
             async let p: Void = session.refreshPlan()
             async let st = session.myStorage()
             async let bl = session.loadBlocked()
@@ -220,45 +217,10 @@ struct AccountScreen: View {
 
     @ViewBuilder private var profileSection: some View {
         Section {
-            Button {
-                Haptics.tap()
-                nameDraft = session.profile.display_name ?? session.myName
-                userDraft = session.profile.username ?? ""
-                nameError = nil
-                withAnimation(.snappy) { editingName.toggle() }
-            } label: {
+            NavigationLink(value: "name") {
                 LabeledContent {
-                    if let u = session.profile.username, !u.isEmpty { Text("@" + u) } else { Text("Not set").foregroundStyle(.blue) }
-                } label: { Label { Text("Name & Username").foregroundStyle(.primary) } icon: { TileIcon("person.text.rectangle.fill", Theme.Tile.blue) } }
-            }
-            if editingName {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Name").font(.system(size: 13)).foregroundStyle(.secondary)
-                    TextField("Shown on song credits", text: $nameDraft).textContentType(.name).submitLabel(.next)
-                }
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Username").font(.system(size: 13)).foregroundStyle(.secondary)
-                    HStack(spacing: 2) {
-                        Text("@").foregroundStyle(.secondary)
-                        TextField("username", text: Binding(get: { userDraft }, set: { userDraft = $0.replacingOccurrences(of: "@", with: "").replacingOccurrences(of: " ", with: "") }))
-                            .textInputAutocapitalization(.never).autocorrectionDisabled().textContentType(.username)
-                            .submitLabel(.done).onSubmit { saveName() }
-                    }
-                }
-                if let nameError { Text(nameError).font(.footnote).foregroundStyle(.red) }
-                HStack(spacing: 8) {
-                    Spacer()
-                    Button { withAnimation(.snappy) { editingName = false } } label: { Text("Cancel") }
-                    .glassButton()
-                    Button { saveName() } label: {
-                        Text(savingName ? "Saving…" : "Save").fontWeight(.semibold)
-                    }
-                    .glassButton(prominent: true)
-                    .disabled(savingName)
-                }
-                .controlSize(.small)
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                    if let u = session.profile.username, !u.isEmpty { Text("@" + u) } else { Text("Not set") }
+                } label: { Label { Text("Name & Username") } icon: { TileIcon("person.text.rectangle.fill", Theme.Tile.blue) } }
             }
             Button { notificationsTapped() } label: {
                 LabeledContent {
@@ -305,80 +267,21 @@ struct AccountScreen: View {
         }
     }
 
-    private func saveName() {
-        guard !savingName else { return }
-        savingName = true
-        Task {
-            let hadUser = !(session.profile.username ?? "").isEmpty
-            let err = await session.saveNameAndUsername(name: nameDraft, username: userDraft)
-            savingName = false
-            if let err { nameError = err; Haptics.warning(); return }
-            Haptics.success(); session.toast = "Saved"
-            withAnimation(.snappy) { editingName = false }
-            if !hadUser && !(session.profile.username ?? "").isEmpty {
-                await Push.shared.ask("You’ll get a notification when someone invites you to a song.")
-            }
-        }
-    }
-
     // MARK: links (§6.4)
 
     private var linksSection: some View {
-        Section {
-            if editingLinks {
-                linkField("Spotify", "Paste your artist link", $spotify)
-                linkField("Instagram", "@username", $instagram)
-                linkField("TikTok", "@username", $tiktok)
-                HStack(spacing: 8) {
-                    Spacer()
-                    Button { withAnimation(.snappy) { editingLinks = false } } label: { Text("Cancel") }
-                        .glassButton()
-                    Button {
-                        Task { if await session.saveLinks(spotify: spotify, instagram: instagram, tiktok: tiktok) { withAnimation(.snappy) { editingLinks = false } } }
-                    } label: { Text("Save").fontWeight(.semibold) }
-                        .glassButton(prominent: true)
-                }
-                .controlSize(.small)
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-            } else {
-                linkRow("Spotify", "spotify", session.profile.link_spotify)
-                linkRow("Instagram", "instagram", session.profile.link_instagram)
-                linkRow("TikTok", "tiktok", session.profile.link_tiktok)
-            }
-        } header: {
-            HStack {
-                Text("Links")
-                Spacer()
-                if !editingLinks {
-                    Button("Edit") {
-                        spotify = session.profile.link_spotify ?? ""
-                        instagram = AppSession.linkLabel(session.profile.link_instagram, kind: "instagram") ?? ""
-                        tiktok = AppSession.linkLabel(session.profile.link_tiktok, kind: "tiktok") ?? ""
-                        withAnimation(.snappy) { editingLinks = true }
-                    }
-                    .textCase(nil)
-                    .glassButton()
-                    .controlSize(.small)
-                }
-            }
-            .font(.system(size: 13))
+        Section("Links") {
+            linkRow("Spotify", "spotify", session.profile.link_spotify)
+            linkRow("Instagram", "instagram", session.profile.link_instagram)
+            linkRow("TikTok", "tiktok", session.profile.link_tiktok)
         }
     }
 
     private func linkRow(_ title: String, _ kind: String, _ url: String?) -> some View {
-        Button {
-            if let u = url.flatMap(URL.init(string:)) { openURL(u) } else { withAnimation(.snappy) { editingLinks = true } }
-        } label: {
-            LabeledContent {
-                if let l = AppSession.linkLabel(url, kind: kind) { Text(l) } else { Text("Add").foregroundStyle(.blue) }
-            } label: { Text(title).foregroundStyle(.primary) }
-        }
-    }
-
-    private func linkField(_ title: String, _ ph: String, _ text: Binding<String>) -> some View {
-        LabeledContent(title) {
-            TextField(ph, text: text).multilineTextAlignment(.trailing).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
+        NavigationLink(value: "links") {
+            LabeledContent(title) {
+                Text(AppSession.linkLabel(url, kind: kind) ?? "Add")
+            }
         }
     }
 
@@ -457,14 +360,11 @@ struct AccountScreen: View {
             Button { openURL(URL(string: "https://hellodemo.app/terms.html")!) } label: {
                 Label { Text("Terms of Service").foregroundStyle(.primary) } icon: { TileIcon("doc.text.fill", Theme.Tile.gray) }
             }
-            Button { Haptics.tap(); withAnimation(.snappy) { supportOpen.toggle() } } label: {
+            NavigationLink(value: "support") {
                 LabeledContent {
                     let n = tickets.reduce(0) { $0 + $1.replies.count }
                     if n > 0 { Text(n == 1 ? "1 reply" : "\(n) replies") }
-                } label: { Label { Text("Contact Support").foregroundStyle(.primary) } icon: { TileIcon("bubble.left.and.text.bubble.right.fill", Theme.Tile.green) } }
-            }
-            if supportOpen {
-                SupportForm(tickets: $tickets)
+                } label: { Label { Text("Contact Support") } icon: { TileIcon("bubble.left.and.text.bubble.right.fill", Theme.Tile.green) } }
             }
         }
     }
@@ -515,9 +415,125 @@ struct TileLabelStyle: LabelStyle {
     }
 }
 
+// MARK: - Name & Username (§6.2)
+
+/// Settings-style: the fields in a form, Save in the navigation bar.
+struct NameEditPage: View {
+    @Environment(AppSession.self) private var session
+    @Environment(\.dismiss) private var dismiss
+    @State private var name = ""
+    @State private var user = ""
+    @State private var error: String?
+    @State private var saving = false
+    @FocusState private var focus: Int?
+
+    var body: some View {
+        Form {
+            Section {
+                TextField("Name", text: $name).textContentType(.name).submitLabel(.next).focused($focus, equals: 0)
+                    .onSubmit { focus = 1 }
+            } header: { Text("Name") } footer: { Text("Shown on song credits.") }
+            Section {
+                HStack(spacing: 2) {
+                    Text("@").foregroundStyle(.secondary)
+                    TextField("username", text: Binding(get: { user }, set: { user = $0.replacingOccurrences(of: "@", with: "").replacingOccurrences(of: " ", with: "") }))
+                        .textInputAutocapitalization(.never).autocorrectionDisabled().textContentType(.username)
+                        .submitLabel(.done).focused($focus, equals: 1).onSubmit { save() }
+                }
+            } header: { Text("Username") } footer: {
+                Text(error ?? "3–20 letters, numbers or underscores. Co-writers find you by it.")
+                    .foregroundStyle(error == nil ? Color.secondary : Color.red)
+            }
+        }
+        .navigationTitle("Name & Username")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                if saving { ProgressView() } else { Button("Save") { save() }.fontWeight(.semibold) }
+            }
+        }
+        .onAppear {
+            name = session.profile.display_name ?? session.myName
+            user = session.profile.username ?? ""
+        }
+    }
+
+    private func save() {
+        guard !saving else { return }
+        saving = true
+        Task {
+            let hadUser = !(session.profile.username ?? "").isEmpty
+            let err = await session.saveNameAndUsername(name: name, username: user)
+            saving = false
+            if let err { error = err; Haptics.warning(); return }
+            Haptics.success(); session.toast = "Saved"
+            dismiss()
+            if !hadUser && !(session.profile.username ?? "").isEmpty {
+                await Push.shared.ask("You’ll get a notification when someone invites you to a song.")
+            }
+        }
+    }
+}
+
+// MARK: - Links (§6.4)
+
+struct LinksEditPage: View {
+    @Environment(AppSession.self) private var session
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
+    @State private var spotify = ""
+    @State private var instagram = ""
+    @State private var tiktok = ""
+    @State private var saving = false
+
+    var body: some View {
+        Form {
+            Section {
+                field("Spotify", "Artist link", $spotify, url: session.profile.link_spotify)
+                field("Instagram", "@username", $instagram, url: session.profile.link_instagram)
+                field("TikTok", "@username", $tiktok, url: session.profile.link_tiktok)
+            } footer: { Text("Paste a link, or just your @handle.") }
+        }
+        .navigationTitle("Links")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                if saving { ProgressView() } else {
+                    Button("Save") {
+                        saving = true
+                        Task {
+                            let ok = await session.saveLinks(spotify: spotify, instagram: instagram, tiktok: tiktok)
+                            saving = false
+                            if ok { dismiss() }
+                        }
+                    }
+                    .fontWeight(.semibold)
+                }
+            }
+        }
+        .onAppear {
+            spotify = session.profile.link_spotify ?? ""
+            instagram = AppSession.linkLabel(session.profile.link_instagram, kind: "instagram") ?? ""
+            tiktok = AppSession.linkLabel(session.profile.link_tiktok, kind: "tiktok") ?? ""
+        }
+    }
+
+    private func field(_ title: String, _ ph: String, _ text: Binding<String>, url: String?) -> some View {
+        HStack {
+            Text(title)
+            TextField(ph, text: text).multilineTextAlignment(.trailing)
+                .textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
+            if let u = url.flatMap(URL.init(string:)) {
+                Button { openURL(u) } label: { Image(systemName: "arrow.up.right.square").foregroundStyle(.secondary) }
+                    .buttonStyle(.borderless).accessibilityLabel("Open " + title)
+            }
+        }
+    }
+}
+
 // MARK: - Contact Support (§6.10)
 
-struct SupportForm: View {
+struct SupportPage: View {
     @Binding var tickets: [AppSession.Ticket]
     @Environment(AppSession.self) private var session
     @State private var topic = "bug"
@@ -529,63 +545,70 @@ struct SupportForm: View {
     static let topics: [(String, String)] = [("bug", "Something’s not working"), ("account", "Account or sign-in"), ("billing", "Subscription or billing"), ("idea", "Idea or request"), ("other", "Something else")]
 
     var body: some View {
-        Picker("Topic", selection: $topic) { ForEach(Self.topics, id: \.0) { Text($0.1).tag($0.0) } }
-        TextField("What’s happening? What were you doing when it went wrong? The more detail, the faster we can help.", text: Binding(get: { message }, set: { message = String($0.prefix(4000)) }), axis: .vertical)
-            .lineLimit(4...10)
-        Toggle(isOn: $diag) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Include diagnostics")
-                Text("Your app version, device, plan, sync status and recent error messages. Never your lyrics or songs.").font(.footnote).foregroundStyle(.secondary)
+        Form {
+            Section {
+                Picker("Topic", selection: $topic) { ForEach(Self.topics, id: \.0) { Text($0.1).tag($0.0) } }
+                TextField("What’s happening? What were you doing when it went wrong? The more detail, the faster we can help.", text: Binding(get: { message }, set: { message = String($0.prefix(4000)) }), axis: .vertical)
+                    .lineLimit(4...12)
+            } footer: {
+                if let error { Text(error).foregroundStyle(.red) } else { Text("We reply by email to \(session.email), usually within a day.") }
             }
-        }
-        if let error { Text(error).font(.footnote).foregroundStyle(.red) }
-        Button {
-            guard !sending else { return }
-            sending = true
-            Task {
-                let err = await session.sendSupport(topic: topic, message: message, diagnostics: diag)
-                sending = false
-                if let err { error = err; Haptics.warning(); return }
-                error = nil; message = ""
-                Haptics.success(); session.toast = "Sent. We’ll reply by email."
-                tickets = await session.tickets()
-                await Push.shared.ask("You’ll also get a notification when we reply.")
-            }
-        } label: {
-            Text(sending ? "Sending…" : "Send").fontWeight(.semibold)
-        }
-        .glassButton(prominent: true)
-        .controlSize(.small)
-        .frame(maxWidth: .infinity, alignment: .trailing)
-        .disabled(sending)
-        .listRowBackground(Color.clear)
-        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-        Text("We reply by email to \(session.email), usually within a day.").font(.footnote).foregroundStyle(.secondary)
-        if !tickets.isEmpty {
-            ForEach(tickets) { t in
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text(t.fromUs ? "From *[demo]" : (Self.topics.first { $0.0 == t.topic }?.1 ?? "Message")).font(.system(size: 15, weight: .semibold))
-                        Spacer()
-                        Text(t.status == "replied" ? "Answered" : t.status == "closed" ? "Closed" : "Waiting for a reply")
-                            .font(.caption.weight(.semibold)).foregroundStyle(t.status == "replied" ? Theme.proGreen : .secondary)
-                    }
-                    Text(Self.ago(t.created)).font(.caption).foregroundStyle(.secondary)
-                    Text(t.message).font(.subheadline)
-                    ForEach(Array(t.replies.enumerated()), id: \.offset) { _, r in
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("*[demo] · " + Self.ago(r.at)).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                            Text(r.text).font(.subheadline)
-                        }
-                        .padding(10).frame(maxWidth: .infinity, alignment: .leading)
-                        .background(BarFill.color, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    }
+            Section {
+                Toggle("Include Diagnostics", isOn: $diag)
+            } footer: { Text("Your app version, device, plan, sync status and recent error messages. Never your lyrics or songs.") }
+            if !tickets.isEmpty {
+                Section("Your messages") {
+                    ForEach(tickets) { t in ticket(t) }
                 }
-                .padding(.vertical, 4)
+            }
+        }
+        .navigationTitle("Contact Support")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                if sending { ProgressView() } else { Button("Send") { send() }.fontWeight(.semibold).disabled(message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) }
             }
         }
     }
 
+    private func send() {
+        guard !sending else { return }
+        sending = true
+        Task {
+            let err = await session.sendSupport(topic: topic, message: message, diagnostics: diag)
+            sending = false
+            if let err { error = err; Haptics.warning(); return }
+            error = nil; message = ""
+            Haptics.success(); session.toast = "Sent. We’ll reply by email."
+            tickets = await session.tickets()
+            await Push.shared.ask("You’ll also get a notification when we reply.")
+        }
+    }
+
+    private func ticket(_ t: AppSession.Ticket) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(t.fromUs ? "From *[demo]" : (Self.topics.first { $0.0 == t.topic }?.1 ?? "Message")).font(.system(size: 15, weight: .semibold))
+                Spacer()
+                Text(t.status == "replied" ? "Answered" : t.status == "closed" ? "Closed" : "Waiting for a reply")
+                    .font(.caption.weight(.semibold)).foregroundStyle(t.status == "replied" ? Theme.proGreen : .secondary)
+            }
+            Text(SupportForm.ago(t.created)).font(.caption).foregroundStyle(.secondary)
+            Text(t.message).font(.subheadline)
+            ForEach(Array(t.replies.enumerated()), id: \.offset) { _, r in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("*[demo] · " + SupportForm.ago(r.at)).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                    Text(r.text).font(.subheadline)
+                }
+                .padding(10).frame(maxWidth: .infinity, alignment: .leading)
+                .background(BarFill.color, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+enum SupportForm {
     /// "just now", "5 min ago", "3 h ago", "2 d ago", else a date.
     static func ago(_ iso: String) -> String {
         let f = ISO8601DateFormatter(); f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
