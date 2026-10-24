@@ -27,7 +27,6 @@ struct AccountScreen: View {
     // privacy
     @State private var blocked: [AppSession.Blocked] = []
     @State private var blockedOpen = false
-    @State private var confirmBlock: Collab.Invite?
     @State private var confirmReset = false
     // support
     @State private var tickets: [AppSession.Ticket] = []
@@ -76,10 +75,6 @@ struct AccountScreen: View {
                     if let d = try? await item.loadTransferable(type: Data.self), let img = UIImage(data: d) { await session.saveAvatar(img) }
                     photo = nil
                 }
-            }
-            .confirmDestroy("Block \(confirmBlock?.ownerName ?? "")?", isPresented: Binding(get: { confirmBlock != nil }, set: { if !$0 { confirmBlock = nil } }),
-                            message: "They won’t be able to invite you to songs. They aren’t told.", action: "Block") {
-                if let i = confirmBlock { Task { await session.block(i); blocked = await session.loadBlocked() } }
             }
             .confirmDestroy("Reset what Rate learned?", isPresented: $confirmReset, message: "Rate forgets the style it read from your songs and learns it fresh.", action: "Reset") {
                 session.resetRateLearned()
@@ -190,7 +185,11 @@ struct AccountScreen: View {
                         HStack(spacing: 4) {
                             Text("from " + inv.ownerName).lineLimit(1)
                             Text("·")
-                            Button("Block") { confirmBlock = inv }.buttonStyle(.borderless).foregroundStyle(.red)
+                            Button("Report or Block") {
+                                UserActions.show(inv.ownerName, id: inv.ownerID, songID: inv.songID, session: session) { _ in
+                                    Task { blocked = await session.loadBlocked() }
+                                }
+                            }.buttonStyle(.borderless).foregroundStyle(.red)
                         }
                         .font(.system(size: 13)).foregroundStyle(.secondary)
                     }

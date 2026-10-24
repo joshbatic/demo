@@ -785,6 +785,29 @@ body.ios .song{padding:13px 24px}
 .cm{justify-content:flex-start!important;gap:12px}.cm img{width:30px;height:30px;box-shadow:none}
 .cm .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cm em{font-style:normal;color:var(--mute);font-size:14px}
 .cm .x{color:var(--red);font-size:15px;padding:4px 8px}
+.clmore{flex:none;width:32px;height:32px;margin-right:-6px;border-radius:50%;display:grid;place-items:center;color:var(--mute);background:none}
+.umov{position:fixed;inset:0;z-index:2147483000;background:rgba(0,0,0,.32);display:flex;align-items:flex-end;justify-content:center;padding:12px 12px max(12px,env(safe-area-inset-bottom));opacity:0;transition:opacity .2s}
+.umov.on{opacity:1}
+@media(min-width:640px){.umov{align-items:center}}
+.umbox{width:100%;max-width:400px;max-height:86vh;overflow:auto;background:#F2F2F7;color:var(--ink);border-radius:26px;padding:20px 18px 16px;transform:translateY(24px);transition:transform .32s cubic-bezier(.32,.72,0,1);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.umov.on .umbox{transform:none}
+.umh{display:block;font-size:19px;font-weight:700;letter-spacing:-.2px;text-align:center;margin:2px 0 6px}
+.ump{font-size:14px;line-height:1.4;color:var(--mute);text-align:center;margin:0 6px 14px}
+.umrow{display:block;width:100%;padding:15px;margin-top:8px;border-radius:16px;font-size:17px;font-weight:500;color:var(--ink);background:var(--bg);text-align:center}
+.umrow.red{color:var(--red)}
+.umlist{background:var(--bg);border-radius:16px;overflow:hidden}
+.umpick{display:flex;width:100%;align-items:center;justify-content:space-between;padding:13px 16px;font-size:16px;color:var(--ink);background:none;text-align:left}
+.umpick+.umpick{border-top:.5px solid var(--sep)}
+.umpick i{font-style:normal;font-weight:700;color:var(--red);opacity:0}
+.umpick[aria-checked="true"] i{opacity:1}
+.umta{display:block;width:100%;box-sizing:border-box;margin-top:10px;padding:12px 14px;border:0;border-radius:16px;background:var(--bg);color:var(--ink);font:inherit;font-size:16px;resize:none}
+.umchk{display:flex;align-items:center;gap:8px;margin:12px 4px 2px;font-size:15px}
+.umbtns{display:flex;gap:10px;margin-top:14px}
+.umb{flex:1;height:48px;border-radius:99px;font-size:16px;font-weight:600;color:var(--ink);background:var(--bg)}
+.umb.main{background:var(--ink);color:var(--bg)}
+.umb.main.red{background:var(--red);color:#fff}
+.umb:disabled{opacity:.4}
+@media(prefers-color-scheme:dark){.umbox{background:#1C1C1E}.umrow,.umlist,.umta,.umb{background:#2C2C2E}}
 .invblock{background:none;border:0;padding:0;font:inherit;color:inherit;text-decoration:underline;cursor:pointer}
 .clempty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:22px 20px 20px}
 .clempty b{display:block;font-size:16px;margin-bottom:3px}.clempty span:not(.clav):not(.clstack){font-size:13.5px;color:var(--mute);line-height:1.4}
@@ -17493,15 +17516,59 @@ function loadBlocks(){var c=sbClient();if(!c||!AUTH_USER||DEV_MODE)return;
   c.from('user_blocks').select('blocked').then(function(r){if(!r||r.error)return;var ids=(r.data||[]).map(function(x){return x.blocked});
     fetchProfiles(ids,function(pm){var nb=ids.map(function(id){var p=pm[id];return{id:id,name:p&&p.username?'@'+p.username:((p&&p.display_name)||'Someone')}});
       var ch=JSON.stringify(nb)!==JSON.stringify(BLOCKS);BLOCKS=nb;if(ch)renderAccount()})})}
-function blockUser(id,name){var c=sbClient();if(!c||!AUTH_USER||!id)return;
-  if(!confirm('Block '+name+'?\n\nThey won’t be able to invite you to songs. They aren’t told.'))return;
-  c.from('user_blocks').insert({blocker:AUTH_USER.id,blocked:id}).then(function(r){
-    if(r&&r.error&&!/duplicate|23505/i.test(r.error.message||r.error.code||''))return toast('Couldn’t block: '+r.error.message);
-    var mine=PENDING_INVITES.filter(function(x){return x.owner_id===id});
-    mine.forEach(function(x){c.from('collab_invites').update({status:'declined',responded_at:new Date().toISOString()}).eq('id',x.id).then(function(){})});
+/* Report or Block (App Store guideline 1.2): offered on co-writers in Details › Collaborators and on invitations.
+   Reports go through the support function (saved to user_reports and emailed to us); blocking stops their invites,
+   declines pending ones both ways, takes them off your shared songs and leaves theirs. They aren't told either way. */
+function umClose(ov){if(!ov)return;ov.classList.remove('on');setTimeout(function(){ov.remove()},220)}
+function umOpen(build){var ov=document.createElement('div');ov.className='umov';var bx=document.createElement('div');bx.className='umbox';bx.setAttribute('role','dialog');bx.setAttribute('aria-modal','true');ov.appendChild(bx);
+  ov.onclick=function(e){if(e.target===ov)umClose(ov)};document.body.appendChild(ov);build(bx,function(){umClose(ov)});
+  requestAnimationFrame(function(){ov.classList.add('on')});try{natBlur()}catch(e){}return ov}
+function umAsk(title,msg,ok,red){var A=red&&natDestroy({title:title,message:msg,ok:ok});if(A)return A;
+  return new Promise(function(res){umOpen(function(bx,close){var h=document.createElement('b');h.className='umh';h.textContent=title;bx.appendChild(h);
+    if(msg){var m=document.createElement('p');m.className='ump';m.textContent=msg;bx.appendChild(m)}
+    var r=document.createElement('div');r.className='umbtns';var no=document.createElement('button');no.className='umb';no.textContent='Cancel';no.onclick=function(){close();res(false)};
+    var yes=document.createElement('button');yes.className='umb main'+(red?' red':'');yes.textContent=ok;yes.onclick=function(){close();res(true)};r.appendChild(no);r.appendChild(yes);bx.appendChild(r)})})}
+function userActions(o){if(!AUTH_USER||!o.id||o.id===AUTH_USER.id)return;var A=natPlug('ActionSheet');
+  var go=function(i){if(i===0)reportUser(o);else if(i===1)blockUser(o.id,o.name,o)};
+  if(A){natBlur();A.showActions({title:o.name,options:[{title:'Report '+o.name},{title:'Block '+o.name,style:'DESTRUCTIVE'},{title:'Cancel',style:'CANCEL'}]}).then(function(r){if(r)go(r.index)},function(){});return}
+  umOpen(function(bx,close){var h=document.createElement('b');h.className='umh';h.textContent=o.name;bx.appendChild(h);
+    [['Report '+o.name,''],['Block '+o.name,'red'],['Cancel','']].forEach(function(t,i){var b=document.createElement('button');b.className='umrow '+t[1];b.textContent=t[0];b.onclick=function(){close();if(i<2)setTimeout(function(){go(i)},120)};bx.appendChild(b)})})}
+var REPORT_WHY=[['spam','Spam'],['harassment','Harassment or hate'],['inappropriate','Inappropriate content'],['impersonation','Pretending to be someone else'],['other','Something else']];
+function reportUser(o){var why='',alsoBlock=false;
+  umOpen(function(bx,close){var h=document.createElement('b');h.className='umh';h.textContent='Report '+o.name;bx.appendChild(h);
+    var m=document.createElement('p');m.className='ump';m.textContent='What’s wrong? We review every report within 24 hours. They won’t know you reported them.';bx.appendChild(m);
+    var list=document.createElement('div');list.className='umlist';bx.appendChild(list);var send;
+    REPORT_WHY.forEach(function(w){var b=document.createElement('button');b.className='umpick';b.setAttribute('role','radio');b.setAttribute('aria-checked','false');b.innerHTML='<span></span><i aria-hidden="true">✓</i>';b.firstChild.textContent=w[1];
+      b.onclick=function(){why=w[0];[].forEach.call(list.children,function(x){x.setAttribute('aria-checked',x===b?'true':'false')});send.disabled=false;try{haptic('selection')}catch(e){}};list.appendChild(b)});
+    var ta=document.createElement('textarea');ta.className='umta';ta.rows=3;ta.maxLength=2000;ta.placeholder='Add details (optional)';ta.setAttribute('aria-label','Details');bx.appendChild(ta);
+    var lb=document.createElement('label');lb.className='umchk';var cb=document.createElement('input');cb.type='checkbox';cb.onchange=function(){alsoBlock=cb.checked};lb.appendChild(cb);lb.appendChild(document.createTextNode(' Also block '+o.name));bx.appendChild(lb);
+    var r=document.createElement('div');r.className='umbtns';var no=document.createElement('button');no.className='umb';no.textContent='Cancel';no.onclick=close;
+    send=document.createElement('button');send.className='umb main red';send.textContent='Report';send.disabled=true;
+    send.onclick=function(){if(!why)return;send.disabled=true;send.textContent='Sending…';
+      fnCall('support',{action:'report',user:o.id,reason:why,details:ta.value.trim(),song:o.songId||''}).catch(function(e){
+        /* the function isn't reachable: save the report straight to the table */
+        var c=sbClient();if(!c)throw e;return c.from('user_reports').insert({reported:o.id,reason:why,details:ta.value.trim()||null,song_id:o.songId||null}).then(function(r){if(r&&r.error)throw new Error(r.error.message)})
+      }).then(function(){close();haptic('success');toast('Thanks for reporting '+o.name+'. We’ll review it within 24 hours.');if(alsoBlock)doBlock(o.id,o.name)})
+      .catch(function(e){send.disabled=false;send.textContent='Report';toast('Couldn’t send the report: '+((e&&e.message)||'try again'))})};
+    r.appendChild(no);r.appendChild(send);bx.appendChild(r)})}
+function blockUser(id,name){if(!sbClient()||!AUTH_USER||!id)return;
+  umAsk('Block '+name+'?','They won’t be able to invite you or write with you, and you’ll leave any songs you share. They aren’t told.','Block',true).then(function(ok){if(ok)doBlock(id,name)})}
+function doBlock(id,name){var c=sbClient();if(!c||!AUTH_USER||!id)return;
+  var after=function(){
     PENDING_INVITES=PENDING_INVITES.filter(function(x){return x.owner_id!==id});renderInvites();paintAcctIcons();
+    /* off my shared songs, and out of theirs */
+    var mine=songs.filter(function(s){return s.shared&&isOwnerOf(s)}).map(function(s){return s.id});
+    if(mine.length)c.from('collab_members').delete().in('song_id',mine).eq('user_id',id).then(function(){},function(){});
+    var theirs=songs.filter(function(s){return s.shared&&s.owner===id});
+    theirs.forEach(function(s){c.from('collab_members').delete().eq('song_id',s.id).eq('user_id',AUTH_USER.id).then(function(){},function(){})});
+    if(theirs.length){songs=songs.filter(function(s){return theirs.indexOf(s)<0});if(cur&&theirs.indexOf(cur)>=0){cur=null;sheet(false);show('vList')}save();renderList();renderSide()}
+    else if(cur&&cur.shared)renderCollab();
     BLOCKS=(BLOCKS||[]).filter(function(b){return b.id!==id}).concat([{id:id,name:name}]);renderAccount();
-    toast('Blocked '+name+'. To report them, email help@hellodemo.app')})}
+    haptic('success');toast('Blocked '+name)};
+  c.rpc('block_user',{p_user:id}).then(function(r){if(!r||!r.error)return after();
+    /* older server: the plain insert */
+    c.from('user_blocks').insert({blocker:AUTH_USER.id,blocked:id}).then(function(r2){
+      if(r2&&r2.error&&!/duplicate|23505/i.test(r2.error.message||r2.error.code||''))return toast('Couldn’t block: '+r2.error.message);after()})})}
 function unblockUser(b){var c=sbClient();if(!c||!AUTH_USER)return;
   c.from('user_blocks').delete().eq('blocker',AUTH_USER.id).eq('blocked',b.id).then(function(r){if(r&&r.error)return toast('Couldn’t unblock: '+r.error.message);
     BLOCKS=(BLOCKS||[]).filter(function(x){return x.id!==b.id});renderAccount();toast('Unblocked '+b.name)})}
@@ -17516,7 +17583,7 @@ function renderInvites(){var b=$('#acc-invites');if(!b)return;b.innerHTML='';
       var sp=document.createElement('span');sp.style.cssText='display:flex;flex-direction:column;line-height:1.3;min-width:0;flex:1';
       var tt=document.createElement('b');tt.style.cssText='overflow:hidden;text-overflow:ellipsis;white-space:nowrap';tt.textContent=inv.song_title||'A song';sp.appendChild(tt);
       var fr=document.createElement('span');fr.style.cssText='color:var(--mute);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';fr.textContent='from '+((p&&(p.display_name||p.username))||inv.owner_name||inv.owner_email||'a collaborator');sp.appendChild(fr);
-      if(inv.owner_id){var bk=document.createElement('button');bk.className='invblock';bk.textContent='Block';bk.onclick=function(){blockUser(inv.owner_id,p&&p.username?'@'+p.username:((p&&p.display_name)||inv.owner_name||'this person'))};var fl=document.createElement('span');fl.style.cssText='display:flex;min-width:0;color:var(--mute);font-size:12.5px';sp.replaceChild(fl,fr);fr.style.minWidth='0';fl.appendChild(fr);var dt=document.createElement('span');dt.style.cssText='flex:none;white-space:pre';dt.textContent=' · ';fl.appendChild(dt);bk.style.flex='none';fl.appendChild(bk)}
+      if(inv.owner_id){var bk=document.createElement('button');bk.className='invblock';bk.textContent='Report or Block';bk.onclick=function(){userActions({id:inv.owner_id,songId:inv.song_id,name:p&&p.username?'@'+p.username:((p&&p.display_name)||inv.owner_name||'this person')})};var fl=document.createElement('span');fl.style.cssText='display:flex;min-width:0;color:var(--mute);font-size:12.5px';sp.replaceChild(fl,fr);fr.style.minWidth='0';fl.appendChild(fr);var dt=document.createElement('span');dt.style.cssText='flex:none;white-space:pre';dt.textContent=' · ';fl.appendChild(dt);bk.style.flex='none';fl.appendChild(bk)}
       r.appendChild(sp);
       var bx=document.createElement('span');bx.style.cssText='display:flex;gap:8px;align-items:center;flex:none';
       var ok=document.createElement('button');ok.className='go';ok.textContent='Accept';ok.onclick=function(){acceptInvite(inv)};
@@ -17532,6 +17599,7 @@ function clPerson(g,o){var r=document.createElement('div');r.className='clrow';r
   var t=document.createElement('span');t.className='cltx';t.innerHTML='<b></b><span></span>';t.firstChild.textContent=o.name;t.lastChild.textContent=o.sub||'';if(!o.sub)t.removeChild(t.lastChild);r.appendChild(t);
   if(o.badge){var bd=document.createElement('span');bd.className='clbadge'+(o.badgeCls?' '+o.badgeCls:'');bd.textContent=o.badge;r.appendChild(bd)}
   if(o.act){var x=document.createElement('button');x.className='clx';x.textContent=o.act;var arm=0;x.onclick=function(){if(Date.now()-arm>3000){arm=Date.now();x.textContent=o.confirm||'Tap Again';x.classList.add('arm');setTimeout(function(){x.textContent=o.act;x.classList.remove('arm')},3000);return}o.onAct()};r.appendChild(x)}
+  if(o.more){var mo=document.createElement('button');mo.className='clmore';mo.setAttribute('aria-label','Report or block '+o.name);mo.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="5" cy="12" r="1.8" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><circle cx="19" cy="12" r="1.8" fill="currentColor"/></svg>';mo.onclick=function(e){e.stopPropagation();o.more()};r.appendChild(mo)}
   g.appendChild(r);return r}
 function clArmed(label,fn,cls,ask){var b=document.createElement('button');b.className='clfoot '+(cls||'');b.textContent=label;var arm=0;
   b.onclick=function(){var nat=ask&&natDestroy({title:ask.title,message:ask.message,ok:label});if(nat){nat.then(function(ok){if(ok)fn()});return}if(Date.now()-arm>3000){arm=Date.now();b.textContent='Tap Again to '+label;setTimeout(function(){b.textContent=label},3000);return}fn()};return b}
@@ -17564,10 +17632,10 @@ function renderCollab(){var g=$('#collab'),n=$('#collab-note');g.innerHTML='';n.
   /* people */
   var draw=function(prof,mem,invs){if(!cur||cur.id!==songId)return;list.innerHTML='';known={};mem.forEach(function(m){known[m.user_id]='On song'});invs.forEach(function(x){if(x.invitee_user_id)known[x.invitee_user_id]='Invited'});
     var oid=cur.owner||AUTH_USER.id,op=prof[oid];
-    clPerson(list,{p:op,id:oid,name:oid===AUTH_USER.id?(nameOf(op,myName()||'You')+' (you)'):nameOf(op,(cur.ownerEmail||'').split('@')[0]),sub:op&&op.username?'@'+op.username:'',badge:'Owner',badgeCls:'own'});
+    clPerson(list,{p:op,id:oid,name:oid===AUTH_USER.id?(nameOf(op,myName()||'You')+' (you)'):nameOf(op,(cur.ownerEmail||'').split('@')[0]),sub:op&&op.username?'@'+op.username:'',badge:'Owner',badgeCls:'own',more:oid===AUTH_USER.id?null:function(){userActions({id:oid,songId:songId,name:op&&op.username?'@'+op.username:nameOf(op,'the owner')})}});
     mem.forEach(function(m){if(m.user_id===oid)return;var p=prof[m.user_id],you=m.user_id===AUTH_USER.id;
       clPerson(list,{p:p,id:m.user_id,name:nameOf(p,(m.email||'').split('@')[0])+(you?' (you)':''),sub:p&&p.username?'@'+p.username:'',badge:owner?null:'Co-writer',
-        act:owner?'Remove':null,confirm:'Remove?',onAct:function(){c.from('collab_members').delete().eq('song_id',songId).eq('user_id',m.user_id).then(function(){toast('Removed '+nameOf(p,'them'));renderCollab()})}})});
+        act:owner?'Remove':null,confirm:'Remove?',more:you?null:function(){userActions({id:m.user_id,songId:songId,name:p&&p.username?'@'+p.username:nameOf(p,'this person')})},onAct:function(){c.from('collab_members').delete().eq('song_id',songId).eq('user_id',m.user_id).then(function(){toast('Removed '+nameOf(p,'them'));renderCollab()})}})});
     invs.forEach(function(iv){var p=prof[iv.invitee_user_id];clPerson(list,{p:p,id:iv.invitee_user_id,name:p&&p.display_name||(iv.invitee_username?'@'+iv.invitee_username:(iv.invitee_email||'Someone')),sub:'Hasn’t accepted yet',badge:'Invited',badgeCls:'inv'})});
     if(!mem.filter(function(m){return m.user_id!==oid}).length&&!invs.length&&owner){var hint=document.createElement('div');hint.className='clhint';hint.textContent='No one else yet. Invite a co-writer above.';list.appendChild(hint)}};
   draw({},[],[]);

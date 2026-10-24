@@ -87,6 +87,27 @@ Deno.serve(async (req) => {
     return json({ ok: true, id: t.id });
   }
 
+  // ---------- reporting another person (App Store guideline 1.2) ----------
+  if (body.action === "report") {
+    const REASONS: Record<string, string> = { spam: "Spam", harassment: "Harassment or hate", inappropriate: "Inappropriate content", impersonation: "Impersonation", other: "Something else" };
+    const reported = str(body.user, 64), reason = REASONS[str(body.reason, 20)] ? str(body.reason, 20) : "other";
+    const details = str(body.details, 2000), songId = str(body.song, 200) || null;
+    if (!/^[0-9a-f-]{36}$/i.test(reported) || reported === me.id) return json({ error: "That account can't be reported." }, 400);
+    const since = new Date(Date.now() - 86400_000).toISOString();
+    const { count } = await db.from("user_reports").select("id", { head: true, count: "exact" }).eq("reporter", me.id).gte("created_at", since);
+    if ((count ?? 0) >= 10) return json({ error: "You've sent a lot of reports today. We're reviewing them." }, 429);
+    const { data: r, error } = await db.from("user_reports").insert({ reporter: me.id, reported, song_id: songId, reason, details: details || null }).select("id").single();
+    if (error) { console.error("Couldn't save the report:", error.message); return json({ error: "Couldn't send the report. Try again in a moment." }, 500); }
+    const { data: p } = await db.from("profiles").select("username,display_name").eq("user_id", reported).maybeSingle();
+    const who = p?.username ? "@" + p.username : (p?.display_name || reported);
+    const admin = env("ADMIN_EMAIL");
+    if (admin) await send(admin, `Report #${r.id}: ${REASONS[reason]} (${who})`, page(
+      `<p><b>${esc(me.email)}</b> reported <b>${esc(who)}</b> (${esc(reported)}) for <b>${esc(REASONS[reason])}</b>.</p>` +
+      (songId ? `<p>Song: ${esc(songId)}</p>` : "") + (details ? paras(details) : "<p style=\"color:#888\">No details given.</p>") +
+      `<p style="color:#888">Review within 24 hours: remove the content or the account if it breaks the terms.</p>`));
+    return json({ ok: true, id: r.id });
+  }
+
   // ---------- admins only from here ----------
   const { data: isAdmin } = await userClient.rpc("is_admin");
   if (isAdmin !== true) return json({ error: "Admins only." }, 403);

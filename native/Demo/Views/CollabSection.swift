@@ -75,7 +75,8 @@ struct CollabSection: View {
             }
             ForEach(people) { p in
                 personRow(avatar: p.avatar, name: p.name + (p.isMe ? " (you)" : ""),
-                          sub: p.role == "invited" ? "Hasn’t accepted yet" : (p.username.isEmpty ? "" : "@" + p.username)) {
+                          sub: p.role == "invited" ? "Hasn’t accepted yet" : (p.username.isEmpty ? "" : "@" + p.username),
+                          more: moreAction(p)) {
                     if p.role == "owner" {
                         pill("Owner", kind: .owner)
                     } else if p.role == "invited" {
@@ -117,7 +118,7 @@ struct CollabSection: View {
     }
 
     /// The web's .clrow: 34pt avatar, name and a grey line, something on the right.
-    private func personRow<R: View>(avatar: String?, name: String, sub: String, @ViewBuilder right: () -> R) -> some View {
+    private func personRow<R: View>(avatar: String?, name: String, sub: String, more: (() -> Void)? = nil, @ViewBuilder right: () -> R) -> some View {
         HStack(spacing: 12) {
             Avatar(url: avatar, name: name, size: 34)
             VStack(alignment: .leading, spacing: 1) {
@@ -126,6 +127,14 @@ struct CollabSection: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             right()
+            if let more {
+                Button { Haptics.tap(); more() } label: {
+                    Image(systemName: "ellipsis").font(.system(size: 15, weight: .semibold)).foregroundStyle(.secondary)
+                        .frame(width: 30, height: 30).contentShape(Rectangle())
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel("Report or block \(name)")
+            }
         }
         .frame(minHeight: 44)
     }
@@ -144,6 +153,18 @@ struct CollabSection: View {
                 case .plain: Capsule().fill(BarFill.color)
                 }
             }
+    }
+
+    /// The "…" on everyone but me and pending invites: Report or Block. Blocking the owner takes the song away.
+    private func moreAction(_ p: Collab.Person) -> (() -> Void)? {
+        if p.isMe || p.role == "invited" { return nil }
+        let name = p.username.isEmpty ? p.name : "@" + p.username
+        let isOwnerRow = p.role == "owner", id = songID, session = session, left = onLeft
+        return {
+            UserActions.show(name, id: p.id, songID: id, session: session) { _ in
+                if isOwnerRow { left() } else { Task { await load() } }
+            }
+        }
     }
 
     private func load() async { people = await Collab.shared.people(song ?? Song(raw: [:])) }
@@ -295,5 +316,98 @@ struct InviteSheet: View {
             if let p = results.first(where: { $0.username.lowercased() == username.lowercased() }) { sent.insert(p.id) }
             session.toast = "Invited @" + username.lowercased()
         }
+    }
+}
+
+/// Report or Block someone (App Store guideline 1.2), from Details › Collaborators and Account › Invitations.
+@MainActor
+enum UserActions {
+    static func show(_ name: String, id: String, songID: String?, session: AppSession, blocked: @escaping (String) -> Void = { _ in }) {
+        Confirm.options(name, [
+            (title: "Report \(name)", red: false, run: { report(name, id: id, songID: songID, session: session, blocked: blocked) }),
+            (title: "Block \(name)", red: true, run: { block(name, id: id, session: session, blocked: blocked) })
+        ])
+    }
+
+    static func block(_ name: String, id: String, session: AppSession, blocked: @escaping (String) -> Void = { _ in }) {
+        // after the choices sheet has gone
+        Task {
+            try? await Task.sleep(for: .milliseconds(350))
+            Confirm.destroy("Block \(name)?", message: "They won’t be able to invite you or write with you, and you’ll leave any songs you share. They aren’t told.", action: "Block") {
+                Task { await session.blockUser(id, name: name); blocked(id) }
+            }
+        }
+    }
+
+    static func report(_ name: String, id: String, songID: String?, session: AppSession, blocked: @escaping (String) -> Void = { _ in }) {
+        Task {
+            try? await Task.sleep(for: .milliseconds(350))
+            Confirm.sheet { close in
+                ReportSheet(name: name, close: close) { reason, details, alsoBlock in
+                    guard await session.report(id, name: name, reason: reason, details: details, songID: songID) else { return false }
+                    Haptics.success()
+                    if alsoBlock { await session.blockUser(id, name: name); blocked(id) }
+                    return true
+                }
+            }
+        }
+    }
+}
+
+/// What's wrong, a few optional words, and "Also block".
+struct ReportSheet: View {
+    let name: String
+    let close: () -> Void
+    let send: (_ reason: String, _ details: String, _ alsoBlock: Bool) async -> Bool
+    @State private var reason: String?
+    @State private var details = ""
+    @State private var alsoBlock = false
+    @State private var busy = false
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    ForEach(AppSession.reportReasons, id: \.key) { r in
+                        Button { Haptics.selection(); reason = r.key } label: {
+                            HStack {
+                                Text(r.label).foregroundStyle(.primary)
+                                Spacer()
+                                if reason == r.key { Image(systemName: "checkmark").font(.system(size: 15, weight: .semibold)).foregroundStyle(.red) }
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .accessibilityAddTraits(reason == r.key ? .isSelected : [])
+                    }
+                } header: { Text("What’s wrong?") } footer: {
+                    Text("We review every report within 24 hours. \(name) won’t know you reported them.")
+                }
+                Section {
+                    TextField("Add details (optional)", text: $details, axis: .vertical).lineLimit(3...6)
+                }
+                Section {
+                    Toggle("Also block \(name)", isOn: $alsoBlock)
+                }
+            }
+            .navigationTitle("Report \(name)")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { close() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(busy ? "Sending…" : "Report") {
+                        guard let reason else { return }
+                        busy = true
+                        Task {
+                            let ok = await send(reason, String(details.trimmingCharacters(in: .whitespacesAndNewlines).prefix(2000)), alsoBlock)
+                            busy = false
+                            if ok { close() }
+                        }
+                    }
+                    .fontWeight(.semibold)
+                    .disabled(reason == nil || busy)
+                }
+            }
+        }
+        .interactiveDismissDisabled(busy)
     }
 }

@@ -143,12 +143,50 @@ extension AppSession {
         return out
     }
 
-    /// Block the person behind an invite: their pending invites are declined; they aren't told.
-    func block(_ inv: Collab.Invite) async {
-        guard let uid = userID else { return }
-        _ = try? await Backend.client.from("user_blocks").insert(["blocker": .string(uid), "blocked": .string(inv.ownerID)] as [String: JSONValue]).execute()
-        for i in Collab.shared.invites where i.ownerID == inv.ownerID { await Collab.shared.decline(i) }
-        toast = "Blocked \(inv.ownerName). To report them, email help@hellodemo.app"
+    /// Block the person behind an invite.
+    func block(_ inv: Collab.Invite) async { await blockUser(inv.ownerID, name: inv.ownerName) }
+
+    /// Block someone (App Store guideline 1.2): their invites stop and pending ones are declined both ways
+    /// (`block_user`), they come off my shared songs and I leave theirs. They aren't told.
+    func blockUser(_ id: String, name: String) async {
+        guard let uid = userID, id != uid else { return }
+        do { _ = try await Backend.rpc("block_user", ["p_user": .string(id)]) }
+        catch {
+            // an older server: the plain insert
+            _ = try? await Backend.client.from("user_blocks").insert(["blocker": .string(uid), "blocked": .string(id)] as [String: JSONValue]).execute()
+            for i in Collab.shared.invites where i.ownerID == id { await Collab.shared.decline(i) }
+        }
+        let shared = library.songs.filter { $0.isShared }
+        let mine = shared.filter { $0.owner.isEmpty || $0.owner == uid }.map(\.id)
+        if !mine.isEmpty {
+            _ = try? await Backend.client.from("collab_members").delete().in("song_id", values: mine).eq("user_id", value: id).execute()
+        }
+        for s in shared where s.owner == id { await removeSong(s) }
+        await Collab.shared.pullInvites()
+        Haptics.success()
+        toast = "Blocked " + name
+    }
+
+    static let reportReasons: [(key: String, label: String)] = [
+        ("spam", "Spam"), ("harassment", "Harassment or hate"), ("inappropriate", "Inappropriate content"),
+        ("impersonation", "Pretending to be someone else"), ("other", "Something else")
+    ]
+
+    /// Report someone: saved to user_reports and emailed to us by the support function. They aren't told.
+    func report(_ id: String, name: String, reason: String, details: String, songID: String?) async -> Bool {
+        let body: [String: JSONValue] = ["action": "report", "user": .string(id), "reason": .string(reason),
+                                         "details": .string(details), "song": .string(songID ?? "")]
+        if let r = try? await Backend.function("support", body: body), r["ok"]?.bool == true {
+            toast = "Thanks for reporting \(name). We’ll review it within 24 hours."; return true
+        }
+        // the function isn't reachable: straight to the table
+        var row: [String: JSONValue] = ["reported": .string(id), "reason": .string(reason)]
+        if !details.isEmpty { row["details"] = .string(details) }
+        if let songID, !songID.isEmpty { row["song_id"] = .string(songID) }
+        do {
+            _ = try await Backend.client.from("user_reports").insert(row).execute()
+            toast = "Thanks for reporting \(name). We’ll review it within 24 hours."; return true
+        } catch { toast = "Couldn’t send the report: " + describe(error); return false }
     }
 
     func unblock(_ b: Blocked) async {
