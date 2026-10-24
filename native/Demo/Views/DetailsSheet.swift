@@ -54,7 +54,8 @@ struct DetailsSheet: View {
             .sheet(isPresented: $showInvite, onDismiss: { inviteClosed += 1 }) {
                 InviteSheet(songID: songID)
             }
-            .confirmationDialog("Delete “\(song?.displayTitle ?? "")”?", isPresented: $confirmDelete, titleVisibility: .visible) {
+            .alert("Delete “\(song?.displayTitle ?? "")”?", isPresented: $confirmDelete) {
+                Button("Cancel", role: .cancel) {}
                 Button("Delete Song", role: .destructive) { dismiss(); onDelete() }
             } message: { Text("This can’t be undone.") }
         }

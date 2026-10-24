@@ -106,10 +106,12 @@ struct CollabSection: View {
         }
         .task(id: s.id) { await load() }
         .task(id: refresh) { if refresh > 0 { await load() } }
-        .confirmationDialog("Stop sharing “\(s.displayTitle)”?", isPresented: $confirmStop, titleVisibility: .visible) {
+        .alert("Stop sharing “\(s.displayTitle)”?", isPresented: $confirmStop) {
+            Button("Cancel", role: .cancel) {}
             Button("Stop Sharing", role: .destructive) { Task { await Collab.shared.stopSharing(songID); people = [] } }
         } message: { Text("Your co-writers lose access. The song stays with you.") }
-        .confirmationDialog("Leave “\(s.displayTitle)”?", isPresented: $confirmLeave, titleVisibility: .visible) {
+        .alert("Leave “\(s.displayTitle)”?", isPresented: $confirmLeave) {
+            Button("Cancel", role: .cancel) {}
             Button("Leave Song", role: .destructive) {
                 onLeft()
                 Task { await session.removeSong(s); session.toast = "You left the song" }

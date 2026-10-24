@@ -332,7 +332,8 @@ struct IdeaSheet: View {
             .navigationTitle(idea == nil ? "New Idea" : "Idea")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } } }
-            .confirmationDialog("Delete this idea?", isPresented: $confirmDelete, titleVisibility: .visible) {
+            .alert("Delete this idea?", isPresented: $confirmDelete) {
+                Button("Cancel", role: .cancel) {}
                 Button("Delete Idea", role: .destructive) {
                     guard let c = current else { return }
                     gone = true

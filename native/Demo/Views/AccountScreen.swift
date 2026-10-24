@@ -77,16 +77,20 @@ struct AccountScreen: View {
                     photo = nil
                 }
             }
-            .confirmationDialog("Block \(confirmBlock?.ownerName ?? "")?", isPresented: Binding(get: { confirmBlock != nil }, set: { if !$0 { confirmBlock = nil } }), titleVisibility: .visible) {
+            .alert("Block \(confirmBlock?.ownerName ?? "")?", isPresented: Binding(get: { confirmBlock != nil }, set: { if !$0 { confirmBlock = nil } })) {
+                Button("Cancel", role: .cancel) {}
                 Button("Block", role: .destructive) { if let i = confirmBlock { Task { await session.block(i); blocked = await session.loadBlocked() } } }
             } message: { Text("They won’t be able to invite you to songs. They aren’t told.") }
-            .confirmationDialog("Reset what Rate learned?", isPresented: $confirmReset, titleVisibility: .visible) {
+            .alert("Reset what Rate learned?", isPresented: $confirmReset) {
+                Button("Cancel", role: .cancel) {}
                 Button("Reset", role: .destructive) { session.resetRateLearned() }
             } message: { Text("Rate forgets the style it read from your songs and learns it fresh.") }
-            .confirmationDialog("Sign out of *[demo]?", isPresented: $confirmSignOut, titleVisibility: .visible) {
+            .alert("Sign out of *[demo]?", isPresented: $confirmSignOut) {
+                Button("Cancel", role: .cancel) {}
                 Button("Sign Out", role: .destructive) { dismiss(); Task { await session.signOut() } }
             } message: { Text("Your songs stay safe in your account.") }
-            .confirmationDialog("Delete your account?", isPresented: $confirmDelete, titleVisibility: .visible) {
+            .alert("Delete your account?", isPresented: $confirmDelete) {
+                Button("Cancel", role: .cancel) {}
                 Button("Delete Account", role: .destructive) {
                     deleting = true
                     Task {

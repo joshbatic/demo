@@ -136,7 +136,8 @@ struct EditorScreen: View {
         .sheet(isPresented: $showDictionary) {
             DictionarySheet(bridge: bridge, initialWord: context.word, register: voice("reg") ?? "Conversational", perfectOnly: voiceStrict)
         }
-        .confirmationDialog("Delete “\(song?.displayTitle ?? "")”?", isPresented: $confirmDelete, titleVisibility: .visible) {
+        .alert("Delete “\(song?.displayTitle ?? "")”?", isPresented: $confirmDelete) {
+            Button("Cancel", role: .cancel) {}
             Button("Delete Song", role: .destructive) { deleteSong() }
         } message: { Text("This can’t be undone.") }
         .onAppear {
