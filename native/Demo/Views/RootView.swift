@@ -8,7 +8,7 @@ struct RootView: View {
         ZStack {
             switch session.phase {
             case .launching:
-                LaunchView()
+                Color(uiColor: .systemBackground).ignoresSafeArea()
             case .signedOut:
                 SignInView().transition(.opacity)
             case .waitlist(let status):
@@ -18,8 +18,63 @@ struct RootView: View {
             }
         }
         .animation(.smooth(duration: 0.35), value: session.phase)
+        // the launch screen's record label spins up, then lifts away into the app (spec §1.1)
+        .overlay { SplashView(ready: session.phase != .launching) }
         // toasts, banners, the AI prompt and the paywall live in a window above everything (sheets too)
         .onAppear { AppToast.session = session; Push.shared.session = session; HUD.install(session: session); RemoteConfig.shared.start() }
+    }
+}
+
+/// The splash: the launch screen's record label in the same place, so the hand-over can't be seen. Once the app
+/// is ready (+120 ms, at most 3 s) the label spins up like a record (0→300° easing to 360°, a slight dip in
+/// size), a light tap, then it lifts away (scale 1.18, fading) as the background fades. Reduce Motion: a fade.
+struct SplashView: View {
+    let ready: Bool
+    @Environment(\.accessibilityReduceMotion) private var calm
+    @State private var gone = false
+    @State private var started = false
+    @State private var angle = 0.0
+    @State private var scale = 1.0
+    @State private var markOpacity = 1.0
+    @State private var bgOpacity = 1.0
+
+    var body: some View {
+        if !gone {
+            ZStack {
+                Color("LaunchBackground").opacity(bgOpacity).ignoresSafeArea()
+                Image("LaunchMark")
+                    .resizable().frame(width: 132, height: 132)
+                    .rotationEffect(.degrees(angle))
+                    .scaleEffect(scale)
+                    .opacity(markOpacity)
+                    .accessibilityHidden(true)
+            }
+            .allowsHitTesting(bgOpacity > 0.5)
+            .task(id: ready) {
+                if ready { try? await Task.sleep(for: .milliseconds(120)); await run() }
+            }
+            .task {
+                try? await Task.sleep(for: .seconds(3))
+                await run()
+            }
+        }
+    }
+
+    private func run() async {
+        guard !started else { return }
+        started = true
+        if !calm {
+            withAnimation(.timingCurve(0.5, 0, 0.25, 1, duration: 0.85)) { angle = 360 }
+            withAnimation(.easeInOut(duration: 0.595)) { scale = 0.96 }
+            try? await Task.sleep(for: .milliseconds(595))
+            withAnimation(.easeOut(duration: 0.255)) { scale = 1 }
+            try? await Task.sleep(for: .milliseconds(255))
+            Haptics.tap()
+        }
+        withAnimation(.easeIn(duration: 0.26)) { scale = calm ? 1 : 1.18; markOpacity = 0 }
+        withAnimation(.easeOut(duration: 0.32).delay(0.06)) { bgOpacity = 0 }
+        try? await Task.sleep(for: .milliseconds(400))
+        gone = true
     }
 }
 
