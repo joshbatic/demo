@@ -668,7 +668,7 @@ struct DictionarySheet: View {
     let initialWord: String
     let register: String
     let perfectOnly: Bool
-    @Environment(AppSession.self) private var session
+    @Environment(\.appSession) private var session
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
     @State private var results = WordResults()

@@ -4,10 +4,10 @@ import SwiftUI
 /// and kept as the default for new songs.
 struct VoiceSheet: View {
     let songID: String
-    @Environment(LibraryStore.self) private var library
+    @Environment(\.library) private var library
     @Environment(\.dismiss) private var dismiss
     @AppStorage("voice.more") private var moreOpen = false
-    @Environment(AppSession.self) private var session
+    @Environment(\.appSession) private var session
     @State private var profileDraft: String?
     @State private var profileSave: Task<Void, Never>?
 

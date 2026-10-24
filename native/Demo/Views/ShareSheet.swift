@@ -239,8 +239,8 @@ enum ShareLink_ {
 
 struct ShareSheet: View {
     let songID: String
-    @Environment(AppSession.self) private var session
-    @Environment(LibraryStore.self) private var library
+    @Environment(\.appSession) private var session
+    @Environment(\.library) private var library
     @Environment(\.dismiss) private var dismiss
     @State private var palette: [HSL] = []
     @State private var pick = 0

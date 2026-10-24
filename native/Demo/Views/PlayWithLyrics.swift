@@ -4,8 +4,8 @@ import SwiftUI
 /// in the in-song player, like Apple Music's lyrics view.
 struct PlayWithLyrics: View {
     let songID: String
-    @Environment(LibraryStore.self) private var library
-    @Environment(AppSession.self) private var session
+    @Environment(\.library) private var library
+    @Environment(\.appSession) private var session
     @Environment(\.dismiss) private var dismiss
     @State private var userScrolledAt = Date.distantPast
     @State private var scrub: Double?

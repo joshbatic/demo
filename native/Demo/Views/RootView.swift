@@ -2,7 +2,7 @@ import SwiftUI
 import AuthenticationServices
 
 struct RootView: View {
-    @Environment(AppSession.self) private var session
+    @Environment(\.appSession) private var session
 
     var body: some View {
         ZStack {
@@ -143,7 +143,7 @@ struct VerifiedBadge: View {
 }
 
 struct SignInView: View {
-    @Environment(AppSession.self) private var session
+    @Environment(\.appSession) private var session
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
@@ -191,7 +191,7 @@ struct SignInView: View {
 }
 
 struct WaitlistView: View {
-    @Environment(AppSession.self) private var session
+    @Environment(\.appSession) private var session
     let status: String
     @State private var code = ""
     @Environment(\.openURL) private var openURL
@@ -240,8 +240,8 @@ struct WaitlistView: View {
 
 /// A short message at the bottom, like the web's toast.
 struct ToastView: View {
-    @Environment(AppSession.self) private var session
-    @Environment(LibraryStore.self) private var library
+    @Environment(\.appSession) private var session
+    @Environment(\.library) private var library
     @State private var bottomY: CGFloat = 0
 
     var body: some View {

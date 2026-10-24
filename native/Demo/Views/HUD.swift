@@ -51,7 +51,7 @@ extension View {
 }
 
 struct HUDRoot: View {
-    @Environment(AppSession.self) private var session
+    @Environment(\.appSession) private var session
     @State private var config = RemoteConfig.shared
 
     var body: some View {
@@ -96,7 +96,7 @@ struct HUDRoot: View {
 
 /// The Pro banner (spec §1.7): "*[demo] Pro" + why, tap for the paywall; ✕ dismisses; gone after 6 s.
 struct ProBannerView: View {
-    @Environment(AppSession.self) private var session
+    @Environment(\.appSession) private var session
 
     var body: some View {
         Group {

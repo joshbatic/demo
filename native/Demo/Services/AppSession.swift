@@ -8,6 +8,11 @@ import Supabase
 /// Who's signed in, their profile, plan and beta access, and the library that goes with them.
 @MainActor @Observable
 final class AppSession {
+    /// The one session for the app. Views reach it (and its library) through the environment with this as the
+    /// fallback, so a screen shown outside the main view tree (a separate window, a Mac panel) can never crash
+    /// for want of it.
+    static let shared = AppSession()
+
     enum Phase: Equatable { case launching, signedOut, waitlist(String), ready }
 
     var phase: Phase = .launching
@@ -276,5 +281,25 @@ final class AppSession {
     func openAccount(_ key: String = "") {
         if !key.isEmpty && !plan.isPro { paywallWhy = key; return }
         accountOpen = true
+    }
+}
+
+// MARK: - environment
+
+nonisolated private struct AppSessionKey: EnvironmentKey {
+    static var defaultValue: AppSession { MainActor.assumeIsolated { AppSession.shared } }
+}
+nonisolated private struct LibraryKey: EnvironmentKey {
+    static var defaultValue: LibraryStore { MainActor.assumeIsolated { AppSession.shared.library } }
+}
+
+extension EnvironmentValues {
+    nonisolated var appSession: AppSession {
+        get { self[AppSessionKey.self] }
+        set { self[AppSessionKey.self] = newValue }
+    }
+    nonisolated var library: LibraryStore {
+        get { self[LibraryKey.self] }
+        set { self[LibraryKey.self] = newValue }
     }
 }

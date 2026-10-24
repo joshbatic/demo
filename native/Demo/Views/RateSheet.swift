@@ -7,8 +7,8 @@ struct RateSheet: View {
     let env: () -> PromptEnv?
     var onRework: () -> Void
     var onExit: () -> Void
-    @Environment(AppSession.self) private var session
-    @Environment(LibraryStore.self) private var library
+    @Environment(\.appSession) private var session
+    @Environment(\.library) private var library
     @Environment(\.dismiss) private var dismiss
     @AppStorage("songpad:rtone") private var tone = "enc"
     @State private var scope = "song"

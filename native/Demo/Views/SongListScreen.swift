@@ -5,8 +5,8 @@ import UniformTypeIdentifiers
 /// The song list: Pinned first, then folders and Songs, each group ordered by its newest song
 /// (spec §1.6), with search, swipe actions and press-and-hold menus.
 struct SongListScreen: View {
-    @Environment(AppSession.self) private var session
-    @Environment(LibraryStore.self) private var library
+    @Environment(\.appSession) private var session
+    @Environment(\.library) private var library
     @State private var path: [String] = []
     @State private var query = ""
     @State private var confirmDelete: Song?
@@ -365,7 +365,7 @@ enum ShortDate {
 
 /// The Account button: plan tag plus photo or person icon, in a glass capsule (top right).
 struct AccountButton: View {
-    @Environment(AppSession.self) private var session
+    @Environment(\.appSession) private var session
     let action: () -> Void
     var body: some View {
         Button {

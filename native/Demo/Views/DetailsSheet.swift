@@ -19,8 +19,8 @@ struct DetailsSheet: View {
     var onPlayWithLyrics: () -> Void = {}
     var onLeave: () -> Void = {}
     var onPerform: () -> Void = {}
-    @Environment(AppSession.self) private var session
-    @Environment(LibraryStore.self) private var library
+    @Environment(\.appSession) private var session
+    @Environment(\.library) private var library
     @Environment(\.dismiss) private var dismiss
     @State private var confirmDelete = false
     @State private var showInvite = false

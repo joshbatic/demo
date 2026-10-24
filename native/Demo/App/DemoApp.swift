@@ -3,7 +3,7 @@ import UIKit
 
 @main
 struct DemoApp: App {
-    @State private var session = AppSession()
+    @State private var session = AppSession.shared
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @Environment(\.scenePhase) private var scenePhase
 

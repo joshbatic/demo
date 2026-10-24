@@ -6,8 +6,8 @@ import UserNotifications
 /// Account (spec §6): the profile, plan, invitations, name and username, notifications, links, your songs,
 /// Muse & privacy, About & support and the account actions, with the plan and credits as their own pages.
 struct AccountScreen: View {
-    @Environment(AppSession.self) private var session
-    @Environment(LibraryStore.self) private var library
+    @Environment(\.appSession) private var session
+    @Environment(\.library) private var library
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @State private var collab = Collab.shared
@@ -390,7 +390,7 @@ struct AccountScreen: View {
 
 /// Settings-style: the fields in a form, Save in the navigation bar.
 struct NameEditPage: View {
-    @Environment(AppSession.self) private var session
+    @Environment(\.appSession) private var session
     @Environment(\.dismiss) private var dismiss
     @State private var name = ""
     @State private var user = ""
@@ -449,7 +449,7 @@ struct NameEditPage: View {
 // MARK: - Links (§6.4)
 
 struct LinksEditPage: View {
-    @Environment(AppSession.self) private var session
+    @Environment(\.appSession) private var session
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @State private var spotify = ""
@@ -510,7 +510,7 @@ struct LinksEditPage: View {
 
 struct SupportPage: View {
     @Binding var tickets: [AppSession.Ticket]
-    @Environment(AppSession.self) private var session
+    @Environment(\.appSession) private var session
     @State private var topic = "bug"
     @State private var message = ""
     @State private var diag = true
@@ -600,7 +600,7 @@ enum SupportForm {
 // MARK: - Plan page (§6.6)
 
 struct PlanPage: View {
-    @Environment(AppSession.self) private var session
+    @Environment(\.appSession) private var session
     @State private var store = Store.shared
 
     var body: some View {
@@ -678,8 +678,8 @@ struct PlanPage: View {
 
 struct CreditsPage: View {
     var onOpen: (String) -> Void
-    @Environment(AppSession.self) private var session
-    @Environment(LibraryStore.self) private var library
+    @Environment(\.appSession) private var session
+    @Environment(\.library) private var library
 
     /// Finished songs with a title that are yours, co-written, or not shared.
     static func finished(_ library: LibraryStore, me: String?) -> [Song] {

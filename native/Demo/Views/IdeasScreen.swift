@@ -3,7 +3,7 @@ import SwiftUI
 /// The Ideas row at the top of the song list.
 struct IdeasRow: View {
     static let route = "__ideas__"
-    @Environment(LibraryStore.self) private var library
+    @Environment(\.library) private var library
     @State private var newIdea = false
 
     var body: some View {
@@ -48,8 +48,8 @@ struct IdeasRow: View {
 
 /// Ideas (spec §5): a jot box with voice memos on top, then every idea, newest first.
 struct IdeasScreen: View {
-    @Environment(AppSession.self) private var session
-    @Environment(LibraryStore.self) private var library
+    @Environment(\.appSession) private var session
+    @Environment(\.library) private var library
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @State private var jot = ""
@@ -245,7 +245,7 @@ struct LiveLevels: View {
 /// An idea in the list: its text, the memo player, and the date (" · In a song" once a song was started from it).
 struct IdeaCard: View {
     let idea: Idea
-    @Environment(LibraryStore.self) private var library
+    @Environment(\.library) private var library
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if !idea.text.isEmpty {
@@ -265,7 +265,7 @@ struct MemoPlayer: View {
     let ideaID: String
     let memo: FileItem
     var large = false
-    @Environment(AppSession.self) private var session
+    @Environment(\.appSession) private var session
     private var player: AudioPlayer { AudioPlayer.shared }
 
     var body: some View {
@@ -295,8 +295,8 @@ struct MemoPlayer: View {
 /// The Idea sheet (spec §2.6). Saves when it closes.
 struct IdeaSheet: View {
     let idea: Idea?
-    @Environment(AppSession.self) private var session
-    @Environment(LibraryStore.self) private var library
+    @Environment(\.appSession) private var session
+    @Environment(\.library) private var library
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openRoute) private var openRoute
     @State private var text = ""

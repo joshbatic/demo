@@ -8,8 +8,8 @@ struct CollabSection: View {
     var onInvite: () -> Void = {}
     /// bumped when that screen closes, to reload the people
     var refresh = 0
-    @Environment(AppSession.self) private var session
-    @Environment(LibraryStore.self) private var library
+    @Environment(\.appSession) private var session
+    @Environment(\.library) private var library
     @State private var people: [Collab.Person] = []
     @State private var armed: String?
     @State private var confirmStop = false
@@ -190,8 +190,8 @@ struct InviteBanner: View {
 struct InviteSheet: View {
     let songID: String
     @State private var people: [Collab.Person] = []
-    @Environment(AppSession.self) private var session
-    @Environment(LibraryStore.self) private var library
+    @Environment(\.appSession) private var session
+    @Environment(\.library) private var library
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
     @State private var results: [Collab.Person] = []

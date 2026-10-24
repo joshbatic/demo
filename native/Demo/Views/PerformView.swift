@@ -5,7 +5,7 @@ import UIKit
 /// auto-scroll (28 pt a second × speed). Tapping the words plays or pauses. The screen stays awake.
 struct PerformView: View {
     let songID: String
-    @Environment(LibraryStore.self) private var library
+    @Environment(\.library) private var library
     @Environment(\.dismiss) private var dismiss
     @AppStorage("perf.size") private var size = 34.0
     @AppStorage("perf.speed") private var speedIndex = 2

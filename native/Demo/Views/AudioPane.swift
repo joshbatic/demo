@@ -6,8 +6,8 @@ import UniformTypeIdentifiers
 struct AudioPane: View {
     let songID: String
     var onPlayWithLyrics: () -> Void
-    @Environment(AppSession.self) private var session
-    @Environment(LibraryStore.self) private var library
+    @Environment(\.appSession) private var session
+    @Environment(\.library) private var library
     @State private var busy: [Busy] = []
     @State private var openID: String?
     @State private var armedDelete: String?

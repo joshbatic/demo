@@ -5,8 +5,8 @@ import Combine
 
 struct EditorScreen: View {
     let songID: String
-    @Environment(AppSession.self) private var session
-    @Environment(LibraryStore.self) private var library
+    @Environment(\.appSession) private var session
+    @Environment(\.library) private var library
     @Environment(\.dismiss) private var dismiss
     @State private var bridge = EditorBridge()
     @State private var detailsTab: DetailsTab?

@@ -5,7 +5,7 @@ import SwiftUI
 struct SongPlayer: View {
     let song: Song
     var onPlayWithLyrics: () -> Void
-    @Environment(AppSession.self) private var session
+    @Environment(\.appSession) private var session
     @AppStorage("np.open") private var open = false
     private var player: AudioPlayer { AudioPlayer.shared }
 

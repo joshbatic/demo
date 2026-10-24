@@ -10,8 +10,8 @@ struct MuseSheet: View {
     var onRate: () -> Void
     var onRateOff: () -> Void
     var onSprint: (_ seconds: Int, _ scratch: String?) -> Void
-    @Environment(AppSession.self) private var session
-    @Environment(LibraryStore.self) private var library
+    @Environment(\.appSession) private var session
+    @Environment(\.library) private var library
     @Environment(\.dismiss) private var dismiss
     @State private var out: Output = .none
     @State private var seq = 0

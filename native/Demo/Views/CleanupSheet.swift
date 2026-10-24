@@ -125,8 +125,8 @@ nonisolated extension String {
 struct CleanupSheet: View {
     let songID: String
     var onApplied: () -> Void
-    @Environment(LibraryStore.self) private var library
-    @Environment(AppSession.self) private var session
+    @Environment(\.library) private var library
+    @Environment(\.appSession) private var session
     @Environment(\.dismiss) private var dismiss
     @State private var caseMode = "sentence"
     @State private var stream = false

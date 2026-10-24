@@ -3,7 +3,7 @@ import SwiftUI
 /// The paywall (spec §2.9): the Pro hero, what's included, and the Yearly / Monthly trial on iPhone.
 struct PaywallView: View {
     let why: String
-    @Environment(AppSession.self) private var session
+    @Environment(\.appSession) private var session
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @State private var store = Store.shared
