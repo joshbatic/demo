@@ -104,14 +104,14 @@ struct ProBannerView: View {
                 HStack(spacing: 12) {
                     AppMark(size: 36)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("*[demo] Pro").font(.system(size: 15, weight: .semibold))
-                        Text(n.msg).font(.system(size: 13.5)).foregroundStyle(.secondary).lineLimit(3)
+                        Text("*[demo] Pro").font(.system(size: 15, weight: .semibold)).foregroundStyle(.white)
+                        Text(n.msg).font(.system(size: 13.5)).foregroundStyle(.white.opacity(0.88)).lineLimit(3)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(.tertiary)
+                    Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(.white.opacity(0.75))
                     Button { withAnimation(.snappy) { session.proNote = nil } } label: {
-                        Image(systemName: "xmark").font(.system(size: 12, weight: .bold)).foregroundStyle(.secondary)
-                            .frame(width: 28, height: 28).background(BarFill.color, in: Circle())
+                        Image(systemName: "xmark").font(.system(size: 12, weight: .bold)).foregroundStyle(.white)
+                            .frame(width: 28, height: 28).background(.white.opacity(0.22), in: Circle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Close")
@@ -124,7 +124,15 @@ struct ProBannerView: View {
                     withAnimation(.snappy) { session.proNote = nil }
                     session.openAccount(k)
                 }
-                .glass(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                // a warm orange card that stands out from the app's glass
+                .background {
+                    let shape = RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    shape.fill(LinearGradient(colors: [Color(hex: 0xFFB340), Color(hex: 0xFF8A00), Color(hex: 0xFF5E1A)],
+                                              startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .overlay(shape.strokeBorder(LinearGradient(colors: [.white.opacity(0.45), .white.opacity(0)], startPoint: .top, endPoint: .center), lineWidth: 1))
+                        .shadow(color: Color(hex: 0xFF6A00).opacity(0.35), radius: 16, y: 8)
+                }
+                .environment(\.colorScheme, .light)
                 .padding(.horizontal, 12)
                 .hudHit("pro")
                 .transition(.move(edge: .bottom).combined(with: .opacity))
