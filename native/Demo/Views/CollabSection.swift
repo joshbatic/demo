@@ -7,10 +7,7 @@ struct CollabSection: View {
     @Environment(AppSession.self) private var session
     @Environment(LibraryStore.self) private var library
     @State private var people: [Collab.Person] = []
-    @State private var invite = ""
-    @State private var suggestions: [Collab.Person] = []
-    @State private var sending = false
-    @State private var note: String?
+    @State private var showInvite = false
     @State private var armed: String?
     @State private var confirmStop = false
     @State private var confirmLeave = false
@@ -64,30 +61,12 @@ struct CollabSection: View {
     @ViewBuilder private func shared(_ s: Song) -> some View {
         Section {
             if isOwner {
-                // the web's .clinv: "@", the field and a filled Invite pill
-                HStack(spacing: 8) {
-                    Text("@").font(.system(size: 17, weight: .medium)).foregroundStyle(.secondary)
-                    TextField("Invite by username", text: $invite)
-                        .font(.system(size: 16.5))
-                        .textInputAutocapitalization(.never).autocorrectionDisabled()
-                        .submitLabel(.send).onSubmit { send() }
-                    let empty = invite.trimmingCharacters(in: .whitespaces).isEmpty
-                    Button { send() } label: {
-                        Text("Invite").font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.onTint)
-                            .padding(.horizontal, 16).frame(height: 34).background(Theme.tint, in: Capsule())
+                // a plain, obvious row; the search itself gets its own screen
+                Button { Haptics.tap(); showInvite = true } label: {
+                    Label { Text("Invite a Co-writer").foregroundStyle(Theme.tint) } icon: {
+                        Image(systemName: "person.badge.plus").foregroundStyle(Theme.tint)
                     }
-                    .buttonStyle(.borderless)
-                    .opacity(empty || sending ? 0.5 : 1)
-                    .disabled(empty || sending)
-                }
-                .padding(.vertical, 2)
-                if let note { Text(note).font(.footnote).foregroundStyle(.secondary) }
-                ForEach(suggestions) { p in
-                    let b = badge(for: p)
-                    Button { if b == "Invite" { invite = p.username; send() } } label: {
-                        personRow(avatar: p.avatar, name: p.name, sub: "@" + p.username) { pill(b, kind: b == "Invite" ? .add : b == "Invited" ? .invited : .plain) }
-                    }
-                    .buttonStyle(.plain)
+                    .font(.system(size: 17, weight: .medium))
                 }
             }
             ForEach(people) { p in
@@ -123,10 +102,8 @@ struct CollabSection: View {
             Text(isOwner ? "Co-writers need *[demo] and a username." : "Leaving removes the song from your library.")
         }
         .task(id: s.id) { await load() }
-        .task(id: invite) {
-            guard isOwner else { return }
-            try? await Task.sleep(for: .milliseconds(250))
-            suggestions = await Collab.shared.suggest(invite)
+        .sheet(isPresented: $showInvite, onDismiss: { Task { await load() } }) {
+            InviteSheet(songID: songID, people: people)
         }
         .confirmationDialog("Stop sharing “\(s.displayTitle)”?", isPresented: $confirmStop, titleVisibility: .visible) {
             Button("Stop Sharing", role: .destructive) { Task { await Collab.shared.stopSharing(songID); people = [] } }
@@ -169,30 +146,8 @@ struct CollabSection: View {
             }
     }
 
-    private func badge(for p: Collab.Person) -> String {
-        if let x = people.first(where: { $0.id == p.id }) { return x.role == "invited" ? "Invited" : "On song" }
-        return "Invite"
-    }
-
     private func load() async { people = await Collab.shared.people(song ?? Song(raw: [:])) }
 
-    private func send() {
-        let v = invite.trimmingCharacters(in: .whitespaces)
-        guard !v.isEmpty, !sending else { note = "Enter a username"; return }
-        sending = true
-        Task {
-            let err = await Collab.shared.invite(v, to: songID)
-            sending = false
-            if let err { note = err; Haptics.warning() }
-            else {
-                note = nil
-                Haptics.success()
-                session.toast = "Invited @" + v.replacingOccurrences(of: "@", with: "").lowercased()
-                invite = ""; suggestions = []
-                await load()
-            }
-        }
-    }
 }
 
 /// The invite banner (spec §3.8): "X invited you to write “T” together" with Accept / Not now, 20 s.
@@ -227,6 +182,116 @@ struct InviteBanner: View {
                 try? await Task.sleep(for: .seconds(20))
                 if collab.banner?.id == inv.id { withAnimation { collab.banner = nil } }
             }
+        }
+    }
+}
+
+/// Invite a Co-writer: a search for usernames with clear results, each with its own Invite button.
+struct InviteSheet: View {
+    let songID: String
+    let people: [Collab.Person]
+    @Environment(AppSession.self) private var session
+    @Environment(\.dismiss) private var dismiss
+    @State private var query = ""
+    @State private var results: [Collab.Person] = []
+    @State private var searching = false
+    @State private var sent: Set<String> = []
+    @State private var sending: String?
+    @State private var error: String?
+    @FocusState private var focused: Bool
+
+    private var typed: String { query.replacingOccurrences(of: "@", with: "").trimmingCharacters(in: .whitespaces).lowercased() }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    HStack(spacing: 10) {
+                        Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+                        Text("@").font(.system(size: 17, weight: .medium)).foregroundStyle(.secondary).padding(.trailing, -6)
+                        TextField("username", text: $query)
+                            .font(.system(size: 17))
+                            .textInputAutocapitalization(.never).autocorrectionDisabled()
+                            .textContentType(.username)
+                            .submitLabel(.send)
+                            .focused($focused)
+                            .onSubmit { if !typed.isEmpty { invite(typed, id: "typed") } }
+                        if searching { ProgressView().controlSize(.small) }
+                        else if !query.isEmpty {
+                            Button { query = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary) }
+                                .buttonStyle(.borderless).accessibilityLabel("Clear")
+                        }
+                    }
+                } footer: {
+                    Text(error ?? "Search by username. Co-writers need *[demo] and a username.")
+                        .foregroundStyle(error == nil ? Color.secondary : Color.red)
+                }
+                if !results.isEmpty {
+                    Section("People") {
+                        ForEach(results) { p in row(p) }
+                    }
+                } else if typed.count >= 2 && !searching {
+                    Section {
+                        Text("No one with a username starting “\(typed)”.").foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .navigationTitle("Invite a Co-writer")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } } }
+            .task(id: typed) {
+                error = nil
+                guard typed.count >= 2 else { results = []; return }
+                searching = true
+                try? await Task.sleep(for: .milliseconds(250))
+                guard !Task.isCancelled else { return }
+                results = await Collab.shared.suggest(typed)
+                searching = false
+            }
+            .onAppear { DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { focused = true } }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    private func status(_ p: Collab.Person) -> String? {
+        if sent.contains(p.id) { return "Invited" }
+        if let x = people.first(where: { $0.id == p.id }) { return x.role == "invited" ? "Invited" : "On song" }
+        return nil
+    }
+
+    private func row(_ p: Collab.Person) -> some View {
+        HStack(spacing: 12) {
+            Avatar(url: p.avatar, name: p.name, size: 40)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(p.name).font(.system(size: 16, weight: .semibold)).lineLimit(1)
+                Text("@" + p.username).font(.system(size: 14)).foregroundStyle(.secondary).lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            if let st = status(p) {
+                Label(st, systemImage: "checkmark").font(.system(size: 14, weight: .semibold)).foregroundStyle(.secondary)
+            } else if sending == p.id {
+                ProgressView()
+            } else {
+                Button { invite(p.username, id: p.id) } label: {
+                    Text("Invite").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.onTint)
+                        .padding(.horizontal, 16).frame(height: 34).background(Theme.tint, in: Capsule())
+                }
+                .buttonStyle(.borderless)
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    private func invite(_ username: String, id: String) {
+        guard sending == nil else { return }
+        sending = id
+        Task {
+            let err = await Collab.shared.invite(username, to: songID)
+            sending = nil
+            if let err { error = err; Haptics.warning(); return }
+            Haptics.success()
+            if let p = results.first(where: { $0.username.lowercased() == username.lowercased() }) { sent.insert(p.id) }
+            session.toast = "Invited @" + username.lowercased()
         }
     }
 }

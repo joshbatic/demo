@@ -77,7 +77,7 @@ struct DetailsSheet: View {
             HStack {
                 Text("Tempo")
                 Spacer()
-                TextField("BPM", text: binding(\.bpm)).keyboardType(.numberPad).multilineTextAlignment(.trailing).foregroundStyle(.secondary).frame(maxWidth: 140)
+                TextField("BPM", text: binding(\.bpm)).keyboardType(.numberPad).multilineTextAlignment(.trailing).foregroundStyle(Theme.tint).frame(maxWidth: 140)
             }
             field("Tuning", \.tuning, prompt: "Standard")
             menuRow("Status", value: song?.status ?? "Idea") {
@@ -397,12 +397,13 @@ struct DetailsSheet: View {
 
     // MARK: bindings
 
-    /// A row like the web's label.row: the name on the left, the value typed on the right in grey.
+    /// A row like the web's label.row: the name on the left, the value typed on the right.
     private func field(_ label: String, _ kp: WritableKeyPath<Song, String>, prompt: String) -> some View {
         HStack {
             Text(label)
             Spacer()
-            TextField(prompt, text: binding(kp)).multilineTextAlignment(.trailing).foregroundStyle(.secondary)
+            TextField(prompt, text: binding(kp)).multilineTextAlignment(.trailing)
+                .foregroundStyle(Theme.tint)          // what you typed reads clearly; the hint stays grey
         }
     }
 
