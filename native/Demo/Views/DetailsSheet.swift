@@ -98,10 +98,9 @@ struct DetailsSheet: View {
                 }
         }
         Section {
+            // grows with what's written, one line to start
             TextField("Notes: melody ideas, references, co-writers", text: binding(\.notes), axis: .vertical)
-                .lineLimit(4...12)
-                .frame(minHeight: 88, alignment: .topLeading)
-                .padding(.vertical, 4)
+                .lineLimit(1...30)
         }
         CollabSection(songID: songID, onLeft: { dismiss(); onLeave() }, onInvite: { showInvite = true }, refresh: inviteClosed)
         Section("Versions") {

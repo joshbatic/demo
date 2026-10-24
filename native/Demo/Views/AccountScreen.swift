@@ -251,11 +251,20 @@ struct AccountScreen: View {
                     }
                 }
                 if let nameError { Text(nameError).font(.footnote).foregroundStyle(.red) }
-                HStack {
-                    Button("Cancel") { withAnimation(.snappy) { editingName = false } }.buttonStyle(.borderless)
-                    Spacer()
-                    Button(savingName ? "Saving…" : "Save") { saveName() }.buttonStyle(.borderless).fontWeight(.semibold).disabled(savingName)
+                HStack(spacing: 10) {
+                    Button { withAnimation(.snappy) { editingName = false } } label: {
+                        Text("Cancel").frame(maxWidth: .infinity)
+                    }
+                    .glassButton()
+                    Button { saveName() } label: {
+                        Text(savingName ? "Saving…" : "Save").fontWeight(.semibold).frame(maxWidth: .infinity)
+                    }
+                    .glassButton(prominent: true)
+                    .disabled(savingName)
                 }
+                .controlSize(.large)
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
             }
             Button { notificationsTapped() } label: {
                 LabeledContent {
@@ -326,6 +335,17 @@ struct AccountScreen: View {
                 linkField("Spotify", "Paste your artist link", $spotify)
                 linkField("Instagram", "@username", $instagram)
                 linkField("TikTok", "@username", $tiktok)
+                HStack(spacing: 10) {
+                    Button { withAnimation(.snappy) { editingLinks = false } } label: { Text("Cancel").frame(maxWidth: .infinity) }
+                        .glassButton()
+                    Button {
+                        Task { if await session.saveLinks(spotify: spotify, instagram: instagram, tiktok: tiktok) { withAnimation(.snappy) { editingLinks = false } } }
+                    } label: { Text("Save").fontWeight(.semibold).frame(maxWidth: .infinity) }
+                        .glassButton(prominent: true)
+                }
+                .controlSize(.large)
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
             } else {
                 linkRow("Spotify", "spotify", session.profile.link_spotify)
                 linkRow("Instagram", "instagram", session.profile.link_instagram)
@@ -335,13 +355,7 @@ struct AccountScreen: View {
             HStack {
                 Text("Links")
                 Spacer()
-                if editingLinks {
-                    Button("Cancel") { withAnimation(.snappy) { editingLinks = false } }.textCase(nil)
-                    Button("Save") {
-                        Task { if await session.saveLinks(spotify: spotify, instagram: instagram, tiktok: tiktok) { withAnimation(.snappy) { editingLinks = false } } }
-                    }
-                    .fontWeight(.semibold).textCase(nil).padding(.leading, 12)
-                } else {
+                if !editingLinks {
                     Button("Edit") {
                         spotify = session.profile.link_spotify ?? ""
                         instagram = AppSession.linkLabel(session.profile.link_instagram, kind: "instagram") ?? ""
@@ -349,6 +363,8 @@ struct AccountScreen: View {
                         withAnimation(.snappy) { editingLinks = true }
                     }
                     .textCase(nil)
+                    .glassButton()
+                    .controlSize(.small)
                 }
             }
             .font(.system(size: 13))
@@ -528,7 +544,7 @@ struct SupportForm: View {
             }
         }
         if let error { Text(error).font(.footnote).foregroundStyle(.red) }
-        Button(sending ? "Sending…" : "Send") {
+        Button {
             guard !sending else { return }
             sending = true
             Task {
@@ -540,9 +556,14 @@ struct SupportForm: View {
                 tickets = await session.tickets()
                 await Push.shared.ask("You’ll also get a notification when we reply.")
             }
+        } label: {
+            Text(sending ? "Sending…" : "Send").fontWeight(.semibold).frame(maxWidth: .infinity)
         }
-        .fontWeight(.semibold)
+        .glassButton(prominent: true)
+        .controlSize(.large)
         .disabled(sending)
+        .listRowBackground(Color.clear)
+        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
         Text("We reply by email to \(session.email), usually within a day.").font(.footnote).foregroundStyle(.secondary)
         if !tickets.isEmpty {
             ForEach(tickets) { t in

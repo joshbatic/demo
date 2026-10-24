@@ -66,3 +66,14 @@ extension View {
         return presentationDetents([.height(h)])
     }
 }
+
+extension View {
+    /// An iOS 26 Liquid Glass button (tinted when `prominent`); the bordered style before that.
+    @ViewBuilder func glassButton(prominent: Bool = false) -> some View {
+        if #available(iOS 26.0, *) {
+            if prominent { buttonStyle(.glassProminent).tint(Theme.tint) } else { buttonStyle(.glass) }
+        } else {
+            if prominent { buttonStyle(.borderedProminent).tint(Theme.tint) } else { buttonStyle(.bordered) }
+        }
+    }
+}

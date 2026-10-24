@@ -66,10 +66,11 @@ struct CollabSection: View {
             if isOwner {
                 // a plain, obvious row; the search itself gets its own screen
                 Button { Haptics.tap(); onInvite() } label: {
-                    Label { Text("Invite a Co-writer").foregroundStyle(Theme.tint) } icon: {
-                        Image(systemName: "person.badge.plus").foregroundStyle(Theme.tint)
+                    HStack {
+                        Label { Text("Invite a Co-writer").foregroundStyle(.primary) } icon: { TileIcon("person.badge.plus", Theme.Tile.blue) }
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(.tertiary)
                     }
-                    .font(.system(size: 17, weight: .medium))
                 }
             }
             ForEach(people) { p in
