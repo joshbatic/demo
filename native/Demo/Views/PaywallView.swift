@@ -18,8 +18,7 @@ struct PaywallView: View {
                     VStack(alignment: .leading, spacing: 18) {
                         ForEach(Pro.features) { f in
                             HStack(alignment: .top, spacing: 14) {
-                                Image(systemName: f.icon).font(.system(size: 17, weight: .semibold)).foregroundStyle(.white)
-                                    .frame(width: 38, height: 38).background(f.color, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                TileIcon(f.icon, f.color, size: 40)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(f.title).font(.system(size: 17, weight: .semibold))
                                     Text(f.sub).font(.system(size: 15)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)

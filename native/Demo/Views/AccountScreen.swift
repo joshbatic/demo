@@ -149,11 +149,9 @@ struct AccountScreen: View {
         Section {
             NavigationLink(value: "plan") {
                 HStack(spacing: 12) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 7, style: .continuous).fill(LinearGradient(colors: [Color(hex: 0xFFC2DA), Color(hex: 0xB9A6FF)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        ProMark(size: 14)
-                    }
-                    .frame(width: 29, height: 29)
+                    ProMark(size: 14)
+                        .frame(width: 30, height: 30)
+                        .background { TileBackground(colors: [Color(hex: 0xFFC2DA), Color(hex: 0xB9A6FF)], size: 30) }
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 6) {
                             Text(session.plan.tier == "beta" ? "*[demo] Beta" : "*[demo] Pro").font(.system(size: 17))
@@ -300,13 +298,13 @@ struct AccountScreen: View {
             }
             .labelStyle(TileLabelStyle(color: Theme.Tile.orange))
             Button { Haptics.tap(); importing = true } label: {
-                Label { Text("Import Songs").foregroundStyle(.primary) } icon: { TileIcon("square.and.arrow.down", Theme.Tile.blue) }
+                Label { Text("Import Songs").foregroundStyle(.primary) } icon: { TileIcon("square.and.arrow.down.fill", Theme.Tile.blue) }
             }
             Button {
                 Haptics.tap()
                 if let u = library.exportFile() { exportURL = u } else { session.toast = "No songs to export yet" }
             } label: {
-                Label { Text("Export All Songs").foregroundStyle(.primary) } icon: { TileIcon("square.and.arrow.up", Theme.Tile.green) }
+                Label { Text("Export All Songs").foregroundStyle(.primary) } icon: { TileIcon("square.and.arrow.up.fill", Theme.Tile.green) }
             }
             LabeledContent {
                 if let st = storage {
@@ -334,7 +332,7 @@ struct AccountScreen: View {
                 Button { withAnimation(.snappy) { blockedOpen.toggle() } } label: {
                     LabeledContent {
                         Text("\(blocked.count)")
-                    } label: { Label { Text("Blocked").foregroundStyle(.primary) } icon: { TileIcon("hand.raised.fill", Theme.Tile.pink) } }
+                    } label: { Label { Text("Blocked").foregroundStyle(.primary) } icon: { TileIcon("nosign", Theme.Tile.pink) } }
                 }
                 if blockedOpen {
                     ForEach(blocked) { b in
@@ -368,7 +366,7 @@ struct AccountScreen: View {
                 LabeledContent {
                     let n = tickets.reduce(0) { $0 + $1.replies.count }
                     if n > 0 { Text(n == 1 ? "1 reply" : "\(n) replies") }
-                } label: { Label { Text("Contact Support") } icon: { TileIcon("bubble.left.and.text.bubble.right.fill", Theme.Tile.green) } }
+                } label: { Label { Text("Contact Support") } icon: { TileIcon("bubble.left.fill", Theme.Tile.green) } }
             }
         }
     }
@@ -388,33 +386,6 @@ struct AccountScreen: View {
             Button("Delete Account", role: .destructive) { Haptics.warning(); confirmDelete = true }
         } footer: {
             Text("Version \(Config.appVersion)").textSelection(.enabled).frame(maxWidth: .infinity).padding(.top, 10)
-        }
-    }
-}
-
-/// A Settings-style icon: a white symbol on a solid system-colour tile.
-struct TileIcon: View {
-    let name: String
-    let color: Color
-    init(_ name: String, _ color: Color) { self.name = name; self.color = color }
-    var body: some View {
-        Image(systemName: name)
-            .font(.system(size: 14, weight: .semibold))
-            .foregroundStyle(.white)
-            .frame(width: 29, height: 29)
-            .background(color, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
-    }
-}
-
-/// Puts a Label's icon on a coloured tile (for rows built from a plain Label).
-struct TileLabelStyle: LabelStyle {
-    let color: Color
-    func makeBody(configuration: Configuration) -> some View {
-        Label {
-            configuration.title.foregroundStyle(.primary)
-        } icon: {
-            configuration.icon.font(.system(size: 14, weight: .semibold)).foregroundStyle(.white)
-                .frame(width: 29, height: 29).background(color, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
         }
     }
 }
