@@ -321,6 +321,8 @@ struct RichTextEditor: UIViewRepresentable {
         if insets.bottom > 0 && abs(tv.contentInset.bottom - insets.bottom) > 0.5 {
             tv.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: insets.bottom, right: 0)
             tv.verticalScrollIndicatorInsets.bottom = insets.bottom
+            // the rhyme bar moved (keyboard, formatting row, Lines): keep the caret above it
+            DispatchQueue.main.async { (tv as? LyricsTextView)?.keepCaretVisible(animated: true) }
         }
         if let header, let hc = context.coordinator.headerHost {
             hc.rootView = Self.pinned(header, tv)
@@ -371,6 +373,8 @@ struct RichTextEditor: UIViewRepresentable {
         func textViewDidChange(_ tv: UITextView) {
             bridge?.lastEdit = Date()
             afterChange(tv)
+            // after the system's own scrolling, make sure the new text sits above the rhyme bar
+            DispatchQueue.main.async { (tv as? LyricsTextView)?.keepCaretVisible(animated: false) }
         }
 
         func afterChange(_ tv: UITextView) {
@@ -383,6 +387,10 @@ struct RichTextEditor: UIViewRepresentable {
 
         func textViewDidChangeSelection(_ tv: UITextView) {
             bridge?.onSelection?(tv.text, tv.selectedRange)
+            // only while typing (an empty selection); a drag-selection is left where the finger put it
+            if tv.selectedRange.length == 0, !tv.isTracking, !tv.isDragging, !tv.isDecelerating {
+                DispatchQueue.main.async { (tv as? LyricsTextView)?.keepCaretVisible(animated: true) }
+            }
         }
 
         /// Return on a [Chorus] line, when an earlier chorus exists, brings that chorus's lines (spec §4.3).
@@ -503,6 +511,44 @@ final class LyricsTextView: UITextView {
     private var lastTop: CGFloat = -1
     /// Reported by the header itself (0 until it first lays out).
     private var headerHeight: CGFloat = 0
+    /// The room the floating top bar takes (status bar + bar), worked out in layout.
+    private(set) var barSpace: CGFloat = 0
+    private var keyboardWatch: [NSObjectProtocol] = []
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        keyboardWatch.forEach(NotificationCenter.default.removeObserver)
+        keyboardWatch = []
+        guard window != nil else { return }
+        // the keyboard (and the rhyme bar riding on it) came up or changed size: bring the caret back into view
+        for n in [UIResponder.keyboardDidShowNotification, UIResponder.keyboardDidChangeFrameNotification] {
+            keyboardWatch.append(NotificationCenter.default.addObserver(forName: n, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.keepCaretVisible(animated: true) }
+            })
+        }
+    }
+
+    /// Keeps the line being typed between the top bar and the rhyme bar (which sits on the keyboard),
+    /// so you never type off screen. A little room is left below the caret.
+    func keepCaretVisible(animated: Bool) {
+        guard isFirstResponder, let r = selectedTextRange else { return }
+        layoutManager.ensureLayout(for: textContainer)
+        let caret = caretRect(for: r.end)
+        guard !caret.isNull, !caret.isInfinite, caret.height > 0 else { return }
+        let margin: CGFloat = 16
+        let visibleTop = contentOffset.y + barSpace + 4
+        let visibleBottom = contentOffset.y + bounds.height - contentInset.bottom - margin
+        var y = contentOffset.y
+        if caret.maxY > visibleBottom {
+            y += caret.maxY - visibleBottom
+        } else if caret.minY < visibleTop {
+            y -= visibleTop - caret.minY
+        } else { return }
+        let maxY = max(0, contentSize.height + contentInset.bottom - bounds.height)
+        y = min(max(0, y), max(maxY, y))
+        guard abs(y - contentOffset.y) > 0.5 else { return }
+        setContentOffset(CGPoint(x: contentOffset.x, y: y), animated: animated)
+    }
 
     /// The header's new height: the lyrics move down (or up) to match, animated like the header.
     func setHeaderHeight(_ h: CGFloat) {
@@ -526,6 +572,7 @@ final class LyricsTextView: UITextView {
         // the floating top bar: the status bar, then 8 + 48 + 12 pt (EditorScreen.topBar)
         let barRoom = (window?.safeAreaInsets.top ?? safeAreaInsets.top) + 68
         let space = max(topSpace, barRoom)
+        barSpace = space
         var h: CGFloat = 0
         if let hc = header {
             if headerHeight == 0 {
