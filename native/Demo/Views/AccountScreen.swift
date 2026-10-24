@@ -777,18 +777,30 @@ struct CreditsPage: View {
     }
 }
 
-/// The tile beside each link: the service's own colour with a simple symbol.
+/// The tile beside each link: the service's own logo (from the app's images) on its own colour.
+/// Apple Music shows its logo once an image named "brand-apple_music" is added to the asset catalog.
 struct LinkTile: View {
     let kind: String
+
     var body: some View {
-        switch kind {
-        case "spotify": TileIcon("waveform", Color(hex: 0x1DB954))
-        case "apple_music": TileIcon("music.note", Color(hex: 0xFA2D48))
-        case "instagram":
-            Image(systemName: "camera.fill").font(.system(size: 15, weight: .semibold)).foregroundStyle(.white)
-                .frame(width: 30, height: 30)
-                .background { TileBackground(colors: [Color(hex: 0xF77737), Color(hex: 0xE1306C), Color(hex: 0x833AB4)]) }
-        default: TileIcon("music.note", Color(hex: 0x111111))
+        let (bg, fg): ([Color], Color) = {
+            switch kind {
+            case "spotify": return ([Color(hex: 0x1ED760)], .black)
+            case "apple_music": return ([Color(hex: 0xFB5C74), Color(hex: 0xFA233B)], .white)
+            case "instagram": return ([Color(hex: 0xFEDA75), Color(hex: 0xFA7E1E), Color(hex: 0xD62976), Color(hex: 0x962FBF), Color(hex: 0x4F5BD5)], .white)
+            default: return ([Color(hex: 0x000000)], .white)
+            }
+        }()
+        Group {
+            if UIImage(named: "brand-" + kind) != nil {
+                Image("brand-" + kind).resizable().renderingMode(.template).scaledToFit()
+                    .frame(width: 18, height: 18).foregroundStyle(fg)
+            } else {
+                Image(systemName: "music.note").font(.system(size: 16, weight: .semibold)).foregroundStyle(fg)
+            }
         }
+        .frame(width: 30, height: 30)
+        .background { TileBackground(colors: bg) }
+        .accessibilityHidden(true)
     }
 }

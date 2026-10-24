@@ -98,18 +98,30 @@ struct TileIcon: View {
     }
 }
 
-/// The tile: the colour with a faint lift at the top, and a hairline edge so it holds its shape on white.
+/// The tile: the colour lit from the top left and settling a touch deeper at the bottom, a crisp bright line
+/// along the top edge (glass catching the light) and a hairline edge. No blur, so it stays sharp.
 struct TileBackground: View {
     var colors: [Color]
     var size: CGFloat = 30
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: size * 0.26, style: .continuous)
-        let fill: LinearGradient = colors.count > 1
-            ? LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)
-            : LinearGradient(colors: [colors[0].mix(with: .white, by: 0.12), colors[0]], startPoint: .top, endPoint: .bottom)
-        shape.fill(fill)
-            .overlay { shape.strokeBorder(Color.white.opacity(0.14), lineWidth: 0.5) }
+        let shape = RoundedRectangle(cornerRadius: size * 0.27, style: .continuous)
+        let base: AnyShapeStyle = colors.count > 1
+            ? AnyShapeStyle(LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing))
+            : AnyShapeStyle(colors[0])
+        shape.fill(base)
+            .overlay {
+                shape.fill(LinearGradient(stops: [.init(color: .white.opacity(0.26), location: 0),
+                                                  .init(color: .white.opacity(0), location: 0.52),
+                                                  .init(color: .black.opacity(0.10), location: 1)],
+                                          startPoint: UnitPoint(x: 0.32, y: 0), endPoint: UnitPoint(x: 0.68, y: 1)))
+            }
+            .overlay {
+                shape.strokeBorder(LinearGradient(stops: [.init(color: .white.opacity(0.40), location: 0),
+                                                          .init(color: .white.opacity(0), location: 0.12)],
+                                                  startPoint: .top, endPoint: .bottom), lineWidth: 1)
+            }
+            .overlay { shape.strokeBorder(Color.black.opacity(0.10), lineWidth: 0.5) }
     }
 }
 
