@@ -673,67 +673,67 @@ struct DictionarySheet: View {
     @State private var query = ""
     @State private var results = WordResults()
     @State private var insertAt: Int?
+    /// the word last looked up, so opening (and the typing debounce) never looks the same word up twice
+    @State private var lastShown = ""
+    /// what's on screen: kept while a new list loads and swapped in with a soft fade, never flashed empty
+    @State private var shown: [WordChip] = []
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 6) {
-                            ForEach(WordMode.allCases) { m in
-                                Button { Haptics.selection(); results.mode = m; results.refresh() } label: {
-                                    Text(m.title).font(.subheadline.weight(results.mode == m ? .semibold : .regular))
-                                        .padding(.horizontal, 12).padding(.vertical, 7)
-                                        .background(results.mode == m ? Color.primary.opacity(0.12) : Color.primary.opacity(0.04), in: Capsule())
-                                }.buttonStyle(.plain)
-                            }
-                        }.padding(.horizontal, 20)
-                    }
-                    Group {
-                        if query.trimmingCharacters(in: .whitespaces).isEmpty {
-                            Text("Search any word to see rhymes, synonyms, definitions and more.").foregroundStyle(.secondary)
-                        } else if results.mode == .def && !results.definitions.isEmpty {
-                            VStack(alignment: .leading, spacing: 10) {
-                                ForEach(Array(results.definitions.enumerated()), id: \.offset) { _, d in
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        if !d.0.isEmpty { Text(d.0).font(.caption.weight(.semibold)).foregroundStyle(.secondary) }
-                                        Text(d.1)
-                                    }
+                Group {
+                    if query.trimmingCharacters(in: .whitespaces).isEmpty {
+                        Text("Search any word to see rhymes, synonyms, definitions and more.").foregroundStyle(.secondary)
+                    } else if results.mode == .def && !results.definitions.isEmpty {
+                        VStack(alignment: .leading, spacing: 10) {
+                            ForEach(Array(results.definitions.enumerated()), id: \.offset) { _, d in
+                                VStack(alignment: .leading, spacing: 2) {
+                                    if !d.0.isEmpty { Text(d.0).font(.caption.weight(.semibold)).foregroundStyle(.secondary) }
+                                    Text(d.1)
                                 }
-                            }
-                        } else if !results.chips.isEmpty {
-                            FlowLayout(spacing: 8) {
-                                ForEach(results.chips) { c in
-                                    if c.nearStart { Text("near").font(.caption.weight(.semibold)).foregroundStyle(.tertiary).frame(height: 38) }
-                                    Button { insert(c.word) } label: {
-                                        HStack(spacing: 5) {
-                                            Text(c.word).font(.system(size: 17, weight: .medium))
-                                            Text("\(c.syl)").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
-                                        }
-                                        .padding(.horizontal, 14).frame(height: 38)
-                                        .background(Color.primary.opacity(0.07), in: Capsule())
-                                    }.buttonStyle(.plain)
-                                }
-                            }
-                        } else {
-                            HStack(spacing: 8) {
-                                if results.busy { ProgressView().controlSize(.small) }
-                                Text(results.busy ? "Looking up “\(query)”" : results.message ?? "").foregroundStyle(.secondary)
                             }
                         }
+                    } else if results.mode != .def && !shown.isEmpty {
+                        FlowLayout(spacing: 8) {
+                            ForEach(shown) { c in
+                                if c.nearStart { Text("near").font(.caption.weight(.semibold)).foregroundStyle(.tertiary).frame(height: 38) }
+                                Button { insert(c.word) } label: {
+                                    HStack(spacing: 5) {
+                                        Text(c.word).font(.system(size: 17, weight: .medium))
+                                        Text("\(c.syl)").font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+                                    }
+                                    .padding(.horizontal, 14).frame(height: 38)
+                                    .background(BarFill.color, in: Capsule())
+                                }
+                                .buttonStyle(PressScale())
+                            }
+                        }
+                        .opacity(results.busy ? 0.5 : 1)
+                    } else {
+                        HStack(spacing: 8) {
+                            if results.busy { ProgressView().controlSize(.small) }
+                            Text(results.busy ? "Looking up “\(query)”" : results.message ?? "").foregroundStyle(.secondary)
+                        }
                     }
-                    .padding(.horizontal, 20)
                 }
-                .padding(.vertical, 8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 20).padding(.vertical, 12)
             }
+            // the word modes stay pinned under the search field, on glass
+            .topBar { ModeGlassBar(mode: results.mode) { m in pick(m) } }
             .navigationTitle("Dictionary")
             .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search any word")
             .autocorrectionDisabled().textInputAutocapitalization(.never)
-            .onSubmit(of: .search) { results.show(query.trimmingCharacters(in: .whitespaces)) }
+            .onSubmit(of: .search) { look(query) }
             .task(id: query) {
                 try? await Task.sleep(for: .milliseconds(280))
-                results.show(query.trimmingCharacters(in: .whitespaces))
+                look(query)
+            }
+            .onChange(of: results.chips) { _, new in
+                // keep the old list up while the new one loads; then fade it in
+                guard !new.isEmpty || !results.busy else { return }
+                withAnimation(.easeOut(duration: 0.18)) { shown = new }
             }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -746,10 +746,24 @@ struct DictionarySheet: View {
             results.register = register
             results.perfectOnly = perfectOnly
             insertAt = bridge.caretLocation
-            if !initialWord.isEmpty { query = initialWord; results.show(initialWord) }
+            if !initialWord.isEmpty { query = initialWord; look(initialWord) }
         }
         .belowIslandSheet()
         .presentationDragIndicator(.visible)
+    }
+
+    private func look(_ q: String) {
+        let w = q.trimmingCharacters(in: .whitespaces)
+        guard w != lastShown else { return }
+        lastShown = w
+        results.show(w)
+    }
+
+    private func pick(_ m: WordMode) {
+        guard results.mode != m else { return }
+        Haptics.selection()
+        results.mode = m
+        results.refresh()
     }
 
     /// Inserts at the caret remembered when the Dictionary opened, and moves that point along (spec §2.8).
@@ -757,6 +771,47 @@ struct DictionarySheet: View {
         guard let at = insertAt else { return }
         insertAt = bridge.insertPlain(w, at: at)
         session.toast = "Inserted “\(w)”"
+    }
+}
+
+/// The Dictionary's word modes on Liquid Glass: each a glass capsule, the chosen one filled; on iOS 26 they
+/// share one glass container, so the selection melts from one to the next.
+struct ModeGlassBar: View {
+    let mode: WordMode
+    var onPick: (WordMode) -> Void
+    @Namespace private var ns
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                GlassGroup(spacing: 6) {
+                    HStack(spacing: 6) {
+                        ForEach(WordMode.allCases) { m in chip(m).id(m) }
+                    }
+                    .padding(.horizontal, 16).padding(.vertical, 8)
+                }
+            }
+            .onChange(of: mode) { _, m in withAnimation(.snappy) { proxy.scrollTo(m, anchor: .center) } }
+        }
+    }
+
+    @ViewBuilder private func chip(_ m: WordMode) -> some View {
+        let on = m == mode
+        let label = Text(m.title)
+            .font(.system(size: 15, weight: on ? .semibold : .medium))
+            .foregroundStyle(on ? Theme.onTint : Theme.tint)
+            .padding(.horizontal, 15).frame(height: 36)
+        Button { withAnimation(.snappy(duration: 0.25)) { onPick(m) } } label: {
+            if #available(iOS 26.0, *) {
+                label
+                    .glassEffect(on ? .regular.tint(Theme.tint).interactive() : .regular.interactive(), in: .capsule)
+                    .glassEffectID(m.rawValue, in: ns)
+            } else {
+                label.background(on ? AnyShapeStyle(Theme.tint) : AnyShapeStyle(.regularMaterial), in: Capsule())
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(on ? .isSelected : [])
     }
 }
 
