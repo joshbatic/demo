@@ -387,7 +387,7 @@ struct AccountScreen: View {
             Button("Sign Out", role: .destructive) { confirmSignOut = true }
             Button("Delete Account", role: .destructive) { Haptics.warning(); confirmDelete = true }
         } footer: {
-            Text("Version \(Config.appCommit)").textSelection(.enabled).frame(maxWidth: .infinity).padding(.top, 10)
+            Text("Version \(Config.appVersion)").textSelection(.enabled).frame(maxWidth: .infinity).padding(.top, 10)
         }
     }
 }

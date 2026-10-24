@@ -192,7 +192,7 @@ struct UpdateScreen: View {
                 }
                 .buttonStyle(PressScale())
                 .padding(.top, 10)
-                Text("Version \(Config.appCommit) · build \(Config.appSeq)").font(.footnote).foregroundStyle(.tertiary).padding(.top, 8)
+                Text("Version \(Config.appVersion) · build \(Config.appSeq)").font(.footnote).foregroundStyle(.tertiary).padding(.top, 8)
             }
             .padding(.horizontal, 32)
         }
