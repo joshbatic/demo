@@ -67,7 +67,7 @@ struct CollabSection: View {
                 // a plain, obvious row; the search itself gets its own screen
                 Button { Haptics.tap(); onInvite() } label: {
                     HStack {
-                        Label { Text("Invite a Co-writer").foregroundStyle(.primary) } icon: { TileIcon("person.badge.plus", Theme.Tile.blue) }
+                        Text("Invite a Co-writer").foregroundStyle(.primary)
                         Spacer()
                         Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(.tertiary)
                     }

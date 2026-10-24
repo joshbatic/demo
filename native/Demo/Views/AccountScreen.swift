@@ -49,6 +49,9 @@ struct AccountScreen: View {
                 supportSection
                 actionsSection
             }
+            // the photo sits just under the title bar, not a whole section's gap below it
+            .contentMargins(.top, 0, for: .scrollContent)
+            .listSectionSpacing(.compact)
             .navigationTitle("Account")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } } }
@@ -136,6 +139,7 @@ struct AccountScreen: View {
             }
             .frame(maxWidth: .infinity)
             .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 8, trailing: 16))
         }
     }
 
