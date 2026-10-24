@@ -442,6 +442,11 @@ struct ListHeader<Trailing: View>: View {
         // the web's .lhead: 28pt below the status bar
         .padding(.top, 28)
         .padding(.bottom, 14)
+        // the web's .fadeT.lhf: frosted glass solid behind the whole title row, fading out below it
+        .background(alignment: .top) {
+            EdgeFade(edge: .top, solidTo: 0.62, material: .thinMaterial)
+                .padding(.bottom, -30)
+        }
     }
 }
 
@@ -502,10 +507,11 @@ struct SearchDock: View {
 struct EdgeFade: View {
     let edge: VerticalEdge
     var solidTo: CGFloat = 0.45
+    var material: Material = .ultraThinMaterial
 
     var body: some View {
         Rectangle()
-            .fill(.ultraThinMaterial)
+            .fill(material)
             .mask {
                 LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: solidTo), .init(color: .clear, location: 1)],
                                startPoint: edge == .top ? .top : .bottom, endPoint: edge == .top ? .bottom : .top)
