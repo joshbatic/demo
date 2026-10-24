@@ -23,6 +23,8 @@ struct DetailsSheet: View {
     @Environment(LibraryStore.self) private var library
     @Environment(\.dismiss) private var dismiss
     @State private var confirmDelete = false
+    @State private var showInvite = false
+    @State private var inviteClosed = 0
     @State private var chordSel: TextSelection?
 
     static let statuses = ["Idea", "Draft", "Demo", "Finished"]
@@ -49,6 +51,9 @@ struct DetailsSheet: View {
             .navigationTitle("Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } } }
+            .sheet(isPresented: $showInvite, onDismiss: { inviteClosed += 1 }) {
+                InviteSheet(songID: songID)
+            }
             .confirmationDialog("Delete “\(song?.displayTitle ?? "")”?", isPresented: $confirmDelete, titleVisibility: .visible) {
                 Button("Delete Song", role: .destructive) { dismiss(); onDelete() }
             } message: { Text("This can’t be undone.") }
@@ -97,7 +102,7 @@ struct DetailsSheet: View {
                 .frame(minHeight: 88, alignment: .topLeading)
                 .padding(.vertical, 4)
         }
-        CollabSection(songID: songID, onLeft: { dismiss(); onLeave() })
+        CollabSection(songID: songID, onLeft: { dismiss(); onLeave() }, onInvite: { showInvite = true }, refresh: inviteClosed)
         Section("Versions") {
             Button {
                 guard var s = song else { return }

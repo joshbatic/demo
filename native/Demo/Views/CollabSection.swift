@@ -4,10 +4,13 @@ import SwiftUI
 struct CollabSection: View {
     let songID: String
     var onLeft: () -> Void
+    /// Invite a Co-writer is shown by the Details sheet itself (a sheet hung on a list row closes when the row goes)
+    var onInvite: () -> Void = {}
+    /// bumped when that screen closes, to reload the people
+    var refresh = 0
     @Environment(AppSession.self) private var session
     @Environment(LibraryStore.self) private var library
     @State private var people: [Collab.Person] = []
-    @State private var showInvite = false
     @State private var armed: String?
     @State private var confirmStop = false
     @State private var confirmLeave = false
@@ -62,7 +65,7 @@ struct CollabSection: View {
         Section {
             if isOwner {
                 // a plain, obvious row; the search itself gets its own screen
-                Button { Haptics.tap(); showInvite = true } label: {
+                Button { Haptics.tap(); onInvite() } label: {
                     Label { Text("Invite a Co-writer").foregroundStyle(Theme.tint) } icon: {
                         Image(systemName: "person.badge.plus").foregroundStyle(Theme.tint)
                     }
@@ -102,9 +105,7 @@ struct CollabSection: View {
             Text(isOwner ? "Co-writers need *[demo] and a username." : "Leaving removes the song from your library.")
         }
         .task(id: s.id) { await load() }
-        .sheet(isPresented: $showInvite, onDismiss: { Task { await load() } }) {
-            InviteSheet(songID: songID, people: people)
-        }
+        .task(id: refresh) { if refresh > 0 { await load() } }
         .confirmationDialog("Stop sharing “\(s.displayTitle)”?", isPresented: $confirmStop, titleVisibility: .visible) {
             Button("Stop Sharing", role: .destructive) { Task { await Collab.shared.stopSharing(songID); people = [] } }
         } message: { Text("Your co-writers lose access. The song stays with you.") }
@@ -189,8 +190,9 @@ struct InviteBanner: View {
 /// Invite a Co-writer: a search for usernames with clear results, each with its own Invite button.
 struct InviteSheet: View {
     let songID: String
-    let people: [Collab.Person]
+    @State private var people: [Collab.Person] = []
     @Environment(AppSession.self) private var session
+    @Environment(LibraryStore.self) private var library
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
     @State private var results: [Collab.Person] = []
@@ -249,6 +251,7 @@ struct InviteSheet: View {
                 searching = false
             }
             .onAppear { DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { focused = true } }
+            .task { if let s = library.song(songID) { people = await Collab.shared.people(s) } }
         }
         .presentationDetents([.medium, .large])
     }
