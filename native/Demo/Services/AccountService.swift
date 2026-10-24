@@ -95,6 +95,7 @@ extension AppSession {
         case "instagram": return "https://instagram.com/" + x
         case "tiktok": return "https://tiktok.com/@" + x
         case "spotify": return "https://open.spotify.com/artist/" + x
+        case "apple_music": return "https://music.apple.com/search?term=" + (x.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? x)
         default: return "https://" + x
         }
     }
@@ -102,18 +103,19 @@ extension AppSession {
     /// "@handle" for Instagram / TikTok, "Artist page" for Spotify.
     static func linkLabel(_ url: String?, kind: String) -> String? {
         guard let u = url, !u.isEmpty else { return nil }
-        if kind == "spotify" { return u.contains("/artist/") ? "Artist page" : "Connected" }
+        if kind == "spotify" || kind == "apple_music" { return u.contains("/artist/") ? "Artist page" : "Connected" }
         let last = u.split(separator: "/").last.map(String.init) ?? u
         return last.hasPrefix("@") ? last : "@" + last
     }
 
-    func saveLinks(spotify: String, instagram: String, tiktok: String) async -> Bool {
+    func saveLinks(spotify: String, appleMusic: String, instagram: String, tiktok: String) async -> Bool {
         guard let uid = userID else { return false }
-        let sp = Self.normaliseLink(spotify, kind: "spotify"), ig = Self.normaliseLink(instagram, kind: "instagram"), tt = Self.normaliseLink(tiktok, kind: "tiktok")
-        nonisolated struct Up: Encodable { let user_id: String; let updated_at: String; let link_spotify: String?; let link_instagram: String?; let link_tiktok: String? }
+        let sp = Self.normaliseLink(spotify, kind: "spotify"), am = Self.normaliseLink(appleMusic, kind: "apple_music")
+        let ig = Self.normaliseLink(instagram, kind: "instagram"), tt = Self.normaliseLink(tiktok, kind: "tiktok")
+        nonisolated struct Up: Encodable { let user_id: String; let updated_at: String; let link_spotify: String?; let link_apple_music: String?; let link_instagram: String?; let link_tiktok: String? }
         do {
-            try await Backend.client.from("profiles").upsert(Up(user_id: uid, updated_at: LibraryStore.iso(Date()), link_spotify: sp, link_instagram: ig, link_tiktok: tt), onConflict: "user_id").execute()
-            profile.link_spotify = sp; profile.link_instagram = ig; profile.link_tiktok = tt; cacheProfile()
+            try await Backend.client.from("profiles").upsert(Up(user_id: uid, updated_at: LibraryStore.iso(Date()), link_spotify: sp, link_apple_music: am, link_instagram: ig, link_tiktok: tt), onConflict: "user_id").execute()
+            profile.link_spotify = sp; profile.link_apple_music = am; profile.link_instagram = ig; profile.link_tiktok = tt; cacheProfile()
             toast = "Saved"; return true
         } catch { toast = "Couldn’t save: " + describe(error); return false }
     }

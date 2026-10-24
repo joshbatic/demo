@@ -882,6 +882,7 @@ button.cell:active,button.row:active,.drow:active,.accplan:active,.accme:active,
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-instagram{background:radial-gradient(circle at 30% 107%,#fdf497 0,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285AEB 90%);color:#fff}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-instagram svg{width:18px;height:18px}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-tiktok{background:#000;color:#fff;box-shadow:inset 0 0 0 .5px rgba(255,255,255,.2)}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-apple_music{background:linear-gradient(180deg,#FB5C74,#FA233B);color:#fff}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .cell.form{cursor:text}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .cell.form .fl{flex:none;width:96px;padding:13px 0}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .cell.form input{flex:1;min-width:0;border:0;background:none;outline:0;font-size:16.5px;color:var(--ink);padding:14px 0;border-radius:0}
@@ -18852,7 +18853,8 @@ function joinNames(a){a=(a||[]).filter(Boolean);if(!a.length)return'';if(a.lengt
 var SOCIALS=[
   ['spotify','Spotify','open.spotify.com/artist/… or paste a link','<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.139-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.018zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>'],
   ['instagram','Instagram','instagram.com/yourname','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>'],
-  ['tiktok','TikTok','tiktok.com/@yourname','<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></svg>']
+  ['tiktok','TikTok','tiktok.com/@yourname','<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></svg>'],
+  ['apple_music','Apple Music','music.apple.com/… paste your artist link','<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3.6v11.6a3.2 3.2 0 1 1-1.9-2.9V8.1L10 9.6v7.6a3.2 3.2 0 1 1-1.9-2.9V6.2c0-.6.4-1.1 1-1.2l8.6-1.8c.7-.2 1.3.3 1.3 1z"/></svg>']
 ];
 /* the privacy policy and terms on hellodemo.app: an in-app Safari sheet on iPhone, the browser elsewhere */
 function openDoc(n){var u='https://hellodemo.app/'+n+'.html';try{var B=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Browser;if(B&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){B.open({url:u});return}}catch(e){}openLink(u)}
@@ -18861,6 +18863,7 @@ function normalizeLink(key,v){v=(v||'').trim();if(!v)return null;if(/^https?:\/\
   if(key==='instagram')return'https://instagram.com/'+v;
   if(key==='tiktok')return'https://tiktok.com/@'+v;
   if(key==='spotify')return'https://open.spotify.com/artist/'+v;
+  if(key==='apple_music')return'https://music.apple.com/search?term='+encodeURIComponent(v);
   return'https://'+v}
 function profKey(uid){return'songpad:profile:'+uid}
 function profCacheGet(uid){try{return JSON.parse(localStorage.getItem(profKey(uid))||'null')}catch(e){return null}}
@@ -18879,7 +18882,7 @@ function saveLinks(fields){var c=sbClient();if(!c||!AUTH_USER)return Promise.rej
 function loadProfile(){var c=sbClient();if(!c||!AUTH_USER)return;var uid=AUTH_USER.id;
   var cached=profCacheGet(uid);
   if(cached&&!MY_PROFILE){MY_PROFILE=cached;refreshAccount();paintAcctIcons()}
-  function fetchOnce(){return c.from('profiles').select('username,display_name,avatar_url,link_spotify,link_instagram,link_tiktok').eq('user_id',uid).order('updated_at',{ascending:false,nullsFirst:false}).limit(1)}
+  function fetchOnce(){return c.from('profiles').select('username,display_name,avatar_url,link_spotify,link_instagram,link_tiktok,link_apple_music').eq('user_id',uid).order('updated_at',{ascending:false,nullsFirst:false}).limit(1)}
   fetchOnce().then(function(r){
     if(r&&r.error)return;
     var row=r&&r.data&&r.data[0];
@@ -19488,6 +19491,7 @@ function accSection(o,title,actions){
 function socialShown(k,u){if(!u)return'';if((k==='instagram'||k==='tiktok')&&!/[\/.]/.test(u))return'@'+u.replace(/^@/,'');var parts=[];try{parts=new URL(/^https?:/i.test(u)?u:'https://'+u).pathname.split('/').filter(Boolean)}catch(e){return u}
   if((k==='instagram'||k==='tiktok')&&parts[0])return'@'+parts[0].replace(/^@/,'');
   if(k==='spotify')return parts[0]==='artist'?'Artist page':'Connected';
+  if(k==='apple_music')return parts.indexOf('artist')>=0?'Artist page':'Connected';
   return u.replace(/^https?:\/\/(www\.)?/i,'')}
 function initialsOf(n){n=(n||'').replace(/^@/,'').trim();if(!n)return'';var w=n.split(/\s+/);return((w[0][0]||'')+(w.length>1?w[w.length-1][0]:'')).toUpperCase()}
 /* which part of the sheet is being edited, and what's been typed so far, kept outside renderAccount so
@@ -19560,7 +19564,7 @@ function renderAccount(){if(PW.on)pwRender();var o=$('#acc'),pro=isPro(),page=AC
     var linkInputs={};
     SOCIALS.forEach(function(sx,ix){
       var k=sx[0],v=prof('link_'+k);
-      if(linking){var hm=(k==='instagram'||k==='tiktok')&&/(?:instagram|tiktok)\.com\/@?([^\/?#]+)/i.exec(v||'');var ip=formCell(lg,sx[1],k==='spotify'?'Paste your artist link':'@username','l_'+k,hm?'@'+hm[1]:v,sx[3],'soc-'+k);ip.autocapitalize='off';ip.autocomplete='off';ip.spellcheck=false;ip.inputMode='url';linkInputs[k]=ip;if(!ix&&ACC_AUTOFOCUS==='links'){ACC_AUTOFOCUS=null;try{ip.focus({preventScroll:true})}catch(e){}}}
+      if(linking){var hm=(k==='instagram'||k==='tiktok')&&/(?:instagram|tiktok)\.com\/@?([^\/?#]+)/i.exec(v||'');var ip=formCell(lg,sx[1],(k==='spotify'||k==='apple_music')?'Paste your artist link':'@username','l_'+k,hm?'@'+hm[1]:v,sx[3],'soc-'+k);ip.autocapitalize='off';ip.autocomplete='off';ip.spellcheck=false;ip.inputMode='url';linkInputs[k]=ip;if(!ix&&ACC_AUTOFOCUS==='links'){ACC_AUTOFOCUS=null;try{ip.focus({preventScroll:true})}catch(e){}}}
       else lg.appendChild(accCell({tile:sx[3],tileCls:'soc-'+k,label:sx[1],value:v?socialShown(k,v):'Add',valueCls:v?'':'add',chev:v?'ext':true,onclick:function(){if(v)openLink(v);else{ACC_EDIT='links';ACC_DRAFT={};ACC_AUTOFOCUS='links';renderAccount()}}}));
     })}
     function saveLinksNow(e){var btn=e&&e.target;if(btn)btn.disabled=true;

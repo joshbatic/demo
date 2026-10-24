@@ -39,6 +39,7 @@ final class AppSession {
         var link_spotify: String? = nil
         var link_instagram: String? = nil
         var link_tiktok: String? = nil
+        var link_apple_music: String? = nil
     }
 
     struct Plan: Equatable {
@@ -227,7 +228,7 @@ final class AppSession {
         guard let uid = userID else { return }
         do {
             let rows: [Profile] = try await Backend.client.from("profiles")
-                .select("username,display_name,avatar_url,link_spotify,link_instagram,link_tiktok")
+                .select("username,display_name,avatar_url,link_spotify,link_instagram,link_tiktok,link_apple_music")
                 .eq("user_id", value: uid).order("updated_at", ascending: false, nullsFirst: false).limit(1).execute().value
             if var p = rows.first {
                 if (p.display_name ?? "").isEmpty && !metaName.isEmpty {

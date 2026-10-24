@@ -274,6 +274,7 @@ struct AccountScreen: View {
     private var linksSection: some View {
         Section("Links") {
             linkRow("Spotify", "spotify", session.profile.link_spotify)
+            linkRow("Apple Music", "apple_music", session.profile.link_apple_music)
             linkRow("Instagram", "instagram", session.profile.link_instagram)
             linkRow("TikTok", "tiktok", session.profile.link_tiktok)
         }
@@ -281,9 +282,9 @@ struct AccountScreen: View {
 
     private func linkRow(_ title: String, _ kind: String, _ url: String?) -> some View {
         NavigationLink(value: "links") {
-            LabeledContent(title) {
+            LabeledContent {
                 Text(AppSession.linkLabel(url, kind: kind) ?? "Add")
-            }
+            } label: { Label { Text(title) } icon: { LinkTile(kind: kind) } }
         }
     }
 
@@ -457,6 +458,7 @@ struct LinksEditPage: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @State private var spotify = ""
+    @State private var appleMusic = ""
     @State private var instagram = ""
     @State private var tiktok = ""
     @State private var saving = false
@@ -464,10 +466,11 @@ struct LinksEditPage: View {
     var body: some View {
         Form {
             Section {
-                field("Spotify", "Artist link", $spotify, url: session.profile.link_spotify)
-                field("Instagram", "@username", $instagram, url: session.profile.link_instagram)
-                field("TikTok", "@username", $tiktok, url: session.profile.link_tiktok)
-            } footer: { Text("Paste a link, or just your @handle.") }
+                field("Spotify", "spotify", "Artist link", $spotify, url: session.profile.link_spotify)
+                field("Apple Music", "apple_music", "Artist link", $appleMusic, url: session.profile.link_apple_music)
+                field("Instagram", "instagram", "@username", $instagram, url: session.profile.link_instagram)
+                field("TikTok", "tiktok", "@username", $tiktok, url: session.profile.link_tiktok)
+            } footer: { Text("Paste your artist links, and your @handles.") }
         }
         .navigationTitle("Links")
         .navigationBarTitleDisplayMode(.inline)
@@ -477,7 +480,7 @@ struct LinksEditPage: View {
                     Button("Save") {
                         saving = true
                         Task {
-                            let ok = await session.saveLinks(spotify: spotify, instagram: instagram, tiktok: tiktok)
+                            let ok = await session.saveLinks(spotify: spotify, appleMusic: appleMusic, instagram: instagram, tiktok: tiktok)
                             saving = false
                             if ok { dismiss() }
                         }
@@ -488,13 +491,15 @@ struct LinksEditPage: View {
         }
         .onAppear {
             spotify = session.profile.link_spotify ?? ""
+            appleMusic = session.profile.link_apple_music ?? ""
             instagram = AppSession.linkLabel(session.profile.link_instagram, kind: "instagram") ?? ""
             tiktok = AppSession.linkLabel(session.profile.link_tiktok, kind: "tiktok") ?? ""
         }
     }
 
-    private func field(_ title: String, _ ph: String, _ text: Binding<String>, url: String?) -> some View {
-        HStack {
+    private func field(_ title: String, _ kind: String, _ ph: String, _ text: Binding<String>, url: String?) -> some View {
+        HStack(spacing: 12) {
+            LinkTile(kind: kind)
             Text(title)
             TextField(ph, text: text).multilineTextAlignment(.trailing)
                 .textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
@@ -769,5 +774,21 @@ struct CreditsPage: View {
         guard let d = f.date(from: raw) else { return nil }
         let o = DateFormatter(); o.dateFormat = "MMM yyyy"
         return o.string(from: d)
+    }
+}
+
+/// The tile beside each link: the service's own colour with a simple symbol.
+struct LinkTile: View {
+    let kind: String
+    var body: some View {
+        switch kind {
+        case "spotify": TileIcon("waveform", Color(hex: 0x1DB954))
+        case "apple_music": TileIcon("music.note", Color(hex: 0xFA2D48))
+        case "instagram":
+            Image(systemName: "camera.fill").font(.system(size: 15, weight: .semibold)).foregroundStyle(.white)
+                .frame(width: 30, height: 30)
+                .background { TileBackground(colors: [Color(hex: 0xF77737), Color(hex: 0xE1306C), Color(hex: 0x833AB4)]) }
+        default: TileIcon("music.note", Color(hex: 0x111111))
+        }
     }
 }

@@ -69,7 +69,7 @@ struct CollabSection: View {
                     HStack {
                         Text("Invite a Co-writer").foregroundStyle(.primary)
                         Spacer()
-                        Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(.tertiary)
+                        Image(systemName: "plus").font(.system(size: 16, weight: .semibold)).foregroundStyle(Theme.tint)
                     }
                 }
             }
