@@ -21,7 +21,7 @@ struct RootView: View {
         // the launch screen's record label spins up, then lifts away into the app (spec §1.1)
         .overlay { SplashView(ready: session.phase != .launching) }
         // toasts, banners, the AI prompt and the paywall live in a window above everything (sheets too)
-        .onAppear { AppToast.session = session; Push.shared.session = session; HUD.install(session: session); RemoteConfig.shared.start() }
+        .onAppear { AppToast.session = session; Push.shared.session = session; HUD.install(session: session); RemoteConfig.shared.start(); MacWindow.setUp() }
     }
 }
 
@@ -85,6 +85,24 @@ struct LaunchView: View {
             Color(uiColor: .systemBackground).ignoresSafeArea()
             AppMark(size: 132)
         }
+    }
+}
+
+/// On the Mac (Catalyst): a phone-to-tablet-sized window with a clean, title-less top, so the app's own
+/// glass bars sit at the top like on iPhone.
+@MainActor
+enum MacWindow {
+    static func setUp() {
+        #if targetEnvironment(macCatalyst)
+        for scene in UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }) {
+            scene.sizeRestrictions?.minimumSize = CGSize(width: 420, height: 640)
+            scene.sizeRestrictions?.maximumSize = CGSize(width: 1100, height: 4000)
+            if let bar = scene.titlebar {
+                bar.titleVisibility = .hidden
+                bar.toolbar = nil
+            }
+        }
+        #endif
     }
 }
 

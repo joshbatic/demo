@@ -160,8 +160,10 @@ final class Store {
 
     /// Manage Subscription: the system sheet, else the App Store page.
     func manage() async {
+        #if !targetEnvironment(macCatalyst)
         if let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first,
            (try? await AppStore.showManageSubscriptions(in: scene)) != nil { return }
+        #endif
         if let u = URL(string: "https://apps.apple.com/account/subscriptions") { await UIApplication.shared.open(u) }
     }
 
