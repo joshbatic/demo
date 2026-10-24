@@ -57,8 +57,7 @@ struct RateSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } } }
         }
-        // full height: a shorter, floating sheet re-sizes (and looks like it zooms) when the keyboard comes up
-        .presentationDetents([.large])
+        .belowIslandSheet()
         .onAppear(perform: locate)
     }
 

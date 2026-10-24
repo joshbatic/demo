@@ -98,7 +98,7 @@ struct AccountScreen: View {
             }
             .overlay { if deleting { ProgressView().controlSize(.large).frame(maxWidth: .infinity, maxHeight: .infinity).background(.ultraThinMaterial) } }
         }
-        .presentationDetents([.large])
+        .belowIslandSheet()
         .task {
             if session.accountFocus == "support" { supportOpen = true; session.accountFocus = nil }
             async let p: Void = session.refreshPlan()

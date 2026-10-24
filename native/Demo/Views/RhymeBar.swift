@@ -748,8 +748,7 @@ struct DictionarySheet: View {
             insertAt = bridge.caretLocation
             if !initialWord.isEmpty { query = initialWord; results.show(initialWord) }
         }
-        // full height: a shorter, floating sheet re-sizes (and looks like it zooms) when the keyboard comes up
-        .presentationDetents([.large])
+        .belowIslandSheet()
         .presentationDragIndicator(.visible)
     }
 

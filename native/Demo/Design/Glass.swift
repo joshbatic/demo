@@ -55,3 +55,14 @@ struct GlassIconButton: View {
         .accessibilityLabel(label)
     }
 }
+
+extension View {
+    /// A tall sheet whose top sits just under the Dynamic Island (or status bar), rather than running up to the
+    /// very top of the screen, so the app behind stays visible as a sliver and the flow keeps its rhythm.
+    func belowIslandSheet() -> some View {
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let top = scene?.windows.first?.safeAreaInsets.top ?? 59
+        let h = (scene?.screen.bounds.height ?? UIScreen.main.bounds.height) - top - 10
+        return presentationDetents([.height(h)])
+    }
+}

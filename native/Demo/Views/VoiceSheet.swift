@@ -54,8 +54,7 @@ struct VoiceSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } } }
         }
-        // full height: a shorter, floating sheet re-sizes (and looks like it zooms) when the keyboard comes up
-        .presentationDetents([.large])
+        .belowIslandSheet()
     }
 
     /// "How the muse sees your writing" (engines.md §2.6): the learned profile, editable.

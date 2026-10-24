@@ -53,8 +53,7 @@ struct DetailsSheet: View {
                 Button("Delete Song", role: .destructive) { dismiss(); onDelete() }
             } message: { Text("This can’t be undone.") }
         }
-        // full height: a shorter, floating sheet re-sizes (and looks like it zooms) when the keyboard comes up
-        .presentationDetents([.large])
+        .belowIslandSheet()
     }
 
     private func pick(_ t: DetailsTab) {
