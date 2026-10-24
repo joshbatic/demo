@@ -222,7 +222,7 @@ struct AccountScreen: View {
             NavigationLink(value: "name") {
                 LabeledContent {
                     if let u = session.profile.username, !u.isEmpty { Text("@" + u) } else { Text("Not set") }
-                } label: { Label { Text("Name & Username") } icon: { TileIcon("person.text.rectangle.fill", Theme.Tile.blue) } }
+                } label: { Label { Text("Name & Username") } icon: { TileIcon("person.fill", Theme.Tile.blue) } }
             }
             Button { notificationsTapped() } label: {
                 LabeledContent {
@@ -231,7 +231,7 @@ struct AccountScreen: View {
                     case .denied: Text("Off")
                     default: Text("Turn On").foregroundStyle(.blue)
                     }
-                } label: { Label { Text("Notifications").foregroundStyle(.primary) } icon: { TileIcon("bell.badge.fill", Theme.Tile.red) } }
+                } label: { Label { Text("Notifications").foregroundStyle(.primary) } icon: { TileIcon("bell.fill", Theme.Tile.red) } }
             }
             if notifOpen && [UNAuthorizationStatus.authorized, .provisional, .ephemeral].contains(push.status) {
                 prefToggle("cowrite", "Co-writing", "When someone accepts your invite or edits a song you share")
@@ -310,7 +310,7 @@ struct AccountScreen: View {
                 if let st = storage {
                     Text(SongFiles.size(st.used) + " of " + SongFiles.size(st.limit)).foregroundStyle(st.used >= st.limit ? Color.red : .secondary)
                 } else { Text("—") }
-            } label: { Label { Text("Storage") } icon: { TileIcon("internaldrive.fill", Theme.Tile.gray) } }
+            } label: { Label { Text("Storage") } icon: { TileIcon("externaldrive.fill", Theme.Tile.gray) } }
         }
     }
 
@@ -332,7 +332,7 @@ struct AccountScreen: View {
                 Button { withAnimation(.snappy) { blockedOpen.toggle() } } label: {
                     LabeledContent {
                         Text("\(blocked.count)")
-                    } label: { Label { Text("Blocked").foregroundStyle(.primary) } icon: { TileIcon("nosign", Theme.Tile.pink) } }
+                    } label: { Label { Text("Blocked").foregroundStyle(.primary) } icon: { TileIcon("hand.raised.slash.fill", Theme.Tile.pink) } }
                 }
                 if blockedOpen {
                     ForEach(blocked) { b in
@@ -366,7 +366,7 @@ struct AccountScreen: View {
                 LabeledContent {
                     let n = tickets.reduce(0) { $0 + $1.replies.count }
                     if n > 0 { Text(n == 1 ? "1 reply" : "\(n) replies") }
-                } label: { Label { Text("Contact Support") } icon: { TileIcon("bubble.left.fill", Theme.Tile.green) } }
+                } label: { Label { Text("Contact Support") } icon: { TileIcon("questionmark.bubble.fill", Theme.Tile.green) } }
             }
         }
     }
