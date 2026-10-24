@@ -136,10 +136,9 @@ struct EditorScreen: View {
         .sheet(isPresented: $showDictionary) {
             DictionarySheet(bridge: bridge, initialWord: context.word, register: voice("reg") ?? "Conversational", perfectOnly: voiceStrict)
         }
-        .alert("Delete “\(song?.displayTitle ?? "")”?", isPresented: $confirmDelete) {
-            Button("Cancel", role: .cancel) {}
-            Button("Delete Song", role: .destructive) { deleteSong() }
-        } message: { Text("This can’t be undone.") }
+        .confirmDestroy("Delete “\(song?.displayTitle ?? "")”?", isPresented: $confirmDelete, message: "This can’t be undone.", action: "Delete Song") {
+            deleteSong()
+        }
         .onAppear {
             library.editingID = songID
             // an "Auto" version when the last one is over two hours old (spec §4.11)

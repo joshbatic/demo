@@ -332,17 +332,14 @@ struct IdeaSheet: View {
             .navigationTitle(idea == nil ? "New Idea" : "Idea")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } } }
-            .alert("Delete this idea?", isPresented: $confirmDelete) {
-                Button("Cancel", role: .cancel) {}
-                Button("Delete Idea", role: .destructive) {
-                    guard let c = current else { return }
-                    gone = true
-                    IdeaMemos.deleteFile(c.memo)
-                    library.deleteIdea(c.id)
-                    Haptics.thud(); session.toast = "Idea deleted"
-                    dismiss()
-                }
-            } message: { Text("This can’t be undone.") }
+            .confirmDestroy("Delete this idea?", isPresented: $confirmDelete, message: "This can’t be undone.", action: "Delete Idea") {
+                guard let c = current else { return }
+                gone = true
+                IdeaMemos.deleteFile(c.memo)
+                library.deleteIdea(c.id)
+                Haptics.thud(); session.toast = "Idea deleted"
+                dismiss()
+            }
         }
         .belowIslandSheet()
         .onAppear {

@@ -116,13 +116,10 @@ struct SongListScreen: View {
             .sheet(item: Binding(get: { exportURL.map(ShareSheet.IdentURL.init) }, set: { exportURL = $0?.url })) { u in
                 ActivityView(items: [u.url])
             }
-            .alert(deleteTitle, isPresented: Binding(get: { confirmDelete != nil }, set: { if !$0 { confirmDelete = nil } })) {
-                Button("Cancel", role: .cancel) {}
-                if let s = confirmDelete {
-                    Button(isMine(s) ? "Delete Song" : "Leave Song", role: .destructive) { Task { await session.removeSong(s) } }
-                }
-            } message: {
-                Text(confirmDelete.map { isMine($0) ? "This can’t be undone." : "It stays with its owner." } ?? "")
+            .confirmDestroy(deleteTitle, isPresented: Binding(get: { confirmDelete != nil }, set: { if !$0 { confirmDelete = nil } }),
+                            message: confirmDelete.map { isMine($0) ? "This can’t be undone." : "It stays with its owner." },
+                            action: confirmDelete.map { isMine($0) ? "Delete Song" : "Leave Song" } ?? "Delete Song") {
+                if let s = confirmDelete { Task { await session.removeSong(s) } }
             }
         }
         // the editor's sidebar swaps the open song for another (or for Ideas)

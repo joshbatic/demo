@@ -107,17 +107,13 @@ struct CollabSection: View {
         }
         .task(id: s.id) { await load() }
         .task(id: refresh) { if refresh > 0 { await load() } }
-        .alert("Stop sharing “\(s.displayTitle)”?", isPresented: $confirmStop) {
-            Button("Cancel", role: .cancel) {}
-            Button("Stop Sharing", role: .destructive) { Task { await Collab.shared.stopSharing(songID); people = [] } }
-        } message: { Text("Your co-writers lose access. The song stays with you.") }
-        .alert("Leave “\(s.displayTitle)”?", isPresented: $confirmLeave) {
-            Button("Cancel", role: .cancel) {}
-            Button("Leave Song", role: .destructive) {
-                onLeft()
-                Task { await session.removeSong(s); session.toast = "You left the song" }
-            }
-        } message: { Text("It’s removed from your devices. The owner can invite you again.") }
+        .confirmDestroy("Stop sharing “\(s.displayTitle)”?", isPresented: $confirmStop, message: "Your co-writers lose access. The song stays with you.", action: "Stop Sharing") {
+            Task { await Collab.shared.stopSharing(songID); people = [] }
+        }
+        .confirmDestroy("Leave “\(s.displayTitle)”?", isPresented: $confirmLeave, message: "It’s removed from your devices. The owner can invite you again.", action: "Leave Song") {
+            onLeft()
+            Task { await session.removeSong(s); session.toast = "You left the song" }
+        }
     }
 
     /// The web's .clrow: 34pt avatar, name and a grey line, something on the right.

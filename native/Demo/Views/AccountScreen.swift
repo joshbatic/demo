@@ -77,28 +77,23 @@ struct AccountScreen: View {
                     photo = nil
                 }
             }
-            .alert("Block \(confirmBlock?.ownerName ?? "")?", isPresented: Binding(get: { confirmBlock != nil }, set: { if !$0 { confirmBlock = nil } })) {
-                Button("Cancel", role: .cancel) {}
-                Button("Block", role: .destructive) { if let i = confirmBlock { Task { await session.block(i); blocked = await session.loadBlocked() } } }
-            } message: { Text("They won’t be able to invite you to songs. They aren’t told.") }
-            .alert("Reset what Rate learned?", isPresented: $confirmReset) {
-                Button("Cancel", role: .cancel) {}
-                Button("Reset", role: .destructive) { session.resetRateLearned() }
-            } message: { Text("Rate forgets the style it read from your songs and learns it fresh.") }
-            .alert("Sign out of *[demo]?", isPresented: $confirmSignOut) {
-                Button("Cancel", role: .cancel) {}
-                Button("Sign Out", role: .destructive) { dismiss(); Task { await session.signOut() } }
-            } message: { Text("Your songs stay safe in your account.") }
-            .alert("Delete your account?", isPresented: $confirmDelete) {
-                Button("Cancel", role: .cancel) {}
-                Button("Delete Account", role: .destructive) {
-                    deleting = true
-                    Task {
-                        if let err = await session.deleteAccount() { session.toast = err; deleting = false } else { dismiss() }
-                    }
+            .confirmDestroy("Block \(confirmBlock?.ownerName ?? "")?", isPresented: Binding(get: { confirmBlock != nil }, set: { if !$0 { confirmBlock = nil } }),
+                            message: "They won’t be able to invite you to songs. They aren’t told.", action: "Block") {
+                if let i = confirmBlock { Task { await session.block(i); blocked = await session.loadBlocked() } }
+            }
+            .confirmDestroy("Reset what Rate learned?", isPresented: $confirmReset, message: "Rate forgets the style it read from your songs and learns it fresh.", action: "Reset") {
+                session.resetRateLearned()
+            }
+            .confirmDestroy("Sign out of *[demo]?", isPresented: $confirmSignOut, message: "Your songs stay safe in your account.", action: "Sign Out") {
+                dismiss(); Task { await session.signOut() }
+            }
+            .confirmDestroy("Delete your account?", isPresented: $confirmDelete,
+                            message: "Your songs, ideas, recordings, share links and profile are deleted from your account, and songs you share stop being shared. Copies on your other devices go when you sign out there. If you pay for Pro through Apple, cancel it in Settings › your name › Subscriptions: deleting your account doesn’t stop billing. This can’t be undone.",
+                            action: "Delete Account") {
+                deleting = true
+                Task {
+                    if let err = await session.deleteAccount() { session.toast = err; deleting = false } else { dismiss() }
                 }
-            } message: {
-                Text("Your songs, ideas, recordings, share links and profile are deleted from your account, and songs you share stop being shared. Copies on your other devices go when you sign out there. If you pay for Pro through Apple, cancel it in Settings › your name › Subscriptions: deleting your account doesn’t stop billing. This can’t be undone.")
             }
             .overlay { if deleting { ProgressView().controlSize(.large).frame(maxWidth: .infinity, maxHeight: .infinity).background(.ultraThinMaterial) } }
         }

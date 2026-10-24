@@ -374,7 +374,7 @@ struct RichTextEditor: UIViewRepresentable {
             bridge?.lastEdit = Date()
             afterChange(tv)
             // after the system's own scrolling, make sure the new text sits above the rhyme bar
-            DispatchQueue.main.async { (tv as? LyricsTextView)?.keepCaretVisible(animated: false) }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) { (tv as? LyricsTextView)?.keepCaretVisible(animated: true) }
         }
 
         func afterChange(_ tv: UITextView) {
@@ -523,31 +523,51 @@ final class LyricsTextView: UITextView {
         // the keyboard (and the rhyme bar riding on it) came up or changed size: bring the caret back into view
         for n in [UIResponder.keyboardDidShowNotification, UIResponder.keyboardDidChangeFrameNotification] {
             keyboardWatch.append(NotificationCenter.default.addObserver(forName: n, object: nil, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.keepCaretVisible(animated: true) }
+                // once the rhyme bar has settled on the keyboard (the web waits 260 ms)
+                Task { @MainActor [weak self] in
+                    try? await Task.sleep(for: .milliseconds(260))
+                    self?.keepCaretVisible(animated: true)
+                }
             })
         }
     }
 
-    /// Keeps the line being typed between the top bar and the rhyme bar (which sits on the keyboard),
-    /// so you never type off screen. A little room is left below the caret.
-    func keepCaretVisible(animated: Bool) {
+    /// The web's reveal(): while typing (an empty selection), the line you're on is centred between the top bar
+    /// and the rhyme bar (which rides on the keyboard), so you never type off screen and the page keeps a steady
+    /// rhythm; with words selected it only scrolls when the end of the selection goes off screen.
+    func keepCaretVisible(animated: Bool, center: Bool? = nil) {
         guard isFirstResponder, let r = selectedTextRange else { return }
-        layoutManager.ensureLayout(for: textContainer)
         let caret = caretRect(for: r.end)
         guard !caret.isNull, !caret.isInfinite, caret.height > 0 else { return }
-        let margin: CGFloat = 16
-        let visibleTop = contentOffset.y + barSpace + 4
-        let visibleBottom = contentOffset.y + bounds.height - contentInset.bottom - margin
+        let centre = center ?? r.isEmpty
+        let top = contentOffset.y + barSpace + 12
+        let bottom = contentOffset.y + bounds.height - contentInset.bottom - 14
+        guard bottom > top else { return }
         var y = contentOffset.y
-        if caret.maxY > visibleBottom {
-            y += caret.maxY - visibleBottom
-        } else if caret.minY < visibleTop {
-            y -= visibleTop - caret.minY
+        if centre {
+            y += caret.midY - (top + bottom) / 2
+        } else if caret.maxY > bottom {
+            y += caret.maxY - bottom
+        } else if caret.minY < top {
+            y -= top - caret.minY
         } else { return }
         let maxY = max(0, contentSize.height + contentInset.bottom - bounds.height)
-        y = min(max(0, y), max(maxY, y))
+        y = min(max(0, y), maxY)
         guard abs(y - contentOffset.y) > 0.5 else { return }
+        revealing = true
         setContentOffset(CGPoint(x: contentOffset.x, y: y), animated: animated)
+        revealing = false
+    }
+
+    private var revealing = false
+
+    /// UIKit's own "scroll the caret into view" doesn't know about the floating bars: while typing, ours runs instead.
+    override func scrollRectToVisible(_ rect: CGRect, animated: Bool) {
+        if isFirstResponder && !revealing && !isTracking && !isDragging {
+            DispatchQueue.main.async { [weak self] in self?.keepCaretVisible(animated: true) }
+            return
+        }
+        super.scrollRectToVisible(rect, animated: animated)
     }
 
     /// The header's new height: the lyrics move down (or up) to match, animated like the header.

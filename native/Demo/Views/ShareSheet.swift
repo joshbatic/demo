@@ -289,10 +289,9 @@ struct ShareSheet: View {
             .navigationTitle("Share")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } } }
-            .alert("Stop the share link?", isPresented: $confirmStop) {
-                Button("Cancel", role: .cancel) {}
-                Button("Stop Sharing", role: .destructive) { Task { await stopLink() } }
-            } message: { Text("Anyone with the link can no longer open it.") }
+            .confirmDestroy("Stop the share link?", isPresented: $confirmStop, message: "Anyone with the link can no longer open it.", action: "Stop Sharing") {
+                Task { await stopLink() }
+            }
             .sheet(item: Binding(get: { shareURL.map(IdentURL.init) }, set: { shareURL = $0?.url })) { u in
                 ActivityView(items: [u.url])
             }
