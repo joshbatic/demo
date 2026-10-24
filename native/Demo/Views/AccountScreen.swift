@@ -246,18 +246,17 @@ struct AccountScreen: View {
                     }
                 }
                 if let nameError { Text(nameError).font(.footnote).foregroundStyle(.red) }
-                HStack(spacing: 10) {
-                    Button { withAnimation(.snappy) { editingName = false } } label: {
-                        Text("Cancel").frame(maxWidth: .infinity)
-                    }
+                HStack(spacing: 8) {
+                    Spacer()
+                    Button { withAnimation(.snappy) { editingName = false } } label: { Text("Cancel") }
                     .glassButton()
                     Button { saveName() } label: {
-                        Text(savingName ? "Saving…" : "Save").fontWeight(.semibold).frame(maxWidth: .infinity)
+                        Text(savingName ? "Saving…" : "Save").fontWeight(.semibold)
                     }
                     .glassButton(prominent: true)
                     .disabled(savingName)
                 }
-                .controlSize(.large)
+                .controlSize(.small)
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
             }
@@ -330,15 +329,16 @@ struct AccountScreen: View {
                 linkField("Spotify", "Paste your artist link", $spotify)
                 linkField("Instagram", "@username", $instagram)
                 linkField("TikTok", "@username", $tiktok)
-                HStack(spacing: 10) {
-                    Button { withAnimation(.snappy) { editingLinks = false } } label: { Text("Cancel").frame(maxWidth: .infinity) }
+                HStack(spacing: 8) {
+                    Spacer()
+                    Button { withAnimation(.snappy) { editingLinks = false } } label: { Text("Cancel") }
                         .glassButton()
                     Button {
                         Task { if await session.saveLinks(spotify: spotify, instagram: instagram, tiktok: tiktok) { withAnimation(.snappy) { editingLinks = false } } }
-                    } label: { Text("Save").fontWeight(.semibold).frame(maxWidth: .infinity) }
+                    } label: { Text("Save").fontWeight(.semibold) }
                         .glassButton(prominent: true)
                 }
-                .controlSize(.large)
+                .controlSize(.small)
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
             } else {
@@ -552,10 +552,11 @@ struct SupportForm: View {
                 await Push.shared.ask("You’ll also get a notification when we reply.")
             }
         } label: {
-            Text(sending ? "Sending…" : "Send").fontWeight(.semibold).frame(maxWidth: .infinity)
+            Text(sending ? "Sending…" : "Send").fontWeight(.semibold)
         }
         .glassButton(prominent: true)
-        .controlSize(.large)
+        .controlSize(.small)
+        .frame(maxWidth: .infinity, alignment: .trailing)
         .disabled(sending)
         .listRowBackground(Color.clear)
         .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
