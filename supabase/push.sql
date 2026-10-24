@@ -7,7 +7,7 @@
 create table if not exists public.push_tokens (
   token      text primary key check (length(token) between 32 and 200),
   user_id    uuid,                                     -- null = signed out on that phone, or the token stopped working
-  topic      text not null check (topic in ('app.hellodemo.demo', 'app.hellodemo.demo.dev')),   -- which app it's for
+  topic      text not null check (topic in ('app.hellodemo.demo', 'app.hellodemo.demo.dev', 'app.hellodemo.demo.native', 'app.hellodemo.demo.native.dev')),   -- which app it's for
   env        text check (env in ('production', 'sandbox')),   -- learned on the first send (Xcode builds use sandbox)
   build      text check (length(build) <= 40),
   created_at timestamptz not null default now(),
@@ -24,7 +24,7 @@ create or replace function public.push_register(p_token text, p_topic text, p_bu
 language plpgsql volatile security definer set search_path = public as $$
 begin
   if auth.uid() is null or p_token is null or p_token !~ '^[0-9a-fA-F]{32,200}$' then return; end if;
-  if p_topic not in ('app.hellodemo.demo', 'app.hellodemo.demo.dev') then return; end if;
+  if p_topic not in ('app.hellodemo.demo', 'app.hellodemo.demo.dev', 'app.hellodemo.demo.native', 'app.hellodemo.demo.native.dev') then return; end if;
   insert into public.push_tokens (token, user_id, topic, build) values (lower(p_token), auth.uid(), p_topic, left(p_build, 40))
   on conflict (token) do update set user_id = auth.uid(), topic = excluded.topic, build = excluded.build,
     updated_at = now(), last_error = null;
