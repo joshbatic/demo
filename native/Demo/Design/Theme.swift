@@ -37,6 +37,11 @@ extension Color {
 }
 
 /// The asterisk mark used for the app and Pro.
+extension Theme {
+    /// The verified-tick blue (Pro).
+    static let verified = Color(hex: 0x0095F6)
+}
+
 struct ProMark: View {
     var size: CGFloat = 22
     var body: some View {

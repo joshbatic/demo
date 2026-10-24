@@ -102,11 +102,7 @@ struct ProBannerView: View {
         Group {
             if let n = session.proNote {
                 HStack(spacing: 12) {
-                    ZStack {
-                        Circle().fill(LinearGradient(colors: [Color(hex: 0xFFC2DA), Color(hex: 0xB9A6FF)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        ProMark(size: 15)
-                    }
-                    .frame(width: 36, height: 36)
+                    AppMark(size: 36)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("*[demo] Pro").font(.system(size: 15, weight: .semibold))
                         Text(n.msg).font(.system(size: 13.5)).foregroundStyle(.secondary).lineLimit(3)

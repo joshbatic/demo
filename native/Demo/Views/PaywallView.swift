@@ -17,8 +17,8 @@ struct PaywallView: View {
                     hero
                     VStack(alignment: .leading, spacing: 18) {
                         ForEach(Pro.features) { f in
-                            HStack(alignment: .top, spacing: 14) {
-                                TileIcon(f.icon, f.color, size: 40)
+                            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                                Image(systemName: "checkmark.circle.fill").font(.system(size: 20)).foregroundStyle(Theme.verified)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(f.title).font(.system(size: 17, weight: .semibold))
                                     Text(f.sub).font(.system(size: 15)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
@@ -53,12 +53,8 @@ struct PaywallView: View {
 
     private var hero: some View {
         VStack(spacing: 10) {
-            ZStack {
-                Circle().fill(LinearGradient(colors: [Color(hex: 0xFFC2DA), Color(hex: 0xB9A6FF)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                ProMark(size: 34)
-            }
-            .frame(width: 84, height: 84)
-            .shadow(color: Color(hex: 0x9678DC).opacity(0.3), radius: 16, y: 8)
+            AppMark(size: 96)
+                .shadow(color: Color(hex: 0x9678DC).opacity(0.25), radius: 16, y: 8)
             .padding(.bottom, 6)
             Text("*[demo] Pro").font(.system(size: 32, weight: .bold)).tracking(-0.5)
             Text("Everything you need to take a song from the first line to the finished demo.")

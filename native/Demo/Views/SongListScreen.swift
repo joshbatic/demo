@@ -372,12 +372,14 @@ struct AccountButton: View {
             Haptics.tap(); action()
         } label: {
             HStack(spacing: 6) {
-                if session.plan.isPro {
-                    Text(session.plan.tier == "pro" ? "Pro" : "Beta")
+                if session.plan.tier == "pro" {
+                    VerifiedBadge(size: 17)
+                } else if session.plan.tier == "beta" {
+                    Text("Beta")
                         .font(.caption2.weight(.bold))
                         .padding(.horizontal, 6).padding(.vertical, 2)
-                        .background(session.plan.tier == "pro" ? Theme.proGreen : Color.primary.opacity(0.08), in: Capsule())
-                        .foregroundStyle(session.plan.tier == "pro" ? Color.white : Color.primary)
+                        .background(Color.primary.opacity(0.08), in: Capsule())
+                        .foregroundStyle(Color.primary)
                 }
                 Avatar(url: session.profile.avatar_url, name: session.myName, size: 28)
                     // pending co-writing invites

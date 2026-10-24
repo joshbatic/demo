@@ -129,10 +129,7 @@ struct AccountScreen: View {
                 .accessibilityLabel("Change photo")
                 HStack(spacing: 6) {
                     Text(session.myName.isEmpty ? "Your account" : session.myName).font(.system(size: 24, weight: .bold))
-                    if session.plan.tier == "pro" {
-                        Text("Pro").font(.system(size: 12, weight: .bold)).padding(.horizontal, 7).padding(.vertical, 3)
-                            .background(Theme.proGreen, in: Capsule()).foregroundStyle(.white)
-                    }
+                    if session.plan.tier == "pro" { VerifiedBadge(size: 20) }
                 }
                 Text([session.profile.username.map { "@" + $0 } ?? "", session.email].filter { !$0.isEmpty }.joined(separator: " · "))
                     .font(.system(size: 15)).foregroundStyle(.secondary).multilineTextAlignment(.center)
@@ -149,9 +146,7 @@ struct AccountScreen: View {
         Section {
             NavigationLink(value: "plan") {
                 HStack(spacing: 12) {
-                    ProMark(size: 14)
-                        .frame(width: 30, height: 30)
-                        .background { TileBackground(colors: [Color(hex: 0xFFC2DA), Color(hex: 0xB9A6FF)], size: 30) }
+                    AppIconView(size: 30)
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 6) {
                             Text(session.plan.tier == "beta" ? "*[demo] Beta" : "*[demo] Pro").font(.system(size: 17))
@@ -612,11 +607,7 @@ struct PlanPage: View {
         List {
             Section {
                 VStack(spacing: 10) {
-                    ZStack {
-                        Circle().fill(LinearGradient(colors: [Color(hex: 0xFFC2DA), Color(hex: 0xB9A6FF)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        ProMark(size: 26)
-                    }
-                    .frame(width: 64, height: 64)
+                    AppMark(size: 72)
                     switch session.plan.tier {
                     case "beta":
                         Text("*[demo] Beta").font(.title2.bold())
@@ -648,12 +639,13 @@ struct PlanPage: View {
             if session.plan.isPro {
                 Section("Included") {
                     ForEach(Pro.features) { f in
-                        Label {
+                        HStack(alignment: .firstTextBaseline, spacing: 12) {
+                            Image(systemName: "checkmark.circle.fill").font(.system(size: 18)).foregroundStyle(Theme.verified)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(f.title)
                                 Text(f.sub).font(.footnote).foregroundStyle(.secondary)
                             }
-                        } icon: { TileIcon(f.icon, f.color) }
+                        }
                     }
                 }
             }

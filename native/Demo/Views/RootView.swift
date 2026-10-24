@@ -88,17 +88,39 @@ struct LaunchView: View {
     }
 }
 
-/// The record-label disc from the app icon.
+/// The record label from the app icon (the round part), from the real artwork.
 struct AppMark: View {
     var size: CGFloat
     var body: some View {
-        ZStack {
-            Circle().fill(LinearGradient(colors: [Color(hex: 0xFFC2DA), Color(hex: 0xB9A6FF)], startPoint: .topLeading, endPoint: .bottomTrailing))
-            Circle().fill(RadialGradient(colors: [Color(hex: 0xFFD6A5), .clear], center: UnitPoint(x: 0.72, y: 0.28), startRadius: 0, endRadius: size * 0.6))
-            ProMark(size: size * 0.32)
-        }
-        .frame(width: size, height: size)
-        .shadow(color: Color(hex: 0x9678DC).opacity(0.3), radius: 18, y: 8)
+        Image("LaunchMark").resizable().interpolation(.high).scaledToFit()
+            .frame(width: size, height: size)
+            .accessibilityHidden(true)
+    }
+}
+
+/// The whole app icon, with the iOS icon shape.
+struct AppIconView: View {
+    var size: CGFloat
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: size * 0.2237, style: .continuous)
+        Image("AppIconImage").resizable().interpolation(.high).scaledToFill()
+            .frame(width: size, height: size)
+            .clipShape(shape)
+            .overlay(shape.strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.5))
+            .shadow(color: .black.opacity(0.12), radius: size * 0.08, y: size * 0.04)
+            .accessibilityHidden(true)
+    }
+}
+
+/// Pro, shown the way people know it: a blue verified tick.
+struct VerifiedBadge: View {
+    var size: CGFloat = 18
+    var body: some View {
+        Image(systemName: "checkmark.seal.fill")
+            .font(.system(size: size, weight: .semibold))
+            .symbolRenderingMode(.palette)
+            .foregroundStyle(.white, Theme.verified)
+            .accessibilityLabel("Pro")
     }
 }
 
@@ -109,7 +131,7 @@ struct SignInView: View {
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
-            AppMark(size: 104).padding(.bottom, 28)
+            AppIconView(size: 104).padding(.bottom, 28)
             Text("*[demo]").font(.system(size: 40, weight: .bold)).tracking(-0.8)
             Text("Sign in to use *[demo]. Your songs sync to your account and stay backed up.")
                 .font(.body).foregroundStyle(.secondary).multilineTextAlignment(.center)
