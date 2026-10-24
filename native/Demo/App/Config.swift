@@ -12,9 +12,9 @@ nonisolated enum Config {
     static let revenueCatKey = ""
     static let proEntitlement = "pro"
     static let listenHost = "listen.hellodemo.app"
-    /// Build sequence, on the same scale as the web app's APP_SEQ (413 when the native app began), so the
-    /// server's min_seq "time to update" switch works for both (spec §2.7). Raise it with every release.
-    static let appSeq = 1000
+    /// The build number, shared with the web and Mac apps' APP_SEQ (the repo's commit count, written by
+    /// scripts/stamp-version.sh), so Admin › Minimum Build ("Time to update") covers every app on one scale.
+    static let appSeq = 413
     /// The version people see (Account › Version), the same number as the Mac app: 1.0.0.
     static var appVersion: String { Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0" }
     /// Sent with diagnostics and push registration: the version and build number.

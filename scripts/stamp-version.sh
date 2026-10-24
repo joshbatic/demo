@@ -27,6 +27,13 @@ for f in "${files[@]}"; do
   if grep -q "^var APP_SEQ=[0-9]*;$" "$f"; then sed -i.bak "s/^var APP_SEQ=[0-9]*;\$/var APP_SEQ=$seq;/" "$f" && rm -f "$f.bak"; fi
 done
 
+# the native iPhone app (SwiftUI) shares the same build number, so one Minimum Build covers every app
+native=native/Demo/App/Config.swift
+if [ -f "$native" ] && grep -q "^    static let appSeq = [0-9]*$" "$native"; then
+  sed -i.bak "s/^    static let appSeq = [0-9]*\$/    static let appSeq = $seq/" "$native" && rm -f "$native.bak"
+  files+=("$native")
+fi
+
 # the share-link viewer carries a copy of the page renderer; rebuild it so it never drifts from the app
 if command -v python3 >/dev/null; then python3 scripts/build-share-viewer.py >/dev/null && files+=(docs/s/index.html share/api/_viewer.js); fi
 
