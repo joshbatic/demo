@@ -3,6 +3,7 @@ import AuthenticationServices
 
 struct RootView: View {
     @Environment(\.appSession) private var session
+    @AppStorage(Onboarding.doneKey) private var onboarded = false
 
     var body: some View {
         ZStack {
@@ -14,7 +15,8 @@ struct RootView: View {
             case .waitlist(let status):
                 WaitlistView(status: status).transition(.opacity)
             case .ready:
-                SongListScreen().transition(.opacity)
+                if onboarded { SongListScreen().transition(.opacity) }
+                else { OnboardingView { withAnimation(.smooth(duration: 0.4)) { onboarded = true } }.transition(.opacity) }
             }
         }
         .animation(.smooth(duration: 0.35), value: session.phase)
@@ -312,5 +314,243 @@ struct ToastView: View {
     private var lift: CGFloat {
         guard let top = session.toastAvoidTop, bottomY > 0 else { return 96 }
         return max(96, bottomY - top + 10)
+    }
+}
+
+
+// MARK: - onboarding
+
+enum Onboarding {
+    /// Set once this device has been through onboarding (a fresh install shows it once, after signing in).
+    static let doneKey = "songpad:onboarded"
+}
+
+/// A short first-run: three things *[demo] does, your name and username (co-writers find you by it), and
+/// notifications. Every step can be skipped; it's shown once per install.
+struct OnboardingView: View {
+    var done: () -> Void
+    @Environment(\.appSession) private var session
+    @State private var step = 0
+    @State private var name = ""
+    @State private var username = ""
+    @State private var error: String?
+    @State private var saving = false
+    @FocusState private var field: Int?
+
+    private let pages = 5
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Spacer()
+                if step < pages - 1 {
+                    Button("Skip") { finish() }.font(.system(size: 17)).foregroundStyle(.secondary)
+                }
+            }
+            .frame(height: 44).padding(.horizontal, 20)
+
+            TabView(selection: $step) {
+                feature(art: AnyView(AppMark(size: 120).shadow(color: .black.opacity(0.12), radius: 16, y: 8)),
+                        title: "Write it down.",
+                        text: "Lyrics, ideas and demos together, one song at a time.").tag(0)
+                feature(art: AnyView(RhymeArt()), title: "Rhymes as you type.",
+                        text: "Rhymes, synonyms and phrases for the word you’re on, right above the keyboard.").tag(1)
+                feature(art: AnyView(MemoArt()), title: "Catch it before it’s gone.",
+                        text: "Jot a line or hum a melody in Ideas, then turn it into a song.").tag(2)
+                profile.tag(3)
+                notifications.tag(4)
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .animation(.snappy, value: step)
+
+            HStack(spacing: 7) {
+                ForEach(0..<pages, id: \.self) { i in
+                    Capsule().fill(i == step ? Color.primary : Color.primary.opacity(0.18))
+                        .frame(width: i == step ? 18 : 7, height: 7)
+                }
+            }
+            .animation(.snappy, value: step)
+            .padding(.bottom, 22)
+            .accessibilityHidden(true)
+
+            VStack(spacing: 10) {
+                Button { primary() } label: {
+                    Text(primaryTitle).font(.system(size: 17, weight: .semibold)).foregroundStyle(Theme.onTint)
+                        .frame(maxWidth: .infinity, minHeight: 52).background(Theme.tint, in: Capsule())
+                }
+                .buttonStyle(PressScale())
+                .disabled(saving)
+                Button(secondaryTitle ?? " ") { secondary() }
+                    .font(.system(size: 16, weight: .medium)).foregroundStyle(.secondary)
+                    .frame(height: 30)
+                    .opacity(secondaryTitle == nil ? 0 : 1).disabled(secondaryTitle == nil)
+            }
+            .padding(.horizontal, 24).padding(.bottom, 12)
+        }
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
+        .onAppear { prefill() }
+        .onChange(of: session.profile) { _, _ in prefill() }
+        .onChange(of: step) { _, s in field = s == 3 ? 0 : nil; error = nil }
+    }
+
+    private var primaryTitle: String {
+        switch step {
+        case 3: return saving ? "Saving…" : "Continue"
+        case 4: return "Turn On Notifications"
+        default: return "Continue"
+        }
+    }
+    private var secondaryTitle: String? { step == 3 ? "Later" : step == 4 ? "Not Now" : nil }
+
+    private func primary() {
+        Haptics.tap()
+        switch step {
+        case 3: saveProfile()
+        case 4: Task { await Push.shared.ask(); finish() }
+        default: withAnimation(.snappy) { step += 1 }
+        }
+    }
+    private func secondary() {
+        if step == 3 { field = nil; withAnimation(.snappy) { step = 4 } } else { finish() }
+    }
+    private func finish() { field = nil; Haptics.success(); done() }
+
+    // MARK: pages
+
+    private func feature(art: AnyView, title: String, text: String) -> some View {
+        VStack(spacing: 0) {
+            Spacer(minLength: 10)
+            art.frame(height: 230)
+            Spacer(minLength: 24)
+            Text(title).font(.system(size: 30, weight: .bold)).tracking(-0.4).multilineTextAlignment(.center)
+            Text(text).font(.system(size: 17)).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                .padding(.top, 10).fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 20)
+        }
+        .padding(.horizontal, 32)
+    }
+
+    private var profile: some View {
+        VStack(spacing: 0) {
+            Spacer(minLength: 10)
+            Avatar(url: session.profile.avatar_url, name: name.isEmpty ? session.myName : name, size: 88)
+            Text("What should co-writers call you?").font(.system(size: 26, weight: .bold)).tracking(-0.3)
+                .multilineTextAlignment(.center).padding(.top, 22)
+            Text("Your name goes on your songs. Co-writers find you by your username.")
+                .font(.system(size: 16)).foregroundStyle(.secondary).multilineTextAlignment(.center).padding(.top, 8)
+            VStack(spacing: 0) {
+                TextField("Name", text: $name)
+                    .textContentType(.name).submitLabel(.next).focused($field, equals: 0)
+                    .onSubmit { field = 1 }
+                    .padding(.horizontal, 16).frame(height: 50)
+                Divider().padding(.leading, 16)
+                HStack(spacing: 2) {
+                    Text("@").foregroundStyle(.secondary)
+                    TextField("username", text: $username)
+                        .textContentType(.username).textInputAutocapitalization(.never).autocorrectionDisabled()
+                        .submitLabel(.done).focused($field, equals: 1)
+                        .onSubmit { saveProfile() }
+                }
+                .padding(.horizontal, 16).frame(height: 50)
+            }
+            .font(.system(size: 17))
+            .background(BarFill.color, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .padding(.top, 24)
+            Text(error ?? "3–20 letters, numbers or underscores. You can change both in Account.")
+                .font(.footnote).foregroundStyle(error == nil ? Color.secondary : Color.red)
+                .multilineTextAlignment(.center).padding(.top, 10)
+            Spacer(minLength: 10)
+        }
+        .padding(.horizontal, 28)
+    }
+
+    private var notifications: some View {
+        feature(art: AnyView(BellArt()), title: "Know when it matters.",
+                text: "We’ll let you know when someone invites you to a song or edits one you share. Nothing else unless you turn it on.")
+    }
+
+    private func prefill() {
+        if name.isEmpty { name = session.profile.display_name ?? session.metaName }
+        if username.isEmpty, let u = session.profile.username { username = u }
+    }
+
+    private func saveProfile() {
+        field = nil
+        let n = name.trimmingCharacters(in: .whitespacesAndNewlines), u = username.trimmingCharacters(in: .whitespaces)
+        if n.isEmpty && u.isEmpty { withAnimation(.snappy) { step = 4 }; return }
+        saving = true
+        Task {
+            let e = await session.saveNameAndUsername(name: n, username: u)
+            saving = false
+            if let e { error = e; Haptics.warning(); field = 1 } else { withAnimation(.snappy) { step = 4 } }
+        }
+    }
+}
+
+/// A lyric line with its rhymes on chips, like the rhyme bar.
+private struct RhymeArt: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            (Text("Leave the porch light on ") + Text("tonight").foregroundStyle(Theme.verified))
+                .font(.system(size: 21, weight: .semibold))
+            HStack(spacing: 6) {
+                ForEach(["light", "right", "goodnight", "alright"], id: \.self) { w in
+                    Text(w).font(.system(size: 15, weight: .medium)).padding(.horizontal, 12).frame(height: 32)
+                        .background(BarFill.color, in: Capsule())
+                }
+            }
+            .lineLimit(1).minimumScaleFactor(0.8)
+        }
+        .padding(20)
+        .frame(maxWidth: 330, alignment: .leading)
+        .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .accessibilityHidden(true)
+    }
+}
+
+/// An idea with a voice memo.
+private struct MemoArt: View {
+    private let bars: [CGFloat] = [8, 14, 22, 30, 18, 26, 36, 24, 16, 28, 34, 20, 12, 24, 30, 18, 10, 20, 26, 14, 8, 16, 22, 12]
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("hum this over the bridge?").font(.system(size: 19, weight: .medium))
+            HStack(spacing: 10) {
+                Image(systemName: "play.fill").font(.system(size: 13, weight: .bold)).foregroundStyle(Theme.onTint)
+                    .frame(width: 34, height: 34).background(Theme.tint, in: Circle())
+                HStack(alignment: .center, spacing: 3) {
+                    ForEach(bars.indices, id: \.self) { i in
+                        Capsule().fill(Color.primary.opacity(i < 9 ? 0.9 : 0.25)).frame(width: 3.5, height: bars[i])
+                    }
+                }
+                Text("0:12").font(.system(size: 13).monospacedDigit()).foregroundStyle(.secondary)
+            }
+            Text("Today").font(.caption).foregroundStyle(.tertiary)
+        }
+        .padding(20)
+        .frame(maxWidth: 330, alignment: .leading)
+        .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .accessibilityHidden(true)
+    }
+}
+
+/// A notification, as it would arrive.
+private struct BellArt: View {
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            AppIconView(size: 38)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text("*[demo]").font(.system(size: 15, weight: .semibold))
+                    Spacer()
+                    Text("now").font(.system(size: 13)).foregroundStyle(.secondary)
+                }
+                Text("Sam invited you").font(.system(size: 15, weight: .semibold))
+                Text("to write “Porch Light” together").font(.system(size: 15)).foregroundStyle(.secondary)
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: 340)
+        .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .accessibilityHidden(true)
     }
 }

@@ -24,8 +24,8 @@ final class Push: NSObject {
         await refreshStatus()
         if status == .authorized || status == .provisional || status == .ephemeral {
             UIApplication.shared.registerForRemoteNotifications()
-        } else if status == .notDetermined {
-            // the first time in: let the song list settle, then ask
+        } else if status == .notDetermined && UserDefaults.standard.bool(forKey: Onboarding.doneKey) {
+            // onboarding asks on its last step; someone who skipped past it gets the prompt once the list settles
             try? await Task.sleep(for: .seconds(1.5))
             await ask()
         }
