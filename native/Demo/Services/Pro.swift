@@ -53,6 +53,8 @@ final class Store {
     var yearPrice: String?
     /// Whether this Apple ID can still get the free trial (Apple only gives it once per subscription group).
     var trialEligible = true
+    /// What went wrong, shown on the paywall itself (the app's toasts sit underneath it).
+    var note: String?
     /// "buy" or "restore" while one is running
     var busy: String?
     @ObservationIgnored private var user: String?
@@ -74,6 +76,9 @@ final class Store {
         #if canImport(RevenueCat)
         guard available, let uid = session.userID else { return }
         do {
+            #if DEBUG
+            Purchases.logLevel = .debug
+            #endif
             if !Purchases.isConfigured {
                 Purchases.configure(withAPIKey: Config.revenueCatKey, appUserID: uid)
             } else if user != uid {
@@ -90,19 +95,29 @@ final class Store {
             }
             let ci = try await Purchases.shared.customerInfo()
             if ci.entitlements.active[Config.proEntitlement] != nil && !session.plan.isPro { await sync(ci: true, session: session) }
-        } catch {}
+            if o.current == nil { note = "The App Store didn’t send the subscriptions (no current offering in RevenueCat)." }
+            else if o.current?.monthly == nil || o.current?.annual == nil { note = "The App Store sent the offering, but without a Monthly and an Annual package." }
+        } catch {
+            note = "Couldn’t load the subscriptions: " + error.localizedDescription
+        }
         #endif
     }
 
     func buy(year: Bool, session: AppSession) async {
-        guard session.userID != nil else { session.toast = "Sign in first, so Pro is saved to your account."; return }
+        note = nil
+        guard session.userID != nil else { note = "Sign in first, so Pro is saved to your account."; return }
         #if canImport(RevenueCat)
-        guard available else { session.toast = "Subscriptions open soon. You’ll start your \(Pro.trialDays)-day free trial right here."; return }
+        guard available else { note = "Subscriptions open soon. You’ll start your \(Pro.trialDays)-day free trial right here."; return }
         busy = "buy"; defer { busy = nil }
+        if !Purchases.isConfigured { await start(session: session) }
+        guard Purchases.isConfigured else { note = note ?? "Subscriptions couldn’t start. Try again in a moment."; return }
         do {
             let o = try await Purchases.shared.offerings()
             guard let pkg = year ? o.current?.annual : o.current?.monthly else {
-                session.toast = "The App Store isn’t answering. Check your connection and try again."; return
+                note = o.current == nil
+                    ? "The App Store didn’t send the subscriptions yet. Check the products in App Store Connect and the current offering in RevenueCat."
+                    : "No \(year ? "yearly" : "monthly") plan in the current offering."
+                return
             }
             let r = try await Purchases.shared.purchase(package: pkg)
             if r.userCancelled { return }
@@ -113,7 +128,7 @@ final class Store {
             }
         } catch {
             if let e = error as? ErrorCode, e == .purchaseCancelledError { return }
-            session.toast = "The purchase didn’t go through. " + error.localizedDescription
+            note = "The purchase didn’t go through. " + error.localizedDescription
         }
         #else
         session.toast = "Subscriptions open soon. You’ll start your \(Pro.trialDays)-day free trial right here."
@@ -125,16 +140,19 @@ final class Store {
         #if canImport(RevenueCat)
         guard available else { session.toast = "Subscriptions open soon. You’ll start your \(Pro.trialDays)-day free trial right here."; return }
         busy = "restore"; defer { busy = nil }
+        note = nil
+        if !Purchases.isConfigured { await start(session: session) }
+        guard Purchases.isConfigured else { note = note ?? "Subscriptions couldn’t start. Try again in a moment."; return }
         do {
             let ci = try await Purchases.shared.restorePurchases()
             if ci.entitlements.active[Config.proEntitlement] != nil {
                 await sync(ci: true, session: session)
                 Haptics.success(); session.toast = "Pro restored"
             } else {
-                session.toast = "No *[demo] Pro subscription found for this Apple ID"
+                note = "No *[demo] Pro subscription found for this Apple ID."
             }
         } catch {
-            session.toast = "Couldn’t restore: " + error.localizedDescription
+            note = "Couldn’t restore: " + error.localizedDescription
         }
         #else
         session.toast = "Subscriptions open soon. You’ll start your \(Pro.trialDays)-day free trial right here."

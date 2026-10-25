@@ -73,7 +73,11 @@ struct PaywallView: View {
                 planCard(false, "Monthly", store.price(year: false) + " a month", badge: nil)
             }
             .accessibilityElement(children: .contain)
-            Button { Task { await store.buy(year: year, session: session) } } label: {
+            if let n = store.note {
+                Text(n).font(.system(size: 13.5, weight: .medium)).foregroundStyle(.red).multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Button { Haptics.tap(); Task { await store.buy(year: year, session: session) } } label: {
                 Text(store.busy == "buy" ? "One moment…" : store.trialEligible ? "Start \(Pro.trialDays)-Day Free Trial" : "Subscribe")
                     .font(.system(size: 17, weight: .semibold)).foregroundStyle(Theme.onTint)
                     .frame(maxWidth: .infinity, minHeight: 52).background(Theme.tint, in: Capsule())
