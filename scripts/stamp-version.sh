@@ -31,6 +31,7 @@ done
 native=native/Demo/App/Config.swift
 if [ -f "$native" ] && grep -q "^    static let appSeq = [0-9]*$" "$native"; then
   sed -i.bak "s/^    static let appSeq = [0-9]*\$/    static let appSeq = $seq/" "$native" && rm -f "$native.bak"
+  sed -i.bak "s/^    static let appHash = \"[0-9a-f]*\"\$/    static let appHash = \"$hash\"/" "$native" && rm -f "$native.bak"
   files+=("$native")
 fi
 
