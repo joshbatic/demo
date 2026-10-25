@@ -54,6 +54,8 @@ struct PaywallView: View {
         }
         // becoming Pro closes it
         .onChange(of: session.plan.isPro) { _, pro in if pro { dismiss() } }
+        // why a purchase couldn't start goes to the Xcode console for now, not on screen
+        .onChange(of: store.note) { _, n in if let n { print("[Paywall] " + n) } }
     }
 
     private var hero: some View {
@@ -78,10 +80,6 @@ struct PaywallView: View {
                 planCard(false, "Monthly", store.price(year: false) + " a month", badge: nil)
             }
             .accessibilityElement(children: .contain)
-            if let n = store.note {
-                Text(n).font(.system(size: 13.5, weight: .medium)).foregroundStyle(.red).multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
             Button { Haptics.tap(); Task { await store.buy(year: year, session: session) } } label: {
                 Text(store.busy == "buy" ? "One moment…" : store.trialEligible ? "Start \(Pro.trialDays)-Day Free Trial" : "Subscribe")
                     .font(.system(size: 17, weight: .semibold)).foregroundStyle(Theme.onTint)
