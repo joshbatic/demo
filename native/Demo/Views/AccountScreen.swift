@@ -294,9 +294,9 @@ struct AccountScreen: View {
                     Label {
                         Text("Credits").foregroundStyle(.primary)
                     } icon: {
-                        Image(systemName: "signature").font(.system(size: 15, weight: .bold)).foregroundStyle(.white)
+                        Image(systemName: "scribble.variable").font(.system(size: 15, weight: .semibold)).foregroundStyle(.white)
                             .frame(width: 30, height: 30)
-                            .background { TileBackground(colors: [Color(hex: 0xFFB340), Color(hex: 0xFF375F)]) }
+                            .background { TileBackground(colors: [Color(hex: 0x1C1C1E)]) }
                     }
                 }
             }

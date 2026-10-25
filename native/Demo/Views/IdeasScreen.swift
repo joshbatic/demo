@@ -396,33 +396,18 @@ struct IdeaSheet: View {
     }
 }
 
-/// Ideas' icon: a page from Notes (the yellow band, two ruled lines) with a Voice Memos waveform on it.
+/// Ideas' icon: the compose mark (a pencil on a page) in white on a warm amber tile, for a quick jot.
 struct IdeasTile: View {
     var size: CGFloat = 52
-    @Environment(\.colorScheme) private var scheme
-    private let bars: [CGFloat] = [0.35, 0.7, 1, 0.55, 0.85, 0.45, 0.75, 0.4]
     var body: some View {
-        let s = size / 52, shape = RoundedRectangle(cornerRadius: 12 * s, style: .continuous)
-        let line = scheme == .dark ? Color(hex: 0x5A5A5E) : Color(hex: 0xD1D1D6)
-        ZStack(alignment: .topLeading) {
-            shape.fill(scheme == .dark ? Color(hex: 0x2C2C2E) : .white)
-            LinearGradient(colors: [Color(hex: 0xFFDA4A), Color(hex: 0xFFC400)], startPoint: .top, endPoint: .bottom)
-                .frame(height: 14 * s)
-            VStack(alignment: .leading, spacing: 4.5 * s) {
-                Capsule().fill(line).frame(width: 34 * s, height: 2.6 * s)
-                Capsule().fill(line).frame(width: 22 * s, height: 2.6 * s)
-                HStack(alignment: .center, spacing: 2.2 * s) {
-                    ForEach(bars.indices, id: \.self) { i in
-                        Capsule().fill(Color(hex: 0xFF3B30)).frame(width: 2.4 * s, height: 11 * s * bars[i])
-                    }
-                }
-                .frame(height: 11 * s)
-            }
-            .padding(.leading, 9 * s).padding(.top, 20 * s)
+        let shape = RoundedRectangle(cornerRadius: size * 0.23, style: .continuous)
+        ZStack {
+            shape.fill(LinearGradient(colors: [Color(hex: 0xFFC93C), Color(hex: 0xFF8A00)], startPoint: .topLeading, endPoint: .bottomTrailing))
+            shape.fill(LinearGradient(colors: [.white.opacity(0.22), .white.opacity(0)], startPoint: .top, endPoint: .center))
+            Image(systemName: "square.and.pencil").font(.system(size: size * 0.42, weight: .semibold)).foregroundStyle(.white)
+                .offset(x: size * 0.02, y: -size * 0.02)
         }
         .frame(width: size, height: size)
-        .clipShape(shape)
-        .overlay(shape.strokeBorder(Color.primary.opacity(scheme == .dark ? 0.12 : 0.08), lineWidth: 0.5))
         .accessibilityHidden(true)
     }
 }
