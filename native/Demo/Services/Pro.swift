@@ -28,6 +28,17 @@ enum Pro {
         }
     }
 
+    /// The Pro banner's one line: what it is, plainly. (The paywall keeps the longer `message`.)
+    static func short(_ k: String) -> String {
+        switch k {
+        case "memos": return "Synced voice memos come with Pro."
+        case "ai": return "That’s today’s free AI. Pro has more."
+        default:
+            let f = feat[k] ?? "That"
+            return f + (f.hasSuffix("details") ? " come" : " comes") + " with Pro."
+        }
+    }
+
     struct Feature: Identifiable { let id: Int; let icon: String; let color: Color; let title: String; let sub: String }
 
     /// PRO_FEAT: the paywall's list, and the plan page's "Included".

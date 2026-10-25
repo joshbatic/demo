@@ -106,6 +106,6 @@ struct SongPlayer: View {
     }
 
     private func locked() {
-        session.upsell("audio", "A co-writer added this recording. Go Pro to listen and add your own.")
+        session.upsell("audio", "Listening to co-writers’ recordings comes with Pro.")
     }
 }

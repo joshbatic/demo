@@ -229,8 +229,8 @@ struct AudioPane: View {
     }
 
     private func lockedToast(_ audio: Bool) {
-        session.upsell("audio", audio ? "A co-writer added this recording. Go Pro to listen and add your own."
-                                      : "A co-writer added this file. Go Pro to open it and add your own.")
+        session.upsell("audio", audio ? "Listening to co-writers’ recordings comes with Pro."
+                                      : "Opening co-writers’ files comes with Pro.")
     }
 
     private func open(_ a: FileItem) {

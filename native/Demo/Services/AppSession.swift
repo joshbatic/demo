@@ -289,7 +289,7 @@ final class AppSession {
     /// upsell(k, msg): the Pro banner; tapping it opens the paywall (or the plan page on Pro).
     func upsell(_ key: String, _ msg: String? = nil) {
         Haptics.warning()
-        proNote = ProNote(msg: msg ?? Pro.message(key), key: key)
+        proNote = ProNote(msg: msg ?? Pro.short(key), key: key)
     }
 
     /// openAccount(k): on Free with a feature key, the paywall; otherwise Account.

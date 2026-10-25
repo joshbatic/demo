@@ -94,38 +94,42 @@ struct HUDRoot: View {
     }
 }
 
-/// The Pro banner (spec §1.7): "*[demo] Pro" + why, tap for the paywall; ✕ dismisses; gone after 6 s.
+/// The Pro banner (spec §1.7): one quiet glass line, like a system notice. The Pro tick, what needs Pro, and
+/// "Try Free". Tap for the paywall; swipe it away; gone after 6 s.
 struct ProBannerView: View {
     @Environment(\.appSession) private var session
+    @State private var drag: CGFloat = 0
 
     var body: some View {
         Group {
             if let n = session.proNote {
-                HStack(spacing: 12) {
-                    AppMark(size: 36)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("*[demo] Pro").font(.system(size: 15, weight: .semibold)).foregroundStyle(.primary)
-                        Text(n.msg).font(.system(size: 13.5)).foregroundStyle(.secondary).lineLimit(3)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(.tertiary)
-                    Button { withAnimation(.snappy) { session.proNote = nil } } label: {
-                        Image(systemName: "xmark").font(.system(size: 12, weight: .bold)).foregroundStyle(.secondary)
-                            .frame(width: 28, height: 28).background(BarFill.color, in: Circle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Close")
+                HStack(spacing: 10) {
+                    VerifiedBadge(size: 17)
+                    Text(n.msg).font(.system(size: 15, weight: .medium)).foregroundStyle(.primary)
+                        .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(Store.shared.trialEligible ? "Try Free" : "See Pro").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.verified)
                 }
-                .padding(.horizontal, 14).padding(.vertical, 12)
+                .padding(.leading, 14).padding(.trailing, 16).padding(.vertical, 13)
                 .contentShape(Rectangle())
+                .glass(in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .padding(.horizontal, 16)
+                .offset(y: max(0, drag))
+                .gesture(DragGesture(minimumDistance: 6)
+                    .onChanged { drag = $0.translation.height }
+                    .onEnded { v in
+                        if v.translation.height > 30 { withAnimation(.snappy) { session.proNote = nil } }
+                        withAnimation(.snappy) { drag = 0 }
+                    })
                 .onTapGesture {
                     Haptics.tap()
                     let k = n.key
                     withAnimation(.snappy) { session.proNote = nil }
                     session.openAccount(k)
                 }
-                .glass(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-                .padding(.horizontal, 12)
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityHint("Shows *[demo] Pro")
                 .hudHit("pro")
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .task(id: n.id) {
@@ -134,7 +138,7 @@ struct ProBannerView: View {
                 }
             }
         }
-        .animation(.spring(response: 0.45, dampingFraction: 0.8), value: session.proNote)
+        .animation(.spring(response: 0.45, dampingFraction: 0.85), value: session.proNote)
     }
 }
 
