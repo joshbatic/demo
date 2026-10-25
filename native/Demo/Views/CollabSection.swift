@@ -284,7 +284,9 @@ struct InviteSheet: View {
             .task { if let s = library.song(songID) { people = await Collab.shared.people(s) } }
             .task { blockedIDs = Set(await session.loadBlocked().map(\.id)) }
         }
-        .presentationDetents([.medium, .large])
+        // one fixed size: with a larger detent available, the keyboard pushes the sheet to full screen
+        .presentationDetents([.height(460)])
+        .presentationDragIndicator(.visible)
     }
 
     private func status(_ p: Collab.Person) -> String? {
