@@ -90,19 +90,9 @@ struct CollabSection: View {
                         pill("Owner", kind: .owner)
                     } else if p.role == "invited" {
                         pill("Invited", kind: .invited)
-                    } else if isOwner && !p.isMe {
-                        Button {
-                            if armed == p.id { Task { await Collab.shared.remove(p, from: songID); armed = nil; await load() } }
-                            else { Haptics.selection(); armed = p.id }
-                        } label: {
-                            Text(armed == p.id ? "Remove?" : "Remove").font(.system(size: 14))
-                                .foregroundStyle(armed == p.id ? Color.red : .secondary)
-                                .padding(.horizontal, 10).padding(.vertical, 6)
-                                .background(armed == p.id ? Color.red.opacity(0.1) : .clear, in: Capsule())
-                        }
-                        .buttonStyle(.borderless)
                     } else {
-                        pill("Co-writer", kind: .plain)
+                        // accepted
+                        pill("Co-writer", kind: .joined)
                     }
                 }
             }
@@ -148,17 +138,18 @@ struct CollabSection: View {
         .frame(minHeight: 44)
     }
 
-    enum PillKind { case owner, invited, add, plain }
+    enum PillKind { case owner, invited, joined, add, plain }
 
     /// The web's .clbadge: Owner (filled), Invited (peach to lilac), Invite (filled), others grey.
     private func pill(_ t: String, kind: PillKind) -> some View {
         Text(t).font(.system(size: 12, weight: .semibold))
-            .foregroundStyle(kind == .owner || kind == .add ? Theme.onTint : kind == .invited ? Color(hex: 0x3B2E5A) : .secondary)
+            .foregroundStyle(kind == .owner || kind == .add ? Theme.onTint : kind == .invited || kind == .joined ? Color.white : .secondary)
             .padding(.horizontal, 9).padding(.vertical, 4)
             .background {
                 switch kind {
                 case .owner, .add: Capsule().fill(Theme.tint)
-                case .invited: Capsule().fill(LinearGradient(colors: [Color(hex: 0xFFD3BE), Color(hex: 0xE3CCFF)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                case .invited: Capsule().fill(Color(hex: 0x007AFF))     // waiting on them
+                case .joined: Capsule().fill(Color(hex: 0x34C759))      // accepted
                 case .plain: Capsule().fill(BarFill.color)
                 }
             }
@@ -166,11 +157,19 @@ struct CollabSection: View {
 
     /// The "…" on everyone but me and pending invites: Report or Block. Blocking the owner takes the song away.
     private func moreAction(_ p: Collab.Person) -> (() -> Void)? {
-        if p.isMe || p.role == "invited" { return nil }
+        if p.isMe { return nil }
         let name = p.username.isEmpty ? p.name : "@" + p.username
         let isOwnerRow = p.role == "owner", id = songID, session = session, left = onLeft
+        // the owner can take someone off the song (or cancel an invite) from here too
+        var extra: [(title: String, red: Bool, run: () -> Void)] = []
+        if isOwner && !isOwnerRow {
+            extra.append((title: p.role == "invited" ? "Cancel Invite" : "Remove from Song", red: true, run: {
+                Task { await Collab.shared.remove(p, from: id); await load() }
+            }))
+        }
+        if p.role == "invited" && extra.isEmpty { return nil }
         return {
-            UserActions.show(name, id: p.id, songID: id, session: session) { _ in
+            UserActions.show(name, id: p.id, songID: id, session: session, extra: extra) { _ in
                 if isOwnerRow { left() } else { Task { await load() } }
             }
         }
@@ -336,8 +335,9 @@ struct InviteSheet: View {
 /// Report or Block someone (App Store guideline 1.2), from Details › Collaborators and Account › Invitations.
 @MainActor
 enum UserActions {
-    static func show(_ name: String, id: String, songID: String?, session: AppSession, blocked: @escaping (String) -> Void = { _ in }) {
-        Confirm.options(name, [
+    static func show(_ name: String, id: String, songID: String?, session: AppSession,
+                     extra: [(title: String, red: Bool, run: () -> Void)] = [], blocked: @escaping (String) -> Void = { _ in }) {
+        Confirm.options(name, extra + [
             (title: "Report \(name)", red: false, run: { report(name, id: id, songID: songID, session: session, blocked: blocked) }),
             (title: "Block \(name)", red: true, run: { block(name, id: id, session: session, blocked: blocked) })
         ])
