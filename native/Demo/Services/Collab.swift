@@ -31,6 +31,9 @@ final class Collab {
     @ObservationIgnored private var warned = Set<String>()
     /// The song open with a live channel: its pushes are held to one every 4 s.
     @ObservationIgnored var liveSongID: String?
+    /// The song whose live channel is connected right now: its words come from live patches, so a pull
+    /// never replaces them with the saved copy (which can be a few seconds behind what's on screen).
+    @ObservationIgnored var liveUp: String?
 
     private var uid: String? { session?.userID }
 
@@ -191,7 +194,17 @@ final class Collab {
                 return false
             }
             let localRm = s.raw["rmFiles"]?.object ?? [:]
+            let liveText = liveUp == songID
+            let mineText = (LiveSession.fields + ["rich"]).map { ($0, s.raw[$0]) }
             for (k, v) in d { s.raw[k] = v }
+            // open and live here: keep the words as they are (live already has everything); take the rest
+            var keptNewer = false
+            if liveText {
+                for (k, v) in mineText {
+                    if s.raw[k] != v { keptNewer = true }
+                    if let v { s.raw[k] = v } else { s.raw.removeValue(forKey: k) }
+                }
+            }
             s.raw["shared"] = true
             var changed = Self.fileMerge(&s, rm: localRm, audio: [], files: [])
             if (localRm.keys.contains { (d["rmFiles"]?.object ?? [:])[$0] == nil }) { changed = true }
@@ -199,6 +212,7 @@ final class Collab {
             s.raw["owner"] = row["owner_id"] ?? s.raw["owner"]
             s.raw["ownerEmail"] = row["owner_email"] ?? s.raw["ownerEmail"]
             s.raw["_pushed"] = .number(theirs)
+            if keptNewer { s.touch() }
             library.put(s)
             return true
         } catch { return false }

@@ -535,8 +535,8 @@ struct EditorScreen: View {
     /// Stores the editor's text: plain lyrics plus the matching formatted HTML (spec §1.2).
     private func save(_ attr: NSAttributedString) -> (String, String) {
         guard var s = library.song(songID) else { return ("", "") }
-        var plain = attr.string
-        if plain.hasSuffix("\n") { plain.removeLast() }
+        // the editor's text is the lyrics exactly (a new line at the end is real: co-writers see it too)
+        let plain = attr.string
         let rich = RichText.html(from: attr, baseColor: .label)
         if plain != s.lyrics || rich != s.rich {
             s.setText(lyrics: plain, rich: rich)

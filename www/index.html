@@ -17393,8 +17393,13 @@ function pullShared(s){var c=sbClient();if(!c||!AUTH_USER||!s||!s.shared)return;
     if((d.updated||0)<=(s.updated||0)&&fileMerge(s,d.rmFiles,null,null)){s.updated=Date.now();save();if(s===cur){renderAud();paintPlayB()}renderList()}
     if((d.updated||0)>(s.updated||0)){var keepRm=s.rmFiles;
       var mine=s===cur,sel=mine?getSel():null,focused=mine&&document.activeElement===lyr;
-      Object.keys(d).forEach(function(k){s[k]=d[k]});if(keepRm&&fileMerge(s,keepRm,null,null))s.updated=Date.now();else fileGC(s);s.owner=r.data.owner_id;s.ownerEmail=r.data.owner_email;s._pushed=d.updated;liveSnap(s);if(s===cur){renderAud();paintPlayB()}
-      if(mine){Object.keys(map).forEach(function(sel2){var el=$(sel2);if(document.activeElement!==el)el.value=s[map[sel2]]||''});setLyr(s);if(focused){var L=getText().length;setSel(Math.min(sel.s,L),Math.min(sel.e,L))}PF=mkPF(s.pf||pgGet());hdr();LSK=null;rhyme();refreshViews()}
+      /* open and live here: the words come from live patches, so keep them (the saved copy can be a few seconds
+         behind what's on screen, and taking it would wipe what was just typed); take everything else */
+      var liveText=LIVE.ok===true&&LIVE.id===s.id&&!!LIVE.ch,mineT={},kept=false;if(liveText)LIVE_F.concat(['rich']).forEach(function(k){mineT[k]=s[k]});
+      Object.keys(d).forEach(function(k){s[k]=d[k]});
+      if(liveText)Object.keys(mineT).forEach(function(k){if(liveVal(s,k)!==liveVal(mineT,k))kept=true;s[k]=mineT[k]});
+      if(keepRm&&fileMerge(s,keepRm,null,null))s.updated=Date.now();else fileGC(s);s.owner=r.data.owner_id;s.ownerEmail=r.data.owner_email;s._pushed=d.updated;if(kept)s.updated=Date.now();if(!liveText)liveSnap(s);if(s===cur){renderAud();paintPlayB()}
+      if(mine&&!liveText){Object.keys(map).forEach(function(sel2){var el=$(sel2);if(document.activeElement!==el)el.value=s[map[sel2]]||''});setLyr(s);if(focused){var L=getText().length;setSel(Math.min(sel.s,L),Math.min(sel.e,L))}PF=mkPF(s.pf||pgGet());hdr();LSK=null;rhyme();refreshViews()}
       renderList();renderSide()
     }
   })

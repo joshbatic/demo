@@ -66,6 +66,7 @@ final class LiveSession {
 
     func stop() {
         flushNow()
+        if Collab.shared.liveUp == songID { Collab.shared.liveUp = nil }
         tasks.forEach { $0.cancel() }; tasks = []
         ensureTask?.cancel(); ensureTask = nil
         sendTask?.cancel()
@@ -96,8 +97,11 @@ final class LiveSession {
                 }
             })
         }
+        if Collab.shared.liveUp == songID { Collab.shared.liveUp = nil }
         do {
             try await ch.subscribeWithError()
+            guard channel === ch else { return }
+            Collab.shared.liveUp = songID
         } catch {
             let m = "\(error)".lowercased()
             if priv && m.range(of: "unauthori|denied|permission|not allowed", options: .regularExpression) != nil {

@@ -21,6 +21,13 @@ nonisolated enum RichText {
         for (text, st) in runs where !text.isEmpty {
             out.append(NSAttributedString(string: text, attributes: attrs(for: st, font: font, color: color)))
         }
+        // the HTML can end with an extra line break (the web editor's filler <br>, or a closing <div>):
+        // trim to the line breaks the words really end with, so the editor's text is exactly the lyrics
+        if !html.isEmpty {
+            let want = plain.reversed().prefix { $0 == "\n" }.count
+            var have = out.string.reversed().prefix { $0 == "\n" }.count
+            while have > want, out.length > 0 { out.deleteCharacters(in: NSRange(location: out.length - 1, length: 1)); have -= 1 }
+        }
         return out
     }
 
@@ -208,6 +215,8 @@ nonisolated enum RichText {
             let body = escape(text)
             if css.isEmpty { out += body } else { anyStyle = true; out += "<span style=\"" + css.joined(separator: "; ") + ";\">" + body + "</span>" }
         }
+        // a last empty line needs the web editor's filler <br> to show (its getText drops one trailing break)
+        if anyStyle && s.string.hasSuffix("\n") { out += "<br>" }
         return anyStyle ? out : ""
     }
 
