@@ -415,7 +415,13 @@ struct OnboardingView: View {
     private func secondary() {
         if step == 4 { field = nil; withAnimation(.snappy) { step = 5 } } else { finish() }
     }
-    private func finish() { field = nil; Haptics.success(); done() }
+    /// Into the app, then Pro once, as the last thing onboarding shows (closed with ✕; never again after this).
+    private func finish() {
+        field = nil; Haptics.success(); done()
+        guard !session.plan.isPro else { return }
+        let s = session
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { if !s.plan.isPro && s.paywallWhy == nil { s.paywallWhy = "" } }
+    }
 
     // MARK: pages
 
