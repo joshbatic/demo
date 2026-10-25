@@ -37,3 +37,48 @@ grant execute on function public.block_user(uuid) to authenticated;
 drop policy if exists "collab_invites: not to blocked" on public.collab_invites;
 create policy "collab_invites: not to blocked" on public.collab_invites as restrictive for insert to authenticated
   with check (invitee_user_id is null or not public.i_blocked(invitee_user_id));
+
+-- Admin › Reports: the list (with who reported whom) and marking reports dealt with or dismissed.
+alter table public.user_reports add column if not exists note text, add column if not exists handled_at timestamptz;
+
+create or replace function public.admin_reports(p_status text default 'open')
+returns jsonb language plpgsql stable security definer set search_path to 'public', 'auth' as $function$
+declare r jsonb;
+begin
+  perform public._admin_check();
+  select jsonb_build_object(
+    'counts', (select jsonb_build_object('open', count(*) filter (where status = 'open'),
+                 'actioned', count(*) filter (where status = 'actioned'), 'dismissed', count(*) filter (where status = 'dismissed'))
+               from public.user_reports),
+    'list', coalesce((select jsonb_agg(to_jsonb(x) order by x.created_at desc) from (
+        select ur.id, ur.reason, ur.details, ur.song_id, ur.status, ur.note, ur.created_at, ur.handled_at,
+               ur.reporter, ru.email as reporter_email, rp.username as reporter_username, rp.display_name as reporter_name,
+               ur.reported, du.email as reported_email, dp.username as reported_username, dp.display_name as reported_name,
+               (du.banned_until is not null and du.banned_until > now()) as reported_suspended,
+               (select count(*) from public.user_reports z where z.reported = ur.reported) as reported_total,
+               (select ss.data->>'title' from public.shared_songs ss where ss.id = ur.song_id) as song_title
+        from public.user_reports ur
+        left join auth.users ru on ru.id = ur.reporter left join public.profiles rp on rp.user_id = ur.reporter
+        left join auth.users du on du.id = ur.reported left join public.profiles dp on dp.user_id = ur.reported
+        where p_status = 'all' or ur.status = p_status
+        order by ur.created_at desc limit 200) x), '[]'::jsonb))
+  into r;
+  return r;
+end $function$;
+
+create or replace function public.admin_report_update(p_id bigint, p_status text, p_note text default null)
+returns void language plpgsql security definer set search_path to 'public' as $function$
+begin
+  perform public._admin_check();
+  if p_status is not null and p_status not in ('open','actioned','dismissed') then raise exception 'Unknown status'; end if;
+  update public.user_reports set
+    status = coalesce(p_status, status),
+    note = coalesce(p_note, note),
+    handled_at = case when p_status is null then handled_at when p_status = 'open' then null else now() end
+  where id = p_id;
+end $function$;
+
+revoke execute on function public.admin_reports(text) from public, anon;
+revoke execute on function public.admin_report_update(bigint, text, text) from public, anon;
+grant execute on function public.admin_reports(text) to authenticated;
+grant execute on function public.admin_report_update(bigint, text, text) to authenticated;
