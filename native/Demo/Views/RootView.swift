@@ -367,15 +367,18 @@ struct OnboardingView: View {
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.snappy, value: step)
 
-            HStack(spacing: 7) {
-                ForEach(0..<pages, id: \.self) { i in
-                    Capsule().fill(i == step ? Color.primary : Color.primary.opacity(0.18))
-                        .frame(width: i == step ? 18 : 7, height: 7)
+            // the dots step aside while typing, so they never sit over the fields
+            if field == nil {
+                HStack(spacing: 7) {
+                    ForEach(0..<pages, id: \.self) { i in
+                        Capsule().fill(i == step ? Color.primary : Color.primary.opacity(0.18))
+                            .frame(width: i == step ? 18 : 7, height: 7)
+                    }
                 }
+                .animation(.snappy, value: step)
+                .padding(.top, 12).padding(.bottom, 20)
+                .accessibilityHidden(true)
             }
-            .animation(.snappy, value: step)
-            .padding(.bottom, 22)
-            .accessibilityHidden(true)
 
             VStack(spacing: 10) {
                 Button { primary() } label: {
@@ -384,17 +387,21 @@ struct OnboardingView: View {
                 }
                 .buttonStyle(PressScale())
                 .disabled(saving)
-                Button(secondaryTitle ?? " ") { secondary() }
-                    .font(.system(size: 16, weight: .medium)).foregroundStyle(.secondary)
-                    .frame(height: 30)
-                    .opacity(secondaryTitle == nil ? 0 : 1).disabled(secondaryTitle == nil)
+                if field == nil {
+                    Button(secondaryTitle ?? " ") { secondary() }
+                        .font(.system(size: 16, weight: .medium)).foregroundStyle(.secondary)
+                        .frame(height: 30)
+                        .opacity(secondaryTitle == nil ? 0 : 1).disabled(secondaryTitle == nil)
+                }
             }
-            .padding(.horizontal, 24).padding(.bottom, 12)
+            .padding(.horizontal, 24).padding(.top, field == nil ? 0 : 10).padding(.bottom, 12)
         }
         .background(Color(uiColor: .systemBackground).ignoresSafeArea())
         .onAppear { prefill() }
         .onChange(of: session.profile) { _, _ in prefill() }
-        .onChange(of: step) { _, s in field = s == 4 ? 0 : nil; error = nil }
+        .animation(.snappy(duration: 0.25), value: field)
+        // the fields are filled in already, so the keyboard waits for a tap rather than covering the page
+        .onChange(of: step) { _, _ in field = nil; error = nil }
     }
 
     private var primaryTitle: String {
@@ -441,37 +448,47 @@ struct OnboardingView: View {
     }
 
     private var profile: some View {
-        VStack(spacing: 0) {
-            Spacer(minLength: 10)
-            Avatar(url: session.profile.avatar_url, name: name.isEmpty ? session.myName : name, size: 88, id: session.userID)
-            Text("What should co-writers call you?").font(.system(size: 26, weight: .bold)).tracking(-0.3)
-                .multilineTextAlignment(.center).padding(.top, 22)
-            Text("Your name goes on your songs. Co-writers find you by your username.")
-                .font(.system(size: 16)).foregroundStyle(.secondary).multilineTextAlignment(.center).padding(.top, 8)
+        ScrollView {
             VStack(spacing: 0) {
-                TextField("Name", text: $name)
-                    .textContentType(.name).submitLabel(.next).focused($field, equals: 0)
-                    .onSubmit { field = 1 }
+                Avatar(url: session.profile.avatar_url, name: name.isEmpty ? session.myName : name, size: field == nil ? 84 : 56, id: session.userID)
+                    .padding(.top, field == nil ? 28 : 8)
+                Text("What should co-writers call you?")
+                    .font(.system(size: 24, weight: .bold)).tracking(-0.3)
+                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 18)
+                Text("Your name goes on your songs. Co-writers find you by your username.")
+                    .font(.system(size: 16)).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 8)
+                VStack(spacing: 0) {
+                    TextField("Name", text: $name)
+                        .textContentType(.name).submitLabel(.next).focused($field, equals: 0)
+                        .onSubmit { field = 1 }
+                        .padding(.horizontal, 16).frame(height: 50)
+                    Divider().padding(.leading, 16)
+                    HStack(spacing: 2) {
+                        Text("@").foregroundStyle(.secondary)
+                        TextField("username", text: $username)
+                            .textContentType(.username).textInputAutocapitalization(.never).autocorrectionDisabled()
+                            .submitLabel(.done).focused($field, equals: 1)
+                            .onSubmit { saveProfile() }
+                    }
                     .padding(.horizontal, 16).frame(height: 50)
-                Divider().padding(.leading, 16)
-                HStack(spacing: 2) {
-                    Text("@").foregroundStyle(.secondary)
-                    TextField("username", text: $username)
-                        .textContentType(.username).textInputAutocapitalization(.never).autocorrectionDisabled()
-                        .submitLabel(.done).focused($field, equals: 1)
-                        .onSubmit { saveProfile() }
                 }
-                .padding(.horizontal, 16).frame(height: 50)
+                .font(.system(size: 17))
+                .background(BarFill.color, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .padding(.top, 22)
+                Text(error ?? "3–20 letters, numbers or underscores. You can change both in Account.")
+                    .font(.footnote).foregroundStyle(error == nil ? Color.secondary : Color.red)
+                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 10).padding(.bottom, 16)
             }
-            .font(.system(size: 17))
-            .background(BarFill.color, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .padding(.top, 24)
-            Text(error ?? "3–20 letters, numbers or underscores. You can change both in Account.")
-                .font(.footnote).foregroundStyle(error == nil ? Color.secondary : Color.red)
-                .multilineTextAlignment(.center).padding(.top, 10)
-            Spacer(minLength: 10)
+            .frame(maxWidth: 440)
+            .padding(.horizontal, 28)
+            .frame(maxWidth: .infinity)
         }
-        .padding(.horizontal, 28)
+        .scrollDismissesKeyboard(.interactively)
+        .scrollBounceBehavior(.basedOnSize)
     }
 
     private var notifications: some View {
