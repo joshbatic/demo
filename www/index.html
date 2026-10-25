@@ -19111,7 +19111,7 @@ function profCacheSet(uid,p){try{localStorage.setItem(profKey(uid),JSON.stringif
 function saveLinks(fields){var c=sbClient();if(!c||!AUTH_USER)return Promise.reject(new Error('Sign-in isn’t available right now.'));
   var body={user_id:AUTH_USER.id,updated_at:new Date().toISOString()};Object.keys(fields).forEach(function(k){body[k]=fields[k]});
   return c.from('profiles').upsert(body,{onConflict:'user_id'}).then(function(r){
-    if(r&&r.error)return Promise.reject(new Error(r.error.message));
+    if(r&&r.error)return Promise.reject(new Error(/banned_name/.test(r.error.message||'')?'That name isn’t allowed. Try another.':/banned_username/.test(r.error.message||'')?'That username isn’t allowed. Try another.':r.error.message));
     MY_PROFILE=MY_PROFILE||{};Object.keys(fields).forEach(function(k){MY_PROFILE[k]=fields[k]});
     profCacheSet(AUTH_USER.id,MY_PROFILE);
   })
@@ -19157,7 +19157,7 @@ function saveUsername(v,dn){var c=sbClient();if(!c||!AUTH_USER)return Promise.re
   v=(v||'').trim().replace(/^@+/,'').toLowerCase();
   if(!/^[a-z0-9_]{3,20}$/.test(v))return Promise.reject(new Error('Usernames are 3–20 characters: letters, numbers, underscores.'));
   return c.from('profiles').upsert({user_id:AUTH_USER.id,username:v,display_name:(dn||myName()||v),updated_at:new Date().toISOString()},{onConflict:'user_id'}).then(function(r){
-    if(r&&r.error)return Promise.reject(new Error(r.error.code==='23505'?'That username’s taken.':/reserved_username/.test(r.error.message||'')?'That username’s reserved. If it’s your name, get in touch through hellodemo.app and we’ll set it up for you.':r.error.message));
+    if(r&&r.error)return Promise.reject(new Error(r.error.code==='23505'?'That username’s taken.':/banned_username/.test(r.error.message||'')?'That username isn’t allowed. Try another.':/banned_name/.test(r.error.message||'')?'That name isn’t allowed. Try another.':/reserved_username/.test(r.error.message||'')?'That username’s reserved. If it’s your name, get in touch through hellodemo.app and we’ll set it up for you.':r.error.message));
     MY_PROFILE=MY_PROFILE||{};MY_PROFILE.username=v;if(dn)MY_PROFILE.display_name=dn;profCacheSet(AUTH_USER.id,MY_PROFILE);
   })
 }

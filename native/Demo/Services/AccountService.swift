@@ -46,6 +46,8 @@ extension AppSession {
         } catch {
             let m = describe(error)
             if m.contains("23505") || m.lowercased().contains("duplicate") { return "That username’s taken." }
+            if m.contains("banned_username") { return "That username isn’t allowed. Try another." }
+            if m.contains("banned_name") { return "That name isn’t allowed. Try another." }
             if m.contains("reserved_username") { return "That username’s reserved. If it’s your name, get in touch through hellodemo.app and we’ll set it up for you." }
             return "Couldn’t save: " + m
         }
