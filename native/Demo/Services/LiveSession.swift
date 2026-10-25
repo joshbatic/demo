@@ -3,8 +3,9 @@ import Observation
 import Supabase
 import UIKit
 
-/// Live co-writing on an open shared song (data spec §3.7, engines.md §5): the `song:<id>` broadcast
-/// channel, small text patches every 150 ms, whole-song resyncs, formatting and file changes.
+/// Live writing on the open song (data spec §3.7, engines.md §5): small text patches every 50 ms or so,
+/// whole-song resyncs, formatting and file changes. A shared song uses `song:<id>` (co-writers and your own
+/// devices); a song that's only yours uses `me:<your id>:<id>`, so your iPhone and Mac stay in step as you type.
 /// Patches use the web's format on UTF-16 offsets so the web, Mac and iPhone can write together.
 @MainActor @Observable
 final class LiveSession {
@@ -35,19 +36,21 @@ final class LiveSession {
     @ObservationIgnored private(set) var applying = false
     @ObservationIgnored private var writingTask: Task<Void, Never>?
     @ObservationIgnored private var ensureTask: Task<Void, Never>?
+    /// whether the channel is the shared song's (a song that becomes shared rejoins on its own)
+    @ObservationIgnored private(set) var topicShared = false
 
     var isOn: Bool { channel != nil }
 
     // MARK: joining
 
     func start(songID: String, library: LibraryStore, session: AppSession, bridge: EditorBridge) {
-        guard let s = library.song(songID), s.isShared else { return }
+        guard let s = library.song(songID), session.userID != nil else { return }
         stop()
         self.songID = songID; self.library = library; self.session = session; self.bridge = bridge
         takeSnapshot(s)
-        Collab.shared.liveSongID = songID
+        if s.isShared { Collab.shared.liveSongID = songID }
         Task {
-            await Collab.shared.pull(songID)
+            if s.isShared { await Collab.shared.pull(songID) }
             if let s = library.song(songID) { takeSnapshot(s) }
             await join()
         }
@@ -76,7 +79,10 @@ final class LiveSession {
         if let old = channel { await Backend.client.removeChannel(old) }
         tasks.forEach { $0.cancel() }; tasks = []
         let priv = Self.usePrivate
-        let ch = Backend.client.channel("song:\(songID)") { c in
+        let shared = library?.song(songID)?.isShared ?? false
+        let topic = shared ? "song:\(songID)" : "me:\(session?.userID ?? ""):\(songID)"
+        topicShared = shared
+        let ch = Backend.client.channel(topic) { c in
             c.broadcast.receiveOwnBroadcasts = false
             c.isPrivate = priv
         }
@@ -121,11 +127,11 @@ final class LiveSession {
         return ""
     }
 
-    /// The song changed here: send what changed (at most every 150 ms).
+    /// The song changed here: send what changed (at most every 50 ms, so it feels instant on the other side).
     func localChanged() {
         guard channel != nil, !applying else { return }
         sendTask?.cancel()
-        let wait = max(0, 0.15 - Date().timeIntervalSince(lastSend))
+        let wait = max(0, 0.05 - Date().timeIntervalSince(lastSend))
         sendTask = Task { [weak self] in
             if wait > 0 { try? await Task.sleep(for: .seconds(wait)) }
             guard !Task.isCancelled else { return }

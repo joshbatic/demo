@@ -28,6 +28,11 @@ final class LibraryStore {
     @ObservationIgnored private var saveTask: Task<Void, Never>?
     @ObservationIgnored private var pushTask: Task<Void, Never>?
     @ObservationIgnored private var pollTask: Task<Void, Never>?
+    /// `library:<uid>`: each device says "changed" right after it saves, and the others sync straight away
+    /// (the same channel and message as the web and Mac apps), so a change shows up in about a second.
+    @ObservationIgnored private var libChannel: RealtimeChannelV2?
+    @ObservationIgnored private var libTask: Task<Void, Never>?
+    @ObservationIgnored private var nudgeTask: Task<Void, Never>?
     @ObservationIgnored private var running = false
     @ObservationIgnored private var again = false
 
@@ -59,11 +64,14 @@ final class LibraryStore {
         if seeded != songs { songs = seeded; flushSave() }
         sync()
         startPolling()
+        Task { await listen(uid) }
     }
 
     func close() {
         flushSave()
         pollTask?.cancel(); pushTask?.cancel(); saveTask?.cancel()
+        libTask?.cancel(); nudgeTask?.cancel()
+        if let ch = libChannel { libChannel = nil; Task { await Backend.client.removeChannel(ch) } }
         uid = nil; songs = []; ideas = []; tomb = Tombs(); base = nil; seenAt = nil
     }
 
@@ -128,7 +136,7 @@ final class LibraryStore {
         }
         pushTask?.cancel()
         pushTask = Task { [weak self] in
-            try? await Task.sleep(for: .milliseconds(1150))
+            try? await Task.sleep(for: .milliseconds(400))
             guard !Task.isCancelled else { return }
             self?.sync()
         }
@@ -221,7 +229,10 @@ final class LibraryStore {
         } catch let e as PostgrestError where e.code == "23505" {
             lost = true
         } catch {
-            notice = "Couldn’t sync to your account: \(describe(error))"
+            let m = describe(error)
+            notice = m.contains("cloud_library_user_id_fkey")
+                ? "This account was deleted, so songs here can’t sync. Export them from Account before you sign out."
+                : "Couldn’t sync to your account: \(m)"
             return
         }
         if lost {
@@ -230,6 +241,40 @@ final class LibraryStore {
         }
         base = BaseIDs(songs: songs.map(\.id), ideas: ideas.map(\.id))
         flushSave()
+        if let ch = libChannel, let msg = LiveSession.anyJSON(.object(["dev": .string(LiveSession.dev)])) {
+            await ch.broadcast(event: "changed", message: msg)
+        }
+    }
+
+    // MARK: the other devices, live
+
+    private func listen(_ uid: String) async {
+        guard uid == self.uid else { return }
+        if let old = libChannel { await Backend.client.removeChannel(old) }
+        libTask?.cancel()
+        let ch = Backend.client.channel("library:\(uid)") { c in
+            c.broadcast.receiveOwnBroadcasts = false
+            c.isPrivate = LiveSession.usePrivate
+        }
+        libChannel = ch
+        libTask = Task { [weak self] in
+            for await msg in ch.broadcastStream(event: "changed") {
+                guard let self else { return }
+                if LiveSession.json(msg["payload"])?["dev"]?.string == LiveSession.dev { continue }
+                self.nudgeTask?.cancel()
+                self.nudgeTask = Task { [weak self] in
+                    try? await Task.sleep(for: .milliseconds(200))
+                    guard !Task.isCancelled else { return }
+                    self?.sync()
+                }
+            }
+        }
+        do { try await ch.subscribeWithError() }
+        catch {
+            // try again in a while; polling covers the gap
+            try? await Task.sleep(for: .seconds(5))
+            if libChannel === ch, self.uid == uid { await listen(uid) }
+        }
     }
 
     /// The web's libMergeList, exactly: whole-item last-writer-wins on `updated`, local wins ties

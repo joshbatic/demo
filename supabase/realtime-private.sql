@@ -40,3 +40,10 @@ create policy "demo: own library listen" on realtime.messages for select to auth
   using (realtime.messages.extension = 'broadcast' and realtime.topic() = 'library:' || auth.uid()::text);
 create policy "demo: library nudge" on realtime.messages for insert to authenticated
   with check (realtime.messages.extension = 'broadcast' and realtime.topic() like 'library:%');
+
+-- Live typing between your own devices on a song that isn't shared: topic me:<your id>:<song id>.
+-- Only your own account can join or send on it. (Applied.)
+create policy "demo: own song channel listen" on realtime.messages for select to authenticated
+  using (extension = 'broadcast' and realtime.topic() like 'me:' || (auth.uid())::text || ':%');
+create policy "demo: own song channel send" on realtime.messages for insert to authenticated
+  with check (extension = 'broadcast' and realtime.topic() like 'me:' || (auth.uid())::text || ':%');

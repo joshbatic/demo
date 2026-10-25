@@ -15436,7 +15436,7 @@ function saveFlush(){clearTimeout(st);st=null;var key=ACTIVE_KEY||currentKey(),o
 function saveOnHide(){if(st)saveFlush();try{if(typeof IREC!=='undefined'&&IREC)irecStop(true)}catch(e){}try{if(typeof libReady==='function'&&libReady())cloudSync()}catch(e){}}
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')saveOnHide()});window.addEventListener('pagehide',saveOnHide);
 function save(){
-  libTyping=Date.now();if(!LIVE.applying){if(cur&&cur.shared&&AUTH_USER&&(!LIVE.ch||LIVE.id!==cur.id))liveEnsure();liveQueue()}
+  libTyping=Date.now();if(!LIVE.applying){if(cur&&AUTH_USER&&(!LIVE.ch||LIVE.id!==cur.id))liveEnsure();liveQueue()}
   /* save() fires on basically every keystroke, debounced down to one real write per pause - but
      showing the "Saving…/Saved" indicator on every single one of those writes made it pop in and out
      constantly while actively typing, which read as noisy rather than reassuring. It still saves in
@@ -17414,15 +17414,19 @@ function livePatch(t,P){var A=P.a||'',C=P.c||'',D=P.d||'';
   if(best<0&&!C&&!A)best=Math.min(P.f,t.length);
   if(best<0)return null;return{t:t.slice(0,best)+P.i+t.slice(best+D.length),at:best}}
 function liveSnap(s){if(s&&LIVE.id===s.id){LIVE.snap={};LIVE_F.forEach(function(k){LIVE.snap[k]=liveVal(s,k)});LIVE.snap._rich=liveVal(s,'rich')}}
-function liveEnsure(){if(!cur||!cur.shared||!AUTH_USER){if(LIVE.ch&&(!cur||cur.id!==LIVE.id||!cur.shared))liveLeave();return}
+/* the live channel: a shared song's (co-writers and your own devices), or for a song that's only yours a private one of
+   your own, so your iPhone and Mac keep in step as you type */
+function liveTopic(s){return s.shared?'song:'+s.id:'me:'+AUTH_USER.id+':'+s.id}
+function liveEnsure(){if(!cur||!AUTH_USER){if(LIVE.ch)liveLeave();return}if(LIVE.ch&&(cur.id!==LIVE.id||LIVE.topic!==liveTopic(cur)))liveLeave();
   var st=LIVE.ch&&LIVE.ch.state;if(LIVE.ch&&LIVE.id===cur.id&&LIVE.ok!==false&&st!=='closed'&&st!=='errored')return;LIVE.ch&&liveLeave();liveJoin(cur)}
 var RT_PRIV=true;
-function liveJoin(s){if(!s||!s.shared||!AUTH_USER){liveLeave();return}if(LIVE.id===s.id&&LIVE.ch&&LIVE.ok!==false)return;liveLeave();
+function liveJoin(s){if(!s||!AUTH_USER){liveLeave();return}if(LIVE.id===s.id&&LIVE.ch&&LIVE.ok!==false&&LIVE.topic===liveTopic(s))return;liveLeave();
   var c=sbClient();if(!c||!c.channel)return;LIVE.id=s.id;liveSnap(s);
   /* private channel: Supabase only lets the song's owner and co-writers join (supabase/realtime-private.sql). If that
      isn't set up yet the join fails, and it falls back to the old open channel so co-writing keeps working */
   var priv=RT_PRIV;
-  try{var ch=c.channel('song:'+s.id,{config:{broadcast:{self:false},private:priv}});
+  LIVE.topic=liveTopic(s);
+  try{var ch=c.channel(LIVE.topic,{config:{broadcast:{self:false},private:priv}});
     ch.on('broadcast',{event:'p'},function(m){if(LIVE.ch===ch)liveRecv(m&&m.payload)})
       .on('broadcast',{event:'need'},function(m){if(LIVE.ch!==ch)return;var x=m&&m.payload;if(x&&x.id===LIVE.id&&cur&&cur.id===x.id&&(!x.u||(cur.updated||0)>=x.u))liveSendFull()})
       .on('broadcast',{event:'full'},function(m){if(LIVE.ch===ch)liveFull(m&&m.payload)})
@@ -17434,8 +17438,8 @@ function liveJoin(s){if(!s||!s.shared||!AUTH_USER){liveLeave();return}if(LIVE.id
         else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){LIVE.ok=false;if(priv&&st==='CHANNEL_ERROR'&&!LIVE.everOk&&/unauthori|denied|permission|not allowed/i.test(String(arguments[1]&&(arguments[1].message||arguments[1])||'')))RT_PRIV=false;setTimeout(liveEnsure,2000)}});
     LIVE.ch=ch}catch(e){LIVE.ch=null}}
 function liveLeave(){LIVE.ok=null;if(LIVE.ch){liveFlushNow();try{sbClient().removeChannel(LIVE.ch)}catch(e){}}clearTimeout(LIVE.t);LIVE.ch=null;LIVE.id=null;LIVE.snap=null;LIVE.pend=[];liveHere(null)}
-/* called on every edit: send at most one message per 150 ms, carrying everything changed since the last one */
-function liveQueue(){if(!LIVE.ch||!cur||cur.id!==LIVE.id)return;if(LIVE.t)return;var w=Math.max(0,150-(Date.now()-LIVE.last));LIVE.t=setTimeout(liveSend,w)}
+/* called on every edit: send at most one message per 50 ms, carrying everything changed since the last one */
+function liveQueue(){if(!LIVE.ch||!cur||cur.id!==LIVE.id)return;if(LIVE.t)return;var w=Math.max(0,50-(Date.now()-LIVE.last));LIVE.t=setTimeout(liveSend,w)}
 function liveSend(){LIVE.t=0;var s=cur;if(!LIVE.ch||!s||s.id!==LIVE.id)return;if(!LIVE.snap)return liveSnap(s);
   var ch={},any=false;LIVE_F.forEach(function(k){var v=liveVal(s,k),d=liveDiff(LIVE.snap[k],v);if(d){ch[k]=d;LIVE.snap[k]=v;any=true}});
   var rich=liveVal(s,'rich'),fmt=!ch.lyrics&&rich!==LIVE.snap._rich&&!!rich;LIVE.snap._rich=rich;
@@ -19359,7 +19363,7 @@ function libRefreshCur(){var focused=document.activeElement===lyr,sel=focused?ge
   Object.keys(map).forEach(function(k){var el=$(k);if(document.activeElement!==el)el.value=cur[map[k]]||''});
   setLyr(cur);if(focused){var L=getText().length;setSel(Math.min(sel.s,L),Math.min(sel.e,L))}
   PF=mkPF(cur.pf||pgGet());hdr();LSK=null;rhyme();refreshViews()}
-function cloudPush(){if(!libReady())return;clearTimeout(libT);libT=setTimeout(function(){cloudSync()},900)}
+function cloudPush(){if(!libReady())return;clearTimeout(libT);libT=setTimeout(function(){cloudSync()},350)}
 function cloudPull(){libSeenAt=null;cloudSync(true);libListen()}
 function cloudSync(first){
   if(!libReady())return;

@@ -106,9 +106,9 @@ struct EditorScreen: View {
         // dropping to Free turns off what's Pro (applyPlan)
         .onChange(of: session.plan.isPro) { _, pro in if !pro { linesOn = false; if rateMode { setRateMode(false) } } }
         .onChange(of: filesKey) { _, _ in if live.isOn && !live.applying { live.filesChanged() } }
+        // sharing (or stopping) moves the song to the other live channel
         .onChange(of: song?.isShared ?? false) { _, on in
-            if on, live.isOn == false { live.start(songID: songID, library: library, session: session, bridge: bridge) }
-            if !on { live.stop() }
+            if live.topicShared != on || !live.isOn { live.start(songID: songID, library: library, session: session, bridge: bridge) }
         }
         .sheet(isPresented: $showVoice, onDismiss: { refreshResults(); lines.clear() }) { VoiceSheet(songID: songID) }
         .sheet(isPresented: $showMuse) {
@@ -145,9 +145,8 @@ struct EditorScreen: View {
             if var s = library.song(songID), s.autoSnap() { library.put(s) }
             bridge.onEdit = { attr in save(attr) }
             bridge.onSelection = { text, sel in updateContext(text, sel) }
-            if library.song(songID)?.isShared == true {
-                live.start(songID: songID, library: library, session: session, bridge: bridge)
-            }
+            // live on every song: co-writers on a shared one, and your own other devices on any
+            live.start(songID: songID, library: library, session: session, bridge: bridge)
             markSeenIfNew()
             // a brand-new, empty song: straight to typing (the text view may take a moment to exist)
             if let s = library.song(songID), s.title.isEmpty, s.lyrics.isEmpty, !s.isShared {
