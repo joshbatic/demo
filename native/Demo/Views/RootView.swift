@@ -1,5 +1,6 @@
 import SwiftUI
 import AuthenticationServices
+import Supabase
 
 struct RootView: View {
     @Environment(\.appSession) private var session
