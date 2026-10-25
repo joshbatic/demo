@@ -346,6 +346,11 @@ final class Collab {
               let p = ((try? JSONDecoder().decode([[String: JSONValue]].self, from: res.data)) ?? []).first,
               let invitee = p["user_id"]?.string else { return "No one found with that username" }
         if invitee == uid { return "That’s your own account" }
+        // someone I've blocked can't be invited (the server refuses it too)
+        if let br = try? await Backend.client.from("user_blocks").select("blocked").eq("blocker", value: uid).eq("blocked", value: invitee).execute(),
+           !((try? JSONDecoder().decode([[String: JSONValue]].self, from: br.data)) ?? []).isEmpty {
+            return "You’ve blocked @\(p["username"]?.string ?? v). Unblock them in Account › Blocked to invite them."
+        }
         let row: [String: JSONValue] = ["song_id": .string(s.id), "song_title": .string(s.title.isEmpty ? "Untitled" : s.title), "owner_id": .string(uid),
                                         "owner_email": .string(session.email), "owner_name": session.myName.isEmpty ? .null : .string(session.myName),
                                         "invitee_user_id": .string(invitee), "invitee_username": .string(p["username"]?.string ?? v)]

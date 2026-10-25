@@ -32,3 +32,8 @@ begin
 end $$;
 revoke execute on function public.block_user(uuid) from public, anon;
 grant execute on function public.block_user(uuid) to authenticated;
+
+-- You can't invite someone you've blocked. (Their invites to you are already hidden by "not from blocked".)
+drop policy if exists "collab_invites: not to blocked" on public.collab_invites;
+create policy "collab_invites: not to blocked" on public.collab_invites as restrictive for insert to authenticated
+  with check (invitee_user_id is null or not public.i_blocked(invitee_user_id));

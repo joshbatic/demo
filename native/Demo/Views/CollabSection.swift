@@ -217,6 +217,7 @@ struct InviteSheet: View {
     @State private var query = ""
     @State private var results: [Collab.Person] = []
     @State private var searching = false
+    @State private var blockedIDs: Set<String> = []
     @State private var sent: Set<String> = []
     @State private var sending: String?
     @State private var error: String?
@@ -272,11 +273,13 @@ struct InviteSheet: View {
             }
             .onAppear { DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { focused = true } }
             .task { if let s = library.song(songID) { people = await Collab.shared.people(s) } }
+            .task { blockedIDs = Set(await session.loadBlocked().map(\.id)) }
         }
         .presentationDetents([.medium, .large])
     }
 
     private func status(_ p: Collab.Person) -> String? {
+        if blockedIDs.contains(p.id) { return "Blocked" }
         if sent.contains(p.id) { return "Invited" }
         if let x = people.first(where: { $0.id == p.id }) { return x.role == "invited" ? "Invited" : "On song" }
         return nil
@@ -291,7 +294,7 @@ struct InviteSheet: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             if let st = status(p) {
-                Label(st, systemImage: "checkmark").font(.system(size: 14, weight: .semibold)).foregroundStyle(.secondary)
+                Label(st, systemImage: st == "Blocked" ? "hand.raised.slash" : "checkmark").font(.system(size: 14, weight: .semibold)).foregroundStyle(.secondary)
             } else if sending == p.id {
                 ProgressView()
             } else {

@@ -17451,10 +17451,13 @@ function inviteCollaborator(target){if(!cur||!AUTH_USER)return;
        first try lands before that copy has saved, push it and try once more */
     var row={song_id:cur.id,song_title:cur.title||'Untitled',owner_id:AUTH_USER.id,owner_email:AUTH_USER.email,owner_name:myName()||null,invitee_user_id:uid,invitee_username:uname},s0=cur;
     var ins=function(){return c.from('collab_invites').insert(row)};
+    var blockedMsg=function(){toast('You’ve blocked @'+uname+'. Unblock them in Account › Blocked to invite them.')};
+    if((BLOCKS||[]).some(function(b){return b.id===uid}))return blockedMsg();
+    c.from('user_blocks').select('blocked').eq('blocker',AUTH_USER.id).eq('blocked',uid).then(function(rb){if(rb&&rb.data&&rb.data.length)return blockedMsg();
     ins().then(function(r){if(r&&r.error&&/row-level security/i.test(r.error.message||'')){try{pushShared(s0)}catch(e){}return new Promise(function(res){setTimeout(function(){ins().then(res,res)},2500)})}return r}).then(function(r){
       if(r&&r.error)return toast('Couldn’t send the invite: '+(/row-level security/i.test(r.error.message||'')?'only the song’s owner can invite people.':r.error.message));
       toast('Invited @'+uname);renderCollab();pingUser(uid,'invite');fnCall('push',{action:'invite',song_id:row.song_id,invitee:uid}).catch(function(){})
-    })
+    })})
   }
   if(target&&typeof target==='object')return send(target.user_id,target.username);
   var v=(target||'').trim().replace(/^@/,'').toLowerCase();
@@ -17630,7 +17633,7 @@ function renderCollab(){var g=$('#collab'),n=$('#collab-note');g.innerHTML='';n.
           var ad=document.createElement('span');ad.className='clbadge'+(k?(k==='Invited'?' inv':''):' add');ad.textContent=k||'Invite';b.appendChild(ad);
           if(!k)b.onclick=function(){inp.value='';gob.disabled=true;sug.innerHTML='';inviteCollaborator(p)};sug.appendChild(b)})})},250)}}
   /* people */
-  var draw=function(prof,mem,invs){if(!cur||cur.id!==songId)return;list.innerHTML='';known={};mem.forEach(function(m){known[m.user_id]='On song'});invs.forEach(function(x){if(x.invitee_user_id)known[x.invitee_user_id]='Invited'});
+  var draw=function(prof,mem,invs){if(!cur||cur.id!==songId)return;list.innerHTML='';known={};mem.forEach(function(m){known[m.user_id]='On song'});invs.forEach(function(x){if(x.invitee_user_id)known[x.invitee_user_id]='Invited'});(BLOCKS||[]).forEach(function(b){known[b.id]='Blocked'});
     var oid=cur.owner||AUTH_USER.id,op=prof[oid];
     clPerson(list,{p:op,id:oid,name:oid===AUTH_USER.id?(nameOf(op,myName()||'You')+' (you)'):nameOf(op,(cur.ownerEmail||'').split('@')[0]),sub:op&&op.username?'@'+op.username:'',badge:'Owner',badgeCls:'own',more:oid===AUTH_USER.id?null:function(){userActions({id:oid,songId:songId,name:op&&op.username?'@'+op.username:nameOf(op,'the owner')})}});
     mem.forEach(function(m){if(m.user_id===oid)return;var p=prof[m.user_id],you=m.user_id===AUTH_USER.id;
