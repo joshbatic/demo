@@ -511,7 +511,7 @@ struct OnboardingView: View {
         }
     }
 
-    /// "Josh Batic" → "joshbatic"; "sam.lee+x@gmail.com" → "samlee". 3–20 of a–z, 0–9, _.
+    /// "Sam Lee" → "samlee"; "alex.m+x@gmail.com" → "alexm". 3–20 of a–z, 0–9, _.
     static func usernameBase(name: String, email: String) -> String {
         func clean(_ s: String) -> String {
             let folded = s.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current).lowercased()
