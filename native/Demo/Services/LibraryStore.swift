@@ -252,9 +252,10 @@ final class LibraryStore {
         guard uid == self.uid else { return }
         if let old = libChannel { await Backend.client.removeChannel(old) }
         libTask?.cancel()
+        let priv = LiveSession.usePrivate
         let ch = Backend.client.channel("library:\(uid)") { c in
             c.broadcast.receiveOwnBroadcasts = false
-            c.isPrivate = LiveSession.usePrivate
+            c.isPrivate = priv
         }
         libChannel = ch
         libTask = Task { [weak self] in
