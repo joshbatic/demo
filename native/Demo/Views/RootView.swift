@@ -441,7 +441,7 @@ struct OnboardingView: View {
     private var profile: some View {
         VStack(spacing: 0) {
             Spacer(minLength: 10)
-            Avatar(url: session.profile.avatar_url, name: name.isEmpty ? session.myName : name, size: 88)
+            Avatar(url: session.profile.avatar_url, name: name.isEmpty ? session.myName : name, size: 88, id: session.userID)
             Text("What should co-writers call you?").font(.system(size: 26, weight: .bold)).tracking(-0.3)
                 .multilineTextAlignment(.center).padding(.top, 22)
             Text("Your name goes on your songs. Co-writers find you by your username.")

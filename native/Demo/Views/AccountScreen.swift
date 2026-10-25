@@ -112,7 +112,7 @@ struct AccountScreen: View {
         Section {
             VStack(spacing: 8) {
                 PhotosPicker(selection: $photo, matching: .images) {
-                    Avatar(url: session.profile.avatar_url, name: session.myName, size: 88)
+                    Avatar(url: session.profile.avatar_url, name: session.myName, size: 88, id: session.userID)
                         .overlay(Circle().strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.5))
                         .overlay(alignment: .bottomTrailing) {
                             Image(systemName: "camera.fill").font(.system(size: 12, weight: .semibold)).foregroundStyle(.white)
@@ -179,7 +179,7 @@ struct AccountScreen: View {
         Section("Invitations") {
             ForEach(collab.invites) { inv in
                 HStack(spacing: 12) {
-                    Avatar(url: inv.avatar, name: inv.ownerName, size: 36)
+                    Avatar(url: inv.avatar, name: inv.ownerName, size: 36, id: inv.ownerID)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(inv.title).font(.system(size: 16, weight: .semibold)).lineLimit(1)
                         HStack(spacing: 4) {

@@ -30,7 +30,7 @@ struct CollabSection: View {
         Section("Collaborators") {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: -8) {
-                    Avatar(url: session.profile.avatar_url, name: session.myName, size: 34)
+                    Avatar(url: session.profile.avatar_url, name: session.myName, size: 34, id: session.userID)
                         .overlay(Circle().stroke(Color(uiColor: .secondarySystemGroupedBackground), lineWidth: 2))
                     Image(systemName: "plus").font(.system(size: 14, weight: .bold)).foregroundStyle(.secondary)
                         .frame(width: 34, height: 34).background(BarFill.color, in: Circle())
@@ -83,7 +83,7 @@ struct CollabSection: View {
                 }
             }
             ForEach(people) { p in
-                personRow(avatar: p.avatar, name: p.name + (p.isMe ? " (you)" : ""),
+                personRow(avatar: p.avatar, name: p.name + (p.isMe ? " (you)" : ""), id: p.id,
                           sub: p.role == "invited" ? "Hasn’t accepted yet" : (p.username.isEmpty ? "" : "@" + p.username),
                           more: moreAction(p)) {
                     if p.role == "owner" {
@@ -117,9 +117,9 @@ struct CollabSection: View {
     }
 
     /// The web's .clrow: 34pt avatar, name and a grey line, something on the right.
-    private func personRow<R: View>(avatar: String?, name: String, sub: String, more: (() -> Void)? = nil, @ViewBuilder right: () -> R) -> some View {
+    private func personRow<R: View>(avatar: String?, name: String, id: String? = nil, sub: String, more: (() -> Void)? = nil, @ViewBuilder right: () -> R) -> some View {
         HStack(spacing: 12) {
-            Avatar(url: avatar, name: name, size: 34)
+            Avatar(url: avatar, name: name, size: 34, id: id)
             VStack(alignment: .leading, spacing: 1) {
                 Text(name).font(.system(size: 15.5, weight: .semibold)).foregroundStyle(.primary).lineLimit(1)
                 if !sub.isEmpty { Text(sub).font(.system(size: 13)).foregroundStyle(.secondary).lineLimit(1) }
@@ -186,7 +186,7 @@ struct InviteBanner: View {
     var body: some View {
         if let inv = collab.banner {
             HStack(spacing: 12) {
-                Avatar(url: inv.avatar, name: inv.ownerName, size: 40)
+                Avatar(url: inv.avatar, name: inv.ownerName, size: 40, id: inv.ownerID)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(inv.ownerName) invited you to write “\(inv.title)” together").font(.subheadline.weight(.semibold)).lineLimit(3)
                     HStack(spacing: 8) {
@@ -297,7 +297,7 @@ struct InviteSheet: View {
 
     private func row(_ p: Collab.Person) -> some View {
         HStack(spacing: 12) {
-            Avatar(url: p.avatar, name: p.name, size: 40)
+            Avatar(url: p.avatar, name: p.name, size: 40, id: p.id)
             VStack(alignment: .leading, spacing: 1) {
                 Text(p.name).font(.system(size: 16, weight: .semibold)).lineLimit(1)
                 Text("@" + p.username).font(.system(size: 14)).foregroundStyle(.secondary).lineLimit(1)

@@ -17660,9 +17660,15 @@ function renderInvites(){var b=$('#acc-invites');if(!b)return;b.innerHTML='';
   })
 }
 /* Collaborators (Details › Info): who's on the song, inviting by username, and leaving or stopping sharing */
+/* no photo: initials on the song covers' gradient, picked from the account id (the iPhone app's Avatar) */
+function avGradCss(id){var k=covPick(id||'x');return'radial-gradient(circle at '+k.cx+'% '+k.cy+'%,'+k.c+'bf 0,'+k.c+'00 70%),linear-gradient(135deg,'+k.p[0]+','+k.p[1]+')'}
+function avInitialsURL(name,id){var ini=initialsOf(name)||'',k=covPick(id||(name||'x').toLowerCase());
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+k.p[0]+'"/><stop offset="1" stop-color="'+k.p[1]+'"/></linearGradient><radialGradient id="b" cx="'+(k.cx/100)+'" cy="'+(k.cy/100)+'" r=".8"><stop offset="0" stop-color="'+k.c+'" stop-opacity=".75"/><stop offset="1" stop-color="'+k.c+'" stop-opacity="0"/></radialGradient></defs><rect width="100" height="100" fill="url(#a)"/><rect width="100" height="100" fill="url(#b)"/>'+
+    (ini?'<text x="50" y="50" dy=".35em" text-anchor="middle" font-family="-apple-system,system-ui,Helvetica,Arial,sans-serif" font-weight="600" font-size="'+(ini.length>1?38:44)+'" fill="#fff">'+ini.replace(/[<&>]/g,'')+'</text>':'')+'</svg>';
+  return'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)}
 function clAvatar(p,name,id){var a=document.createElement('span');a.className='clav';
   if(p&&avOk(p.avatar_url)){var im=document.createElement('img');im.src=p.avatar_url;im.alt='';im.referrerPolicy='no-referrer';a.appendChild(im)}
-  else{var k=covHex(id||name||'x');a.style.background='linear-gradient(140deg,'+k[2]+','+k[0]+')';a.textContent=((name||'?').replace(/^@/,'').trim()[0]||'?').toUpperCase()}return a}
+  else{a.style.background=avGradCss(id||(name||'x').toLowerCase());a.textContent=initialsOf((name||'').replace(/ \(you\)$/,''))||'?'}return a}
 function clPerson(g,o){var r=document.createElement('div');r.className='clrow';r.appendChild(clAvatar(o.p,o.name,o.id));
   var t=document.createElement('span');t.className='cltx';t.innerHTML='<b></b><span></span>';t.firstChild.textContent=o.name;t.lastChild.textContent=o.sub||'';if(!o.sub)t.removeChild(t.lastChild);r.appendChild(t);
   if(o.badge){var bd=document.createElement('span');bd.className='clbadge'+(o.badgeCls?' '+o.badgeCls:'');bd.textContent=o.badge;r.appendChild(bd)}
@@ -19022,7 +19028,7 @@ function avatarURL(){
   return''
 }
 function paintAcctIcons(){
-  var url=avatarURL();
+  var url=avatarURL()||(AUTH_USER?avInitialsURL(myName(),AUTH_USER.id):'');
   [['acctav','acctsvg'],['sacctav','sacctsvg']].forEach(function(p){
     var im=$('#'+p[0]),sv=$('#'+p[1]);if(!im||!sv)return;
     if(url){im.src=url;im.hidden=false;sv.style.display='none'}
@@ -19755,7 +19761,7 @@ function renderAccount(){if(PW.on)pwRender();var o=$('#acc'),pro=isPro(),page=AC
     if(page==='main'){hero=document.createElement('div');hero.className='prohero procard';o.appendChild(hero);
     var avWrap=document.createElement('button');avWrap.className='proav';avWrap.setAttribute('aria-label','Change photo');
     if(avSrc){var av=document.createElement('img');av.src=avSrc;av.alt='';av.referrerPolicy='no-referrer';avWrap.appendChild(av)}
-    else{var avph=document.createElement('span');avph.className='proavph';var ini=initialsOf(shownName);if(ini)avph.textContent=ini;else avph.innerHTML=ACC_ICO.person;avWrap.appendChild(avph)}
+    else{var avph=document.createElement('span');avph.className='proavph';avph.style.background=avGradCss(AUTH_USER?AUTH_USER.id:(shownName||'').toLowerCase());avph.style.filter='none';var ini=initialsOf(shownName);if(ini)avph.textContent=ini;else avph.innerHTML=ACC_ICO.person;avWrap.appendChild(avph)}
     var avEdit=document.createElement('span');avEdit.className='proavedit';avEdit.innerHTML=ACC_ICO.cam;avWrap.appendChild(avEdit);
     avWrap.onclick=function(){$('#avin').click()};hero.appendChild(avWrap);
     var nm=document.createElement('div');nm.className='proname';nm.textContent=shownName;hero.appendChild(nm);

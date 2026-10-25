@@ -381,7 +381,7 @@ struct AccountButton: View {
                         .background(Color.primary.opacity(0.08), in: Capsule())
                         .foregroundStyle(Color.primary)
                 }
-                Avatar(url: session.profile.avatar_url, name: session.myName, size: 28)
+                Avatar(url: session.profile.avatar_url, name: session.myName, size: 28, id: session.userID)
                     // pending co-writing invites
                     .overlay(alignment: .topTrailing) {
                         if !Collab.shared.invites.isEmpty {
@@ -404,6 +404,8 @@ struct Avatar: View {
     let url: String?
     let name: String
     var size: CGFloat
+    /// the person's account id: picks their colours, the same on every device (falls back to the name)
+    var id: String? = nil
     var body: some View {
         Group {
             if let u = url, u.hasPrefix("data:image/"), let img = CoverView.image(u) {
@@ -417,8 +419,30 @@ struct Avatar: View {
         .frame(width: size, height: size)
         .clipShape(Circle())
     }
+    /// No photo: their initials on a gradient from the song covers' palette, picked from their id.
     private var placeholder: some View {
-        Icon("ic-person", size * 0.82).foregroundStyle(.primary).frame(width: size, height: size)
+        let k = CoverPick(id: (id?.isEmpty == false ? id! : name.lowercased()))
+        return ZStack {
+            LinearGradient(colors: [k.a, k.b], startPoint: .topLeading, endPoint: .bottomTrailing)
+            RadialGradient(colors: [k.glow.opacity(0.75), k.glow.opacity(0)], center: UnitPoint(x: k.cx, y: k.cy), startRadius: 0, endRadius: size * 0.8)
+            if !Avatar.initials(name).isEmpty {
+                Text(Avatar.initials(name)).font(.system(size: size * (Avatar.initials(name).count > 1 ? 0.38 : 0.44), weight: .semibold))
+                    .foregroundStyle(.white).shadow(color: .black.opacity(0.12), radius: 1, y: 0.5)
+                    .minimumScaleFactor(0.5).lineLimit(1)
+            } else {
+                Image(systemName: "person.fill").font(.system(size: size * 0.44)).foregroundStyle(.white)
+            }
+        }
+        .frame(width: size, height: size)
+    }
+    /// "Sam Lee" → "SL", "@sam" → "S" (the web's initialsOf).
+    static func initials(_ n: String) -> String {
+        var s = n.trimmingCharacters(in: .whitespaces)
+        while s.hasPrefix("@") { s.removeFirst() }
+        s = s.replacingOccurrences(of: " (you)", with: "")
+        let w = s.split(whereSeparator: { $0 == " " })
+        guard let f = w.first?.first else { return "" }
+        return (String(f) + (w.count > 1 ? String(w.last!.first!) : "")).uppercased()
     }
     static func trusted(_ u: URL) -> Bool {
         guard u.scheme == "https", let h = u.host else { return false }
