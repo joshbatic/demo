@@ -403,8 +403,11 @@ body.ios #dictSheet{top:16%;padding-top:0}
 #probanner .pb-row:active{opacity:.7}
 #probanner .pb-ic{width:38px;height:38px;border-radius:11px;background:linear-gradient(150deg,var(--tint),var(--tint2,var(--tint)));color:#fff;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),inset 0 -1px 2px rgba(0,0,0,.15),0 2px 8px rgba(0,0,0,.18)}
 #probanner .pb-txt{min-width:0;flex:1}
+#probanner .pb-tick{flex:none}
+#probanner .pb-go{flex:none;font-size:15px;font-weight:600;color:#0095F6}
+#probanner .pb-row{padding:13px 16px 13px 14px;gap:10px}
 #probanner b{font-size:15px;display:block;margin-bottom:1px;font-weight:600}
-#probanner p{font-size:13px;color:var(--mute);line-height:1.3;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#probanner p{font-size:15px;font-weight:500;color:var(--ink);line-height:1.3;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 #probanner .pb-chev{color:var(--mute);flex:none;opacity:.55}
 #pb-x{position:absolute;top:-9px;right:-9px;color:var(--mute);width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;background:var(--bg);box-shadow:0 0 0 .5px var(--ring),0 1px 4px rgba(0,0,0,.2);z-index:1}
 #toast.on{opacity:1;transform:translate(-50%,0)}
@@ -824,7 +827,8 @@ body.ios .song{padding:13px 24px}
 .cltx span{font-size:13px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .clbadge{flex:none;font-size:12px;font-weight:600;padding:4px 9px;border-radius:99px;background:var(--fill);color:var(--mute)}
 .clbadge.own{background:var(--tint);color:var(--ontint)}
-.clbadge.inv{background:linear-gradient(135deg,#FFD3BE,#E3CCFF);color:#3B2E5A}
+.clbadge.inv{background:#007AFF;color:#fff}
+.clbadge.ok{background:#34C759;color:#fff}
 .clbadge.add{background:var(--tint);color:var(--ontint)}
 .clx{flex:none;font-size:14px;color:var(--mute);padding:6px 10px;border-radius:99px}.clx.arm{color:var(--red);background:rgba(255,59,48,.1)}
 .clinv{display:flex;align-items:center;gap:8px;padding:10px 10px 10px 16px;border-bottom:.5px solid var(--sep)}
@@ -1231,6 +1235,10 @@ body.nglass .ngsw{opacity:0!important}
 #p-aud,#p-rel{padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
 .dictout{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
 #acc.kbpad{padding-bottom:50vh}
+
+/* the Muse button is a plain bar button now, like its neighbours */
+#stuckb{background:var(--fill)!important;background-image:none!important;color:var(--ink)!important;box-shadow:none!important;animation:none!important}
+#stuckb svg{filter:none!important}
 </style>
 </head>
 <body>
@@ -1656,11 +1664,11 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   <div class="ib-acts"><button class="go2 ghost" id="ib-no">Not Now</button><button class="go2" id="ib-ok">Accept</button></div>
 </div>
 <div id="probanner" class="gl" role="dialog" aria-label="*[demo] Pro">
-  <button id="pb-x" aria-label="Dismiss">×</button>
-  <div class="pb-row" id="pb-row">
-    <div class="pb-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg></div>
-    <div class="pb-txt"><b id="pb-t"></b><p id="pb-d"></p></div>
-    <svg class="pb-chev" width="9" height="15" viewBox="0 0 9 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6.5 6.5L1 14"/></svg>
+  <button id="pb-x" aria-label="Dismiss" hidden>×</button>
+  <div class="pb-row" id="pb-row" role="button" tabindex="0">
+    <svg class="pb-tick" width="19" height="19" viewBox="0 0 24 24" aria-hidden="true"><path fill="#0095F6" d="M12 1.5l2.4 1.8 3-.2.9 2.9 2.5 1.7-.9 2.9 1 2.8-2.5 1.8-.8 2.9-3 .1L12 22.5l-2.4-1.8-3 .2-.9-2.9-2.5-1.7.9-2.9-1-2.8 2.5-1.8.8-2.9 3-.1z"/><path d="M8 12.2l2.6 2.6L16.2 9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="pb-txt"><b id="pb-t" hidden></b><p id="pb-d"></p></div>
+    <span class="pb-go" id="pb-go">See Pro</span>
   </div>
 </div>
 
@@ -15328,7 +15336,7 @@ function imPaintRow(r,m){var on=IDA_ID===m.id&&IDA,playing=on&&!IDA.paused,f=on&
 function imPaintAll(){document.querySelectorAll('.imemo').forEach(function(r){var i=ideas.filter(function(x){return x.memo&&x.memo.id===r.dataset.mid})[0];if(i)imPaintRow(r,i.memo)})}
 /* a song started from a memo idea gets the recording as its first Voice memo version (copied, so deleting
    the idea later doesn't take the song's audio with it) */
-function ideaMemoToSong(i,s){var m=i&&i.memo;if(!m)return;if(!isPro()){setTimeout(function(){upsell('audio','Your voice memo stays in Ideas. Pro adds recordings to songs.')},900);return}var nid=uuid4(),ext=imExt(m.mime);
+function ideaMemoToSong(i,s){var m=i&&i.memo;if(!m)return;if(!isPro()){setTimeout(function(){upsell('audio','Adding recordings to songs comes with Pro. Your memo stays in Ideas.')},900);return}var nid=uuid4(),ext=imExt(m.mime);
   var add=function(path){s.audio=[{id:nid,name:i.text?i.text.split('\n')[0].slice(0,60):'Voice memo',path:path,size:m.size||0,mime:m.mime||'',added:Date.now(),kind:'Voice memo',dur:m.dur||0,cur:true}];sfTouch(s);if(cur===s){renderAud();paintPlayB()}};
   if(/^local:/.test(m.path))return audGet('f:'+m.id).then(function(b){if(b)return sfPut(s,new File([b],'Voice memo.'+ext,{type:m.mime||'audio/mp4'}),nid).then(add)}).catch(function(e){toast('Couldn’t add the voice memo to the song: '+sfErr(e))});
   if(!sfCloud())return;var dst=AUTH_USER.id+'/'+s.id+'/'+nid+'.'+ext;
@@ -16956,7 +16964,10 @@ function runGen(o){
 var wmode='rhy',WMODES=[['rhy','Rhymes'],['per','Perfect'],['near','Near'],['phr','Phrases'],['syn','Synonyms'],['rel','Related'],['adj','Describe'],['ant','Opposites'],['snd','Sounds like'],['def','Define']],WML={};WMODES.forEach(function(m){WML[m[0]]=m[1]});
 var DMQ={syn:'ml',rel:'rel_trg',adj:'rel_jjb',ant:'rel_ant',snd:'sl'};
 var AIQ={phr:'short phrases (2 to 4 words) whose final word rhymes with it, to end a lyric line',syn:'synonyms and words with a similar meaning that could replace it in the line',rel:'words strongly associated with it (images, objects, places, feelings) to spark the next line',adj:'vivid adjectives that could describe it',ant:'opposites and contrasting words',snd:'words that sound similar through assonance or consonance but are not exact rhymes'};
-function renderWM(){var w=$('#wm');if(w.dataset.m===wmode&&w.childNodes.length)return;w.dataset.m=wmode;w.innerHTML='';WMODES.forEach(function(m){var b=document.createElement('button');b.className=m[0]===wmode?'on':'';b.textContent=m[1];b.onmousedown=prevent;b.onclick=function(){wmode=m[0];renderWM();rhyme()};w.appendChild(b)})}
+function renderWM(){var w=$('#wm');if(w.dataset.m===wmode&&w.childNodes.length)return;w.dataset.m=wmode;w.innerHTML='';WMODES.forEach(function(m){var b=document.createElement('button');b.className=m[0]===wmode?'on':'';b.textContent=m[1];b.onmousedown=prevent;b.onclick=function(){wmode=m[0];renderWM();rhyme()};w.appendChild(b)});
+  wmCenter(w)}
+/* the chosen mode slides to the middle (or as far as it goes at either end), so it's always fully in view */
+function wmCenter(w,instant){requestAnimationFrame(function(){var on=w.querySelector('.on');if(!on||w.scrollWidth<=w.clientWidth)return;var a=on.getBoundingClientRect(),r=w.getBoundingClientRect(),x=Math.max(0,Math.min(w.scrollLeft+(a.left-r.left)+a.width/2-w.clientWidth/2,w.scrollWidth-w.clientWidth));try{w.scrollTo({left:x,behavior:instant?'auto':'smooth'})}catch(e){w.scrollLeft=x}})}
 /* a small built-in dictionary for the word tools row: Datamuse's own 'defs' metadata first (free,
    no AI needed, so it works even offline-of-AI the same way the rhyme lists do), falling back to a
    short AI-written definition only when Datamuse has nothing for the word or is unreachable. Each
@@ -17023,7 +17034,7 @@ function openDict(){
   if(!document.body.classList.contains('ios'))setTimeout(function(){q.focus();q.select()},260);
 }
 function closeDict(){$('#dictSheet').classList.remove('on');if(!$('#sheet').classList.contains('on'))$('#scrim').classList.remove('on')}
-function renderDictWM(){var w=$('#dictwm');w.innerHTML='';WMODES.forEach(function(m){var b=document.createElement('button');b.className=m[0]===dictMode?'on':'';b.textContent=m[1];b.onmousedown=prevent;b.onclick=function(){dictMode=m[0];renderDictWM();dictRun()};w.appendChild(b)});if(window._wireEdgeFade)window._wireEdgeFade(w)}
+function renderDictWM(){var w=$('#dictwm');w.innerHTML='';WMODES.forEach(function(m){var b=document.createElement('button');b.className=m[0]===dictMode?'on':'';b.textContent=m[1];b.onmousedown=prevent;b.onclick=function(){dictMode=m[0];renderDictWM();dictRun()};w.appendChild(b)});if(window._wireEdgeFade)window._wireEdgeFade(w);wmCenter(w,true)}
 function dictInsert(x){
   lyr.setSelectionRange(dictSel.s,dictSel.e);
   var pv=getText().charAt(dictSel.s-1);
@@ -17444,6 +17455,8 @@ function leaveOrDelete(s){var c=sbClient();
 function stopSharing(){var s=cur;if(!isOwnerOf(s))return;var c=sbClient();if(c)sharedEnd(s);
   delete s.owner;delete s.ownerEmail;delete s.members;s.shared=false;s.updated=Date.now();save();renderCollab();renderList();renderSide();toast('Sharing stopped. The song is back on this device only.')}
 function inviteCollaborator(target){if(!cur||!AUTH_USER)return;
+  /* inviting is Pro (joining isn't); the server refuses it too */
+  if(!isPro())return upsell('share');
   function send(uid,uname){
     if(!uid)return;
     if(uid===AUTH_USER.id)return toast('That’s your own account');
@@ -17533,10 +17546,12 @@ function umAsk(title,msg,ok,red){var A=red&&natDestroy({title:title,message:msg,
     var r=document.createElement('div');r.className='umbtns';var no=document.createElement('button');no.className='umb';no.textContent='Cancel';no.onclick=function(){close();res(false)};
     var yes=document.createElement('button');yes.className='umb main'+(red?' red':'');yes.textContent=ok;yes.onclick=function(){close();res(true)};r.appendChild(no);r.appendChild(yes);bx.appendChild(r)})})}
 function userActions(o){if(!AUTH_USER||!o.id||o.id===AUTH_USER.id)return;var A=natPlug('ActionSheet');
-  var go=function(i){if(i===0)reportUser(o);else if(i===1)blockUser(o.id,o.name,o)};
-  if(A){natBlur();A.showActions({title:o.name,options:[{title:'Report '+o.name},{title:'Block '+o.name,style:'DESTRUCTIVE'},{title:'Cancel',style:'CANCEL'}]}).then(function(r){if(r)go(r.index)},function(){});return}
+  /* o.extra: [{t,red,fn}] shown first (the owner's Remove from Song / Cancel Invite) */
+  var items=(o.extra||[]).concat([{t:'Report '+o.name,fn:function(){reportUser(o)}},{t:'Block '+o.name,red:true,fn:function(){blockUser(o.id,o.name,o)}}]);
+  var go=function(i){var it=items[i];if(it)it.fn()};
+  if(A){natBlur();A.showActions({title:o.name,options:items.map(function(x){return x.red?{title:x.t,style:'DESTRUCTIVE'}:{title:x.t}}).concat([{title:'Cancel',style:'CANCEL'}])}).then(function(r){if(r)go(r.index)},function(){});return}
   umOpen(function(bx,close){var h=document.createElement('b');h.className='umh';h.textContent=o.name;bx.appendChild(h);
-    [['Report '+o.name,''],['Block '+o.name,'red'],['Cancel','']].forEach(function(t,i){var b=document.createElement('button');b.className='umrow '+t[1];b.textContent=t[0];b.onclick=function(){close();if(i<2)setTimeout(function(){go(i)},120)};bx.appendChild(b)})})}
+    items.concat([{t:'Cancel'}]).forEach(function(t,i){var b=document.createElement('button');b.className='umrow '+(t.red?'red':'');b.textContent=t.t;b.onclick=function(){close();if(i<items.length)setTimeout(function(){go(i)},120)};bx.appendChild(b)})})}
 var REPORT_WHY=[['spam','Spam'],['harassment','Harassment or hate'],['inappropriate','Inappropriate content'],['impersonation','Pretending to be someone else'],['other','Something else']];
 function reportUser(o){var why='',alsoBlock=false;
   umOpen(function(bx,close){var h=document.createElement('b');h.className='umh';h.textContent='Report '+o.name;bx.appendChild(h);
@@ -17620,7 +17635,7 @@ function renderCollab(){var g=$('#collab'),n=$('#collab-note');g.innerHTML='';n.
   if(owner){var box=document.createElement('div');box.className='clinv';
     var at=document.createElement('span');at.className='clat';at.textContent='@';box.appendChild(at);
     var inp=document.createElement('input');inp.id='collab-q';inp.type='text';inp.autocapitalize='off';inp.autocomplete='off';inp.spellcheck=false;inp.placeholder='Invite by username';inp.setAttribute('aria-label','Invite a collaborator by username');box.appendChild(inp);
-    var gob=document.createElement('button');gob.className='go2';gob.textContent='Invite';gob.disabled=true;box.appendChild(gob);g.insertBefore(box,list);
+    var gob=document.createElement('button');gob.className='go2';gob.innerHTML='Invite'+(isPro()?'':' <i class="protag">Pro</i>');gob.disabled=true;box.appendChild(gob);g.insertBefore(box,list);
     var sug=document.createElement('div');sug.className='clsug';g.insertBefore(sug,list);
     inp.addEventListener('focus',function(){setTimeout(function(){var pane=$('#p-inf');if(pane)revealInSheet(inp,pane)},320)});
     gob.onclick=function(){var v=inp.value;if(!v.trim())return;inp.value='';gob.disabled=true;sug.innerHTML='';inviteCollaborator(v)};
@@ -17638,9 +17653,14 @@ function renderCollab(){var g=$('#collab'),n=$('#collab-note');g.innerHTML='';n.
     var oid=cur.owner||AUTH_USER.id,op=prof[oid];
     clPerson(list,{p:op,id:oid,name:oid===AUTH_USER.id?(nameOf(op,myName()||'You')+' (you)'):nameOf(op,(cur.ownerEmail||'').split('@')[0]),sub:op&&op.username?'@'+op.username:'',badge:'Owner',badgeCls:'own',more:oid===AUTH_USER.id?null:function(){userActions({id:oid,songId:songId,name:op&&op.username?'@'+op.username:nameOf(op,'the owner')})}});
     mem.forEach(function(m){if(m.user_id===oid)return;var p=prof[m.user_id],you=m.user_id===AUTH_USER.id;
-      clPerson(list,{p:p,id:m.user_id,name:nameOf(p,(m.email||'').split('@')[0])+(you?' (you)':''),sub:p&&p.username?'@'+p.username:'',badge:owner?null:'Co-writer',
-        act:owner?'Remove':null,confirm:'Remove?',more:you?null:function(){userActions({id:m.user_id,songId:songId,name:p&&p.username?'@'+p.username:nameOf(p,'this person')})},onAct:function(){c.from('collab_members').delete().eq('song_id',songId).eq('user_id',m.user_id).then(function(){toast('Removed '+nameOf(p,'them'));renderCollab()})}})});
-    invs.forEach(function(iv){var p=prof[iv.invitee_user_id];clPerson(list,{p:p,id:iv.invitee_user_id,name:p&&p.display_name||(iv.invitee_username?'@'+iv.invitee_username:(iv.invitee_email||'Someone')),sub:'Hasn’t accepted yet',badge:'Invited',badgeCls:'inv'})});
+      /* accepted: a green Co-writer pill; the owner's Remove lives in the "…" menu with Report and Block */
+      clPerson(list,{p:p,id:m.user_id,name:nameOf(p,(m.email||'').split('@')[0])+(you?' (you)':''),sub:p&&p.username?'@'+p.username:'',badge:'Co-writer',badgeCls:'ok',
+        more:you?null:function(){userActions({id:m.user_id,songId:songId,name:p&&p.username?'@'+p.username:nameOf(p,'this person'),
+          extra:owner?[{t:'Remove from Song',red:true,fn:function(){c.from('collab_members').delete().eq('song_id',songId).eq('user_id',m.user_id).then(function(){toast('Removed '+nameOf(p,'them'));renderCollab()})}}]:[]})}})});
+    invs.forEach(function(iv){var p=prof[iv.invitee_user_id],nm=p&&p.display_name||(iv.invitee_username?'@'+iv.invitee_username:(iv.invitee_email||'Someone'));
+      clPerson(list,{p:p,id:iv.invitee_user_id,name:nm,sub:'Hasn’t accepted yet',badge:'Invited',badgeCls:'inv',
+        more:owner&&iv.invitee_user_id?function(){userActions({id:iv.invitee_user_id,songId:songId,name:p&&p.username?'@'+p.username:nm,
+          extra:[{t:'Cancel Invite',red:true,fn:function(){c.from('collab_invites').delete().eq('song_id',songId).eq('invitee_user_id',iv.invitee_user_id).then(function(){toast('Invite cancelled');renderCollab()})}}]})}:null})});
     if(!mem.filter(function(m){return m.user_id!==oid}).length&&!invs.length&&owner){var hint=document.createElement('div');hint.className='clhint';hint.textContent='No one else yet. Invite a co-writer above.';list.appendChild(hint)}};
   draw({},[],[]);
   if(c){var mem=[],invs=[],prof={},left=owner?2:1,done=function(){if(--left)return;var ids=[cur.owner||AUTH_USER.id,AUTH_USER.id].concat(mem.map(function(m){return m.user_id}),invs.map(function(x){return x.invitee_user_id}));
@@ -18835,7 +18855,7 @@ function admDebug(o){
    phone's token with the signed-in account; signing out releases it. */
 var PUSH={perm:'',token:'',err:'',on:false},NP={prefs:null};
 /* which automatic notifications to get (supabase/notify.sql): Account › Notifications */
-var NP_KINDS=[['cowrite','Co-writing','When someone accepts your invite or edits a song you share'],['nudge','Writing reminders','A gentle nudge after a few days away, at most once a week'],['account','Account & Pro','Beta access, Pro and your free trial'],['plays','Share link plays','When someone opens a song you shared, once a day']];
+var NP_KINDS=[['cowrite','Co-writing','When someone accepts your invite or edits a song you share'],['nudge','Writing reminders','A gentle nudge after a few days away, at most once a week'],['account','Account & Pro','Pro and your free trial'],['plays','Share link plays','When someone opens a song you shared, once a day']];
 function npLoad(){var c=sbClient();if(!c||!AUTH_USER)return;c.rpc('my_notify_prefs').then(function(r){if(r&&r.data){NP.prefs=r.data;refreshAccount()}},function(){})}
 function npSet(k,v){var c=sbClient();if(!c)return;NP.prefs=Object.assign({},NP.prefs||{},(function(){var o={};o[k]=v;return o})());renderAccount();
   var p={};p[k]=v;c.rpc('set_notify_prefs',{p:p}).then(function(r){if(r&&r.error){toast('Couldn’t save that: '+r.error.message);npLoad()}else if(r&&r.data)NP.prefs=r.data},function(){toast('Couldn’t save that. Check your connection.')})}
@@ -19454,7 +19474,7 @@ function applyPlan(){var pro=isPro();document.body.classList.toggle('pro',pro);d
   LSK=null;try{rhyme()}catch(e){}}
 var probT=null;
 function showProBanner(msg,k){
-  $('#pb-t').textContent='*[demo] Pro';$('#pb-d').textContent=msg;
+  $('#pb-d').textContent=msg;var go=$('#pb-go');if(go)go.textContent=iapOn()&&IAP.trial!==false?'Try Free':'See Pro';
   var pb=$('#probanner');
   /* same rect-based anchoring as toast() above, and for the same reason: a static bottom offset
      sits UNDER the toolbar once the keyboard pushes it up (or on taller toolbars generally),
@@ -19472,7 +19492,7 @@ function showProBanner(msg,k){
 }
 function hideProBanner(){$('#probanner').classList.remove('on');clearTimeout(probT)}
 $('#pb-x').onmousedown=prevent;$('#pb-x').onclick=function(e){e.stopPropagation();hideProBanner()};
-function upsellMsg(k){return k==='memos'?'Free keeps '+FREE_MEMOS+' voice memos on this device, up to a minute each. Pro syncs them everywhere, with no limit.':k==='ai'?'You’ve used today’s free AI. Pro has plenty more.':(FEAT[k]||'That')+' is part of *[demo] Pro.'}
+function upsellMsg(k){if(k==='memos')return'Synced voice memos come with Pro.';if(k==='ai')return'That’s today’s free AI. Pro has more.';var f=FEAT[k]||'That';return f+(/details$/.test(f)?' come':' comes')+' with Pro.'}
 function upsell(k,msg){showProBanner(msg||upsellMsg(k),k)}
 /* In-app subscriptions, iPhone only, through RevenueCat (@revenuecat/purchases-capacitor). This only buys and restores:
    the server decides the plan (supabase/functions/revenuecat asks RevenueCat and writes plans), so Pro follows the
@@ -19534,7 +19554,9 @@ var PRO_FEAT=[
   ['<path d="M4 7V5h11v2M9.5 5v14M8 19h3M14 12v-1.5h7V12M17.5 10.5V19M16.3 19h2.4"/>','#34C759','Perform mode','Big, clear lyrics for the stage, plus whole-song listening and release details.']];
 function proIco(i,w){return'<svg width="'+(w||22)+'" height="'+(w||22)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+PRO_FEAT[i][0]+'</svg>'}
 var PW={on:false,pick:'year',why:''};
-function openPaywall(why){PW.why=why||'';PW.pick='year';var el=$('#pw');
+function openPaywall(why){PW.why=why||'';
+  /* the keyboard never sits over the paywall */
+  try{var ae=document.activeElement;if(ae&&ae.blur&&ae!==document.body)ae.blur();natBlur()}catch(e){}PW.pick='year';var el=$('#pw');
   if(!el){var sc=document.createElement('div');sc.id='pwscrim';sc.onclick=closePaywall;document.body.appendChild(sc);
     el=document.createElement('div');el.id='pw';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');el.setAttribute('aria-label','*[demo] Pro');document.body.appendChild(el);
     document.addEventListener('keydown',function(e){if(PW.on&&e.key==='Escape'){e.preventDefault();e.stopPropagation();closePaywall()}},true)}
@@ -19913,7 +19935,7 @@ var UPNAMES={};
 function upName(uid){if(!uid)return Promise.resolve('');if(AUTH_USER&&uid===AUTH_USER.id)return Promise.resolve(myName()||'You');if(UPNAMES[uid]!=null)return Promise.resolve(UPNAMES[uid]);
   var pc=profCacheGet(uid);if(pc&&(pc.display_name||pc.username))return Promise.resolve(UPNAMES[uid]=pc.display_name||pc.username);
   var c=sbClient();if(!c)return Promise.resolve('');return c.from('profiles').select('display_name,username').eq('user_id',uid).maybeSingle().then(function(r){var d=r&&r.data;return UPNAMES[uid]=(d&&(d.display_name||(d.username?'@'+d.username:'')))||(cur&&cur.owner===uid&&cur.ownerEmail?cur.ownerEmail.split('@')[0]:'')},function(){return''})}
-function sfLocked(item){var aud=!!(cur&&(cur.audio||[]).indexOf(item)>=0);upName(sfOwner(item)).then(function(n){upsell('audio',(n||'Your co-writer')+' added '+(aud?'a recording':'a file')+'. Go Pro to '+(aud?'listen':'open it')+' and add your own.')})}
+function sfLocked(item){var aud=!!(cur&&(cur.audio||[]).indexOf(item)>=0);upsell('audio',aud?'Listening to co-writers’ recordings comes with Pro.':'Opening co-writers’ files comes with Pro.')}
 function audCur(song){var a=(song&&song.audio)||[];return a.filter(function(x){return x.cur})[0]||a[a.length-1]||null}
 /* storage limit per account (supabase/storage-limit.sql): how much is used, checked before each new upload.
    If the SQL hasn't been run, my_storage doesn't exist and uploads carry on as before. */
