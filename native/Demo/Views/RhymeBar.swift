@@ -350,7 +350,7 @@ struct RhymeBar: View {
     @ViewBuilder private var tagButtons: some View {
         Button { Haptics.tap(); onMuse() } label: {
             Icon("ic-muse", 18)
-                .foregroundStyle(LinearGradient(colors: [Color(hex: 0x5AC8FA), Color(hex: 0x007AFF), Color(hex: 0x3D5AFE)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .foregroundStyle(Theme.tint)
                 .frame(width: 32, height: 32)
                 .background(BarFill.color, in: Circle())
         }
