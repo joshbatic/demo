@@ -149,6 +149,15 @@ struct EditorScreen: View {
                 live.start(songID: songID, library: library, session: session, bridge: bridge)
             }
             markSeenIfNew()
+            // a brand-new, empty song: straight to typing (the text view may take a moment to exist)
+            if let s = library.song(songID), s.title.isEmpty, s.lyrics.isEmpty, !s.isShared {
+                Task {
+                    for _ in 0..<20 {
+                        if let tv = bridge.textView, tv.window != nil { tv.becomeFirstResponder(); break }
+                        try? await Task.sleep(for: .milliseconds(60))
+                    }
+                }
+            }
             results.ai = {
                 WordResults.AIContext(pro: session.plan.isPro, ctxOn: ctxOn, env: promptEnv())
             }

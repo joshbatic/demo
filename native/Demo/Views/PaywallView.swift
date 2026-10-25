@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// The paywall (spec §2.9): the Pro hero, what's included, and the Yearly / Monthly trial on iPhone.
 struct PaywallView: View {
@@ -46,7 +47,11 @@ struct PaywallView: View {
             LinearGradient(colors: [Color(hex: 0xB9A6FF).opacity(0.28), Color(uiColor: .systemBackground)], startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.45))
                 .ignoresSafeArea()
         }
-        .onAppear { Haptics.tap(); shown = true; Task { await store.start(session: session) } }
+        .onAppear {
+            // the keyboard never sits over the paywall (it lives in another window, so end editing everywhere)
+            for w in UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).flatMap(\.windows) { w.endEditing(true) }
+            Haptics.tap(); shown = true; Task { await store.start(session: session) }
+        }
         // becoming Pro closes it
         .onChange(of: session.plan.isPro) { _, pro in if pro { dismiss() } }
     }
