@@ -134,7 +134,7 @@ struct EditorScreen: View {
         .photosPicker(isPresented: $pickArt, selection: $artItem, matching: .images)
         .onChange(of: artItem) { _, item in if let item { loadArt(item) } }
         .sheet(isPresented: $showDictionary) {
-            DictionarySheet(bridge: bridge, initialWord: context.word, register: voice("reg") ?? "Conversational", perfectOnly: voiceStrict)
+            DictionarySheet(bridge: bridge, initialWord: context.word, register: voice("reg") ?? "Conversational", perfectOnly: voiceStrict, belowY: topBarBottom)
         }
         .confirmDestroy("Delete “\(song?.displayTitle ?? "")”?", isPresented: $confirmDelete, message: "This can’t be undone.", action: "Delete Song") {
             deleteSong()

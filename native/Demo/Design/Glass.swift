@@ -65,6 +65,17 @@ extension View {
         let h = (scene?.screen.bounds.height ?? UIScreen.main.bounds.height) - top - 10
         return presentationDetents([.height(h)])
     }
+
+    /// A sheet whose top stops a little below `y` (a screen point, e.g. the bottom of the song's top bar), so what's
+    /// above stays in view and it reads as a sheet, not a full-screen page. No `y` yet: just below the Dynamic Island.
+    @ViewBuilder func sheetBelow(_ y: CGFloat) -> some View {
+        if y > 0 {
+            let screenH = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first?.screen.bounds.height ?? UIScreen.main.bounds.height
+            presentationDetents([.height(max(320, screenH - y - 8))])
+        } else {
+            belowIslandSheet()
+        }
+    }
 }
 
 extension View {

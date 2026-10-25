@@ -675,6 +675,8 @@ struct DictionarySheet: View {
     let initialWord: String
     let register: String
     let perfectOnly: Bool
+    /// where the song's top bar ends: the sheet stops just under it
+    var belowY: CGFloat = 0
     @Environment(\.appSession) private var session
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
@@ -755,7 +757,7 @@ struct DictionarySheet: View {
             insertAt = bridge.caretLocation
             if !initialWord.isEmpty { query = initialWord; look(initialWord) }
         }
-        .belowIslandSheet()
+        .sheetBelow(belowY)
         .presentationDragIndicator(.visible)
     }
 
