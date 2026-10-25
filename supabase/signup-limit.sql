@@ -31,7 +31,15 @@ declare
   cap int;
   day_start timestamptz := date_trunc('day', now() at time zone 'Australia/Adelaide') at time zone 'Australia/Adelaide';
   n int;
+  provider text := coalesce(event->'user'->'app_metadata'->>'provider', '');
+  em text := lower(coalesce(event->'user'->>'email', ''));
 begin
+  -- email + password exists only for the App Review demo accounts (@hellodemo.app): no one else can sign up that way
+  if provider = 'email' and em not like '%@hellodemo.app' then
+    return jsonb_build_object('error', jsonb_build_object('http_code', 403,
+      'message', '*[demo] uses Sign in with Apple. Sign up with Apple instead.'));
+  end if;
+
   select per_day into cap from public.signup_limit where id = 1;
   if cap is null then
     return '{}'::jsonb;

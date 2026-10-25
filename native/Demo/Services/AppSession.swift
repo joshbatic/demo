@@ -158,6 +158,21 @@ final class AppSession {
         }
     }
 
+    /// Email and password: only for the App Review demo account (the server refuses email sign-ups for anyone else).
+    func signInWithPassword(email: String, password: String) async -> String? {
+        let e = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !e.isEmpty, !password.isEmpty else { return "Enter the email and password." }
+        busy = true; defer { busy = false }
+        do {
+            signedOutFlag = false
+            _ = try await Backend.client.auth.signIn(email: e, password: password)
+            return nil
+        } catch {
+            let m = describe(error)
+            return m.lowercased().contains("invalid") ? "That email or password isn’t right." : m
+        }
+    }
+
     func signInWithGoogle() async {
         busy = true; defer { busy = false }
         do {

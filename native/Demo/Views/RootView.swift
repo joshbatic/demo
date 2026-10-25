@@ -145,6 +145,7 @@ struct VerifiedBadge: View {
 struct SignInView: View {
     @Environment(\.appSession) private var session
     @Environment(\.colorScheme) private var scheme
+    @State private var demo = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -168,11 +169,64 @@ struct SignInView: View {
 
                 Text("By continuing, you agree to the [Terms](https://hellodemo.app/terms.html) and [Privacy Policy](https://hellodemo.app/privacy.html).")
                     .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center).padding(.top, 6)
+                // for App Review (and anyone given a demo login)
+                Button("Have a demo account?") { demo = true }
+                    .font(.footnote.weight(.medium)).foregroundStyle(.secondary)
+                    .padding(.top, 2)
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 24)
         }
         .overlay { if session.busy { ProgressView().controlSize(.large) } }
+        .sheet(isPresented: $demo) { DemoSignInSheet() }
+    }
+}
+
+/// Email and password for a demo account (the App Review login).
+struct DemoSignInSheet: View {
+    @Environment(\.appSession) private var session
+    @Environment(\.dismiss) private var dismiss
+    @State private var email = ""
+    @State private var password = ""
+    @State private var error: String?
+    @FocusState private var focus: Int?
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Email", text: $email)
+                        .textContentType(.username).keyboardType(.emailAddress)
+                        .textInputAutocapitalization(.never).autocorrectionDisabled()
+                        .focused($focus, equals: 0).submitLabel(.next).onSubmit { focus = 1 }
+                    SecureField("Password", text: $password)
+                        .textContentType(.password)
+                        .focused($focus, equals: 1).submitLabel(.go).onSubmit { go() }
+                } footer: {
+                    Text(error ?? "For demo accounts we’ve given you. Everyone else signs in with Apple.")
+                        .foregroundStyle(error == nil ? Color.secondary : Color.red)
+                }
+            }
+            .navigationTitle("Demo Account")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(session.busy ? "Signing In…" : "Sign In") { go() }
+                        .fontWeight(.semibold)
+                        .disabled(session.busy || email.isEmpty || password.isEmpty)
+                }
+            }
+            .onAppear { DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { focus = 0 } }
+        }
+        .presentationDetents([.medium])
+    }
+
+    private func go() {
+        Task {
+            error = await session.signInWithPassword(email: email, password: password)
+            if error == nil { dismiss() } else { Haptics.warning() }
+        }
     }
 }
 
