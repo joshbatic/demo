@@ -65,9 +65,18 @@ struct CollabSection: View {
         Section {
             if isOwner {
                 // a plain, obvious row; the search itself gets its own screen
-                Button { Haptics.tap(); onInvite() } label: {
+                // inviting is Pro (joining isn't): Free gets the Pro banner
+                Button {
+                    Haptics.tap()
+                    guard session.plan.isPro else { session.upsell("share"); return }
+                    onInvite()
+                } label: {
                     HStack {
                         Text("Invite a Co-writer").foregroundStyle(.primary)
+                        if !session.plan.isPro {
+                            Text("Pro").font(.system(size: 10, weight: .bold)).padding(.horizontal, 5).padding(.vertical, 1)
+                                .background(Theme.proGreen, in: Capsule()).foregroundStyle(.white)
+                        }
                         Spacer()
                         Image(systemName: "plus").font(.system(size: 16, weight: .semibold)).foregroundStyle(Theme.tint)
                     }

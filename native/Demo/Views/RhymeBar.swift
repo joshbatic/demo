@@ -428,6 +428,7 @@ struct RhymeBar: View {
 
     /// The word modes on a grey track, the chosen one on a raised glass pill (the web's #wm).
     private var modeTrack: some View {
+        ScrollViewReader { proxy in
         FadingHScroll {
             HStack(spacing: 2) {
                 ForEach(WordMode.allCases) { m in
@@ -455,6 +456,7 @@ struct RhymeBar: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityAddTraits(on ? .isSelected : [])
+                    .id(m)
                 }
             }
             .padding(2)
@@ -462,6 +464,11 @@ struct RhymeBar: View {
         }
         .fixedSize(horizontal: false, vertical: true)
         .clipShape(Capsule())
+        // the chosen mode slides to the middle (or as far as it goes at either end), so it's always fully in view
+        .onChange(of: results.mode, initial: true) { _, m in
+            withAnimation(.snappy(duration: 0.3)) { proxy.scrollTo(m, anchor: .center) }
+        }
+        }
     }
 
     @ViewBuilder private var status: some View {
@@ -791,7 +798,7 @@ struct ModeGlassBar: View {
                     .padding(.horizontal, 16).padding(.vertical, 8)
                 }
             }
-            .onChange(of: mode) { _, m in withAnimation(.snappy) { proxy.scrollTo(m, anchor: .center) } }
+            .onChange(of: mode, initial: true) { _, m in withAnimation(.snappy) { proxy.scrollTo(m, anchor: .center) } }
         }
     }
 
