@@ -97,15 +97,16 @@ struct LaunchView: View {
     }
 }
 
-/// On the Mac (Catalyst): a phone-to-tablet-sized window with a clean, title-less top, so the app's own
+/// On the Mac (Catalyst): a window of any size (full screen too) with a clean, title-less top, so the app's own
 /// glass bars sit at the top like on iPhone.
 @MainActor
 enum MacWindow {
     static func setUp() {
         #if targetEnvironment(macCatalyst)
         for scene in UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }) {
+            // any size up to full screen: the content keeps its column in the middle (RootView.columnWidth)
             scene.sizeRestrictions?.minimumSize = CGSize(width: 420, height: 640)
-            scene.sizeRestrictions?.maximumSize = CGSize(width: 1100, height: 4000)
+            scene.sizeRestrictions?.maximumSize = CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
             if let bar = scene.titlebar {
                 bar.titleVisibility = .hidden
                 bar.toolbar = nil
