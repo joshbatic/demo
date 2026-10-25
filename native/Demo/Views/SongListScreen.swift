@@ -105,7 +105,7 @@ struct SongListScreen: View {
             }
             .sheet(isPresented: Binding(get: { session.accountOpen }, set: { session.accountOpen = $0 })) { AccountScreen() }
             // a notification opened a song (or "" for the list)
-            .onChange(of: session.openSongID) { _, id in
+            .onChange(of: session.openSongID, initial: true) { _, id in
                 guard let id else { return }
                 session.openSongID = nil
                 if id.isEmpty { path = [] } else if library.song(id) != nil { path = [id] }

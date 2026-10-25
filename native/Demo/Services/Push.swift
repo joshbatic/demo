@@ -20,6 +20,7 @@ final class Push: NSObject {
     /// On sign-in: register quietly if permission was already given.
     func signedIn(session: AppSession) async {
         self.session = session
+        if let p = pendingTap { pendingTap = nil; tapped(p) }
         await refreshStatus()
         if status == .authorized || status == .provisional || status == .ephemeral {
             UIApplication.shared.registerForRemoteNotifications()
@@ -89,8 +90,11 @@ final class Push: NSObject {
     }
 
     /// Tapped: open what it's about.
+    /// A tap that launched the app can arrive before the session is ready; it's kept and run once it is.
+    @ObservationIgnored private var pendingTap: [AnyHashable: Any]?
+
     func tapped(_ info: [AnyHashable: Any]) {
-        guard let session else { return }
+        guard let session, session.userID != nil else { pendingTap = info; return }
         let kind = info["kind"] as? String ?? ""
         switch kind {
         case "invite":
@@ -127,15 +131,25 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
 
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {}
 
-    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
+    // The completion-handler versions, not the async ones: iOS calls these off the main thread, and the async
+    // versions on a main-actor app crash when a notification is tapped (a main-queue assertion). Hop to main
+    // ourselves, then call the handler.
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
+                                            withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         let c = notification.request.content
         let info = c.userInfo, title = c.title, body = c.body
-        await MainActor.run { Push.shared.foreground(info, title: title, body: body) }
-        return []
+        DispatchQueue.main.async {
+            MainActor.assumeIsolated { Push.shared.foreground(info, title: title, body: body) }
+            completionHandler([])
+        }
     }
 
-    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
+    nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
+                                            withCompletionHandler completionHandler: @escaping () -> Void) {
         let info = response.notification.request.content.userInfo
-        await MainActor.run { Push.shared.tapped(info) }
+        DispatchQueue.main.async {
+            MainActor.assumeIsolated { Push.shared.tapped(info) }
+            completionHandler()
+        }
     }
 }
