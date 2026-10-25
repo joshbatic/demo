@@ -7,7 +7,10 @@ import UIKit
 struct CoverView: View {
     let song: Song
     var size: CGFloat = 52
-    var corner: CGFloat { size * 0.26 }
+    /// square corners, for an image the share page rounds itself (a JPEG has no transparency, so rounded
+    /// corners would come out as black)
+    var square = false
+    var corner: CGFloat { square ? 0 : size * 0.26 }
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
@@ -20,7 +23,7 @@ struct CoverView: View {
         }
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: corner, style: .continuous).strokeBorder(Color.primary.opacity(0.06), lineWidth: 0.5))
+        .overlay(RoundedRectangle(cornerRadius: corner, style: .continuous).strokeBorder(Color.primary.opacity(square ? 0 : 0.06), lineWidth: 0.5))
     }
 
     private var generated: some View {

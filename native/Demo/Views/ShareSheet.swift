@@ -432,7 +432,7 @@ struct ShareSheet: View {
         UIPasteboard.general.string = ShareLink_.url(id)
         busy = existed ? "Updating the link…" : "Making the link…"
         let withAudio = includeAudio && session.plan.isPro ? s.currentAudio : nil
-        let artImg: UIImage? = s.artDataURL.flatMap(CoverView.image) ?? render(CoverView(song: s, size: 480), scale: 1)
+        let artImg: UIImage? = s.artDataURL.flatMap(CoverView.image) ?? render(CoverView(song: s, size: 480, square: true), scale: 1)
         let ogImg = render(ShareCard(song: s, bg: bg, audio: withAudio, lyrics: false, width: 1200 / 2.85)
                             .frame(width: 1200 / 2.85, height: 630 / 2.85), scale: 2.85)
         Task {
