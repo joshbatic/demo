@@ -337,7 +337,7 @@ struct OnboardingView: View {
     @State private var saving = false
     @FocusState private var field: Int?
 
-    private let pages = 5
+    private let pages = 6
 
     var body: some View {
         VStack(spacing: 0) {
@@ -357,8 +357,10 @@ struct OnboardingView: View {
                         text: "Rhymes, synonyms and phrases for the word you’re on, right above the keyboard.").tag(1)
                 feature(art: AnyView(MemoArt()), title: "Catch it before it’s gone.",
                         text: "Jot a line or hum a melody in Ideas, then turn it into a song.").tag(2)
-                profile.tag(3)
-                notifications.tag(4)
+                feature(art: AnyView(ShareArt()), title: "Hear it with the words.",
+                        text: "Add your demo and the lyrics light up in time. Send it with a link anyone can open. Try it free with Pro.").tag(3)
+                profile.tag(4)
+                notifications.tag(5)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(.snappy, value: step)
@@ -390,28 +392,28 @@ struct OnboardingView: View {
         .background(Color(uiColor: .systemBackground).ignoresSafeArea())
         .onAppear { prefill() }
         .onChange(of: session.profile) { _, _ in prefill() }
-        .onChange(of: step) { _, s in field = s == 3 ? 0 : nil; error = nil }
+        .onChange(of: step) { _, s in field = s == 4 ? 0 : nil; error = nil }
     }
 
     private var primaryTitle: String {
         switch step {
-        case 3: return saving ? "Saving…" : "Continue"
-        case 4: return "Turn On Notifications"
+        case 4: return saving ? "Saving…" : "Continue"
+        case 5: return "Turn On Notifications"
         default: return "Continue"
         }
     }
-    private var secondaryTitle: String? { step == 3 ? "Later" : step == 4 ? "Not Now" : nil }
+    private var secondaryTitle: String? { step == 4 ? "Later" : step == 5 ? "Not Now" : nil }
 
     private func primary() {
         Haptics.tap()
         switch step {
-        case 3: saveProfile()
-        case 4: Task { await Push.shared.ask(); finish() }
+        case 4: saveProfile()
+        case 5: Task { await Push.shared.ask(); finish() }
         default: withAnimation(.snappy) { step += 1 }
         }
     }
     private func secondary() {
-        if step == 3 { field = nil; withAnimation(.snappy) { step = 4 } } else { finish() }
+        if step == 4 { field = nil; withAnimation(.snappy) { step = 5 } } else { finish() }
     }
     private func finish() { field = nil; Haptics.success(); done() }
 
@@ -477,12 +479,12 @@ struct OnboardingView: View {
     private func saveProfile() {
         field = nil
         let n = name.trimmingCharacters(in: .whitespacesAndNewlines), u = username.trimmingCharacters(in: .whitespaces)
-        if n.isEmpty && u.isEmpty { withAnimation(.snappy) { step = 4 }; return }
+        if n.isEmpty && u.isEmpty { withAnimation(.snappy) { step = 5 }; return }
         saving = true
         Task {
             let e = await session.saveNameAndUsername(name: n, username: u)
             saving = false
-            if let e { error = e; Haptics.warning(); field = 1 } else { withAnimation(.snappy) { step = 4 } }
+            if let e { error = e; Haptics.warning(); field = 1 } else { withAnimation(.snappy) { step = 5 } }
         }
     }
 }
@@ -551,6 +553,42 @@ private struct BellArt: View {
         .padding(14)
         .frame(maxWidth: 340)
         .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .accessibilityHidden(true)
+    }
+}
+
+/// A share page in miniature: the song's colours, its player, and the sung line lit.
+private struct ShareArt: View {
+    private let lines = ["I left the porch light on", "in case you found your way", "back down the gravel road", "before the break of day"]
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 10) {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(LinearGradient(colors: [Color(hex: 0xFF9F6E), Color(hex: 0xB07CFF)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: 40, height: 40)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Porch Light").font(.system(size: 15, weight: .semibold))
+                    Text("0:41 / 2:58").font(.system(size: 12).monospacedDigit()).foregroundStyle(.black.opacity(0.55))
+                }
+                Spacer()
+                Image(systemName: "pause.fill").font(.system(size: 13, weight: .bold)).foregroundStyle(.white)
+                    .frame(width: 32, height: 32).background(Color(hex: 0x2B2140), in: Circle())
+            }
+            .padding(10)
+            .background(.white.opacity(0.7), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(lines.indices, id: \.self) { i in
+                    Text(lines[i]).font(.system(size: i == 1 ? 21 : 19, weight: .bold))
+                        .foregroundStyle(Color(hex: 0x2B2140).opacity(i == 1 ? 1 : i == 0 ? 0.45 : 0.3))
+                }
+            }
+            .padding(.horizontal, 4)
+        }
+        .padding(16)
+        .frame(maxWidth: 330, alignment: .leading)
+        .background(LinearGradient(colors: [Color(hex: 0xFFD3BE), Color(hex: 0xE3CCFF), Color(hex: 0xBFDDFF)], startPoint: .topLeading, endPoint: .bottomTrailing),
+                    in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .environment(\.colorScheme, .light)
         .accessibilityHidden(true)
     }
 }
