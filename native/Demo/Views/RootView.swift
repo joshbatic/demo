@@ -335,6 +335,7 @@ struct OnboardingView: View {
     @State private var username = ""
     @State private var error: String?
     @State private var saving = false
+    @State private var suggesting = false
     @FocusState private var field: Int?
 
     private let pages = 6
@@ -479,7 +480,43 @@ struct OnboardingView: View {
 
     private func prefill() {
         if name.isEmpty { name = session.profile.display_name ?? session.metaName }
-        if username.isEmpty, let u = session.profile.username { username = u }
+        if username.isEmpty, let u = session.profile.username, !u.isEmpty { username = u; return }
+        guard username.isEmpty, !suggesting else { return }
+        // no username yet: suggest one from the name Apple gave us (or the email, unless it's Apple's private relay)
+        let base = OnboardingView.usernameBase(name: name.isEmpty ? session.metaName : name, email: session.email)
+        guard !base.isEmpty else { return }
+        suggesting = true
+        Task {
+            let u = await OnboardingView.freeUsername(base)
+            suggesting = false
+            if username.isEmpty, let u { username = u }
+        }
+    }
+
+    /// "Josh Batic" → "joshbatic"; "sam.lee+x@gmail.com" → "samlee". 3–20 of a–z, 0–9, _.
+    static func usernameBase(name: String, email: String) -> String {
+        func clean(_ s: String) -> String {
+            let folded = s.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current).lowercased()
+            return String(folded.unicodeScalars.filter { CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyz0123456789_").contains($0) }.map(Character.init))
+        }
+        var b = clean(name)
+        if b.count < 3, !email.contains("privaterelay.appleid.com"), let local = email.split(separator: "@").first {
+            b = clean(String(local.split(separator: "+").first ?? local))
+        }
+        b = String(b.prefix(18))
+        return b.count >= 3 ? b : ""
+    }
+
+    /// The base if nobody has it, else the base with a couple of digits.
+    static func freeUsername(_ base: String) async -> String? {
+        var tries = [base]
+        for _ in 0..<4 { tries.append(String(base.prefix(17)) + String(Int.random(in: 10...99))) }
+        for t in tries {
+            guard let res = try? await Backend.client.from("profiles").select("user_id").eq("username", value: t).limit(1).execute(),
+                  let rows = try? JSONDecoder().decode([[String: JSONValue]].self, from: res.data) else { return nil }
+            if rows.isEmpty { return t }
+        }
+        return nil
     }
 
     private func saveProfile() {

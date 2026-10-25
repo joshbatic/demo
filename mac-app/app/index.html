@@ -18981,10 +18981,17 @@ function obClose(){try{localStorage.setItem('songpad:onboarded','1')}catch(e){}v
 function obOpen(){var o=document.createElement('div');o.id='ob';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','Welcome to *[demo]');document.body.appendChild(o);
   try{var ae=document.activeElement;if(ae&&ae.blur&&ae!==document.body)ae.blur()}catch(e){}
   OB={i:0,busy:false,err:'',name:(MY_PROFILE&&MY_PROFILE.display_name)||((AUTH_USER.user_metadata||{}).full_name)||((AUTH_USER.user_metadata||{}).name)||'',user:(MY_PROFILE&&MY_PROFILE.username)||''};
-  obRender();requestAnimationFrame(function(){o.classList.add('on')});
+  obRender();requestAnimationFrame(function(){o.classList.add('on')});obSuggest();
   o.addEventListener('keydown',function(e){if(e.key==='Escape'){obClose()}else if(e.key==='ArrowRight'&&OB.i<4&&e.target.tagName!=='INPUT'){OB.i++;obRender()}else if(e.key==='ArrowLeft'&&OB.i>0&&e.target.tagName!=='INPUT'){OB.i--;obRender()}});
   /* swipe between pages on touch screens */
   var x0=null;o.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});o.addEventListener('touchend',function(e){if(x0==null)return;var dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)<50)return;if(dx<0&&OB.i<4){OB.i++;obRender()}else if(dx>0&&OB.i>0){OB.i--;obRender()}})}
+/* no username yet: suggest one from the name (or the email, unless it's Apple's private relay), free on the server */
+function obSuggest(){if(OB.user)return;var em=(AUTH_USER&&AUTH_USER.email)||'';
+  var clean=function(x){return(x||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9_]/g,'')};
+  var b=clean(OB.name);if(b.length<3&&!/privaterelay\.appleid\.com/.test(em))b=clean(em.split('@')[0].split('+')[0]);b=b.slice(0,18);if(b.length<3)return;
+  var c=sbClient();if(!c)return;var tries=[b];for(var k=0;k<4;k++)tries.push(b.slice(0,17)+(10+Math.floor(Math.random()*90)));
+  (function next(i){if(i>=tries.length||OB.user)return;c.from('profiles').select('user_id').eq('username',tries[i]).limit(1).then(function(r){
+    if(r&&r.error)return;if(r&&r.data&&r.data.length)return next(i+1);if(OB.user)return;OB.user=tries[i];var ui=$('#obuser');if(ui&&!ui.value)ui.value=tries[i]},function(){})})(0)}
 function obArt(i){if(i===0)return'<img src="icon-512.png" alt="" width="120" height="120" style="border-radius:27px;box-shadow:0 8px 24px rgba(0,0,0,.14)" onerror="if(this.dataset.f){this.style.display=\'none\'}else{this.dataset.f=1;this.src=\'https://hellodemo.app/icon-512.png\'}">';
   if(i===1)return'<div class="obcard"><div class="obline">Leave the porch light on <em>tonight</em></div><div class="obchips"><span>light</span><span>right</span><span>goodnight</span><span>alright</span></div></div>';
   if(i===3)return'<div class="obcard obshare"><div class="obsp"><i></i><span><b>Porch Light</b><small>0:41 / 2:58</small></span><em><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg></em></div><p style="opacity:.45">I left the porch light on</p><p class="on">in case you found your way</p><p style="opacity:.3">back down the gravel road</p><p style="opacity:.3">before the break of day</p></div>';
