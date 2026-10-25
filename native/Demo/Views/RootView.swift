@@ -164,20 +164,6 @@ struct SignInView: View {
                 .signInWithAppleButtonStyle(scheme == .dark ? .white : .black)
                 .frame(height: 52)
                 .clipShape(Capsule())
-
-                Button {
-                    Haptics.tap()
-                    Task { await session.signInWithGoogle() }
-                } label: {
-                    HStack(spacing: 10) {
-                        Text("G").font(.system(size: 19, weight: .bold)).foregroundStyle(LinearGradient(colors: [.blue, .red, .yellow, .green], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        Text("Sign in with Google").font(.system(size: 19, weight: .medium))
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 52)
-                }
-                .buttonStyle(.bordered)
-                .buttonBorderShape(.capsule)
-                .tint(.primary)
                 .disabled(session.busy)
 
                 Text("By continuing, you agree to the [Terms](https://hellodemo.app/terms.html) and [Privacy Policy](https://hellodemo.app/privacy.html).")
