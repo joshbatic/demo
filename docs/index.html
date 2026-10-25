@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>*[demo] — write it, sync it, send it</title>
-<meta name="description" content="A songwriting app for iPhone and Mac: rhymes that read your song, a muse for when you're stuck, your demos synced line by line to your lyrics, and links anyone can open. Join the private beta on TestFlight.">
+<meta name="description" content="A songwriting app for iPhone and Mac: rhymes that read your song, a muse for when you're stuck, your demos synced line by line to your lyrics, and links anyone can open. Free to write, with Pro for co-writing, demos and more.">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -18,18 +18,18 @@
 
 <div class="nav">
   <a class="brand" href="index.html"><img src="icon-192.png" alt=""><b>*[demo]</b></a>
-  <div class="navlinks"><a href="#write">Write</a><a href="#listen">Listen</a><a href="#share">Share</a><a class="navgo" href="beta.html">Join the beta</a></div>
+  <div class="navlinks"><a href="#write">Write</a><a href="#listen">Listen</a><a href="#share">Share</a><a class="navgo" href="#get" data-appstore>Get *[demo]</a></div>
 </div>
 
 <main>
   <section class="hero">
-    <span class="badge">Private beta · iPhone &amp; Mac</span>
+    <span class="badge">For iPhone &amp; Mac</span>
     <h1>From first line<br>to finished song.</h1>
     <p class="sub">Rhymes that read your song. A muse for when you're stuck. Your demos synced line by line to your lyrics, and a link anyone can open.</p>
     <div class="cta">
-      <a class="go" href="beta.html">Request Access</a>
-      <span class="fine">Free while in beta · letting people in a few at a time</span>
-      <a class="macdl" href="mac.html">Already in? Download for Mac</a>
+      <a class="go" href="#get" data-appstore data-label="Download on the App Store">Coming soon to the App Store</a>
+      <span class="fine">Free to write · Pro with a 1-week free trial</span>
+      <a class="macdl" href="mac.html">Download for Mac</a>
     </div>
 
     <!-- the one moving thing on the page: a shared song playing, lines lighting up in time -->
@@ -152,10 +152,11 @@
     </div>
   </section>
 
-  <section class="join" id="join">
+  <section class="join" id="get">
     <h2>Come write with us</h2>
-    <p>*[demo] is in private beta on TestFlight, and free while we build it with the people using it. Ask for a spot and we'll email you when one opens.</p>
-    <a class="go" href="beta.html">Request Access</a>
+    <p>Writing, rhymes and ideas are free, for as long as you like. Pro adds co-writing, demos synced to your lyrics, Perform mode and more AI, with a week free to try it.</p>
+    <a class="go" href="#get" data-appstore data-label="Download on the App Store">Coming soon to the App Store</a>
+    <p><a class="macdl" href="mac.html">Download for Mac</a></p>
   </section>
 </main>
 
@@ -168,6 +169,11 @@
   </div>
 </footer>
 
+<script>
+/* the App Store address, once the app is live (App Store Connect › the app › App Information › View on App Store) */
+var APP_STORE='';
+document.querySelectorAll('[data-appstore]').forEach(function(a){if(APP_STORE){a.href=APP_STORE;if(a.dataset.label)a.textContent=a.dataset.label}});
+</script>
 <script>
 /* waveforms: rounded bars from a fixed, song-like shape (quiet intro, louder chorus) */
 (function(){
