@@ -5,7 +5,12 @@ import UIKit
 /// after a warning tap. (SwiftUI's own confirmation pops out of the button with an arrow on iOS 26.)
 @MainActor
 enum Confirm {
-    static func destroy(_ title: String, message: String?, action: String, perform: @escaping () -> Void, cancelled: @escaping () -> Void = {}) {
+    static func destroy(_ title: String, message: String?, action: String, perform: @escaping () -> Void, cancelled: @escaping () -> Void = {}, tries: Int = 0) {
+        // a menu or swipe that asked for this may still be closing: wait for it, or the sheet never shows
+        if let top = topController(), top.transitionCoordinator != nil || top.isBeingDismissed || top.isBeingPresented, tries < 12 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { destroy(title, message: message, action: action, perform: perform, cancelled: cancelled, tries: tries + 1) }
+            return
+        }
         let a = UIAlertController(title: title, message: message, preferredStyle: .actionSheet)
         a.addAction(UIAlertAction(title: action, style: .destructive) { _ in perform() })
         a.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in cancelled() })
@@ -61,8 +66,9 @@ extension View {
     func confirmDestroy(_ title: String, isPresented: Binding<Bool>, message: String? = nil, action: String, perform: @escaping () -> Void) -> some View {
         onChange(of: isPresented.wrappedValue) { _, on in
             guard on else { return }
+            // perform first: it may read the same state that isPresented clears (the song list's confirmDelete)
             Confirm.destroy(title, message: message, action: action,
-                            perform: { isPresented.wrappedValue = false; perform() },
+                            perform: { perform(); isPresented.wrappedValue = false },
                             cancelled: { isPresented.wrappedValue = false })
         }
     }
