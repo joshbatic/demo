@@ -375,6 +375,7 @@ struct ShareSheet: View {
                         }
                     }
                 }
+                .toggleStyle(.green)
                 .padding(.horizontal, 20).padding(.vertical, 10).frame(minHeight: 58)
             }
         }

@@ -291,6 +291,8 @@ struct MemoPlayer: View {
             Waveform(peaks: memo.peaks, progress: dur > 0 ? t / dur : 0, duration: dur, tickEvery: 1, height: large ? 40 : 30) { f in
                 if active { player.seek(f * dur) } else { player.load(k, item: memo, fallbackDuration: memo.dur, autoplay: false, at: f * dur) }
             }
+            // in the list a sideways drag is the row's swipe-to-delete, not a scrub (scrub in the idea itself)
+            .allowsHitTesting(large)
             Text(active && t > 0 ? "\(SongFiles.time(t)) / \(SongFiles.time(dur))" : SongFiles.time(dur))
                 .font(.system(size: 12).monospacedDigit()).foregroundStyle(.secondary)
                 .fixedSize()
@@ -345,7 +347,8 @@ struct IdeaSheet: View {
                 IdeaMemos.deleteFile(c.memo)
                 library.deleteIdea(c.id)
                 Haptics.thud(); session.toast = "Idea deleted"
-                dismiss()
+                // after the action sheet has gone, or the sheet won't close
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { dismiss() }
             }
         }
         .belowIslandSheet()

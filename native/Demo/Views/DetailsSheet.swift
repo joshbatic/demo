@@ -281,6 +281,7 @@ struct DetailsSheet: View {
                 guard var s = song else { return }
                 s.setRelease("explicit", .bool(v)); s.touch(); library.put(s)
             }))
+            .toggleStyle(.green)
         } header: { Text("Release") } footer: {
             let notes = releaseNotes
             if !notes.isEmpty { Text(notes).foregroundStyle(.red) }

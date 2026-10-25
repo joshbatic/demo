@@ -245,6 +245,7 @@ struct AccountScreen: View {
                 Text(sub).font(.footnote).foregroundStyle(.secondary)
             }
         }
+        .toggleStyle(.green)
     }
 
     private func notificationsTapped() {
@@ -320,6 +321,7 @@ struct AccountScreen: View {
             })) {
                 Label { Text("AI Features") } icon: { TileIcon("sparkles", Theme.Tile.purple) }
             }
+            .toggleStyle(.green)
             Button { confirmReset = true } label: {
                 Label { Text("Reset What Rate Learned").foregroundStyle(.primary) } icon: { TileIcon("arrow.counterclockwise", Theme.Tile.indigo) }
             }
@@ -528,7 +530,7 @@ struct SupportPage: View {
                 if let error { Text(error).foregroundStyle(.red) } else { Text("We reply by email to \(session.email), usually within a day.") }
             }
             Section {
-                Toggle("Include Diagnostics", isOn: $diag)
+                Toggle("Include Diagnostics", isOn: $diag).toggleStyle(.green)
             } footer: { Text("Your app version, device, plan, sync status and recent error messages. Never your lyrics or songs.") }
             if !tickets.isEmpty {
                 Section("Your messages") {

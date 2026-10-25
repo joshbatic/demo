@@ -3,8 +3,8 @@ import SwiftUI
 import UIKit
 import UserNotifications
 
-/// Push notifications (spec §6.3, data spec §7.5). Permission is never asked at launch, only at moments that
-/// explain it (after setting a username, contacting support, sharing a song or accepting an invite, or from Account).
+/// Push notifications (spec §6.3, data spec §7.5). The system prompt shows once, a moment after someone first
+/// signs in on this device; later moments (sharing a song, accepting an invite, Account) ask again only if it was never answered.
 @MainActor @Observable
 final class Push: NSObject {
     static let shared = Push()
@@ -23,6 +23,10 @@ final class Push: NSObject {
         await refreshStatus()
         if status == .authorized || status == .provisional || status == .ephemeral {
             UIApplication.shared.registerForRemoteNotifications()
+        } else if status == .notDetermined {
+            // the first time in: let the song list settle, then ask
+            try? await Task.sleep(for: .seconds(1.5))
+            await ask()
         }
     }
 

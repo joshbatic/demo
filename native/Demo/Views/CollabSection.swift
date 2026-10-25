@@ -389,7 +389,7 @@ struct ReportSheet: View {
                     TextField("Add details (optional)", text: $details, axis: .vertical).lineLimit(3...6)
                 }
                 Section {
-                    Toggle("Also block \(name)", isOn: $alsoBlock)
+                    Toggle("Also block \(name)", isOn: $alsoBlock).toggleStyle(.green)
                 }
             }
             .navigationTitle("Report \(name)")
