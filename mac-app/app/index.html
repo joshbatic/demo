@@ -1239,6 +1239,40 @@ body.nglass .ngsw{opacity:0!important}
 /* the Muse button is a plain bar button now, like its neighbours */
 #stuckb{background:var(--fill)!important;background-image:none!important;color:var(--ink)!important;box-shadow:none!important;animation:none!important}
 #stuckb svg{filter:none!important}
+
+/* ---------- first-run onboarding (once per device, after signing in) ---------- */
+#ob{position:fixed;inset:0;z-index:2147482000;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;align-items:center;opacity:0;transition:opacity .3s}
+#ob.on{opacity:1}
+#ob .obtop{width:100%;display:flex;justify-content:flex-end;padding:calc(env(safe-area-inset-top,0px) + 14px) 22px 0;height:58px}
+#ob .obskip{font-size:17px;color:var(--mute);background:none}
+#ob .obpage{flex:1;width:100%;max-width:460px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 32px}
+#ob .obart{height:230px;display:flex;align-items:center;justify-content:center;margin-bottom:28px}
+#ob h1{font-size:30px;font-weight:700;letter-spacing:-.4px;margin:0}
+#ob .obp{font-size:17px;line-height:1.4;color:var(--mute);margin:10px 0 0}
+#ob .obcard{background:var(--fill);border-radius:24px;padding:20px;text-align:left;width:330px;max-width:100%}
+#ob .obline{font-size:21px;font-weight:600}
+#ob .obline em{font-style:normal;color:#0095F6}
+#ob .obchips{display:flex;gap:6px;margin-top:16px}
+#ob .obchips span{font-size:15px;font-weight:500;padding:0 12px;height:32px;line-height:32px;border-radius:99px;background:var(--bg)}
+#ob .obmemo{display:flex;align-items:center;gap:10px;margin-top:14px}
+#ob .obplay{width:34px;height:34px;border-radius:50%;background:var(--tint);color:var(--ontint);display:flex;align-items:center;justify-content:center;flex:none}
+#ob .obbars{display:flex;align-items:center;gap:3px;flex:1}
+#ob .obbars i{width:3.5px;border-radius:2px;background:var(--ink)}
+#ob .obform{width:100%;background:var(--fill);border-radius:14px;margin-top:24px;text-align:left}
+#ob .obform label{display:flex;align-items:center;gap:2px;height:50px;padding:0 16px;font-size:17px}
+#ob .obform label+label{border-top:.5px solid var(--sep)}
+#ob .obform input{flex:1;border:0;background:none;font:inherit;color:var(--ink);outline:none;min-width:0}
+#ob .obnote{font-size:13px;color:var(--mute);margin-top:10px}
+#ob .obnote.err{color:var(--red)}
+#ob .obav{width:88px;height:88px;border-radius:50%;object-fit:cover;background:var(--fill);display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;color:var(--mute)}
+#ob .obdots{display:flex;gap:7px;margin:0 0 22px}
+#ob .obdots i{width:7px;height:7px;border-radius:99px;background:var(--ink);opacity:.18;transition:width .25s,opacity .25s}
+#ob .obdots i.on{width:18px;opacity:1}
+#ob .obbtns{width:100%;max-width:460px;padding:0 24px calc(env(safe-area-inset-bottom,0px) + 18px);display:flex;flex-direction:column;align-items:center;gap:10px}
+#ob .obgo{width:100%;height:52px;border-radius:99px;background:var(--tint);color:var(--ontint);font-size:17px;font-weight:600}
+#ob .obgo:disabled{opacity:.5}
+#ob .obsec{height:30px;font-size:16px;font-weight:500;color:var(--mute);background:none}
+#ob .obsec[hidden]{display:block;visibility:hidden}
 </style>
 </head>
 <body>
@@ -18909,13 +18943,57 @@ function onAuthUser(){
   if(AUTH_USER&&!DEV_MODE){if(uid!==betaCheck.uid){betaCheck.uid=uid;BETA={st:null,admin:false,sum:null,list:null,t:0,busy:{}};betaCheck()}}else{betaCheck.uid=null;betaGate(null)}
   if(AUTH_USER&&!DEV_MODE)iapStart();
   ensureStorageForMode();
-  if(AUTH_USER&&!DEV_MODE){seenPing();pushStart()}
+  if(AUTH_USER&&!DEV_MODE){seenPing();pushStart();setTimeout(obMaybe,700)}
   if(AUTH_USER&&!cloudDidPull){cloudDidPull=true;SUP.list=null;setTimeout(function(){if(AUTH_USER)acPrune()},45000);cloudPull();cloudPullPlan();pullInvites();loadProfile();ensureNotifPermission();startInvitePolling();MZ.noTable=false;setTimeout(mzPull,1500);setTimeout(sharedGoneCheck,5000)}
   if(AUTH_USER)setTimeout(function(){if(cur&&cur.shared)pullShared(cur);liveEnsure()},0);
   if(!AUTH_USER){stopInvitePolling();libStop()}
   refreshAccount();
   paintAcctIcons();
 }
+
+/* ---------- first-run onboarding: three things *[demo] does, then your name and username (co-writers find you by
+   it). Once per device, after signing in; every step can be skipped. The iPhone app has its own (RootView.swift). */
+var OB={i:0,busy:false,err:''};
+function obDone(){try{return localStorage.getItem('songpad:onboarded')==='1'}catch(e){return true}}
+function obMaybe(){if(!AUTH_USER||DEV_MODE||DEV_BUILD||obDone()||$('#ob'))return;if(BETA&&BETA.st&&['open','admin','approved'].indexOf(BETA.st)<0)return;obOpen()}
+function obClose(){try{localStorage.setItem('songpad:onboarded','1')}catch(e){}var o=$('#ob');if(!o)return;o.classList.remove('on');setTimeout(function(){o.remove()},300);try{haptic('success')}catch(e){}}
+function obOpen(){var o=document.createElement('div');o.id='ob';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','Welcome to *[demo]');document.body.appendChild(o);
+  try{var ae=document.activeElement;if(ae&&ae.blur&&ae!==document.body)ae.blur()}catch(e){}
+  OB={i:0,busy:false,err:'',name:(MY_PROFILE&&MY_PROFILE.display_name)||((AUTH_USER.user_metadata||{}).full_name)||((AUTH_USER.user_metadata||{}).name)||'',user:(MY_PROFILE&&MY_PROFILE.username)||''};
+  obRender();requestAnimationFrame(function(){o.classList.add('on')});
+  o.addEventListener('keydown',function(e){if(e.key==='Escape'){obClose()}else if(e.key==='ArrowRight'&&OB.i<3&&e.target.tagName!=='INPUT'){OB.i++;obRender()}else if(e.key==='ArrowLeft'&&OB.i>0&&e.target.tagName!=='INPUT'){OB.i--;obRender()}});
+  /* swipe between pages on touch screens */
+  var x0=null;o.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});o.addEventListener('touchend',function(e){if(x0==null)return;var dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)<50)return;if(dx<0&&OB.i<3){OB.i++;obRender()}else if(dx>0&&OB.i>0){OB.i--;obRender()}})}
+function obArt(i){if(i===0)return'<img src="icon-512.png" alt="" width="120" height="120" style="border-radius:27px;box-shadow:0 8px 24px rgba(0,0,0,.14)" onerror="if(this.dataset.f){this.style.display=\'none\'}else{this.dataset.f=1;this.src=\'https://hellodemo.app/icon-512.png\'}">';
+  if(i===1)return'<div class="obcard"><div class="obline">Leave the porch light on <em>tonight</em></div><div class="obchips"><span>light</span><span>right</span><span>goodnight</span><span>alright</span></div></div>';
+  var b=[8,14,22,30,18,26,36,24,16,28,34,20,12,24,30,18,10,20,26,14,8,16];
+  return'<div class="obcard"><div class="obline" style="font-size:19px;font-weight:500">hum this over the bridge?</div><div class="obmemo"><span class="obplay"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg></span><span class="obbars">'+b.map(function(h,k){return'<i style="height:'+h+'px;opacity:'+(k<8?.9:.25)+'"></i>'}).join('')+'</span><span style="font-size:13px;color:var(--mute)">0:12</span></div></div>'}
+function obRender(){var o=$('#ob');if(!o)return;var i=OB.i,last=i===3;
+  var pages=[['Write it down.','Lyrics, ideas and demos together, one song at a time.'],['Rhymes as you type.','Rhymes, synonyms and phrases for the word you’re on, right above the keyboard.'],['Catch it before it’s gone.','Jot a line or hum a melody in Ideas, then turn it into a song.']];
+  var h='<div class="obtop">'+(last?'':'<button class="obskip" id="obskip">Skip</button>')+'</div><div class="obpage">';
+  if(!last)h+='<div class="obart">'+obArt(i)+'</div><h1></h1><p class="obp"></p>';
+  else h+='<div class="obav" id="obav"></div><h1 style="font-size:26px;margin-top:22px">What should co-writers call you?</h1><p class="obp" style="font-size:16px">Your name goes on your songs. Co-writers find you by your username.</p>'+
+    '<div class="obform"><label><input id="obname" placeholder="Name" autocomplete="name"></label><label><span style="color:var(--mute)">@</span><input id="obuser" placeholder="username" autocapitalize="off" autocomplete="username" spellcheck="false"></label></div><div class="obnote" id="obnote"></div>';
+  h+='</div><div class="obdots" aria-hidden="true">'+[0,1,2,3].map(function(k){return'<i class="'+(k===i?'on':'')+'"></i>'}).join('')+'</div>'+
+    '<div class="obbtns"><button class="obgo" id="obgo"></button><button class="obsec" id="obsec"'+(last?'':' hidden')+'>Later</button></div>';
+  o.innerHTML=h;
+  if(!last){o.querySelector('h1').textContent=pages[i][0];o.querySelector('.obp').textContent=pages[i][1]}
+  var go=$('#obgo');go.textContent=last?(OB.busy?'Saving…':'Start Writing'):'Continue';go.disabled=OB.busy;
+  go.onclick=function(){if(last)return obSave();OB.i++;obRender()};
+  if($('#obskip'))$('#obskip').onclick=obClose;$('#obsec').onclick=obClose;
+  if(last){var ni=$('#obname'),ui=$('#obuser'),av=$('#obav'),nt=$('#obnote');ni.value=OB.name||'';ui.value=OB.user||'';
+    var paintAv=function(){var p=MY_PROFILE;if(p&&avOk(p.avatar_url)){av.innerHTML='<img alt="" referrerpolicy="no-referrer" style="width:88px;height:88px;border-radius:50%;object-fit:cover">';av.firstChild.src=p.avatar_url}else av.textContent=((ni.value||'?').trim().charAt(0)||'?').toUpperCase()};paintAv();
+    nt.textContent=OB.err||'3–20 letters, numbers or underscores. You can change both in Account.';nt.className='obnote'+(OB.err?' err':'');
+    ni.oninput=function(){OB.name=ni.value;paintAv()};ui.oninput=function(){OB.user=ui.value};
+    ni.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();ui.focus()}};ui.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();obSave()}};
+    setTimeout(function(){try{(OB.err?ui:ni).focus()}catch(e){}},250)}}
+function obSave(){if(OB.busy)return;var n=(OB.name||'').trim(),u=(OB.user||'').trim().replace(/^@+/,'');
+  if(!n&&!u)return obClose();
+  var cur0=MY_PROFILE||{},same=u.toLowerCase()===(cur0.username||'')&&(n===(cur0.display_name||''));if(same)return obClose();
+  OB.busy=true;OB.err='';obRender();
+  var p=u?saveUsername(u,n||null):saveLinks({display_name:n});
+  p.then(function(){OB.busy=false;if(n){MY_PROFILE=MY_PROFILE||{};MY_PROFILE.display_name=n;profCacheSet(AUTH_USER.id,MY_PROFILE)}refreshAccount();paintAcctIcons();obClose()},
+    function(e){OB.busy=false;OB.err=(e&&e.message)||'Couldn’t save. Try again.';obRender();try{haptic('warning')}catch(x){}})}
 /* ---------- profile: username, display name & avatar, public so collaborators can find and credit you ---------- */
 function myName(){return(MY_PROFILE&&(MY_PROFILE.display_name||MY_PROFILE.username))||(AUTH_USER&&AUTH_USER.user_metadata&&(AUTH_USER.user_metadata.full_name||AUTH_USER.user_metadata.name))||''}
 /* the account icon (top of the song list, and in the sidebar) shows the signed-in user's own
