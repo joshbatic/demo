@@ -142,7 +142,8 @@ h1{font:700 34px/41px -apple-system,'SF Pro Display',system-ui,sans-serif;letter
 #adm .chips .ok{background:rgba(52,199,89,.16);color:#1f8a3b}#adm .chips .bad{background:rgba(255,59,48,.14);color:#d92d20}#adm .chips .wait{background:rgba(255,159,10,.16);color:#b26a00}#adm .chips .plan{background:rgba(124,92,255,.15);color:#5B3FD6;font-weight:600}#adm .chips .free{font-weight:600}
 @media (prefers-color-scheme:dark){#adm .chips .plan{color:#C9B8FF}}
 #adm .aacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}#adm .aacts button{padding:8px 12px;border-radius:10px;font-size:14px;font-weight:600;background:var(--fill);color:var(--ink)}
-#adm .aacts .ok{background:var(--tint);color:var(--ontint)}#adm .aacts button:disabled{opacity:.5}
+#adm .aacts .ok{background:var(--tint);color:var(--ontint)}
+.aacts .red,#adm .aacts .red{color:var(--red)}#adm .aacts button:disabled{opacity:.5}
 #adm .asearch{width:100%;padding:11px 14px;border-radius:12px;border:.5px solid var(--sep);background:var(--row);color:var(--ink);font-size:16px;margin-bottom:12px}
 #adm .aempty{padding:26px 16px;text-align:center;color:var(--mute);font-size:15px}
 #adm .aset{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;position:relative}#adm .aset+.aset::before{content:'';position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--sep)}
@@ -18290,7 +18291,7 @@ function admCard(){var b=document.createElement('div');b.className='song irow0 b
   b.onclick=openAdmin;b.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openAdmin()}};return b}
 function admRpc(fn,args){var c=sbClient();if(!c)return Promise.reject(new Error('Not connected'));return c.rpc(fn,args||{}).then(function(r){if(r.error){if(/admin_|function .* does not exist|PGRST202/i.test(r.error.message||'')&&!/Admins only/.test(r.error.message)){ADM.miss=true}throw r.error}return r.data})}
 function admLoadOverview(force){if(!BETA.admin)return;if(!force&&ADM.ov&&Date.now()-ADM.t<30000)return;ADM.t=Date.now();
-  admLoadStatus();tkLoad();admRpc('admin_overview').then(function(o){ADM.ov=o;ADM.miss=false;paintAdmSide();if(DEV_BUILD&&!$('#q').value)renderList();renderAdmin()},function(){renderAdmin()})}
+  admLoadStatus();tkLoad();rpLoad();admRpc('admin_overview').then(function(o){ADM.ov=o;ADM.miss=false;paintAdmSide();if(DEV_BUILD&&!$('#q').value)renderList();renderAdmin()},function(){renderAdmin()})}
 function admLoadUsers(){admRpc('admin_users',{p_q:ADM.q,p_limit:200}).then(function(u){ADM.users=u||[];renderAdmin()},function(e){ADM.users=[];renderAdmin();if(!ADM.miss)toast('Couldn’t load users: '+(e.message||e))})}
 function admLoadErrors(){admRpc('admin_errors',{p_hours:ADM.hours}).then(function(r){ADM.errs=r||{groups:[],latest:[]};renderAdmin()},function(){ADM.errs={groups:[],latest:[]};renderAdmin()})}
 function openAdmin(){if(DEV_BUILD&&$('#vDash'))return dashGo('dash');if(!AUTH_USER){toast('Sign in as dev@hellodemo.app to use Admin');return}if(!BETA.admin){toast('Admin is only for the admin account (dev@hellodemo.app)');return}
@@ -18300,7 +18301,7 @@ function openAdmin(){if(DEV_BUILD&&$('#vDash'))return dashGo('dash');if(!AUTH_US
    The admin tools (#adm) and Beta Requests (#brq) live here instead of in sheets. Admin icons are solid system
    colours, iOS Settings style, so they never look like song covers or the Ideas tile. */
 var DASH={tab:'dash',sub:null};
-var DI={
+var DI_FLAG='<path d="M5 21V4"/><path d="M5 4h12l-2.5 4 2.5 4H5"/>';var DI={flag:DI_FLAG,
   grid:'<path d="M4 4h6.5v6.5H4zM13.5 4H20v6.5h-6.5zM4 13.5h6.5V20H4zM13.5 13.5H20V20h-6.5z"/>',
   note:'<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
   people:'<circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c.7-3.5 3.2-5.6 6.2-5.6s5.5 2.1 6.2 5.6"/><path d="M16 4.6a3.4 3.4 0 0 1 0 6.8M17.6 14.6c2 .6 3.3 2.6 3.6 5.4"/>',
@@ -18337,9 +18338,9 @@ function dIco(k,w){return'<svg width="'+(w||22)+'" height="'+(w||22)+'" viewBox=
 function dTile(k,col){return'<i class="dtile" style="background:'+col+'">'+dIco(k,17)+'</i>'}
 var DCOL={blue:'#007AFF',green:'#34C759',teal:'#30B0C7',orange:'#FF9500',red:'#FF3B30',purple:'#AF52DE',indigo:'#5856D6',gray:'#8E8E93',pink:'#FF2D55',mint:'#00C7BE'};
 /* the overview's numbers get an icon each */
-var STAT_ICO={'Accounts':['person','blue'],'New today':['plus','green'],'Signed in today':['clock','teal'],'Waiting for beta':['hourglass','orange'],'Storage used':['disk','gray'],'AI units today':['spark','purple'],'Errors today':['warn','red'],'Help desk':['bubble','pink'],'Services':['pulse','green'],'Songs':['note','indigo']};
+var STAT_ICO={'Accounts':['person','blue'],'New today':['plus','green'],'Signed in today':['clock','teal'],'Waiting for beta':['hourglass','orange'],'Storage used':['disk','gray'],'AI units today':['spark','purple'],'Errors today':['warn','red'],'Help desk':['bubble','pink'],'Reports':['flag','red'],'Services':['pulse','green'],'Songs':['note','indigo']};
 var DTABS=[['dash','Dashboard','grid'],['songs','Songs','note'],['users','Users','people'],['help','Help','bubble'],['more','More','more']];
-var DMORE=[[['beta','Beta Requests','hourglass','orange'],['errors','Errors','warn','red'],['status','Service Status','pulse','green']],
+var DMORE=[[['reports','Reports','flag','red'],['beta','Beta Requests','hourglass','orange'],['errors','Errors','warn','red'],['status','Service Status','pulse','green']],
   [['settings','Settings','gear','gray'],['debug','Debug','hammer','indigo']],
   [['sb','Supabase Dashboard','db','mint',function(){openLink(SB_DASH)}],['sbu','Supabase Users','person','teal',function(){openLink(SB_DASH+'/auth/users')}],['fn','Edge Function Logs','term','purple',function(){openLink(SB_DASH+'/functions')}],['rs','Resend Emails','bubble','blue',function(){openLink('https://resend.com/emails')}],['oa','OpenAI Usage','spark','gray',function(){openLink('https://platform.openai.com/usage')}]]];
 function dashBuild(){if($('#dtabs'))return;
@@ -18356,7 +18357,7 @@ function dashGo(t,sub){if(!DEV_BUILD)return;dashBuild();
   if(AUTH_USER&&BETA.admin){if(sub==='beta'){betaAdminLoad(true);betaTabLoad(BRQ_TAB,true)}else if(t!=='more'||sub){var at=sub||(t==='dash'?'overview':t);admTab(at)}else{betaAdminLoad();admLoadOverview()}}}
 function dashRender(){if(!DEV_BUILD||!$('#vDash'))return;dashBuild();
   var t=DASH.tab,sub=DASH.sub,adm=$('#adm'),brq=$('#brq'),mo=$('#dmore'),gate=$('#dgate');
-  var titles={dash:'Dashboard',users:'Users',help:'Help',more:'More'},subT={beta:'Beta Requests',errors:'Errors',status:'Service Status',settings:'Settings',debug:'Debug'};
+  var titles={dash:'Dashboard',users:'Users',help:'Help',more:'More'},subT={reports:'Reports',beta:'Beta Requests',errors:'Errors',status:'Service Status',settings:'Settings',debug:'Debug'};
   $('#dtitle').textContent=sub?subT[sub]:titles[t]||'Dashboard';$('#dback').hidden=!sub;$('#vDash').classList.toggle('dsub',!!sub);
   [adm,brq,mo,gate].forEach(function(x){if(x)x.hidden=true});
   if(!AUTH_USER||!BETA.admin){gate.hidden=false;gate.innerHTML='<div class="dempty"><b></b><p></p></div>';gate.querySelector('b').textContent=AUTH_USER?(BETA.st?'This account isn’t the admin':'Checking…'):'Sign in as the admin';
@@ -18372,7 +18373,7 @@ function dashTabsPaint(){var nav=$('#dtabs');if(!nav)return;var v=document.query
   var act=vid==='vList'?'songs':DASH.tab;nav.querySelectorAll('button').forEach(function(b){var on=b.dataset.t===act;b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
   var hb=nav.querySelector('[data-t="help"] .dbadge'),n=TKT.data&&TKT.data.counts&&TKT.data.counts.open||0;if(hb){hb.hidden=!n;hb.textContent=n>9?'9+':String(n)}
   var mb=nav.querySelector('[data-t="more"] .dbadge'),np=BETA.admin&&BETA.sum&&BETA.sum.pending||0;if(mb){mb.hidden=!np;mb.textContent=np>9?'9+':String(np)}}
-function admTab(t){ADM.tab=t;var ao=$('#adm');if(ao)ao.scrollTop=0;renderAdmin();if(t==='status')admLoadStatus();if(t==='overview')admLoadOverview(true);if(t==='users'){if(UD.id)admLoadUser();else admLoadUsers()}if(t==='errors')admLoadErrors();if(t==='help')tkLoad();if(t==='debug')dbgPrep();if(t==='settings'){cfgLoad();admLoadBuilds()}}
+function admTab(t){ADM.tab=t;var ao=$('#adm');if(ao)ao.scrollTop=0;renderAdmin();if(t==='status')admLoadStatus();if(t==='overview')admLoadOverview(true);if(t==='users'){if(UD.id)admLoadUser();else admLoadUsers()}if(t==='errors')admLoadErrors();if(t==='help')tkLoad();if(t==='reports')rpLoad();if(t==='debug')dbgPrep();if(t==='settings'){cfgLoad();admLoadBuilds()}}
 function admStat(g,num,label,extra,warn,bar){var d=document.createElement('div');d.className='astat'+(warn?' warn':'');var si=STAT_ICO[label];d.innerHTML=(si?dTile(si[0],DCOL[si[1]]):'')+'<b></b><span></span>';d.querySelector('b').textContent=num;d.querySelector('span').textContent=label;
   if(bar!=null){var br=document.createElement('div');br.className='abar';br.innerHTML='<i></i>';br.firstChild.style.width=Math.max(2,Math.min(100,bar))+'%';d.appendChild(br)}
   if(extra){var e=document.createElement('em');e.textContent=extra;d.appendChild(e)}g.appendChild(d)}
@@ -18390,11 +18391,12 @@ function admBtn(lbl,fn,cls,dis){var b=document.createElement('button');b.type='b
   b.onclick=function(e){e.stopPropagation();var ae=document.activeElement;if(ae&&ae.blur&&$('#adm').contains(ae))ae.blur();ADM.pend=false;fn()};return b}
 function admRender(o){
   var nOpen=TKT.data&&TKT.data.counts&&TKT.data.counts.open||0;
-  var seg=document.createElement('div');seg.className='bseg';[['overview','Overview'],['help','Help'+(nOpen?' '+nOpen:'')],['users','Users'],['errors','Errors'],['status','Status'],['debug','Debug'],['settings','Settings']].forEach(function(t){var b=document.createElement('button');b.className=ADM.tab===t[0]?'on':'';b.textContent=t[1];b.onclick=function(){if(t[0]==='users'&&ADM.tab==='users')UD.id=null;admTab(t[0])};seg.appendChild(b)});o.appendChild(seg);
+  var seg=document.createElement('div');seg.className='bseg';[['overview','Overview'],['help','Help'+(nOpen?' '+nOpen:'')],['reports','Reports'+(RPT.data&&RPT.data.counts&&RPT.data.counts.open?' '+RPT.data.counts.open:'')],['users','Users'],['errors','Errors'],['status','Status'],['debug','Debug'],['settings','Settings']].forEach(function(t){var b=document.createElement('button');b.className=ADM.tab===t[0]?'on':'';b.textContent=t[1];b.onclick=function(){if(t[0]==='users'&&ADM.tab==='users')UD.id=null;admTab(t[0])};seg.appendChild(b)});o.appendChild(seg);
   if(ADM.tab==='debug')return admDebug(o);
   if(ADM.miss){var m=document.createElement('div');m.className='aempty';m.textContent='Run supabase/admin-tools.sql in Supabase › SQL Editor to turn on the admin tools.';o.appendChild(m);return}
   var ov=ADM.ov||{},lab=function(t){var l=document.createElement('div');l.className='alab';l.textContent=t;o.appendChild(l)};
   if(ADM.tab==='help')return admHelp(o);
+  if(ADM.tab==='reports')return admReports(o);
   if(ADM.tab==='users'&&UD.id)return admUser(o,lab);
   if(ADM.tab==='overview'){
     if(!ADM.ov){var ld=document.createElement('div');ld.className='aempty';ld.textContent='Loading…';o.appendChild(ld);return}
@@ -18407,6 +18409,7 @@ function admRender(o){
     if(ov.ai_units_today!=null)admStat(g,ov.ai_units_today,'AI units today',(ov.ai_users_today||0)+' people · '+(ov.sync_today||0)+' syncs');
     if(ov.errors_24h!=null)admStat(g,ov.errors_24h,'Errors today',(ov.error_users_24h||0)+' people affected',ov.errors_24h>0);
     if(TKT.data&&TKT.data.counts&&!TKT.data.err){var tc=TKT.data.counts;admStat(g,tc.open||0,'Help desk',(tc.open?'waiting for a reply · ':'')+(tc.replied||0)+' answered',tc.open>0);g.lastChild.style.cursor='pointer';g.lastChild.onclick=function(){admTab('help')}}
+    if(RPT.data&&RPT.data.counts&&!RPT.data.err){var rc=RPT.data.counts;admStat(g,rc.open||0,'Reports',rc.open?'to review within 24 hours':'nothing to review',rc.open>0);g.lastChild.style.cursor='pointer';g.lastChild.onclick=function(){if(DEV_BUILD&&$('#vDash'))dashGo('more','reports');else admTab('reports')}}
     if(ADM.st&&ADM.st.services&&ADM.st.services.length){var sd=svcDown();admStat(g,sd.down?sd.down+' down':sd.slow?sd.slow+' slow':'All up','Services',sd.n+' checked · '+admAgo(ADM.st.checked_at),sd.down>0)}
     if(ov.songs!=null)admStat(g,ov.songs,'Songs',(ov.ideas||0)+' ideas · '+(ov.share_links||0)+' share links · '+(ov.shared_songs||0)+' co-written');
     var nt=document.createElement('div');nt.className='anote';nt.textContent='Updated '+admAgo(ov.at)+'. Day counts reset at midnight Adelaide time; AI counts at midnight UTC.';o.appendChild(nt);
@@ -18570,6 +18573,45 @@ function supForm(g){var f=document.createElement('div');f.className='supf';
       (Array.isArray(t.replies)?t.replies:[]).forEach(function(r){var q=document.createElement('div');q.className='supr';q.innerHTML='<em></em><span></span>';q.firstChild.textContent='*[demo] · '+admAgo(r.at);q.lastChild.textContent=r.text;d.appendChild(q)});
       f.appendChild(d)})}
   g.appendChild(f)}
+/* ---------- Admin › Reports: people reported from the app (Report on a co-writer or an invitation) ---------- */
+var RPT={st:'open',data:null,open:null,note:{}};
+var RPT_WHY={spam:'Spam',harassment:'Harassment or hate',inappropriate:'Inappropriate content',impersonation:'Impersonation',other:'Something else'};
+function rpLoad(){if(!BETA.admin)return;var st=RPT.st;admRpc('admin_reports',{p_status:st}).then(function(r){if(RPT.st!==st)return;RPT.data=r||{counts:{},list:[]};renderAdmin();if(DEV_BUILD&&typeof dashRender==='function'&&DASH.tab==='more'&&!DASH.sub)dashRender()},
+  function(e){RPT.data={counts:{},list:[],err:(e&&e.message)||String(e)};renderAdmin()})}
+function rpSet(r,status,note){admRpc('admin_report_update',{p_id:r.id,p_status:status||null,p_note:note==null?null:note}).then(function(){
+  toast(status==='actioned'?'Marked #'+r.id+' as dealt with':status==='dismissed'?'Dismissed #'+r.id:status==='open'?'Reopened #'+r.id:'Note saved');rpLoad()},function(e){toast('Couldn’t update #'+r.id+': '+((e&&e.message)||e))})}
+function rpWho(email,un,name){return (name||'')+(un?(name?' (@'+un+')':'@'+un):'')||email||'Unknown'}
+function admReports(o){var c=(RPT.data&&RPT.data.counts)||{};
+  var sg=document.createElement('div');sg.className='bseg small';[['open','To Review',c.open],['actioned','Dealt With',c.actioned],['dismissed','Dismissed',c.dismissed],['all','All']].forEach(function(x){
+    var b=document.createElement('button');b.className=RPT.st===x[0]?'on':'';b.textContent=x[1]+(x[2]?' '+x[2]:'');b.onclick=function(){RPT.st=x[0];RPT.open=null;if(RPT.data)RPT.data.list=null;renderAdmin();rpLoad()};sg.appendChild(b)});
+  o.appendChild(sg);sg.style.marginBottom='12px';
+  var bx=document.createElement('div');bx.className='abox';o.appendChild(bx);
+  var empty=function(t){var e=document.createElement('div');e.className='aempty';e.textContent=t;bx.appendChild(e)};
+  if(!RPT.data||!RPT.data.list)return empty(RPT.data&&RPT.data.err?'Couldn’t load reports: '+RPT.data.err:'Loading…');
+  if(RPT.data.err)return empty(/admin_reports|does not exist|PGRST202/i.test(RPT.data.err)?'Run supabase/user-reports.sql to turn on reports.':'Couldn’t load reports: '+RPT.data.err);
+  if(!RPT.data.list.length)return empty(RPT.st==='open'?'Nothing to review. People report others from the “…” next to a co-writer, or from an invitation.':'Nothing here.');
+  RPT.data.list.forEach(function(r){var op=RPT.open===r.id,d=document.createElement('div');d.className='arow';d.innerHTML='<b></b><div class="am"></div><div class="tkp"></div>';
+    var them=rpWho(r.reported_email,r.reported_username,r.reported_name),by=rpWho(r.reporter_email,r.reporter_username,r.reporter_name);
+    d.querySelector('b').textContent=them+' · '+(RPT_WHY[r.reason]||r.reason);
+    d.querySelector('.am').textContent=['#'+r.id,'from '+by,admAgo(r.created_at),r.status==='open'?'To review':r.status==='actioned'?'Dealt with':'Dismissed',r.reported_total>1?r.reported_total+' reports about them':'',r.reported_suspended?'Suspended':''].filter(Boolean).join(' · ');
+    var p=d.querySelector('.tkp');p.textContent=r.details||'No details given.';
+    if(op){p.classList.add('full');
+      if(r.song_id){var sd=document.createElement('div');sd.className='tkd';sd.textContent='Song: '+(r.song_title||'Untitled')+' ('+r.song_id+')';d.appendChild(sd)}
+      if(r.note){var nd=document.createElement('div');nd.className='tkr';nd.innerHTML='<em></em><span></span>';nd.firstChild.textContent='Your note'+(r.handled_at?' · '+admAgo(r.handled_at):'');nd.lastChild.textContent=r.note;d.appendChild(nd)}
+      var ta=document.createElement('textarea');ta.className='ata';ta.dataset.ak='rp'+r.id;ta.placeholder='Note for yourself: what you checked and what you did. Only admins see it.';
+      ta.value=RPT.note[r.id]!=null?RPT.note[r.id]:(r.note||'');ta.oninput=function(){RPT.note[r.id]=ta.value};ta.onclick=function(e){e.stopPropagation()};d.appendChild(ta);
+      var ac=document.createElement('div');ac.className='aacts';var nt=function(){var v=RPT.note[r.id];return v==null?null:v.trim()};
+      if(r.status==='open'){ac.appendChild(admBtn('Dealt With',function(){rpSet(r,'actioned',nt())},'ok'));ac.appendChild(admBtn('Dismiss',function(){rpSet(r,'dismissed',nt())}))}
+      else ac.appendChild(admBtn('Reopen',function(){rpSet(r,'open',nt())}));
+      if(RPT.note[r.id]!=null&&RPT.note[r.id].trim()!==(r.note||''))ac.appendChild(admBtn('Save Note',function(){rpSet(r,null,nt())}));
+      if(r.reported&&!r.reported_suspended)ac.appendChild(admBtn('Suspend Them',function(){
+        if(!confirm('Suspend '+them+'? They’re signed out everywhere and can’t sign in until you unsuspend them. Their songs are kept.'))return;
+        admRpc('admin_suspend',{p_user:r.reported,p_on:true}).then(function(){toast(them+' is suspended');rpSet(r,'actioned',(nt()||'')+(nt()?'\n':'')+'Suspended.')},function(e){toast('Couldn’t suspend: '+((e&&e.message)||e))})},'red'));
+      if(r.reported)ac.appendChild(admBtn('View Their Account',function(){admOpenUser(r.reported)}));
+      if(r.reporter)ac.appendChild(admBtn('View Reporter',function(){admOpenUser(r.reporter)}));
+      if(r.reported_email)ac.appendChild(admBtn('Copy Their Email',function(){admCopy(r.reported_email,'email')}));
+      d.appendChild(ac)}
+    d.onclick=function(){RPT.open=op?null:r.id;renderAdmin()};bx.appendChild(d)})}
 /* ---------- Admin › Help: the help desk inbox ---------- */
 var TKT={st:'open',data:null,open:null,draft:{},diag:{},busy:{}};
 function tkLoad(){if(!BETA.admin)return;var st=TKT.st;admRpc('admin_tickets',{p_status:st}).then(function(r){if(TKT.st!==st)return;TKT.data=r||{counts:{},list:[]};renderAdmin()},
