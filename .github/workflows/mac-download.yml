@@ -1,0 +1,62 @@
+# Builds the Mac app download (demo-mac.dmg) on a Mac whenever the Mac app changes on main, and replaces the
+# file on the latest GitHub release, which is what hellodemo.app/mac.html's "Download for Mac" button links to.
+#
+# Signed "ad hoc" until these repository secrets exist (Settings › Secrets and variables › Actions); then it's
+# signed with your Developer ID and notarised, so it opens with no warning:
+#   MAC_CERT_P12        your "Developer ID Application" certificate exported from Keychain Access as .p12, base64
+#   MAC_CERT_PASSWORD   the password you gave that .p12
+#   MAC_DEVELOPER_ID    the certificate's name, e.g. Developer ID Application: … (KZL3T52VV3)
+#   NOTARY_APPLE_ID, NOTARY_PASSWORD (an app-specific password), NOTARY_TEAM_ID (KZL3T52VV3)
+name: Mac download
+on:
+  push:
+    branches: [main]
+    paths: ["mac-app/**"]
+  workflow_dispatch:
+concurrency: { group: mac-download, cancel-in-progress: true }
+permissions: { contents: write }
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Signing certificate (if set up)
+        env:
+          P12: ${{ secrets.MAC_CERT_P12 }}
+          P12_PASS: ${{ secrets.MAC_CERT_PASSWORD }}
+        run: |
+          if [ -z "$P12" ]; then echo "No certificate yet: building ad hoc."; exit 0; fi
+          KC="$RUNNER_TEMP/build.keychain-db"; KP=$(openssl rand -hex 16)
+          echo "$P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$KP" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$KP" "$KC"
+          security import "$RUNNER_TEMP/cert.p12" -P "$P12_PASS" -A -t cert -f pkcs12 -k "$KC"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KP" "$KC" >/dev/null
+          security list-keychains -d user -s "$KC" $(security list-keychains -d user | tr -d '"')
+          rm -f "$RUNNER_TEMP/cert.p12"
+      - name: Notarisation login (if set up)
+        env:
+          AID: ${{ secrets.NOTARY_APPLE_ID }}
+          APW: ${{ secrets.NOTARY_PASSWORD }}
+          TID: ${{ secrets.NOTARY_TEAM_ID }}
+        run: |
+          if [ -z "$AID" ]; then exit 0; fi
+          xcrun notarytool store-credentials demo-notary --apple-id "$AID" --password "$APW" --team-id "$TID"
+          echo "NOTARY_PROFILE=demo-notary" >> "$GITHUB_ENV"
+      - name: Build the download
+        env:
+          DEVELOPER_ID: ${{ secrets.MAC_DEVELOPER_ID }}
+        run: |
+          cd mac-app
+          bash scripts/build-download.sh
+          cp dist/demo-*-mac.dmg "$RUNNER_TEMP/demo-mac.dmg"
+      - name: Replace the file on the latest release
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          TAG=$(gh api "repos/${{ github.repository }}/releases/latest" -q .tag_name)
+          gh release upload "$TAG" "$RUNNER_TEMP/demo-mac.dmg" --clobber --repo "${{ github.repository }}"
+          echo "Uploaded demo-mac.dmg to $TAG"
