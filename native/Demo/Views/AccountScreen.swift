@@ -230,7 +230,7 @@ struct AccountScreen: View {
             if notifOpen && [UNAuthorizationStatus.authorized, .provisional, .ephemeral].contains(push.status) {
                 prefToggle("cowrite", "Co-writing", "When someone accepts your invite or edits a song you share")
                 prefToggle("nudge", "Writing reminders", "A gentle nudge after a few days away, at most once a week")
-                prefToggle("account", "Account & Pro", "Beta access, Pro and your free trial")
+                prefToggle("account", "Account & Pro", "Pro and your free trial")
                 prefToggle("plays", "Share link plays", "When someone opens a song you shared, once a day")
                 Text("Invites and replies from *[demo] Support always come through. To turn everything off, use Settings › *[demo] › Notifications.")
                     .font(.footnote).foregroundStyle(.secondary)

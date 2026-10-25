@@ -74,13 +74,13 @@ struct PaywallView: View {
             }
             .accessibilityElement(children: .contain)
             Button { Task { await store.buy(year: year, session: session) } } label: {
-                Text(store.busy == "buy" ? "One moment…" : "Start \(Pro.trialDays)-Day Free Trial")
+                Text(store.busy == "buy" ? "One moment…" : store.trialEligible ? "Start \(Pro.trialDays)-Day Free Trial" : "Subscribe")
                     .font(.system(size: 17, weight: .semibold)).foregroundStyle(Theme.onTint)
                     .frame(maxWidth: .infinity, minHeight: 52).background(Theme.tint, in: Capsule())
             }
             .buttonStyle(PressScale())
             .disabled(store.busy != nil)
-            Text("\(Pro.trialDays) days free for new subscribers, then \(store.price(year: year))\(year ? " a year" : " a month"), charged to your Apple ID. Renews automatically unless you cancel at least 24 hours before the period ends, in Settings › Apple ID › Subscriptions.")
+            Text((store.trialEligible ? "\(Pro.trialDays) days free, then " : "") + "\(store.price(year: year))\(year ? " a year" : " a month"), charged to your Apple ID. Renews automatically unless you cancel at least 24 hours before the period ends, in Settings › Apple ID › Subscriptions.")
                 .font(.system(size: 11.5)).foregroundStyle(.secondary).multilineTextAlignment(.center)
             HStack(spacing: 16) {
                 Button(store.busy == "restore" ? "Restoring…" : "Restore Purchases") { Task { await store.restore(session: session) } }

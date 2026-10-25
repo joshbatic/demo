@@ -11,6 +11,11 @@ nonisolated enum Config {
     /// RevenueCat public iOS key (appl_…), filled in once the App Store subscriptions are live.
     static let revenueCatKey = ""
     static let proEntitlement = "pro"
+    /// The App Store app's Apple ID (App Store Connect › App Information › Apple ID), for "Time to update".
+    static let appStoreID = ""
+    static var appStoreURL: URL {
+        appStoreID.isEmpty ? URL(string: "https://hellodemo.app")! : URL(string: "itms-apps://apps.apple.com/app/id\(appStoreID)")!
+    }
     static let listenHost = "listen.hellodemo.app"
     /// The build number, shared with the web and Mac apps' APP_SEQ (the repo's commit count, written by
     /// scripts/stamp-version.sh), so Admin › Minimum Build ("Time to update") covers every app on one scale.

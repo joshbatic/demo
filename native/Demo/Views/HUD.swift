@@ -189,7 +189,7 @@ struct UpdateScreen: View {
                 Text(config.updateNote.isEmpty ? "This version of *[demo] is out of date. Update to keep writing. Your songs are safe and will be right here." : config.updateNote)
                     .font(.system(size: 17)).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 Button {
-                    if let u = URL(string: "itms-beta://") { openURL(u) }
+                    openURL(Config.appStoreURL)
                 } label: {
                     Text("Get the Update").font(.system(size: 17, weight: .semibold)).foregroundStyle(Theme.onTint)
                         .frame(maxWidth: .infinity, minHeight: 52).background(Theme.tint, in: Capsule())

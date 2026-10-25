@@ -51,6 +51,8 @@ final class Store {
 
     var monthPrice: String?
     var yearPrice: String?
+    /// Whether this Apple ID can still get the free trial (Apple only gives it once per subscription group).
+    var trialEligible = true
     /// "buy" or "restore" while one is running
     var busy: String?
     @ObservationIgnored private var user: String?
@@ -81,6 +83,11 @@ final class Store {
             let o = try await Purchases.shared.offerings()
             monthPrice = o.current?.monthly?.storeProduct.localizedPriceString
             yearPrice = o.current?.annual?.storeProduct.localizedPriceString
+            let ids = [o.current?.monthly, o.current?.annual].compactMap { $0?.storeProduct.productIdentifier }
+            if !ids.isEmpty {
+                let el = await Purchases.shared.checkTrialOrIntroDiscountEligibility(productIdentifiers: ids)
+                trialEligible = el.values.contains { $0.status == .eligible }
+            }
             let ci = try await Purchases.shared.customerInfo()
             if ci.entitlements.active[Config.proEntitlement] != nil && !session.plan.isPro { await sync(ci: true, session: session) }
         } catch {}
