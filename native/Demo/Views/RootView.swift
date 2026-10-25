@@ -3,6 +3,8 @@ import AuthenticationServices
 import Supabase
 
 struct RootView: View {
+    /// The widest the app's content gets (iPad, Mac, iPhone landscape); wider windows show background either side.
+    static let columnWidth: CGFloat = 720
     @Environment(\.appSession) private var session
     @AppStorage(Onboarding.doneKey) private var onboarded = false
 
@@ -21,6 +23,10 @@ struct RootView: View {
             }
         }
         .animation(.smooth(duration: 0.35), value: session.phase)
+        // on iPad and Mac the app keeps a readable column in the middle of a wide window, like on iPhone
+        .frame(maxWidth: RootView.columnWidth)
+        .frame(maxWidth: .infinity)
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
         // the launch screen's record label spins up, then lifts away into the app (spec §1.1)
         .overlay { SplashView(ready: session.phase != .launching) }
         // toasts, banners, the AI prompt and the paywall live in a window above everything (sheets too)
