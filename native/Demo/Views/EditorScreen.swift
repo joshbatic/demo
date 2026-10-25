@@ -103,6 +103,9 @@ struct EditorScreen: View {
         .sheet(isPresented: $showShare) { ShareSheet(songID: songID) }
         // live co-writing: send what changed here (from typing, Details, anywhere) and file changes
         .onChange(of: liveKey) { _, _ in live.localChanged() }
+        // Lines works without the keyboard: it would cover the lines and the rhyme bar. Tapping the words still
+        // moves the cursor (Lines writes for the line you're on); turning Lines off brings typing back.
+        .onChange(of: linesOn) { _, on in linesKeyboard(on) }
         // dropping to Free turns off what's Pro (applyPlan)
         .onChange(of: session.plan.isPro) { _, pro in if !pro { linesOn = false; if rateMode { setRateMode(false) } } }
         .onChange(of: filesKey) { _, _ in if live.isOn && !live.applying { live.filesChanged() } }
@@ -377,6 +380,12 @@ struct EditorScreen: View {
         ctxPref.toggle()
         session.toast = ctxPref ? "Listening to the whole song" : "Only listening to nearby lines"
         results.refresh()
+    }
+
+    private func linesKeyboard(_ on: Bool) {
+        guard let tv = bridge.textView else { return }
+        tv.inputView = on ? UIView(frame: .zero) : nil
+        if tv.isFirstResponder { tv.reloadInputViews() }
     }
 
     private func toggleLines() {
