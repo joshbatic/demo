@@ -290,9 +290,16 @@ struct AccountScreen: View {
             NavigationLink(value: "credits") {
                 LabeledContent {
                     Text("\(CreditsPage.finished(library, me: session.userID).count)")
-                } label: { Label("Credits", systemImage: "music.note") }
+                } label: {
+                    Label {
+                        Text("Credits").foregroundStyle(.primary)
+                    } icon: {
+                        Image(systemName: "signature").font(.system(size: 15, weight: .bold)).foregroundStyle(.white)
+                            .frame(width: 30, height: 30)
+                            .background { TileBackground(colors: [Color(hex: 0xFFB340), Color(hex: 0xFF375F)]) }
+                    }
+                }
             }
-            .labelStyle(TileLabelStyle(color: Theme.Tile.orange))
             Button { Haptics.tap(); importing = true } label: {
                 Label { Text("Import Songs").foregroundStyle(.primary) } icon: { TileIcon("square.and.arrow.down.fill", Theme.Tile.blue) }
             }

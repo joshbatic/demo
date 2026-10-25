@@ -10,15 +10,7 @@ struct IdeasRow: View {
         ZStack {
             NavigationLink(value: Self.route) { EmptyView() }.opacity(0)
             HStack(spacing: 14) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(LinearGradient(colors: [Color(hex: 0xFFD59E), Color(hex: 0xFF9E8A)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    RadialGradient(colors: [Color(hex: 0xFFF1B8), Color(hex: 0xFFF1B8).opacity(0)], center: UnitPoint(x: 0.7, y: 0.25), startRadius: 0, endRadius: 34)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    Image(systemName: "lightbulb.fill").font(.system(size: 21, weight: .semibold)).foregroundStyle(.white)
-                        .shadow(color: .black.opacity(0.18), radius: 1, y: 1)
-                }
-                .frame(width: 52, height: 52)
+                IdeasTile(size: 52)
                 VStack(alignment: .leading, spacing: 1) {
                     Text("Ideas").font(.system(size: 17, weight: .semibold))
                     Text(latest.map { $0.text.isEmpty ? "Voice memo · " + SongFiles.time($0.raw["memo"]?["dur"]?.number ?? 0) : $0.text.components(separatedBy: "\n").first ?? "" } ?? "A quick jot for lines, ideas and concepts")
@@ -401,5 +393,36 @@ struct IdeaSheet: View {
         gone = true
         dismiss()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { openRoute(id) }
+    }
+}
+
+/// Ideas' icon: a page from Notes (the yellow band, two ruled lines) with a Voice Memos waveform on it.
+struct IdeasTile: View {
+    var size: CGFloat = 52
+    @Environment(\.colorScheme) private var scheme
+    private let bars: [CGFloat] = [0.35, 0.7, 1, 0.55, 0.85, 0.45, 0.75, 0.4]
+    var body: some View {
+        let s = size / 52, shape = RoundedRectangle(cornerRadius: 12 * s, style: .continuous)
+        let line = scheme == .dark ? Color(hex: 0x5A5A5E) : Color(hex: 0xD1D1D6)
+        ZStack(alignment: .topLeading) {
+            shape.fill(scheme == .dark ? Color(hex: 0x2C2C2E) : .white)
+            LinearGradient(colors: [Color(hex: 0xFFDA4A), Color(hex: 0xFFC400)], startPoint: .top, endPoint: .bottom)
+                .frame(height: 14 * s)
+            VStack(alignment: .leading, spacing: 4.5 * s) {
+                Capsule().fill(line).frame(width: 34 * s, height: 2.6 * s)
+                Capsule().fill(line).frame(width: 22 * s, height: 2.6 * s)
+                HStack(alignment: .center, spacing: 2.2 * s) {
+                    ForEach(bars.indices, id: \.self) { i in
+                        Capsule().fill(Color(hex: 0xFF3B30)).frame(width: 2.4 * s, height: 11 * s * bars[i])
+                    }
+                }
+                .frame(height: 11 * s)
+            }
+            .padding(.leading, 9 * s).padding(.top, 20 * s)
+        }
+        .frame(width: size, height: size)
+        .clipShape(shape)
+        .overlay(shape.strokeBorder(Color.primary.opacity(scheme == .dark ? 0.12 : 0.08), lineWidth: 0.5))
+        .accessibilityHidden(true)
     }
 }

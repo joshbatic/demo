@@ -43,10 +43,7 @@ struct PaywallView: View {
             .padding(.trailing, 18).padding(.top, 8)
             .accessibilityLabel("Close")
         }
-        .background {
-            LinearGradient(colors: [Color(hex: 0xB9A6FF).opacity(0.28), Color(uiColor: .systemBackground)], startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.45))
-                .ignoresSafeArea()
-        }
+        .background { PaywallWash().ignoresSafeArea() }
         .onAppear {
             // the keyboard never sits over the paywall (it lives in another window, so end editing everywhere)
             for w in UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).flatMap(\.windows) { w.endEditing(true) }
@@ -132,5 +129,29 @@ struct PaywallView: View {
         }
         .buttonStyle(PressScale())
         .accessibilityAddTraits(on ? .isSelected : [])
+    }
+}
+
+/// The paywall's background: a soft wash of peach, pink, violet and blue across the top that melts into the
+/// page, like the glow on Apple's own Pro and Apple Music pages. Quieter in dark mode.
+struct PaywallWash: View {
+    @Environment(\.colorScheme) private var scheme
+    var body: some View {
+        let a = scheme == .dark ? 0.42 : 0.55
+        let bg = Color(uiColor: .systemBackground)
+        ZStack {
+            bg
+            MeshGradient(width: 3, height: 3, points: [
+                [0, 0], [0.5, 0], [1, 0],
+                [0, 0.42], [0.55, 0.36], [1, 0.46],
+                [0, 1], [0.5, 1], [1, 1]
+            ], colors: [
+                Color(hex: 0xFFB38A).opacity(a), Color(hex: 0xFF8FB8).opacity(a), Color(hex: 0x9F8CFF).opacity(a),
+                Color(hex: 0xFFD6A5).opacity(a * 0.6), Color(hex: 0xC9A8FF).opacity(a * 0.55), Color(hex: 0x7FC8FF).opacity(a * 0.6),
+                bg.opacity(0), bg.opacity(0), bg.opacity(0)
+            ])
+            .frame(maxHeight: .infinity, alignment: .top)
+            .mask(LinearGradient(colors: [.black, .black, .clear], startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.62)))
+        }
     }
 }
