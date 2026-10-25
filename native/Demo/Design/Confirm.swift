@@ -40,7 +40,7 @@ enum Confirm {
     static func sheet<V: View>(_ make: (_ close: @escaping () -> Void) -> V) {
         guard let top = topController() else { return }
         weak var host: UIViewController?
-        let vc = UIHostingController(rootView: make({ host?.dismiss(animated: true) }).tint(Theme.tint))
+        let vc = UIHostingController(rootView: make({ host?.dismiss(animated: true) }).tint(Theme.tint).toggleStyle(.green))
         host = vc
         top.present(vc, animated: true)
     }

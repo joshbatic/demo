@@ -12,6 +12,8 @@ struct DemoApp: App {
         let seg = UISegmentedControl.appearance()
         seg.setTitleTextAttributes([.font: UIFont.systemFont(ofSize: 15, weight: .medium)], for: .normal)
         seg.setTitleTextAttributes([.font: UIFont.systemFont(ofSize: 15, weight: .semibold)], for: .selected)
+        // every switch green when on, wherever it is
+        UISwitch.appearance().onTintColor = .systemGreen
     }
 
     var body: some Scene {
@@ -21,7 +23,7 @@ struct DemoApp: App {
                 .environment(session.library)
                 .tint(Theme.tint)
                 // switches are iOS green when on, whatever the app tint
-                .toggleStyle(SwitchToggleStyle(tint: Color(uiColor: .systemGreen)))
+                .toggleStyle(.green)
                 .task { await session.start() }
                 // the rhyme dictionary loads in the background so it's ready when a song opens
                 .task(priority: .utility) { await Task.detached(priority: .utility) { RhymeEngine.shared.load() }.value }

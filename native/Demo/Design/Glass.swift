@@ -138,3 +138,15 @@ struct TileLabelStyle: LabelStyle {
         }
     }
 }
+
+/// iOS switches, always green when on. The colour is set inside the style, so the app's black `.tint` on a
+/// sheet or screen further down can't override it (SwitchToggleStyle(tint:) loses to a nearer .tint on iOS 26).
+struct GreenSwitch: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Toggle(configuration).toggleStyle(.switch).tint(Color(uiColor: .systemGreen))
+    }
+}
+
+extension ToggleStyle where Self == GreenSwitch {
+    static var green: GreenSwitch { GreenSwitch() }
+}

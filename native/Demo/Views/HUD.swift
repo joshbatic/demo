@@ -14,7 +14,7 @@ enum HUD {
         let host = UIHostingController(rootView: HUDRoot()
             .environment(session).environment(session.library)
             .tint(Theme.tint)
-            .toggleStyle(SwitchToggleStyle(tint: Color(uiColor: .systemGreen))))
+            .toggleStyle(.green))
         host.view.backgroundColor = .clear
         w.rootViewController = host
         w.windowLevel = .normal + 1
