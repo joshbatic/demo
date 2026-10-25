@@ -396,18 +396,29 @@ struct IdeaSheet: View {
     }
 }
 
-/// Ideas' icon: the compose mark (a pencil on a page) in white on a warm amber tile, for a quick jot.
+/// Ideas' icon: the *[demo] asterisk in white on the Pro screen's soft multicolour wash
+/// (peach, pink, violet and sky blue).
 struct IdeasTile: View {
     var size: CGFloat = 52
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: size * 0.23, style: .continuous)
         ZStack {
-            shape.fill(LinearGradient(colors: [Color(hex: 0xFFC93C), Color(hex: 0xFF8A00)], startPoint: .topLeading, endPoint: .bottomTrailing))
-            shape.fill(LinearGradient(colors: [.white.opacity(0.22), .white.opacity(0)], startPoint: .top, endPoint: .center))
-            Image(systemName: "square.and.pencil").font(.system(size: size * 0.42, weight: .semibold)).foregroundStyle(.white)
-                .offset(x: size * 0.02, y: -size * 0.02)
+            MeshGradient(width: 3, height: 3, points: [
+                [0, 0], [0.5, 0], [1, 0],
+                [0, 0.5], [0.55, 0.45], [1, 0.5],
+                [0, 1], [0.5, 1], [1, 1]
+            ], colors: [
+                Color(hex: 0xFFB38A), Color(hex: 0xFF9FC4), Color(hex: 0xB39CFF),
+                Color(hex: 0xFFC9A0), Color(hex: 0xE4A8F0), Color(hex: 0x9C9CFF),
+                Color(hex: 0xFFD6A5), Color(hex: 0xC6B4FF), Color(hex: 0x8FCBFF)
+            ])
+            shape.fill(LinearGradient(colors: [.white.opacity(0.25), .white.opacity(0)], startPoint: .top, endPoint: .center))
+            Image(systemName: "asterisk").font(.system(size: size * 0.44, weight: .bold)).foregroundStyle(.white)
+                .shadow(color: Color(hex: 0x6B4FB0).opacity(0.25), radius: 2, y: 1)
         }
         .frame(width: size, height: size)
+        .clipShape(shape)
+        .overlay(shape.strokeBorder(.white.opacity(0.35), lineWidth: 0.5))
         .accessibilityHidden(true)
     }
 }
