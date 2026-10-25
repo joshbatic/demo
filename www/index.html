@@ -19436,7 +19436,7 @@ function upsell(k,msg){showProBanner(msg||upsellMsg(k),k)}
    the server decides the plan (supabase/functions/revenuecat asks RevenueCat and writes plans), so Pro follows the
    account to the Mac and the web. People are logged in to RevenueCat with their Supabase user id.
    RC_KEY is RevenueCat's public Apple SDK key (starts appl_). It's meant to ship inside apps, so it's fine here. */
-var RC_KEY='',RC_ENT='pro';
+var RC_KEY='',RC_ENT='demo_pro';
 var IAP={ready:false,user:null,pkgs:null,busy:false,err:''};
 function iapPlugin(){var C=window.Capacitor;try{return C&&C.isNativePlatform&&C.isNativePlatform()&&(!C.getPlatform||C.getPlatform()==='ios')&&C.Plugins&&C.Plugins.Purchases||null}catch(e){return null}}
 function iapOn(){return!!(iapPlugin()&&RC_KEY)}

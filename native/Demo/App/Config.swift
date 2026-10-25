@@ -10,7 +10,7 @@ nonisolated enum Config {
     static let authCallback = URL(string: "demo-native://auth-callback")!
     /// RevenueCat public iOS key (appl_…), filled in once the App Store subscriptions are live.
     static let revenueCatKey = ""
-    static let proEntitlement = "pro"
+    static let proEntitlement = "demo_pro"
     /// The App Store app's Apple ID (App Store Connect › App Information › Apple ID), for "Time to update".
     static let appStoreID = ""
     static var appStoreURL: URL {

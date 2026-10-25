@@ -28,7 +28,8 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 const env = (k: string) => (Deno.env.get(k) || "").trim();
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const ENTITLEMENT = "pro";
+// the RevenueCat entitlement that means Pro ("pro" was the planned name; the project was set up with "demo_pro")
+const ENTITLEMENTS = ["demo_pro", "pro"];
 
 const admin = () => createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
 
@@ -52,7 +53,7 @@ async function sync(user: string): Promise<Result> {
   if (!r.ok) return { user, plan: "unchanged", error: `RevenueCat answered ${r.status}` };
   const body = await r.json().catch(() => ({}));
   const sub = body?.subscriber || {};
-  const ent = sub?.entitlements?.[ENTITLEMENT];
+  const ent = ENTITLEMENTS.map((k) => sub?.entitlements?.[k]).find(Boolean);
   const hadApple = Object.keys(sub?.subscriptions || {}).length > 0 || !!ent;
   const expires: string | null = ent ? (ent.expires_date ?? null) : null;  // null expiry on an entitlement = lifetime
   const active = !!ent && (expires === null || Date.parse(expires) > Date.now());
