@@ -16,7 +16,7 @@ nonisolated enum RichText {
     // MARK: HTML → attributed
 
     static func attributed(html: String, plain: String, font: UIFont, color: UIColor) -> NSAttributedString {
-        let runs = html.isEmpty ? [(plain, Style())] : parse(html)
+        let runs = html.isEmpty ? [(normalizeBreaks(plain), Style())] : parse(html)
         let out = NSMutableAttributedString()
         for (text, st) in runs where !text.isEmpty {
             out.append(NSAttributedString(string: text, attributes: attrs(for: st, font: font, color: color)))
@@ -29,6 +29,13 @@ nonisolated enum RichText {
             while have > want, out.length > 0 { out.deleteCharacters(in: NSRange(location: out.length - 1, length: 1)); have -= 1 }
         }
         return out
+    }
+
+    /// One kind of line break everywhere: \r\n, \r and Unicode line and paragraph separators (pasted from other
+    /// apps) become \n, so every device shows and syncs the same lines.
+    static func normalizeBreaks(_ s: String) -> String {
+        guard s.contains(where: { $0 == "\r\n" || $0 == "\r" || $0 == "\u{2028}" || $0 == "\u{2029}" }) else { return s }
+        return s.replacingOccurrences(of: "\r\n|[\r\u{2028}\u{2029}]", with: "\n", options: .regularExpression)
     }
 
     static func attrs(for st: Style, font base: UIFont, color: UIColor) -> [NSAttributedString.Key: Any] {
@@ -104,7 +111,9 @@ nonisolated enum RichText {
                     let ent = String(html[html.index(after: i)..<semi])
                     if let d = entity(ent) { text += d; i = html.index(after: semi); continue }
                 }
-                if c != "\n" && c != "\r" { text.append(c) }       // raw newlines in HTML are not line breaks
+                // the web editor shows raw line breaks as lines (white-space: pre-wrap), so they are real ones;
+                // every kind (\n, \r\n, \r, U+2028, U+2029) becomes one plain line break
+                if c == "\n" || c == "\r\n" || c == "\r" || c == "\u{2028}" || c == "\u{2029}" { newline() } else { text.append(c) }
                 i = html.index(after: i)
             }
         }

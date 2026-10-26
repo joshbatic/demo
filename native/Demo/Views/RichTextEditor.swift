@@ -378,11 +378,30 @@ struct RichTextEditor: UIViewRepresentable {
         }
 
         func afterChange(_ tv: UITextView) {
+            normalizeBreaks(tv)
             styleSectionTags(tv)
             updatePlaceholder(tv)
             bridge?.emit()
             bridge?.onSelection?(tv.text, tv.selectedRange)
             scheduleViews()
+        }
+
+        /// Pasted text can carry \r\n, \r or Unicode line separators: they look like line breaks here but not on the
+        /// Mac or web, so they become plain \n in place (the caret stays where it was).
+        private func normalizeBreaks(_ tv: UITextView) {
+            let str = tv.textStorage.string
+            guard str.contains(where: { $0 == "\r\n" || $0 == "\r" || $0 == "\u{2028}" || $0 == "\u{2029}" }),
+                  let re = try? NSRegularExpression(pattern: "\r\n|[\r\u{2028}\u{2029}]") else { return }
+            let ms = re.matches(in: str, range: NSRange(location: 0, length: (str as NSString).length))
+            guard !ms.isEmpty else { return }
+            var caret = tv.selectedRange.location
+            tv.textStorage.beginEditing()
+            for m in ms.reversed() {
+                tv.textStorage.replaceCharacters(in: m.range, with: "\n")
+                if m.range.location < caret { caret -= max(0, min(m.range.length, caret - m.range.location) - 1) }
+            }
+            tv.textStorage.endEditing()
+            tv.selectedRange = NSRange(location: min(caret, tv.textStorage.length), length: 0)
         }
 
         func textViewDidChangeSelection(_ tv: UITextView) {

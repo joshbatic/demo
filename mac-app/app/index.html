@@ -16059,7 +16059,10 @@ Object.defineProperty(lyr,'selectionStart',{get:function(){return getSel().s}});
 Object.defineProperty(lyr,'selectionEnd',{get:function(){return getSel().e}});
 lyr.setSelectionRange=function(a,b){lyr.focus();setSel(a,b)};
 function clean(h){var d=new DOMParser().parseFromString('<body>'+h,'text/html').body;(function f(n){Array.from(n.childNodes).forEach(function(c){if(c.nodeType===1){if(!/^(B|I|U|S|STRIKE|STRONG|EM|SPAN|BR|FONT|MARK|DIV|P)$/.test(c.nodeName)){c.remove();return}Array.from(c.attributes).forEach(function(a){if(a.name==='style'){if(/url\(|expression|@|\\/i.test(a.value)||!/^[\w\s:;#.,%()\-]*$/.test(a.value))c.removeAttribute('style');else{/* only text styling survives: no positioning or sizing a co-writer could use to cover the screen */var ok=a.value.split(';').map(function(d){return d.trim()}).filter(function(d){return/^(color|background-color|background|font-weight|font-style|text-decoration|text-decoration-line|text-decoration-color)\s*:/i.test(d)&&!/position|fixed|absolute/i.test(d)}).join(';');if(ok)c.setAttribute('style',ok);else c.removeAttribute('style')}}else if(!(c.nodeName==='FONT'&&a.name==='color'))c.removeAttribute(a.name)});f(c)}else if(c.nodeType!==3)c.remove()})})(d);return d.innerHTML}
-function setLyr(s){var x=s.lyrics||'';lyr.innerHTML=s.rich?clean(s.rich):esc(x).replace(/\n/g,'<br>')+(/\n$/.test(x)?'<br>':'');if(getText()==='')lyr.innerHTML=''}
+/* one kind of line break everywhere: \r\n, \r and Unicode line/paragraph separators (pasted on iPhone or from other
+   apps) become \n; the editor is pre-wrap, so a raw \n in the formatting shows as a line too */
+function nlNorm(t){return typeof t==='string'?t.replace(/\r\n|[\r\u2028\u2029]/g,'\n'):t}
+function setLyr(s){if(s.lyrics)s.lyrics=nlNorm(s.lyrics);if(s.rich)s.rich=nlNorm(s.rich);var x=s.lyrics||'';lyr.innerHTML=s.rich?clean(s.rich):esc(x).replace(/\n/g,'<br>')+(/\n$/.test(x)?'<br>':'');if(getText()==='')lyr.innerHTML=''}
 /* cover art is always a picture the app made itself (a data: image). Anything else, such as a web address a
    co-writer put in a shared song, is ignored rather than loaded, so it can't be used to track who opens it */
 function artOk(a){return typeof a==='string'&&/^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(a)}
@@ -16112,7 +16115,7 @@ function tagBold(only){var s=getSel(),v=getText(),pos=0,done=false;
 lyr.addEventListener('beforeinput',function(e){if(e.inputType==='insertParagraph'){e.preventDefault();document.execCommand('insertLineBreak')}});
 /* the word under the caret is only marked when you tap or click into it, never while typing */
 var LYR_TAP=0,LYR_TYPE=0;lyr.addEventListener('input',function(){LYR_TYPE=Date.now();try{setHL('tw')}catch(e){}});['pointerdown','touchstart','mousedown'].forEach(function(ev){lyr.addEventListener(ev,function(){LYR_TAP=Date.now()+1},{passive:true})});
-lyr.addEventListener('paste',function(e){e.preventDefault();ins(lyr,((e.clipboardData||window.clipboardData).getData('text/plain')||'').replace(/\r/g,''))});
+lyr.addEventListener('paste',function(e){e.preventDefault();ins(lyr,((e.clipboardData||window.clipboardData).getData('text/plain')||'').replace(/\r\n|[\r\u2028\u2029]/g,'\n'))});
 lyr.addEventListener('drop',function(e){e.preventDefault()});
 /* formatting */
 var COL=[['Rose','#E5566F'],['Amber','#D4881C'],['Moss','#4E9A5B'],['Tide','#2C8DBF'],['Indigo','#5D6BE0'],['Plum','#A35FCB'],['Slate','#8E8E96']],HL=[['Hook','rgba(255,204,0,.38)'],['Rework','rgba(255,69,58,.24)'],['Idea','rgba(10,132,255,.22)']];
@@ -17493,7 +17496,7 @@ function liveFull(x){if(!x||x.id!==LIVE.id||x.dev===LIB_DEV||!x.f)return;var s=l
   if(LIVE.snap&&LIVE_F.some(function(k){return liveVal(s,k)!==LIVE.snap[k]})){liveSend();setTimeout(function(){try{LIVE.ch.send({type:'broadcast',event:'need',payload:{id:x.id,dev:LIB_DEV}})}catch(e){}},400);return}
   if((s.updated||0)>(x.u||0)&&LIVE_F.every(function(k){return liveVal(s,k)===String(x.f[k]==null?'':x.f[k])}))return;
   var nv={};LIVE_F.concat(['rich']).forEach(function(k){if(x.f[k]!=null)nv[k]=String(x.f[k])});nv._whole=1;liveApply(s,nv,x,null)}
-function liveDom(at,dl,ins){var a=locate(at),b=locate(at+dl),r=document.createRange();r.setStart(a[0],a[1]);r.setEnd(b[0],b[1]);r.deleteContents();
+function liveDom(at,dl,ins){ins=nlNorm(ins);var a=locate(at),b=locate(at+dl),r=document.createRange();r.setStart(a[0],a[1]);r.setEnd(b[0],b[1]);r.deleteContents();
   var fr=document.createDocumentFragment();ins.split('\n').forEach(function(t,i){if(i)fr.appendChild(document.createElement('br'));if(t)fr.appendChild(document.createTextNode(t))});r.insertNode(fr);lyr.normalize()}
 function liveApply(s,nv,x,shift){var mine=s===cur,whole=!!nv._whole;delete nv._whole;var focused=mine&&document.activeElement===lyr,sel=focused?getSel():null,txt=('lyrics' in nv)||('rich' in nv);
   if(mine&&!whole&&('lyrics' in nv)&&shift){var want=nv.lyrics;try{liveDom(shift.at,shift.d,want.slice(shift.at,shift.at+shift.i))}catch(e){}
