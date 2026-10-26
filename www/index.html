@@ -17452,14 +17452,19 @@ function liveSnap(s){if(s&&LIVE.id===s.id){LIVE.snap={};LIVE_F.forEach(function(
    your own, so your iPhone and Mac keep in step as you type */
 function liveTopic(s){return s.shared?'song:'+s.id:'me:'+AUTH_USER.id+':'+s.id}
 function liveEnsure(){if(!cur||!AUTH_USER){if(LIVE.ch)liveLeave();return}if(LIVE.ch&&(cur.id!==LIVE.id||LIVE.topic!==liveTopic(cur)))liveLeave();
-  var st=LIVE.ch&&LIVE.ch.state;if(LIVE.ch&&LIVE.id===cur.id&&LIVE.ok!==false&&st!=='closed'&&st!=='errored')return;LIVE.ch&&liveLeave();liveJoin(cur)}
+  var st=LIVE.ch&&LIVE.ch.state;if(LIVE.ch&&LIVE.id===cur.id&&LIVE.ok!==false&&st!=='closed'&&st!=='errored')return;if(!LIVE.ch&&LIVE.id===cur.id&&LIVE.jt&&LIVE.ok!==false&&LIVE.topic===liveTopic(cur))return;LIVE.ch&&liveLeave();liveJoin(cur)}
 var RT_PRIV=true;
+/* private channels check who you are from the live connection's own sign-in token. Joining before it's set (or with an
+   expired one) is refused as "Unauthorized", so it's set from the current session before every join */
+function rtAuth(c){try{return c.auth.getSession().then(function(r){var tk=r&&r.data&&r.data.session&&r.data.session.access_token;
+  if(tk&&c.realtime&&c.realtime.setAuth){var q=c.realtime.setAuth(tk);return q&&q.then?q.catch(function(){}):null}}).catch(function(){})}catch(e){return Promise.resolve()}}
 function liveJoin(s){if(!s||!AUTH_USER){liveLeave();return}if(LIVE.id===s.id&&LIVE.ch&&LIVE.ok!==false&&LIVE.topic===liveTopic(s))return;liveLeave();
   var c=sbClient();if(!c||!c.channel)return;LIVE.id=s.id;liveSnap(s);
   /* private channel: Supabase only lets the song's owner and co-writers join (supabase/realtime-private.sql). If that
      isn't set up yet the join fails, and it falls back to the old open channel so co-writing keeps working */
-  var priv=RT_PRIV;
-  LIVE.topic=liveTopic(s);
+  var priv=true;
+  LIVE.topic=liveTopic(s);var jt=LIVE.jt=(LIVE.jt||0)+1;
+  rtAuth(c).then(function(){if(LIVE.jt!==jt||LIVE.id!==s.id||LIVE.ch)return;
   try{var ch=c.channel(LIVE.topic,{config:{broadcast:{self:false},private:priv}});
     ch.on('broadcast',{event:'p'},function(m){if(LIVE.ch===ch)liveRecv(m&&m.payload)})
       .on('broadcast',{event:'need'},function(m){if(LIVE.ch!==ch)return;var x=m&&m.payload;if(x&&x.id===LIVE.id&&cur&&cur.id===x.id&&(!x.u||(cur.updated||0)>=x.u))liveSendFull()})
@@ -17469,9 +17474,9 @@ function liveJoin(s){if(!s||!AUTH_USER){liveLeave();return}if(LIVE.id===s.id&&LI
       .on('broadcast',{event:'gone'},function(){if(LIVE.ch===ch)setTimeout(sharedGoneCheck,1500)})
       .subscribe(function(st){if(LIVE.ch!==ch)return;
         if(st==='SUBSCRIBED'){LIVE.ok=true;LIVE.everOk=true;if(cur&&cur.id===s.id){liveSend();try{ch.send({type:'broadcast',event:'need',payload:{id:s.id,dev:LIB_DEV,u:cur.updated||0}})}catch(e){}}}
-        else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){LIVE.ok=false;if(priv&&st==='CHANNEL_ERROR'&&!LIVE.everOk&&/unauthori|denied|permission|not allowed/i.test(String(arguments[1]&&(arguments[1].message||arguments[1])||'')))RT_PRIV=false;setTimeout(liveEnsure,2000)}});
-    LIVE.ch=ch}catch(e){LIVE.ch=null}}
-function liveLeave(){LIVE.ok=null;if(LIVE.ch){liveFlushNow();try{sbClient().removeChannel(LIVE.ch)}catch(e){}}clearTimeout(LIVE.t);LIVE.ch=null;LIVE.id=null;LIVE.snap=null;LIVE.pend=[];liveHere(null)}
+        else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){LIVE.ok=false;setTimeout(liveEnsure,2000)}});
+    LIVE.ch=ch}catch(e){LIVE.ch=null}})}
+function liveLeave(){LIVE.ok=null;LIVE.jt=(LIVE.jt||0)+1;if(LIVE.ch){liveFlushNow();try{sbClient().removeChannel(LIVE.ch)}catch(e){}}clearTimeout(LIVE.t);LIVE.ch=null;LIVE.id=null;LIVE.snap=null;LIVE.pend=[];liveHere(null)}
 /* called on every edit: send at most one message per 50 ms, carrying everything changed since the last one */
 function liveQueue(){if(!LIVE.ch||!cur||cur.id!==LIVE.id)return;if(LIVE.t)return;var w=Math.max(0,50-(Date.now()-LIVE.last));LIVE.t=setTimeout(liveSend,w)}
 function liveSend(){LIVE.t=0;var s=cur;if(!LIVE.ch||!s||s.id!==LIVE.id)return;if(!LIVE.snap)return liveSnap(s);
@@ -19266,7 +19271,7 @@ function sbClient(){
   if(sbc)return sbc;
   if(!window.supabase||!window.supabase.createClient)return null;
   sbc=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,flowType:'pkce'}});
-  sbc.auth.onAuthStateChange(function(ev,session){authApply(ev,session)});
+  sbc.auth.onAuthStateChange(function(ev,session){try{if(session&&session.access_token&&sbc.realtime&&sbc.realtime.setAuth)sbc.realtime.setAuth(session.access_token)}catch(e){}authApply(ev,session)});
   /* straight away, from the saved session, so your songs are on screen while Supabase checks it */
   var st0=authStored();if(st0&&!AUTH_USER){AUTH_STALE=true;AUTH_USER=st0.user;setTimeout(function(){if(AUTH_STALE)onAuthUser()},0)}
   sbc.auth.getSession().then(function(r){authApply('GET',r&&r.data&&r.data.session)},function(){authApply('GET',null)});
@@ -19455,23 +19460,22 @@ function libListen(){
   var c=sbClient();if(!c||!AUTH_USER)return;
   if(libChan&&libChan._uid===AUTH_USER.id)return;
   libStop();
-  if(c.channel){try{
-    var lpriv=RT_PRIV,ch=c.channel('library:'+AUTH_USER.id,{config:{broadcast:{self:false},private:lpriv}});ch._uid=AUTH_USER.id;
+  var luid=AUTH_USER.id;libChan={_uid:luid,_pending:true};
+  if(c.channel)rtAuth(c).then(function(){if(!AUTH_USER||AUTH_USER.id!==luid||!libChan||!libChan._pending)return;try{
+    var ch=c.channel('library:'+AUTH_USER.id,{config:{broadcast:{self:false},private:true}});ch._uid=AUTH_USER.id;
     ch.on('broadcast',{event:'invite'},function(){pullInvites()});
     ch.on('broadcast',{event:'gone'},function(){setTimeout(sharedGoneCheck,800)});
     ch.on('broadcast',{event:'changed'},function(m){if(m&&m.payload&&m.payload.dev===LIB_DEV)return;clearTimeout(libT);libT=setTimeout(function(){cloudSync()},250)}).subscribe(function(st,err){if(st==='SUBSCRIBED'){ch._ok=true;return}
       /* a dropped connection (backgrounded app, network change) also arrives as CHANNEL_ERROR: only fall back to an
          open channel when the server actually refused a private one, never after it has worked */
-      if(st==='CHANNEL_ERROR'&&libChan===ch){if(lpriv&&!ch._ok&&/unauthori|denied|permission|not allowed/i.test(String(err&&(err.message||err)||'')))RT_PRIV=false;
-        setTimeout(function(){if(libChan===ch&&AUTH_USER){libStop();libListen()}},3000)}});
+      if(st==='CHANNEL_ERROR'&&libChan===ch){setTimeout(function(){if(libChan===ch&&AUTH_USER){libStop();libListen()}},3000)}});
     libChan=ch;
-  }catch(e){libChan=null}}
+  }catch(e){libChan=null}});
   libPollT=setInterval(libPoll,20000);
 }
-function libStop(){if(libChan){try{sbClient().removeChannel(libChan)}catch(e){}libChan=null}if(libPollT){clearInterval(libPollT);libPollT=null}libSeenAt=null}
+function libStop(){if(libChan){try{if(!libChan._pending)sbClient().removeChannel(libChan)}catch(e){}libChan=null}if(libPollT){clearInterval(libPollT);libPollT=null}libSeenAt=null}
 /* tell another account's open devices something happened (an invite), over their library channel */
-function pingUser(uid,ev){var c=sbClient();if(!c||!c.channel||!uid)return;try{var ch=c.channel('library:'+uid,{config:{private:RT_PRIV}});var done=false,end=function(){if(done)return;done=true;try{c.removeChannel(ch)}catch(e){}};
-  ch.subscribe(function(st){if(st==='SUBSCRIBED'){var p=ch.send({type:'broadcast',event:ev,payload:{}});if(p&&p.then)p.then(end,end);else setTimeout(end,500)}});setTimeout(end,8000)}catch(e){}}
+function pingUser(uid,ev){var c=sbClient();if(!c||!uid)return;try{c.rpc('ping_user',{p_user:uid,p_event:ev}).then(function(){},function(){})}catch(e){}}
 function libPing(){if(libChan)try{libChan.send({type:'broadcast',event:'changed',payload:{dev:LIB_DEV}})}catch(e){}}
 function libPoll(){if(!libReady()||document.hidden||libBusy)return;
   sbClient().from('cloud_library').select('updated_at').eq('user_id',AUTH_USER.id).maybeSingle().then(function(r){if(r&&!r.error&&r.data&&r.data.updated_at!==libSeenAt)cloudSync()},function(){})}

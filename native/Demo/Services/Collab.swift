@@ -46,7 +46,10 @@ final class Collab {
         library.onSaved = { [weak self] in self?.syncShared() }
         guard let uid = session.userID else { return }
         // pings to this account: a new invite, or a song that's gone
-        let ch = Backend.client.channel("library:\(uid)") { $0.broadcast.receiveOwnBroadcasts = false }
+        let ch = Backend.client.channel("library:\(uid)") { c in
+            c.broadcast.receiveOwnBroadcasts = false
+            c.isPrivate = true
+        }
         libChannel = ch
         libTasks.append(Task { [weak self] in
             for await _ in ch.broadcastStream(event: "invite") { await self?.pullInvites() }
@@ -57,7 +60,7 @@ final class Collab {
                 await self?.goneCheck()
             }
         })
-        Task { await ch.subscribe() }
+        Task { await LiveSession.rtAuth(); await ch.subscribe() }
         pollTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(5))
             await self?.goneCheck()
@@ -283,19 +286,10 @@ final class Collab {
         _ = try? await Backend.client.from("shared_songs").delete().eq("id", value: s.id).execute()
     }
 
-    /// A quick broadcast to someone's devices (`library:<uid>`): subscribe, send, leave (8 s cap).
+    /// A quick nudge to someone's devices (`library:<uid>`): an invite, or a song that's gone. Sent by the server
+    /// (ping_user), because nobody can join another account's library channel.
     static func ping(_ user: String, event: String) async {
-        let ch = Backend.client.channel("library:\(user)")
-        await withTaskGroup(of: Void.self) { g in
-            g.addTask { @MainActor in
-                await ch.subscribe()
-                await ch.broadcast(event: event, message: [:])
-            }
-            g.addTask { try? await Task.sleep(for: .seconds(8)) }
-            _ = await g.next()
-            g.cancelAll()
-        }
-        await Backend.client.removeChannel(ch)
+        _ = try? await Backend.rpc("ping_user", ["p_user": .string(user), "p_event": .string(event)])
     }
 
     // MARK: people on a song

@@ -252,10 +252,10 @@ final class LibraryStore {
         guard uid == self.uid else { return }
         if let old = libChannel { await Backend.client.removeChannel(old) }
         libTask?.cancel()
-        let priv = LiveSession.usePrivate
+        await LiveSession.rtAuth()
         let ch = Backend.client.channel("library:\(uid)") { c in
             c.broadcast.receiveOwnBroadcasts = false
-            c.isPrivate = priv
+            c.isPrivate = true
         }
         libChannel = ch
         libTask = Task { [weak self] in

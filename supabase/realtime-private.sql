@@ -47,3 +47,14 @@ create policy "demo: own song channel listen" on realtime.messages for select to
   using (extension = 'broadcast' and realtime.topic() like 'me:' || (auth.uid())::text || ':%');
 create policy "demo: own song channel send" on realtime.messages for insert to authenticated
   with check (extension = 'broadcast' and realtime.topic() like 'me:' || (auth.uid())::text || ':%');
+
+-- Pinging another account's devices (an invite, a song that's gone) goes through the server: apps can only join
+-- their own library:<uid> channel, so the old "join theirs and send" was refused. Applied 26 Oct 2026.
+create or replace function public.ping_user(p_user uuid, p_event text) returns void
+language plpgsql security definer set search_path to 'public' as $$
+begin
+  if auth.uid() is null or p_user is null or p_event not in ('invite', 'gone') then return; end if;
+  perform realtime.send('{}'::jsonb, p_event, 'library:' || p_user::text, true);
+end $$;
+revoke execute on function public.ping_user(uuid, text) from public, anon;
+grant execute on function public.ping_user(uuid, text) to authenticated;

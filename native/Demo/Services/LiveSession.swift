@@ -18,8 +18,17 @@ final class LiveSession {
         if let d = UserDefaults.standard.string(forKey: "songpad:dev") { return d }
         let d = UUID().uuidString.lowercased(); UserDefaults.standard.set(d, forKey: "songpad:dev"); return d
     }()
-    /// Private channels first; if the first private join is refused, public for the rest of the session.
-    static var usePrivate = true
+    /// Live channels are always private: the server checks who you are from the live connection's sign-in.
+    /// (Falling back to an open channel split devices onto different channels, so they never heard each other.)
+    static let usePrivate = true
+
+    /// Puts the current sign-in on the live connection. A join without it, or with an expired one, is refused as
+    /// "Unauthorized", so this runs before every join.
+    static func rtAuth() async {
+        if let tk = try? await Backend.client.auth.session.accessToken {
+            await Backend.client.realtimeV2.setAuth(tk)
+        }
+    }
     private static var active: [String: RealtimeChannelV2] = [:]
 
     @ObservationIgnored private var songID = ""
@@ -79,13 +88,13 @@ final class LiveSession {
     private func join() async {
         if let old = channel { await Backend.client.removeChannel(old) }
         tasks.forEach { $0.cancel() }; tasks = []
-        let priv = Self.usePrivate
+        await Self.rtAuth()
         let shared = library?.song(songID)?.isShared ?? false
         let topic = shared ? "song:\(songID)" : "me:\(session?.userID ?? ""):\(songID)"
         topicShared = shared
         let ch = Backend.client.channel(topic) { c in
             c.broadcast.receiveOwnBroadcasts = false
-            c.isPrivate = priv
+            c.isPrivate = true
         }
         channel = ch
         Self.active[songID] = ch
@@ -103,12 +112,7 @@ final class LiveSession {
             guard channel === ch else { return }
             Collab.shared.liveUp = songID
         } catch {
-            let m = "\(error)".lowercased()
-            if priv && m.range(of: "unauthori|denied|permission|not allowed", options: .regularExpression) != nil {
-                Self.usePrivate = false
-                await join()
-                return
-            }
+            // refused or dropped: try again shortly (rtAuth refreshes the sign-in first)
             try? await Task.sleep(for: .seconds(2))
             if channel === ch { await join() }
             return
