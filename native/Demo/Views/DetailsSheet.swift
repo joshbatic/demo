@@ -109,34 +109,34 @@ struct DetailsSheet: View {
                 if saved { library.put(s) }
                 Haptics.tap()
                 session.toast = saved ? "Version saved" : "No changes since the last version"
-            } label: { Text("Save Version").foregroundStyle(Theme.tint).frame(maxWidth: .infinity) }
+            } label: { Text("Save Version").foregroundStyle(Theme.tint).frame(maxWidth: .infinity).fullRule() }
             ForEach((song?.versions ?? []).reversed()) { v in
                 Button { restore(v) } label: {
                     HStack {
                         Text(Date(timeIntervalSince1970: v.t / 1000).formatted(.dateTime.month(.abbreviated).day().hour().minute()) + (v.label.isEmpty ? "" : " · " + v.label))
                             .foregroundStyle(.primary)
                         Spacer()
-                        Text("\(v.words) words").foregroundStyle(.secondary)
+                        Text(v.words == 1 ? "1 word" : "\(v.words) words").foregroundStyle(.secondary)
                     }
                 }
             }
         }
         // the web's last group: Perform, Copy Lyrics, then the red ones, all centred
         Section {
-            Button { dismiss(); onPerform() } label: { Text("Perform").foregroundStyle(Theme.tint).frame(maxWidth: .infinity) }
+            Button { dismiss(); onPerform() } label: { Text("Perform").foregroundStyle(Theme.tint).frame(maxWidth: .infinity).fullRule() }
             Button {
                 guard let s = song else { return }
                 UIPasteboard.general.string = (s.title.isEmpty ? "" : s.title + "\n\n") + s.lyrics
                 Haptics.success(); session.toast = "Copied"
-            } label: { Text("Copy Lyrics").foregroundStyle(Theme.tint).frame(maxWidth: .infinity) }
+            } label: { Text("Copy Lyrics").foregroundStyle(Theme.tint).frame(maxWidth: .infinity).fullRule() }
             if song?.artDataURL != nil {
                 Button(role: .destructive) {
                     guard var s = song else { return }
                     s.raw["art"] = ""; s.touch(); library.put(s)
                     Haptics.tap(); dismiss()
-                } label: { Text("Remove Cover Art").frame(maxWidth: .infinity) }
+                } label: { Text("Remove Cover Art").frame(maxWidth: .infinity).fullRule() }
             }
-            Button(role: .destructive) { confirmDelete = true } label: { Text("Delete Song").frame(maxWidth: .infinity) }
+            Button(role: .destructive) { confirmDelete = true } label: { Text("Delete Song").frame(maxWidth: .infinity).fullRule() }
         }
     }
 
@@ -479,4 +479,10 @@ struct SegTabs<T: Hashable>: View {
         .background(BarFill.color, in: Capsule())
         .overlay(Capsule().strokeBorder(Color.primary.opacity(0.06), lineWidth: 0.5))
     }
+}
+
+extension View {
+    /// A centred button in a list: its separator runs from the row's edge, like every other row,
+    /// instead of starting where the centred words do.
+    func fullRule() -> some View { alignmentGuide(.listRowSeparatorLeading) { _ in 0 } }
 }
