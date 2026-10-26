@@ -53,7 +53,11 @@ html.devbuild #sadm,html.devbuild #sbeta{display:none!important}
 #adm .arow.brow{display:flex;align-items:center;gap:12px}#adm .arow.brow .bx{flex:1;min-width:0}#adm .arow.brow+.arow.brow::before{left:58px}
 /* ---- Account main page: you, your plan, then short groups ---- */
 #sheet6 #acc{min-height:min(62vh,560px)}
-.prohero.procard{margin:4px 20px 14px;padding:20px 20px 18px;border-radius:22px;background:var(--row);box-shadow:0 0 0 .5px var(--ring)}#sheet6 .sh b{flex:1}#sheet6 .sh .accback{width:32px;padding:0;margin-right:10px;display:grid;place-items:center;flex:none}#sheet6 .sh .accback[hidden]{display:none}
+.prohero.procard{margin:0 20px 6px;padding:4px 20px 14px;background:none;box-shadow:none}
+#acc .prosub{flex-direction:row;flex-wrap:wrap;justify-content:center;gap:0}#acc .prosub .dim{font-size:15px}#acc .prosub .dim::before{content:'\00a0·\00a0'}
+/* the plan row shows the app's icon, like iPhone */
+.accplan .plic.appic{background:none;width:30px;height:30px;border-radius:7px;overflow:hidden;box-shadow:0 0 0 .5px rgba(0,0,0,.08)}.accplan .plic.appic img{width:100%;height:100%;display:block}
+body #acc .cell.danger{justify-content:flex-start}body #acc .cell.danger .ct{flex:1;text-align:left}#sheet6 .sh b{flex:1}#sheet6 .sh .accback{width:32px;padding:0;margin-right:10px;display:grid;place-items:center;flex:none}#sheet6 .sh .accback[hidden]{display:none}
 .accme,.accplan{display:flex;align-items:center;gap:14px;width:calc(100% - 40px);margin:4px 20px 12px;padding:12px 14px;border-radius:18px;background:var(--row);box-shadow:0 0 0 .5px var(--ring);color:var(--ink);text-align:left}
 .accme:active,.accplan:active{background:var(--fill)}
 .accmeav{width:58px;height:58px;border-radius:50%;flex:none;overflow:hidden;display:grid;place-items:center;background:linear-gradient(150deg,#A1A1AA,#76767E);color:#fff;font-weight:650;font-size:21px}
@@ -63,10 +67,13 @@ html.devbuild #sadm,html.devbuild #sbeta{display:none!important}
 .accplan .accmetx b{font-size:16px}.accplan .plic{width:40px;height:40px;border-radius:11px;flex:none;display:grid;place-items:center;color:#fff;background:radial-gradient(circle at 72% 28%,#FFD6A5 0,rgba(255,214,165,0) 58%),linear-gradient(140deg,#FFC2DA,#B9A6FF)}
 .accplan .plic svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,.2))}
 .accme .chev,.accplan .chev{color:var(--mute);opacity:.6;display:grid}
-/* the green Pro badge */
-.probadge{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.2px;line-height:1;padding:4px 7px;border-radius:99px;background:#34C759;color:#fff;flex:none}
+/* the soft green "Active" pill (iPhone: Theme.proGreen at 18%) */
+.probadge{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.2px;line-height:1;padding:4px 7px;border-radius:99px;background:rgba(52,199,89,.18);color:#34C759;flex:none}
+/* Pro is shown the way people know it: a blue verified tick (VerifiedBadge on iPhone) */
+.vtick{display:inline-flex;vertical-align:-3px;flex:none}.vtick svg{display:block}
+.prohero .proname .vtick{margin-left:6px;vertical-align:-2px}
 .prohero .proname .probadge{margin-left:8px;vertical-align:4px}
-body.plan-pro #acctplan,body.plan-pro .protag#acctplan{background:#34C759!important;color:#fff!important}
+#acctplan.vtick{background:none!important;padding:0!important;border-radius:0}
 /* [developer] builds look like the public app (system light and dark, colour covers). They're told apart by the
    DEV tag beside the name and the DEV app icon, plus colour tiles for the developer-only rows */
 .devpill{background:linear-gradient(100deg,#C2AEFF 0%,#97C8FF 55%,#9BE8CF 100%)!important;color:#1E1830!important}
@@ -19124,9 +19131,9 @@ function stopInvitePolling(){if(INVITE_POLL_T){clearInterval(INVITE_POLL_T);INVI
 function joinNames(a){a=(a||[]).filter(Boolean);if(!a.length)return'';if(a.length===1)return a[0];if(a.length===2)return a[0]+' & '+a[1];return a.slice(0,-1).join(', ')+' & '+a[a.length-1]}
 var SOCIALS=[
   ['spotify','Spotify','open.spotify.com/artist/… or paste a link','<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.139-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.018zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>'],
+  ['apple_music','Apple Music','music.apple.com/… paste your artist link','<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3.6v11.6a3.2 3.2 0 1 1-1.9-2.9V8.1L10 9.6v7.6a3.2 3.2 0 1 1-1.9-2.9V6.2c0-.6.4-1.1 1-1.2l8.6-1.8c.7-.2 1.3.3 1.3 1z"/></svg>'],
   ['instagram','Instagram','instagram.com/yourname','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>'],
-  ['tiktok','TikTok','tiktok.com/@yourname','<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></svg>'],
-  ['apple_music','Apple Music','music.apple.com/… paste your artist link','<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3.6v11.6a3.2 3.2 0 1 1-1.9-2.9V8.1L10 9.6v7.6a3.2 3.2 0 1 1-1.9-2.9V6.2c0-.6.4-1.1 1-1.2l8.6-1.8c.7-.2 1.3.3 1.3 1z"/></svg>']
+  ['tiktok','TikTok','tiktok.com/@yourname','<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></svg>']
 ];
 /* the privacy policy and terms on hellodemo.app: an in-app Safari sheet on iPhone, the browser elsewhere */
 function openDoc(n){var u='https://hellodemo.app/'+n+'.html';try{var B=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Browser;if(B&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){B.open({url:u});return}}catch(e){}openLink(u)}
@@ -19613,7 +19620,8 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden&&AUT
 /* admins only: preview the Free plan on your own account (the server keeps it, so it's real) */
 function setPlan(tier){var c=sbClient();if(!c||!AUTH_USER)return Promise.resolve();
   return c.rpc('admin_set_plan',{p_user:AUTH_USER.id,p_tier:tier==='free'?'free':'beta'}).then(function(r){if(r.error){toast('Couldn’t change your plan: '+r.error.message);return}return planRefresh()})}
-function applyPlan(){var pro=isPro();document.body.classList.toggle('pro',pro);document.body.classList.toggle('plan-pro',PLAN.tier==='pro');var ap=$('#acctplan');if(ap){ap.hidden=!pro;ap.textContent=planName()}var acb=$('#acctb');if(acb)acb.classList.toggle('nobadge',!pro);
+function vtickSVG(n){return'<svg width="'+n+'" height="'+n+'" viewBox="0 0 24 24" aria-hidden="true"><path fill="#0095F6" d="M12 1.5l2.4 1.8 3-.2.9 2.9 2.5 1.7-.9 2.9 1 2.8-2.5 1.8-.8 2.9-3 .1L12 22.5l-2.4-1.8-3 .2-.9-2.9-2.5-1.7.9-2.9-1-2.8 2.5-1.8.8-2.9 3-.1z"/><path d="M8 12.2l2.6 2.6L16.2 9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'}
+function applyPlan(){var pro=isPro();document.body.classList.toggle('pro',pro);document.body.classList.toggle('plan-pro',PLAN.tier==='pro');var ap=$('#acctplan');if(ap){ap.hidden=!pro;var vt=PLAN.tier==='pro';ap.classList.toggle('vtick',vt);if(vt){ap.innerHTML=vtickSVG(17);ap.setAttribute('aria-label','Pro')}else{ap.textContent=planName();ap.removeAttribute('aria-label')}}var acb=$('#acctb');if(acb)acb.classList.toggle('nobadge',!pro);
   if(!pro){if(VIEW.ctx){VIEW.ctx=false;vset()}if(lines){lines=false}if(typeof rateMode!=='undefined'&&rateMode)setRateMode(false)}
   else if(!VIEW.ctx){VIEW.ctx=true;vset()}
   ['#rateb','#gear','#ctxb'].forEach(function(s){var el=$(s);if(el)el.classList.toggle('prolock',!pro)});
@@ -19816,7 +19824,7 @@ function renderAccount(){if(PW.on)pwRender();var o=$('#acc'),pro=isPro(),page=AC
     var sub=document.createElement('div');sub.className='prosub';
     var subt=[handle?'@'+handle:'',devFake?'Local only, nothing here syncs':(AUTH_USER.email||'')].filter(Boolean);
     subt.forEach(function(t,ix){var sp=document.createElement('span');sp.textContent=t;if(ix)sp.className='dim';sub.appendChild(sp)});
-    hero.appendChild(sub);if(PLAN.tier==='pro'){var pb1=document.createElement('i');pb1.className='probadge';pb1.textContent='Pro';nm.appendChild(pb1)}}
+    hero.appendChild(sub);if(PLAN.tier==='pro'){var pb1=document.createElement('span');pb1.className='vtick';pb1.setAttribute('aria-label','Pro');pb1.innerHTML=vtickSVG(20);nm.appendChild(pb1)}}
     /* ---- name & username ---- */
     if(page==='main'&&ACC_EDIT==='profile'){
       var pg=accSection(o,'Name & username',[['Cancel',function(){ACC_EDIT=null;ACC_DRAFT={};renderAccount()},'ghost'],['Save',saveProfile,'strong']]);
@@ -19910,6 +19918,7 @@ function renderAccount(){if(PW.on)pwRender();var o=$('#acc'),pro=isPro(),page=AC
     pr.innerHTML='<span class="plic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 3.5v17M4.6 7.75l14.8 8.5M4.6 16.25l14.8-8.5" stroke-width="3.2"/></svg></span><span class="accmetx"><b></b><span></span></span>'+(tier==='free'?'<span class="gocap">Go Pro</span>':'<span class="chev">'+ACC_ICO.chev+'</span>');
     var prb=pr.querySelector('b');prb.textContent=tier==='pro'?'*[demo] Pro':tier==='beta'?'*[demo] Beta':'*[demo] Pro';
     if(tier==='pro'){var bd=document.createElement('i');bd.className='probadge';bd.textContent='Active';prb.appendChild(bd)}
+    (function(){var ic=document.querySelector(document.documentElement.classList.contains('devbuild')?'.ag-icon-dev':'.ag-icon:not(.ag-icon-dev)'),pl=pr.querySelector('.plic');if(ic&&ic.src&&pl){pl.classList.add('appic');pl.innerHTML='';var im=document.createElement('img');im.src=ic.src;im.alt='';pl.appendChild(im)}})();
     pr.querySelector('.accmetx span').textContent=tier==='pro'?(PLAN.expires_at?'Renews '+new Date(PLAN.expires_at).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}):'Everything’s unlocked'):tier==='beta'?'Everything’s unlocked during the beta':'Demos, co-writing, lyric sync and more';
     pr.onclick=function(){if(tier==='free'&&!isAdm)openPaywall('');else accGo('plan')};o.appendChild(pr)}
   if(page==='plan'){
@@ -19995,7 +20004,7 @@ function renderAccount(){if(PW.on)pwRender();var o=$('#acc'),pro=isPro(),page=AC
       g3.appendChild(accCell({tile:ACC_ICO.block,grad:6,label:'Blocked',value:String(BLOCKS.length),chev:true,cls:bOpen?'open':'',onclick:function(){ACC_EDIT=bOpen?null:'blocked';renderAccount()}}));
       if(bOpen)BLOCKS.forEach(function(b){g3.appendChild(accCell({label:b.name,value:'Unblock',valueCls:'add',cls:'sub',onclick:function(){unblockUser(b)}}))})}}
   var nAI=document.createElement('div');nAI.className='note';nAI.style.paddingTop='8px';nAI.textContent='AI features send what you’re working on to '+aiWho()+'.';o.appendChild(nAI);
-  var gl=accSection(o,'About');
+  var gl=accSection(o,'About & support');
   gl.appendChild(accCell({tile:ACC_ICO.lock,grad:10,label:'Privacy Policy',chev:true,onclick:function(){openDoc('privacy')}}));
   gl.appendChild(accCell({tile:ACC_ICO.doc,grad:3,label:'Terms of Service',chev:true,onclick:function(){openDoc('terms')}}));
   /* Contact Support: a message to the help desk (supabase/functions/support), with the replies underneath */
@@ -20007,19 +20016,21 @@ function renderAccount(){if(PW.on)pwRender();var o=$('#acc'),pro=isPro(),page=AC
   /* developer tools ([developer] only), then the account actions last, where Settings keeps Sign Out */
   if(page==='main'&&ga&&(devFake||DEV_BUILD)&&dvl){o.appendChild(dvl);o.appendChild(ga)}
   if(AUTH_USER||devFake){
-    if(page==='main'){var ag=accSection(o,'');
-    ag.appendChild(accCell({tile:ACC_ICO.swap,grad:9,label:'Switch Account',chev:true,onclick:function(){/* back to the sign-in screen */signOutGoogle();SWITCH_PICK=true}}))}
-    if(page==='main'){var og=accSection(o,'');
+    var actg=null;if(page==='main'){actg=accSection(o,'');
+    actg.appendChild(accCell({tile:ACC_ICO.swap,grad:9,label:'Switch Account',chev:true,onclick:function(){/* back to the sign-in screen */signOutGoogle();SWITCH_PICK=true}}))}
+    if(page==='main'){var og=actg||accSection(o,'');
     og.appendChild(accCell({label:'Sign Out',cls:'danger',onclick:function(){var nat=natDestroy({title:'Sign out of *[demo]?',message:'Your songs stay safe in your account.',ok:'Sign Out'});if(nat){nat.then(function(ok){if(ok)signOutGoogle()});return}signOutGoogle()}}))}
     /* deleting the account: a second, deliberate step that says exactly what goes */
     if(AUTH_USER&&!devFake&&page==='main'){
-      if(ACC_EDIT!=='delete'){var dg=accSection(o,'');dg.appendChild(accCell({label:'Delete Account',cls:'danger',onclick:function(){var nat=natDestroy({title:'Delete your account?',message:'Your songs, ideas, recordings, share links and profile are deleted from your account, and songs you share stop being shared. Copies on your other devices go when you sign out there. If you pay for Pro through Apple, cancel it in Settings › your name › Subscriptions: deleting your account doesn’t stop billing. This can’t be undone.',ok:'Delete Account'});if(nat){nat.then(function(ok){if(ok)deleteAccount()});return}ACC_EDIT='delete';renderAccount();setTimeout(function(){var x=$('#acc .delcard');if(x)x.scrollIntoView({block:'center',behavior:'smooth'})},60)}}))}
+      if(ACC_EDIT!=='delete'){var dg=actg||accSection(o,'');dg.appendChild(accCell({label:'Delete Account',cls:'danger',onclick:function(){var nat=natDestroy({title:'Delete your account?',message:'Your songs, ideas, recordings, share links and profile are deleted from your account, and songs you share stop being shared. Copies on your other devices go when you sign out there. If you pay for Pro through Apple, cancel it in Settings › your name › Subscriptions: deleting your account doesn’t stop billing. This can’t be undone.',ok:'Delete Account'});if(nat){nat.then(function(ok){if(ok)deleteAccount()});return}ACC_EDIT='delete';renderAccount();setTimeout(function(){var x=$('#acc .delcard');if(x)x.scrollIntoView({block:'center',behavior:'smooth'})},60)}}))}
       else{var dc=document.createElement('div');dc.className='gf delcard';dc.innerHTML='<b>Delete your account?</b><p>Your songs, ideas, recordings, share links and profile are deleted from your account, and songs you share stop being shared. Copies on your other devices go when you sign out there. If you pay for Pro through Apple, cancel it in Settings › your name › Subscriptions: deleting your account doesn’t stop billing. This can’t be undone.</p>';
         var dbt=document.createElement('button');dbt.className='delgo';dbt.textContent=DEL_BUSY?'Deleting…':'Delete Account';dbt.disabled=DEL_BUSY;dbt.onclick=deleteAccount;dc.appendChild(dbt);
         var dcx=document.createElement('button');dcx.className='delno';dcx.textContent='Cancel';dcx.disabled=DEL_BUSY;dcx.onclick=function(){ACC_EDIT=null;renderAccount()};dc.appendChild(dcx);o.appendChild(dc)}
     }
   }
   var ver=document.createElement('div');ver.className='note';ver.style.cssText='text-align:center;padding:18px 0 6px;font-variant-numeric:tabular-nums;-webkit-user-select:text;user-select:text';ver.textContent='Version '+APP_VERSION+' · Build '+APP_SEQ+' ('+APP_COMMIT+')';if(page==='main')o.appendChild(ver);
+  /* iPhone's order: you, your plan, invitations, then the rest */
+  if(page==='main'&&hero){var pr0=o.querySelector('.accplan'),inv0=o.querySelector('#acc-invites');if(pr0)hero.after(pr0);if(inv0)(pr0||hero).after(inv0)}
   if(keepF){var kf=o.querySelector('[data-dk="'+keepF.dk+'"]');if(kf){try{kf.focus({preventScroll:true});kf.setSelectionRange(keepF.s,keepF.e)}catch(e){}}}
 }
 $('#acctb').onclick=function(){openAccount('')};$('#sacct').onclick=function(){openAccount('')};$('#done6').onclick=function(){sheet(false)};
