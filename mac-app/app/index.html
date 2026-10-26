@@ -1103,9 +1103,7 @@ body.sprinting #rhy{display:none}
    the same "positioned, auto z-index" paint group as the circle, which then paints in DOM order —
    circle (earlier sibling) first, icon on top — so the inverted icon is visible again. */
 .grp2 .ib.tgl[aria-pressed=true]{background:none}
-.grp2 .ib.tgl[aria-pressed=true]::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:linear-gradient(160deg,rgba(120,120,128,.10),rgba(120,120,128,.20));-webkit-backdrop-filter:blur(8px) saturate(1.8);backdrop-filter:blur(8px) saturate(1.8);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.7),inset 0 1px 1px rgba(255,255,255,.8),inset 0 -1px 2px rgba(0,0,0,.06),0 2px 6px rgba(0,0,0,.10)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .grp2 .ib.tgl[aria-pressed=true]::before{background:linear-gradient(160deg,rgba(255,255,255,.20),rgba(255,255,255,.10));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.22),inset 0 1px 1px rgba(255,255,255,.25),0 2px 6px rgba(0,0,0,.3)}}
-:root[data-theme="dark"] .grp2 .ib.tgl[aria-pressed=true]::before{background:linear-gradient(160deg,rgba(255,255,255,.20),rgba(255,255,255,.10));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.22),inset 0 1px 1px rgba(255,255,255,.25),0 2px 6px rgba(0,0,0,.3)}
+.grp2 .ib.tgl[aria-pressed=true]::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:34px;height:34px;border-radius:50%;background:var(--tint)}
 .grp2 .ib svg{position:relative}
 @media (min-width:980px){body.side .lgrp{display:none}}
 #crumb{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden}
@@ -1115,8 +1113,7 @@ body.sprinting #rhy{display:none}
 #cr-song{flex:0 1 auto;color:var(--ink);font-weight:500;overflow:hidden;text-overflow:ellipsis;min-width:0}
 @media (hover:hover){#crumb button:hover{color:var(--ink)}}
 @media (min-width:980px){body.side #sheet,body.side #sheet2,body.side #sheet3,body.side #sheet4,body.side #sheet5,body.side #sheet6{left:310px}}
-/* on: a grey glass lens behind the icon, not a solid black dot (like the iPhone app's toolbar) */
-.ib.tgl[aria-pressed=true]{background:rgba(120,120,128,.16);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.6),0 2px 6px rgba(0,0,0,.08)}.grp2 .ib.tgl[aria-pressed=true]{background:none}
+.ib.tgl[aria-pressed=true]{background:var(--tint);color:var(--ontint)}
 .tg.dot{position:relative}.tg.dot::after{content:'';position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;background:var(--tint);box-shadow:0 0 0 2px var(--gl)}
 #wm{display:flex;gap:2px;overflow-x:auto;background:var(--fill);border-radius:99px;padding:2px;margin-bottom:8px;position:relative;z-index:1;scrollbar-width:none;max-width:100%;width:max-content}
 #wm button{flex:none;padding:5px 12px;border-radius:99px;font-size:13px;font-weight:500;transition:background-color .18s}
