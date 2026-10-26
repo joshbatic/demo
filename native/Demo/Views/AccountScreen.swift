@@ -782,25 +782,40 @@ struct CreditsPage: View {
 struct LinkTile: View {
     let kind: String
 
+    /// The current app icons: Spotify's green mark on black, Apple Music's red, Instagram's 2022 gradient
+    /// (yellow bottom-left to purple top-right), and TikTok's note with its cyan and red edges.
     var body: some View {
-        let (bg, fg): ([Color], Color) = {
+        ZStack {
             switch kind {
-            case "spotify": return ([Color(hex: 0x1ED760)], .black)
-            case "apple_music": return ([Color(hex: 0xFB5C74), Color(hex: 0xFA233B)], .white)
-            case "instagram": return ([Color(hex: 0xFEDA75), Color(hex: 0xFA7E1E), Color(hex: 0xD62976), Color(hex: 0x962FBF), Color(hex: 0x4F5BD5)], .white)
-            default: return ([Color(hex: 0x000000)], .white)
-            }
-        }()
-        Group {
-            if UIImage(named: "brand-" + kind) != nil {
-                Image("brand-" + kind).resizable().renderingMode(.template).scaledToFit()
-                    .frame(width: 18, height: 18).foregroundStyle(fg)
-            } else {
-                Image(systemName: "music.note").font(.system(size: 16, weight: .semibold)).foregroundStyle(fg)
+            case "spotify":
+                TileBackground(colors: [Color(hex: 0x000000)])
+                glyph(Color(hex: 0x1ED760), size: 20)
+            case "apple_music":
+                TileBackground(colors: [Color(hex: 0xFF5C7A), Color(hex: 0xFA233B)])
+                glyph(.white)
+            case "instagram":
+                RoundedRectangle(cornerRadius: 30 * 0.27, style: .continuous)
+                    .fill(LinearGradient(colors: [Color(hex: 0xFFD600), Color(hex: 0xFF7A00), Color(hex: 0xFF0069), Color(hex: 0xD300C5), Color(hex: 0x7638FA)],
+                                         startPoint: .bottomLeading, endPoint: .topTrailing))
+                    .overlay { TileBackground(colors: [.clear]).opacity(0.6) }
+                glyph(.white)
+            default:
+                TileBackground(colors: [Color(hex: 0x000000)])
+                glyph(Color(hex: 0x25F4EE)).offset(x: -0.8, y: -0.8)
+                glyph(Color(hex: 0xFE2C55)).offset(x: 0.8, y: 0.8)
+                glyph(.white)
             }
         }
         .frame(width: 30, height: 30)
-        .background { TileBackground(colors: bg) }
         .accessibilityHidden(true)
+    }
+
+    @ViewBuilder private func glyph(_ c: Color, size: CGFloat = 18) -> some View {
+        if UIImage(named: "brand-" + kind) != nil {
+            Image("brand-" + kind).resizable().renderingMode(.template).scaledToFit()
+                .frame(width: size, height: size).foregroundStyle(c)
+        } else {
+            Image(systemName: "music.note").font(.system(size: 16, weight: .semibold)).foregroundStyle(c)
+        }
     }
 }
