@@ -310,10 +310,11 @@ struct EditorScreen: View {
 
     private func barToggle(_ icon: String, _ label: String, on: Bool, _ action: @escaping () -> Void) -> some View {
         Button { Haptics.selection(); withAnimation(.snappy(duration: 0.2)) { action() } } label: {
+            // on = a clear glass lens behind a blue icon (no solid fill), like the selected item in an iOS 26 toolbar
             Icon(icon, 22)
-                .foregroundStyle(on ? Theme.onTint : Theme.tint)
+                .foregroundStyle(on ? Theme.verified : Theme.tint)
                 .frame(width: 38, height: 38)
-                .background(on ? Theme.tint : .clear, in: Circle())
+                .modifier(OnLens(on: on))
                 .frame(width: 44, height: 48)
                 .contentShape(Rectangle())
         }
@@ -552,5 +553,19 @@ struct EditorScreen: View {
             library.put(s, typing: true)
         }
         return (rich, plain)
+    }
+}
+
+/// The "on" look for a toggle sitting in a glass bar: a small glass lens (iOS 26), a soft tint before that.
+private struct OnLens: ViewModifier {
+    let on: Bool
+    func body(content: Content) -> some View {
+        if !on {
+            content
+        } else if #available(iOS 26.0, *) {
+            content.glassEffect(.regular.tint(Theme.verified.opacity(0.12)).interactive(), in: Circle())
+        } else {
+            content.background(Theme.verified.opacity(0.14), in: Circle())
+        }
     }
 }
