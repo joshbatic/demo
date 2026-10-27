@@ -673,16 +673,16 @@ enum Prompts {
         if !br.isEmpty { p += "Background on this song (a line that forces these details in where they don't fit scores lower):\n" + br + "\n\n" }
         if !section.isEmpty { p += "The section they're writing:\n" + section.joined(separator: "\n") + "\n\n" }
         p += "Task: " + what + "\n\nCandidates:\n" + cands.enumerated().map { "\($0.offset). \($0.element)" }.joined(separator: "\n")
-        p += "\n\nScore on: specific and concrete rather than generic; sounds like this writer, not like a generic songwriter; fresh rather than a stock phrase or cliché; natural to sing out loud; belongs in this song at this moment. Be harsh: a line any songwriter could have written scores 4 or less, a stock phrase scores 2. A line that repeats, rewords or closely echoes a line already in the section scores 1. Return ONLY JSON: [{\"i\":0,\"s\":7}, ...] with one entry for every candidate."
+        p += "\n\nScore each line the way a great co-writer would, in this order:\n1. Does it make sense? Read it aloud as a sentence. Word salad, mixed metaphors and lines that only exist to land a rhyme score 2 or less.\n2. Is the rhyme earned? If the end word feels forced, or the syntax is bent backwards to reach it (\"the night so cold I'm in\"), score 3 or less.\n3. Does it say something? Filler (\"oh yeah\", \"tonight\" tacked on, \"and I know\", \"you see\") or a line that just restates the one before scores 3 or less.\n4. Is it specific and fresh? A concrete image, an action or a turn of phrase scores high; a stock phrase or a line any songwriter could have written scores 4 or less.\n5. Does it belong here and sound like this writer? Right tone, natural to sing, moves the section forward.\nA line that repeats, rewords or closely echoes a line already in the section scores 1. Use the full range: the best line should score 8 to 10 only if you'd actually keep it. Return ONLY JSON: [{\"i\":0,\"s\":7}, ...] with one entry for every candidate."
         let prompt = p
         return await withTaskGroup(of: [Int: Double]?.self) { g in
             g.addTask { @MainActor in
-                guard let r = try? await AIService.shared.json(prompt, ask: false) else { return nil }
+                guard let r = try? await AIService.shared.json(prompt, tier: "judge", ask: false) else { return nil }
                 var out: [Int: Double] = [:]
                 for x in r.array ?? [] { if let i = x["i"]?.number, let s = x["s"]?.number { out[Int(i)] = s } }
                 return out.isEmpty ? nil : out
             }
-            g.addTask { try? await Task.sleep(for: .seconds(9)); return nil }
+            g.addTask { try? await Task.sleep(for: .seconds(15)); return nil }
             let first = await g.next() ?? nil
             g.cancelAll()
             return first

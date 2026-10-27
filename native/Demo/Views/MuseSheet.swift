@@ -343,7 +343,7 @@ struct MuseSheet: View {
             + "\n\nRespond as JSON: {\"read\": one or two plain sentences on what this song is really about so far and where it seems to stall, \"questions\": 3 short, specific questions about the song's subject that would dig up fresh material from the writer's real life, \"moves\": 8 objects {\"idea\": a short direction to take next (under 12 words), \"line\": a next line that starts that direction, in this writer's voice and matching the song's line length}}. The 8 moves must go in genuinely different directions. Be concrete, no flattery. If the song is empty, read the title, notes and brief and suggest openings."
         Task {
             do {
-                let r = try await AIService.shared.json(prompt)
+                let r = try await AIService.shared.json(prompt, tier: "write")
                 guard mine == seq else { return }
                 guard let moves = r["moves"]?.array else { out = .error("Couldn’t get a response. Try again in a moment."); return }
                 var mv = moves.compactMap { m -> Move? in

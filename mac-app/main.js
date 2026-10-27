@@ -267,18 +267,19 @@ ipcMain.handle('openai:test', async () => {
 ipcMain.handle('openai:json', async (e, args) => {
   const prompt = (args && args.prompt) || '';
   const tier = args && args.modelTier;
-  const model = tier === 'complex' ? 'gpt-5' : 'gpt-5-mini';
-  const maxTokens = tier === 'complex' ? 5000 : 2000;
+  // 'write' (Lines, Muse) thinks a little before writing; 'judge' ranks lines with light reasoning.
+  const model = tier === 'complex' || tier === 'write' ? 'gpt-5' : 'gpt-5-mini';
+  const maxTokens = tier === 'complex' ? 5000 : tier === 'write' ? 4000 : tier === 'judge' ? 2500 : 2000;
   // gpt-5-family models spend hidden "thinking" tokens before answering even at low effort.
   // Everything on the mini tier here is list-picking or short-form writing, not real reasoning,
   // so 'minimal' skips that step almost entirely and answers much faster. Rate is the one call
   // that benefits from actual judgment, so it keeps a real reasoning budget.
-  const reasoningEffort = tier === 'complex' ? 'medium' : 'minimal';
+  const reasoningEffort = tier === 'complex' ? 'medium' : tier === 'write' || tier === 'judge' ? 'low' : 'minimal';
   // Rate (the 'complex' tier) sends a long prompt and a real reasoning pass over it, which
   // routinely runs past 45s on gpt-5 — that's what was causing the frequent "Timed out
   // reaching OpenAI" failures. Give it a much longer budget; quick list-picking calls on the
   // mini tier stay fast so they keep the short timeout.
-  const timeoutMs = tier === 'complex' ? 110000 : 45000;
+  const timeoutMs = tier === 'complex' ? 110000 : tier === 'write' ? 70000 : 45000;
   let key = '';
   key = readKey();
   if (!key) return { ok: false, error: 'No OpenAI key saved yet.' };

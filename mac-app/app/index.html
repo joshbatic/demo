@@ -16704,7 +16704,7 @@ function rhyme(){
     if(v&&!v.then){if(!v.length)return hint('No phrase rhymes found for “'+shortSel(selPhrase)+'”.');v.forEach(addP);return}
     hint('Finding phrases that rhyme with “'+shortSel(selPhrase)+'”',true);
     if(v)return;
-    var pr=aiJson('Songwriting helper.'+pfx()+'\n\n'+songCtx({at:c.ls})+'\n\nThe writer selected this phrase from the line: "'+selPhrase+'" ('+n+' syllables, ending in a word that rhymes with "'+endw+'"). Suggest 16 short alternative phrases of about the same length ('+n+' syllables, give or take one) that end in a word rhyming with "'+endw+'" — match the ending sound closely, syllable by syllable — and fit the song\'s voice and context above, so swapping the phrase in keeps the line\'s rhythm and meaning going in the same direction. Avoid using the exact same end word on more than two or three of the sixteen — spread them across different words that share that rhyme, mixing perfect rhymes with slant/near rhymes (same vowel sound or final consonant, not identical) so the options feel varied, not repetitive. Return ONLY a JSON array of strings, each a short phrase, no explanations or numbering.',{cache:true}).then(function(r){
+    var pr=aiJson('Songwriting helper.'+pfx()+'\n\n'+songCtx({at:c.ls})+'\n\nThe writer selected this phrase from the line: "'+selPhrase+'" ('+n+' syllables, ending in a word that rhymes with "'+endw+'"). Suggest 16 short alternative phrases of about the same length ('+n+' syllables, give or take one) that end in a word rhyming with "'+endw+'" — match the ending sound closely, syllable by syllable — and fit the song\'s voice and context above, so swapping the phrase in keeps the line\'s rhythm and meaning going in the same direction. Avoid using the exact same end word on more than two or three of the sixteen — spread them across different words that share that rhyme, mixing perfect rhymes with slant/near rhymes (same vowel sound or final consonant, not identical) so the options feel varied, not repetitive. Each phrase must read naturally in the line and make sense; never bend word order to reach the rhyme, and no filler words. Return ONLY a JSON array of strings, each a short phrase, no explanations or numbering.',{cache:true,modelTier:'write'}).then(function(r){
       return(Array.isArray(r)?r:[]).filter(function(x){return typeof x==='string'&&x.trim()}).map(function(x){return x.trim()}).filter(function(x){return nw(x)!==nw(selPhrase)})
     },function(){return[]});
     MC[k]=pr;
@@ -16750,12 +16750,13 @@ function rhyme(){
   order(lst.slice(0,40)).forEach(add);
 }
 function prevent(e){e.preventDefault()}
+var LANG={image:'Image',move:'Action',twist:'Twist',plain:'Plain talk'};
 function lineView(c){
   var rc=$('#rc');
   function hint(x,busy){var h=document.createElement('div');h.className='hint';if(busy){h.appendChild(aidotsEl());h.appendChild(document.createTextNode(' '+x))}else h.appendChild(document.createTextNode(x));rc.appendChild(h)}
   function go(label,fn){var b=document.createElement('button');b.className='go';b.textContent=label;b.onmousedown=prevent;b.onclick=fn;rc.appendChild(b)}
   function list(st2,apply){if(st2.best>0&&!st2.judged)hint('No exact match this time. Closest fits first.');
-    st2.list.forEach(function(o){o.meta=o.n+' syl'+(o.d?' ('+(o.d>0?'+':'')+o.d+')':'')+(o.type&&o.type!=='new'?' · '+(o.type==='loose'?'loose rhyme':o.type==='near'?'near rhyme':o.type):'');
+    st2.list.forEach(function(o){o.meta=(LANG[o.angle]?LANG[o.angle]+' · ':'')+o.n+' syl'+(o.d?' ('+(o.d>0?'+':'')+o.d+')':'')+(o.type&&o.type!=='new'?' · '+(o.type==='loose'?'loose rhyme':o.type==='near'?'near rhyme':o.type):'');
       mzLineRow(rc,o,function(x){st2.used=true;mzUsed(x.line,'lines');apply(x)},'lines',function(x){var i=st2.list.indexOf(x);if(i>=0)st2.list.splice(i,1)})})}
   var selT=c.sel.trim();
   /* LSC caches a finished (or in-flight) generation per key, and LSK is just which key is
@@ -16933,12 +16934,12 @@ function mzEcho(k,prior){var w=k.split(' ').filter(Boolean);if(w.length<3)return
 /* second pass: a hard-to-please judge scores every candidate. Falls back to null (caller keeps its own
    order) if it takes too long or fails, so suggestions never get stuck behind it. */
 function mzJudge(cands,o){if(!cands||cands.length<3)return Promise.resolve(null);
-  return new Promise(function(res){var done=false,fin=function(v){if(done)return;done=true;clearTimeout(t);res(v)},t=setTimeout(function(){fin(null)},o.timeout||9000);
+  return new Promise(function(res){var done=false,fin=function(v){if(done)return;done=true;clearTimeout(t);res(v)},t=setTimeout(function(){fin(null)},o.timeout||15000);
     var mine=mzMyLines(o.section,4),br=mzBrief(cur);
     aiJson('You are a hard-to-please co-writer judging lyric lines for a specific writer. Score each candidate from 1 to 10.\n\n'+
       (MZ.prof&&MZ.prof.text?'The writer\'s voice:\n'+MZ.prof.text.slice(0,900)+'\n\n':'')+(mine.length?'Lines the writer wrote themselves:\n'+mine.map(mzQ).join('\n')+'\n\n':'')+(br?'Background on this song (a line that forces these details in where they don\'t fit scores lower):\n'+br+'\n\n':'')+
       (o.section&&o.section.length?'The section they\'re writing:\n'+o.section.join('\n')+'\n\n':'')+'Task: '+o.what+'\n\nCandidates:\n'+cands.map(function(c,i){return i+'. '+c}).join('\n')+
-      '\n\nScore on: specific and concrete rather than generic; sounds like this writer, not like a generic songwriter; fresh rather than a stock phrase or cliché; natural to sing out loud; belongs in this song at this moment. Be harsh: a line any songwriter could have written scores 4 or less, a stock phrase scores 2. A line that repeats, rewords or closely echoes a line already in the section scores 1. Return ONLY JSON: [{"i":0,"s":7}, ...] with one entry for every candidate.',{cache:false})
+      '\n\nScore each line the way a great co-writer would, in this order:\n1. Does it make sense? Read it aloud as a sentence. Word salad, mixed metaphors and lines that only exist to land a rhyme score 2 or less.\n2. Is the rhyme earned? If the end word feels forced, or the syntax is bent backwards to reach it ("the night so cold I\'m in"), score 3 or less.\n3. Does it say something? Filler ("oh yeah", "tonight" tacked on, "and I know", "you see") or a line that just restates the one before scores 3 or less.\n4. Is it specific and fresh? A concrete image, an action or a turn of phrase scores high; a stock phrase or a line any songwriter could have written scores 4 or less.\n5. Does it belong here and sound like this writer? Right tone, natural to sing, moves the section forward.\nA line that repeats, rewords or closely echoes a line already in the section scores 1. Use the full range: the best line should score 8 to 10 only if you\'d actually keep it. Return ONLY JSON: [{"i":0,"s":7}, ...] with one entry for every candidate.',{cache:false,modelTier:'judge'})
       .then(function(r){var out={},n=0;(Array.isArray(r)?r:[]).forEach(function(x){if(x&&isFinite(x.i)&&isFinite(x.s)){out[+x.i]=+x.s;n++}});fin(n?out:null)},function(){fin(null)})})}
 
 /* ---------- voice profile: a short description of how this writer writes ----------
@@ -17011,16 +17012,22 @@ function runGen(o){
   }
   LSC[o.k]={k:o.k,busy:true};rhyme();
   rhymeSets(o.lw,function(S){
-    var P=S.p.slice(0,70),Nr=PF.strict?[]:S.n.slice(0,24),ps={},ns={};P.forEach(function(x){ps[x]=1});Nr.forEach(function(x){ns[x]=1});if(o.keep&&o.lw)ps[o.lw]=1;
-    var rule=o.lw?(P.length||Nr.length?'3. Prefer ending on one of these perfect rhymes for "'+o.lw+'": '+P.join(', ')+(Nr.length?'\n   If none fits naturally, end on one of these near/slant rhymes: '+Nr.join(', '):'')+'\n   If neither list works, rhyme by ear.':'3. Rhyme with "'+o.lw+'" by ear.'):'3. End on a word with plenty of rhymes.';
-    var skip=GENHIST[o.k]&&GENHIST[o.k].length?'\n5. These were already suggested here and passed over — do not repeat them or near-identical rewordings of them, and vary the approach (different imagery, structure or end word) from all of them: '+GENHIST[o.k].map(function(x){return'"'+x+'"'}).join(' / ')+'.':'';
-    aiJson('You write song lyrics.'+pfx()+'\n\n'+songCtx(o)+museCtx(o.section)+'\n\n'+o.task+'\n\nPriorities:\n1. Match the tone, writing style and imagery you just read in the section above — this comes before rhyme or syllable count.\n2. Aim for exactly '+o.n+' syllables, as close as you can.\n'+rule+'\n4. Twenty different options, and spread them across several different end words rather than reusing the same one or two rhyming words over and over. Mix exact/perfect rhymes with slant or near rhymes (words that share the vowel sound or final consonant sound but aren\'t identical) so the set offers real variety, not twenty ways to land on the same sound. Natural phrasing, no filler. Each string is just the lyric line itself — never follow it with its rhyme or end word repeated in parentheses or any other annotation.\n6. Every line must say something new. Never repeat, reword or reorder a line that is already in the song, especially the line it rhymes with: only the end sound should match that line, not its words, images or structure. Move the song forward.'+skip+'\n\nReturn ONLY a JSON array of 20 strings.',{cache:!o.again}).then(function(r){
+    var P=S.p.slice(0,40),Nr=PF.strict?[]:S.n.slice(0,16),ps={},ns={};P.forEach(function(x){ps[x]=1});Nr.forEach(function(x){ns[x]=1});if(o.keep&&o.lw)ps[o.lw]=1;
+    var rule=o.lw?(P.length||Nr.length?'End words that rhyme with "'+o.lw+'" (pick the ones that serve what the line is saying; skip any that would sound forced): '+P.join(', ')+(Nr.length?'\nNear rhymes you may also use: '+Nr.join(', '):'')+'\nA strong word that isn\'t listed is fine if it rhymes to the ear.':'Rhyme with "'+o.lw+'" by ear.'):'No rhyme is required; end on a word that gives the next line somewhere to go.';
+    var skip=GENHIST[o.k]&&GENHIST[o.k].length?'\n\nAlready suggested and passed over. Don\'t repeat or reword these, and take different routes (different image, end word and structure): '+GENHIST[o.k].map(function(x){return'"'+x+'"'}).join(' / '):'';
+    aiJson('You are a sharp, tasteful co-writer helping a songwriter find the next line. Your lines have to be good enough that they\'d actually keep one.'+pfx()+'\n\n'+songCtx(o)+museCtx(o.section)+'\n\n'+o.task+'\n\n'+rule+
+      '\n\nBefore writing, work out what the section is saying, who is speaking to whom, and what the next line needs to do (land the feeling, add a detail, turn the thought, set up the next line).'+
+      '\n\nWrite 12 lines, 3 for each of these approaches:\n- image: one concrete, specific picture (an object, a place, a small physical detail) that carries the feeling without naming it.\n- move: an action or a moment, something someone does or says.\n- twist: turns the thought, a contrast, an admission or a line that reframes what came before.\n- plain: says it straight, in plain words the way a person would actually talk; simple and true, not clever.'+
+      '\n\nRules for every line:\n- It must make sense as a sentence and follow on from the line before. Sense comes before rhyme: never bend word order or pick a word just to hit the rhyme.\n- Match the tone, vocabulary and imagery of the section, so it sounds like the same writer.\n- About '+o.n+' syllables (within 2), natural to sing.\n- No filler or padding ("oh", "yeah", "baby", "tonight", "I know", "you see" tacked on), no clichés ("heart of gold", "tears like rain", "set me free"), no greeting-card abstractions (soul, destiny, forever) unless the song already uses them.\n- Use at least 6 different end words across the 12 lines.\n- Never repeat, reword or echo a line already in the song; only the end sound should match the line it rhymes with.\n- Just the lyric line: no quotes, notes or the rhyme word in brackets.'+skip+
+      '\n\nReturn ONLY JSON, best line first: [{"line":"...","angle":"image"}, ...]',{cache:!o.again,modelTier:'write'}).then(function(r){
       /* Belt-and-braces: even with the prompt now telling it not to, the model occasionally still
          echoes the end/rhyme word back in parentheses, e.g. "i walk in your room (room)". Strip a
          trailing "(word)" whenever it just repeats the line's own last word or the target rhyme
          word, rather than stripping any parenthetical (which could be a deliberate ad-lib). */
       function deparen(x){var m=x.match(/^(.*?)\s*\(([^()]{1,30})\)\s*$/);if(!m)return x;var core=m[1].trim(),paren=nw(m[2].trim());if(!core)return x;var lastWord=nw(lastW(core));if(paren===lastWord||(o.lw&&paren===nw(o.lw)))return core;return x}
-      var seen={},l=(Array.isArray(r)?r:[]).filter(function(x){return typeof x==='string'&&x.trim()}).map(function(x){x=deparen(x.trim());var w=nw(lastW(x)),d=lsyl(x)-o.n,ty=!o.lw?'new':ps[w]?'perfect':ns[w]?'near':'loose';return{line:x,n:lsyl(x),d:d,type:ty,sc:Math.abs(d)+(ty==='near'?1.5:ty==='loose'?3.5:0)}}).filter(function(m){if(seen[m.line])return false;seen[m.line]=1;return true});
+      /* the reply is [{line,angle}], best first; plain strings still work */
+      var arr=Array.isArray(r)?r:(r&&Array.isArray(r.lines)?r.lines:[]);
+      var seen={},l=arr.map(function(x){return typeof x==='string'?{t:x,a:''}:x&&typeof x.line==='string'?{t:x.line,a:String(x.angle||'').toLowerCase()}:null}).filter(function(x){return x&&x.t.trim()}).map(function(x,i){var t=deparen(x.t.trim()),w=nw(lastW(t)),d=lsyl(t)-o.n,ty=!o.lw?'new':ps[w]?'perfect':ns[w]?'near':'loose';return{line:t,n:lsyl(t),d:d,type:ty,angle:x.a,sc:Math.max(0,Math.abs(d)-1)+(ty==='near'?1:ty==='loose'?2:0)+i*.08}}).filter(function(m){if(seen[m.line])return false;seen[m.line]=1;return true});
       l.sort(function(a,b){return a.sc-b.sc});
       /* drop stock phrases, words this writer keeps rejecting and lines already in the song, then let the
          judge score the best 14 and show the top 6: judged quality first, rhyme and syllable fit as tie-breaks */
@@ -17028,7 +17035,9 @@ function runGen(o){
       var fin=function(js){var top=l.slice(0,14);
         if(js)top.forEach(function(x,i){x.js=js[i]!=null?js[i]:0;x.rk=x.js*1.0-x.sc*.55});
         if(js)top.sort(function(a,b){return b.rk-a.rk});
-        var out=(js?top:l).slice(0,6);
+        /* keep the order, but no more than two lines landing on the same end word */
+        var ends={},keep=[],rest=[];(js?top:l).forEach(function(x){var w=nw(lastW(x.line));if((ends[w]||0)<2){ends[w]=(ends[w]||0)+1;keep.push(x)}else rest.push(x)});
+        var out=keep.concat(rest).slice(0,6);
         LSC[o.k]=out.length?{k:o.k,list:out,best:Math.min.apply(null,out.map(function(x){return x.sc})),kind:o.kind,a:o.a,b:o.b,src:o.src,judged:!!js}:{k:o.k,err:'No lines came back. Try again.'};rhyme();
         if(out.length&&document.body.classList.contains('kb')){var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'))ae.blur()}};
       if(l.length<4)return fin(null);
@@ -17153,7 +17162,7 @@ function topics(){if(!cur)return'';var n={};(getText().toLowerCase().match(/[a-z
 function rankGet(w,line,list,at){if(!isPro())return null;
   if(list.length<4)return null;var k=nw(w)+'|'+nw(line)+pfk(),v=RK[k];if(v)return v;
   RK[k]={busy:true};var want=nw(w);
-  aiJson('Songwriting helper.'+pfx()+'\n\n'+songCtx({at:at})+'\n\nThe writer wants a word that rhymes with "'+w+'" for the line: "'+line+'". From the candidates below, choose the 30 that best fit this song\'s meaning, imagery and voice, best first. Use only words from the list, exactly as written.\nCandidates: '+list.join(', ')+'\n\nReturn ONLY a JSON array of strings.',{cache:true}).then(function(r){
+  aiJson('Songwriting helper.'+pfx()+'\n\n'+songCtx({at:at})+'\n\nThe writer wants a word that rhymes with "'+w+'" for the line: "'+line+'". From the candidates below, choose the 30 most useful, best first: words that could end this line naturally and say something this song would say (its subject, images and feeling), that a person would actually sing. Put obscure, awkward or joke words last or leave them out. Use only words from the list, exactly as written.\nCandidates: '+list.join(', ')+'\n\nReturn ONLY a JSON array of strings.',{cache:true,modelTier:'judge'}).then(function(r){
     var ok={};list.forEach(function(x){ok[x]=1});RK[k]={list:(Array.isArray(r)?r:[]).map(function(x){return String(x).toLowerCase().trim()}).filter(function(x){return ok[x]})};
     if(!lines&&nw(ctx().word||'')===want)rhyme()},function(){RK[k]={list:[]}});
   return RK[k];
@@ -17222,7 +17231,7 @@ function buildStuck(){
    ['','Pen never stops','Five minutes. No deleting. No rhyme bar. Go.',sprintGo]].forEach(function(x){if(x[4]&&!aiAvailable())return;var b=document.createElement('button');b.className='stc '+x[0]+(x[5]&&!isPro()?' locked':'');b.innerHTML='<b></b><span></span>';b.children[0].textContent=x[1];b.children[1].textContent=x[2];b.onclick=x[5]&&!isPro()?function(){upsell('rate')}:x[3];if(x[5]&&!isPro())b.children[0].insertAdjacentHTML('beforeend',' <i class="protag">Pro</i>');g.appendChild(b)});
 }
 function readSong(){if(!needAI())return;var o=stkOut('<p>'+aidots()+' Reading your song</p>'),at=getSel().s,k=ctx(),tk=o.dataset.seq,live=function(){return o.dataset.seq===tk};
-  aiJson('You are a songwriting mentor helping a writer who is stuck.'+pfx()+'\n\n'+songCtx({at:at})+museCtx(k.st)+'\n\nRespond as JSON: {"read": one or two plain sentences on what this song is really about so far and where it seems to stall, "questions": 3 short, specific questions about the song\'s subject that would dig up fresh material from the writer\'s real life, "moves": 8 objects {"idea": a short direction to take next (under 12 words), "line": a next line that starts that direction, in this writer\'s voice and matching the song\'s line length}}. The 8 moves must go in genuinely different directions. Be concrete, no flattery. If the song is empty, read the title, notes and brief and suggest openings.',{cache:false}).then(function(r){
+  aiJson('You are a songwriting mentor helping a writer who is stuck.'+pfx()+'\n\n'+songCtx({at:at})+museCtx(k.st)+'\n\nRespond as JSON: {"read": one or two plain sentences on what this song is really about so far and where it seems to stall, "questions": 3 short, specific questions about the song\'s subject that would dig up fresh material from the writer\'s real life, "moves": 8 objects {"idea": a short direction to take next (under 12 words), "line": a next line that starts that direction, in this writer\'s voice and matching the song\'s line length}}. The 8 moves must go in genuinely different directions. Be concrete, no flattery. If the song is empty, read the title, notes and brief and suggest openings.',{cache:false,modelTier:'write'}).then(function(r){
     if(!live())return;if(!r||!r.moves){aiErr(o);return}
     var mv=mzFilter((Array.isArray(r.moves)?r.moves:[]).filter(function(m){return m&&typeof m.line==='string'&&m.line.trim()}),function(m){return m.line},4);
     var show=function(js){if(!live())return;o.innerHTML='';

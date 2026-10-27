@@ -183,11 +183,11 @@ final class WordResults {
         ranking = true
         let w = word, ln = line
         var p = "Songwriting helper." + Prompts.pfx(env) + "\n\n" + Prompts.songCtx(env, at: nil, section: [])
-        p += "\n\nThe writer wants a word that rhymes with \"" + w + "\" for the line: \"" + ln + "\". From the candidates below, choose the 30 that best fit this song's meaning, imagery and voice, best first. Use only words from the list, exactly as written.\nCandidates: " + list.joined(separator: ", ")
+        p += "\n\nThe writer wants a word that rhymes with \"" + w + "\" for the line: \"" + ln + "\". From the candidates below, choose the 30 most useful, best first: words that could end this line naturally and say something this song would say (its subject, images and feeling), that a person would actually sing. Put obscure, awkward or joke words last or leave them out. Use only words from the list, exactly as written.\nCandidates: " + list.joined(separator: ", ")
         p += "\n\nReturn ONLY a JSON array of strings."
         let prompt = p
         Task {
-            let r = (try? await AIService.shared.json(prompt, ask: false))?.stringList.map { $0.lowercased() } ?? []
+            let r = (try? await AIService.shared.json(prompt, tier: "judge", ask: false))?.stringList.map { $0.lowercased() } ?? []
             let ok = Set(list)
             let picked = r.filter { ok.contains($0) }
             rankCache[key] = picked
@@ -242,8 +242,8 @@ final class WordResults {
         let k = "PHR#" + RhymeEngine.normalise(sel) + "#\(n)" + Prompts.pfk(env)
         if let c = aiCache[k] { return c }
         var p = "Songwriting helper." + Prompts.pfx(env) + "\n\n" + Prompts.songCtx(env, at: nil, section: [])
-        p += "\n\nThe writer selected this phrase from the line: \"" + sel + "\" (\(n) syllables, ending in a word that rhymes with \"" + endw + "\"). Suggest 16 short alternative phrases of about the same length (\(n) syllables, give or take one) that end in a word rhyming with \"" + endw + "\" — match the ending sound closely, syllable by syllable — and fit the song's voice and context above, so swapping the phrase in keeps the line's rhythm and meaning going in the same direction. Avoid using the exact same end word on more than two or three of the sixteen — spread them across different words that share that rhyme, mixing perfect rhymes with slant/near rhymes (same vowel sound or final consonant, not identical) so the options feel varied, not repetitive. Return ONLY a JSON array of strings, each a short phrase, no explanations or numbering."
-        let r = (try? await AIService.shared.json(p))?.stringList.filter { RhymeEngine.normalise($0) != RhymeEngine.normalise(sel) } ?? []
+        p += "\n\nThe writer selected this phrase from the line: \"" + sel + "\" (\(n) syllables, ending in a word that rhymes with \"" + endw + "\"). Suggest 16 short alternative phrases of about the same length (\(n) syllables, give or take one) that end in a word rhyming with \"" + endw + "\" — match the ending sound closely, syllable by syllable — and fit the song's voice and context above, so swapping the phrase in keeps the line's rhythm and meaning going in the same direction. Avoid using the exact same end word on more than two or three of the sixteen — spread them across different words that share that rhyme, mixing perfect rhymes with slant/near rhymes (same vowel sound or final consonant, not identical) so the options feel varied, not repetitive. Each phrase must read naturally in the line and make sense; never bend word order to reach the rhyme, and no filler words. Return ONLY a JSON array of strings, each a short phrase, no explanations or numbering."
+        let r = (try? await AIService.shared.json(p, tier: "write"))?.stringList.filter { RhymeEngine.normalise($0) != RhymeEngine.normalise(sel) } ?? []
         aiCache[k] = r
         return r
     }

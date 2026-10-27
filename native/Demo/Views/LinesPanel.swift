@@ -10,11 +10,13 @@ final class LinesModel {
         var d: Int
         var type: String      // perfect | near | loose | new
         var sc: Double
+        var angle = ""        // image | move | twist | plain
         var meta: String {
-            var m = "\(n) syl" + (d != 0 ? " (" + (d > 0 ? "+" : "") + "\(d))" : "")
+            var m = (Self.angles[angle].map { $0 + " · " } ?? "") + "\(n) syl" + (d != 0 ? " (" + (d > 0 ? "+" : "") + "\(d))" : "")
             if type != "new" { m += " · " + (type == "loose" ? "loose rhyme" : type == "near" ? "near rhyme" : type) }
             return m
         }
+        static let angles = ["image": "Image", "move": "Action", "twist": "Twist", "plain": "Plain talk"]
     }
     struct Entry {
         var busy = false
@@ -74,40 +76,48 @@ final class LinesModel {
             else { let s = eng.sets(o.lw); P = s.perfect; N = s.near }
         }
         let strict = env.song.voice["strict"]?.bool ?? true
-        P = Array(P.prefix(70)); N = strict ? [] : Array(N.prefix(24))
+        P = Array(P.prefix(40)); N = strict ? [] : Array(N.prefix(16))
         var ps = Set(P.map(RhymeEngine.normalise)), ns = Set(N.map(RhymeEngine.normalise))
         if o.keep && !o.lw.isEmpty { ps.insert(RhymeEngine.normalise(o.lw)) }
         _ = ns
         let rule: String
         if !o.lw.isEmpty {
             rule = !P.isEmpty || !N.isEmpty
-                ? "3. Prefer ending on one of these perfect rhymes for \"" + o.lw + "\": " + P.joined(separator: ", ") + (N.isEmpty ? "" : "\n   If none fits naturally, end on one of these near/slant rhymes: " + N.joined(separator: ", ")) + "\n   If neither list works, rhyme by ear."
-                : "3. Rhyme with \"" + o.lw + "\" by ear."
-        } else { rule = "3. End on a word with plenty of rhymes." }
+                ? "End words that rhyme with \"" + o.lw + "\" (pick the ones that serve what the line is saying; skip any that would sound forced): " + P.joined(separator: ", ") + (N.isEmpty ? "" : "\nNear rhymes you may also use: " + N.joined(separator: ", ")) + "\nA strong word that isn't listed is fine if it rhymes to the ear."
+                : "Rhyme with \"" + o.lw + "\" by ear."
+        } else { rule = "No rhyme is required; end on a word that gives the next line somewhere to go." }
         let hist = history[o.key] ?? []
-        let skip = hist.isEmpty ? "" : "\n5. These were already suggested here and passed over — do not repeat them or near-identical rewordings of them, and vary the approach (different imagery, structure or end word) from all of them: " + hist.map { "\"" + $0 + "\"" }.joined(separator: " / ") + "."
-        var prompt = "You write song lyrics."
+        let skip = hist.isEmpty ? "" : "\n\nAlready suggested and passed over. Don't repeat or reword these, and take different routes (different image, end word and structure): " + hist.map { "\"" + $0 + "\"" }.joined(separator: " / ")
+        var prompt = "You are a sharp, tasteful co-writer helping a songwriter find the next line. Your lines have to be good enough that they'd actually keep one."
         prompt += Prompts.pfx(env)
         prompt += "\n\n"
         prompt += Prompts.songCtx(env, at: o.at, section: o.section, rewrite: o.rewrite)
         prompt += Prompts.museCtx(env, section: o.section)
         prompt += "\n\n"
         prompt += o.task
-        prompt += "\n\nPriorities:\n1. Match the tone, writing style and imagery you just read in the section above — this comes before rhyme or syllable count.\n2. Aim for exactly \(o.n) syllables, as close as you can.\n"
-        prompt += rule
-        prompt += "\n4. Twenty different options, and spread them across several different end words rather than reusing the same one or two rhyming words over and over. Mix exact/perfect rhymes with slant or near rhymes (words that share the vowel sound or final consonant sound but aren't identical) so the set offers real variety, not twenty ways to land on the same sound. Natural phrasing, no filler. Each string is just the lyric line itself — never follow it with its rhyme or end word repeated in parentheses or any other annotation.\n6. Every line must say something new. Never repeat, reword or reorder a line that is already in the song, especially the line it rhymes with: only the end sound should match that line, not its words, images or structure. Move the song forward."
+        prompt += "\n\n" + rule
+        prompt += "\n\nBefore writing, work out what the section is saying, who is speaking to whom, and what the next line needs to do (land the feeling, add a detail, turn the thought, set up the next line)."
+        prompt += "\n\nWrite 12 lines, 3 for each of these approaches:\n- image: one concrete, specific picture (an object, a place, a small physical detail) that carries the feeling without naming it.\n- move: an action or a moment, something someone does or says.\n- twist: turns the thought, a contrast, an admission or a line that reframes what came before.\n- plain: says it straight, in plain words the way a person would actually talk; simple and true, not clever."
+        prompt += "\n\nRules for every line:\n- It must make sense as a sentence and follow on from the line before. Sense comes before rhyme: never bend word order or pick a word just to hit the rhyme.\n- Match the tone, vocabulary and imagery of the section, so it sounds like the same writer.\n- About \(o.n) syllables (within 2), natural to sing.\n- No filler or padding (\"oh\", \"yeah\", \"baby\", \"tonight\", \"I know\", \"you see\" tacked on), no clichés (\"heart of gold\", \"tears like rain\", \"set me free\"), no greeting-card abstractions (soul, destiny, forever) unless the song already uses them.\n- Use at least 6 different end words across the 12 lines.\n- Never repeat, reword or echo a line already in the song; only the end sound should match the line it rhymes with.\n- Just the lyric line: no quotes, notes or the rhyme word in brackets."
         prompt += skip
-        prompt += "\n\nReturn ONLY a JSON array of 20 strings."
+        prompt += "\n\nReturn ONLY JSON, best line first: [{\"line\":\"...\",\"angle\":\"image\"}, ...]"
         do {
-            let r = try await AIService.shared.json(prompt)
+            let r = try await AIService.shared.json(prompt, tier: "write")
             var seen = Set<String>()
-            var l: [Option] = r.stringList.map { x in
-                let line = Self.deparen(x, lw: o.lw)
+            // the reply is [{"line","angle"}]; plain strings still work
+            let raw: [(String, String)] = (r.array ?? r["lines"]?.array ?? []).compactMap { x in
+                if let t = x.string { return (t, "") }
+                if let t = x["line"]?.string { return (t, x["angle"]?.string?.lowercased() ?? "") }
+                return nil
+            }
+            var l: [Option] = raw.enumerated().map { (i, x) in
+                let line = Self.deparen(x.0, lw: o.lw)
                 let w = RhymeEngine.normalise(RhymeContext.lastWord(line))
                 let n = eng.lineSyllables(line), d = n - o.n
                 let ty = o.lw.isEmpty ? "new" : ps.contains(w) ? "perfect" : (Set(N.map(RhymeEngine.normalise)).contains(w) ? "near" : "loose")
-                return Option(line: line, n: n, d: d, type: ty, sc: Double(abs(d)) + (ty == "near" ? 1.5 : ty == "loose" ? 3.5 : 0))
-            }.filter { seen.insert($0.line).inserted }
+                // the AI's own order counts a little: it puts its best first
+                return Option(line: line, n: n, d: d, type: ty, sc: Double(max(0, abs(d) - 1)) + (ty == "near" ? 1 : ty == "loose" ? 2 : 0) + Double(i) * 0.08, angle: x.1)
+            }.filter { !$0.line.isEmpty && seen.insert($0.line).inserted }
             l.sort { $0.sc < $1.sc }
             l = Prompts.filter(l, text: env.text, min: 6) { $0.line }
             guard l.count >= 4 else { finish(o, l, judged: false); return }
@@ -127,7 +137,13 @@ final class LinesModel {
     }
 
     private func finish(_ o: Request, _ list: [Option], judged: Bool) {
-        let out = Array(list.prefix(6))
+        // keep the order, but no more than two lines landing on the same end word
+        var ends: [String: Int] = [:], out: [Option] = [], rest: [Option] = []
+        for x in list {
+            let w = RhymeEngine.normalise(RhymeContext.lastWord(x.line))
+            if ends[w, default: 0] < 2 { ends[w, default: 0] += 1; out.append(x) } else { rest.append(x) }
+        }
+        out = Array((out + rest).prefix(6))
         if out.isEmpty {
             cache[o.key] = Entry(err: "No lines came back. Try again.", kind: o.kind, range: o.range, src: o.src)
         } else {

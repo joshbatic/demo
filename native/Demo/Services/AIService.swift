@@ -69,15 +69,16 @@ final class AIService {
         d.set(stamps, forKey: "ai.minute"); d.set(day, forKey: "ai.day"); d.set(count, forKey: "ai.count")
     }
 
-    /// Sends a prompt and returns the JSON it answered with. `complex` uses the stronger model (Rate, the voice profile).
-    func json(_ prompt: String, complex: Bool = false, ask: Bool = true) async throws -> JSONValue {
+    /// Sends a prompt and returns the JSON it answered with. `complex` uses the stronger model (Rate, the voice profile);
+    /// `tier` picks another server tier: "write" (thinks before writing lines) or "judge" (ranks lines).
+    func json(_ prompt: String, complex: Bool = false, tier: String? = nil, ask: Bool = true) async throws -> JSONValue {
         try await ensureConsent(ask: ask)
         guard !RemoteConfig.shared.aiOff else { throw AIError.message(RemoteConfig.aiOffMessage) }
         guard !prompt.isEmpty else { throw AIError.message("Empty prompt.") }
         guard prompt.count <= 24000 else { throw AIError.message("That request is too large to send (\(prompt.count) characters, limit 24000).") }
         try guardCall()
         var body: [String: JSONValue] = ["prompt": .string(prompt)]
-        if complex { body["modelTier"] = "complex" }
+        if complex { body["modelTier"] = "complex" } else if let tier { body["modelTier"] = .string(tier) }
         let res: JSONValue
         do { res = try await Backend.function("ai-proxy", body: body) }
         catch { throw AIError.message(describe(error)) }

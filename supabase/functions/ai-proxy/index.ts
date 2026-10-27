@@ -1,7 +1,12 @@
 // *[demo] ai-proxy: every AI request from the iPhone app and the web, so no OpenAI key ever lives on a device.
 //
 // The app sends { prompt, modelTier } and gets back { text }, or { error } with a message it can show.
-//   modelTier "complex" (Rate, the voice profile) uses gpt-5; everything else uses gpt-5-mini.
+//   modelTier "complex" (Rate, the voice profile) uses gpt-5 with medium reasoning (3 units).
+//   modelTier "write" (Lines, rewrites) thinks a little before writing (1 unit).
+//   modelTier "judge" (ranking and filtering lines) uses the small model with light reasoning (1 unit).
+//   anything else uses gpt-5-mini with minimal reasoning (1 unit).
+// Models can be overridden with the AI_WRITE_MODEL / AI_JUDGE_MODEL secrets; if a model is refused,
+// the next one in the list is tried, so a bad override never breaks AI.
 // Each request is counted against the account's plan limits first (supabase/plans.sql, ai_take()): Free gets a
 // few quick requests a day, Pro and Beta the full set, with a monthly cap on the heavy ones for Pro.
 // If the allowance can't be checked (ai_take errors), the request is refused.
@@ -43,7 +48,8 @@ Deno.serve(async (req) => {
   const prompt = typeof body.prompt === "string" ? body.prompt : "";
   if (!prompt.trim()) return json({ error: "Empty prompt." });
   if (prompt.length > MAX_PROMPT) return json({ error: `That request is too large (${prompt.length} characters, limit ${MAX_PROMPT}).` });
-  const complex = body.modelTier === "complex";
+  const tier = typeof body.modelTier === "string" ? body.modelTier : "";
+  const complex = tier === "complex";
 
   // the account's daily allowance
   const { data: take, error: takeErr } = await sb.rpc("ai_take", { kind: "ai", units: complex ? 3 : 1 });
@@ -61,27 +67,45 @@ Deno.serve(async (req) => {
   // if the allowance can't be checked, nothing is sent: an unchecked request could bypass every limit
   if (takeErr || !take) { console.error('ai_take', takeErr); return json({ error: "AI couldn't start just now. Try again in a moment." }); }
 
-  const payload: Record<string, unknown> = {
-    model: complex ? "gpt-5" : "gpt-5-mini",
-    messages: [{ role: "user", content: prompt }],
-    max_completion_tokens: complex ? 5000 : 2000,
-    reasoning_effort: complex ? "medium" : "minimal",
-  };
+  const envW = Deno.env.get("AI_WRITE_MODEL"), envJ = Deno.env.get("AI_JUDGE_MODEL");
+  type Try = { model: string; effort: string; max: number };
+  const plan: Try[] =
+    complex ? [{ model: "gpt-5", effort: "medium", max: 5000 }]
+    : tier === "write" ? [
+        ...(envW ? [{ model: envW, effort: "low", max: 4000 }] : []),
+        { model: "gpt-5", effort: "low", max: 4000 },
+        { model: "gpt-5-mini", effort: "low", max: 4000 },
+      ]
+    : tier === "judge" ? [
+        ...(envJ ? [{ model: envJ, effort: "low", max: 2500 }] : []),
+        { model: "gpt-5-mini", effort: "low", max: 2500 },
+      ]
+    : [{ model: "gpt-5-mini", effort: "minimal", max: 2000 }];
   const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), complex ? 110000 : 45000);
+  const timer = setTimeout(() => ac.abort(), complex ? 110000 : tier === "write" ? 70000 : 45000);
   try {
-    const r = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify(payload),
-      signal: ac.signal,
-    });
-    const j = await r.json().catch(() => null);
-    if (!r.ok || !j) return json({ error: j?.error?.message ?? `AI service error (${r.status}).` });
-    const choice = j.choices?.[0];
-    const text: string = choice?.message?.content ?? "";
-    if (!text.trim()) return json({ error: choice?.finish_reason === "length" ? "The AI ran out of room before answering. Try again." : "The AI returned an empty response." });
-    return json({ text });
+    let last = "AI service error.";
+    for (const t of plan) {
+      const r = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+        body: JSON.stringify({ model: t.model, messages: [{ role: "user", content: prompt }],
+          max_completion_tokens: t.max, reasoning_effort: t.effort }),
+        signal: ac.signal,
+      });
+      const j = await r.json().catch(() => null);
+      if (!r.ok || !j) {
+        last = j?.error?.message ?? `AI service error (${r.status}).`;
+        // a missing or unsupported model falls through to the next one; anything else is final
+        if ((r.status === 400 || r.status === 404 || r.status === 403) && t !== plan[plan.length - 1]) { console.warn("model refused", t.model, last); continue; }
+        return json({ error: last });
+      }
+      const choice = j.choices?.[0];
+      const text: string = choice?.message?.content ?? "";
+      if (!text.trim()) return json({ error: choice?.finish_reason === "length" ? "The AI ran out of room before answering. Try again." : "The AI returned an empty response." });
+      return json({ text });
+    }
+    return json({ error: last });
   } catch (e) {
     return json({ error: (e as Error)?.name === "AbortError" ? "The AI took too long to answer. Try again." : "Couldn't reach the AI service." });
   } finally {
