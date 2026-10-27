@@ -99,7 +99,7 @@ nonisolated extension WritingVoice {
     }
 
     /// The fields that light the gear's dot when they differ from the defaults (pfTouched).
-    static let touchedKeys = ["genre", "mood", "dial", "era", "pov", "tense", "img", "dev", "refs", "custom"]
+    static let touchedKeys = ["genre", "mood", "dial", "era", "pov", "tense", "img", "dev", "tags", "refs", "custom"]
     static func isTouched(_ p: [String: JSONValue]) -> Bool {
         touchedKeys.contains { CanonicalJSON.string(p[$0] ?? .null) != CanonicalJSON.string(defaults[$0] ?? .null) }
     }
@@ -143,7 +143,29 @@ nonisolated extension WritingVoice {
         ("Understatement", "understatement, saying less than is felt"),
         ("Callback", "a callback line that returns changed by the end")
     ]
-    static let fineTuneKeys = ["pov", "tense", "img", "dev", "strict", "cliche", "refs", "custom"]
+    static let fineTuneKeys = ["pov", "tense", "strict", "refs", "custom"]
+    /// Quick themes offered under "Themes and key words" until the song gives its own.
+    static let starterThemes = ["Late nights", "Leaving", "Home", "Small town", "The city", "Open road", "The coast", "Weather", "Money", "Faith", "Phones and texts", "Growing up", "First love", "Moving on", "Family", "Friends", "Summer", "Winter"]
+    /// Words from the song worth offering as tags: repeated or in the title, not filler, most used first.
+    static func suggestedTags(title: String, lyrics: String, have: [String]) -> [String] {
+        let extra: Set<String> = ["know", "want", "said", "gonna", "wanna", "gotta", "got", "get", "all", "out", "down", "one", "now", "here", "been", "back", "never", "ever", "every", "some", "more", "only", "into", "over", "still", "too", "again", "yeah", "ooh", "really", "think", "chorus", "verse", "bridge", "intro", "outro", "pre", "about", "always", "maybe", "make", "made", "take", "come", "going", "thing", "things", "around", "through", "because", "cause", "without", "even", "much", "well", "tell", "need", "tonight", "baby"]
+        let lower = Set(have.map { $0.lowercased() })
+        func words(_ t: String) -> [String] {
+            t.lowercased().replacingOccurrences(of: "’", with: "'").components(separatedBy: CharacterSet.letters.union(CharacterSet(charactersIn: "'")).inverted)
+                .map { $0.trimmingCharacters(in: CharacterSet(charactersIn: "'")).replacingOccurrences(of: "'", with: "") }
+                .filter { $0.count >= 4 && !RhymeEngine.stop.contains($0) && !extra.contains($0) }
+        }
+        let body = lyrics.components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).hasPrefix("[") }.joined(separator: "\n")
+        var count: [String: Int] = [:], first: [String: Int] = [:]
+        for (i, w) in words(body).enumerated() { count[w, default: 0] += 1; if first[w] == nil { first[w] = i } }
+        let inTitle = Set(words(title))
+        for w in inTitle { count[w, default: 0] += 2; if first[w] == nil { first[w] = -1 } }
+        let mine = count.filter { $0.value >= 2 && !lower.contains($0.key) }
+            .sorted { $0.value != $1.value ? $0.value > $1.value : (first[$0.key] ?? 0) < (first[$1.key] ?? 0) }
+            .prefix(6).map(\.key)
+        let starters = starterThemes.filter { !lower.contains($0.lowercased()) }
+        return Array((mine + starters).prefix(14))
+    }
 }
 
 /// Chord chips for a key (chordChips): the scale's chords, the V7 (or V in minor), then / and |.

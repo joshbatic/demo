@@ -119,7 +119,7 @@ nonisolated struct Idea: Identifiable, Hashable {
 nonisolated enum WritingVoice {
     static let defaults: [String: JSONValue] = [
         "genre": "Any", "mood": "Any", "voice": "Neutral", "dial": "", "era": "Any", "pov": "Any", "tense": "Any",
-        "img": .array([]), "dev": .array([]), "reg": "Conversational", "strict": true, "cliche": false, "refs": "", "custom": ""
+        "img": .array([]), "dev": .array([]), "tags": .array([]), "reg": "Conversational", "strict": true, "cliche": false, "refs": "", "custom": ""
     ]
 }
 

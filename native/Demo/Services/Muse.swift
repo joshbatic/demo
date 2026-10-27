@@ -390,13 +390,13 @@ enum Prompts {
         let povs = ["I": "first person (I)", "You": "second person, addressing \"you\"", "We": "first person plural (we)", "Story": "third-person storytelling"]
         if let pv = povs[s("pov")] { a.append("Point of view: " + pv + ".") }
         if s("tense") != "Any" && !s("tense").isEmpty { a.append("Tense: " + s("tense").lowercased() + ".") }
-        if !arr("img").isEmpty { a.append("Draw imagery from: " + arr("img").joined(separator: ", ").lowercased() + ".") }
-        if !arr("dev").isEmpty { a.append("Techniques to use: " + arr("dev").joined(separator: ", ").lowercased() + ".") }
+        let themes = arr("tags") + arr("img").map { d in WritingVoice.imagery.first { $0.1 == d }?.0 ?? d }
+        if !themes.isEmpty { a.append("Themes and key words the writer wants in this song: " + themes.joined(separator: ", ") + ". Lean toward them and their world when choosing images and words, but only where one fits naturally: never force one into a line, and don't cram several into the same line.") }
         let regs = ["Poetic": "poetic and imagistic, with metaphor and no slang", "Conversational": "natural everyday speech, contractions welcome",
                     "Slang": "casual and slangy like real speech, never forced", "Explicit": "raw and uncensored, with profanity where it lands naturally"]
         a.append("Language: " + (regs[s("reg")] ?? regs["Conversational"]!) + ".")
         a.append("Write like a person drafting by hand, not an AI assistant: skip the tidy \"it's not X, it's Y\" contrast, stock openers like \"in the silence/stillness\" or \"let me take you back\", em-dash asides, and a neatly uplifting resolution by default. Let a line stay plain, unresolved, or a little rough rather than polishing every single one.")
-        if p["cliche"]?.bool == true { a.append("Avoid clichés and stock rhyme pairs (fire/desire, heart/apart, eyes/skies, rain/pain, love/above) and stock phrases.") }
+        a.append("Avoid clichés, stock phrases and stock rhyme pairs (fire/desire, heart/apart, eyes/skies, rain/pain, love/above).")
         let refs = s("refs").trimmingCharacters(in: .whitespaces)
         if !refs.isEmpty { a.append("Influences, for tone only: " + refs + ". Never quote or closely paraphrase existing lyrics.") }
         let custom = s("custom").trimmingCharacters(in: .whitespaces)
@@ -408,7 +408,7 @@ enum Prompts {
     static func learnedVoice(_ env: PromptEnv) -> String {
         let p = env.song.voice
         let suppressPov = (p["pov"]?.string ?? "Any") != "Any"
-        let suppressImg = !(p["img"]?.array ?? []).isEmpty
+        let suppressImg = !(p["img"]?.array ?? []).isEmpty || !(p["tags"]?.array ?? []).isEmpty
         let fp = fingerprint(env.songs, suppressPov: suppressPov, suppressImg: suppressImg)
         let hooks = hookLines(env.songs)
         var parts: [String] = []

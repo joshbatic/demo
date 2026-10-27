@@ -672,6 +672,7 @@ body.ios .sacctav{width:30px;height:30px}
 .vsum span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vreset{flex:none;font-size:14px;font-weight:500;color:var(--mute);padding:4px 10px;border-radius:99px}.vreset:hover{background:var(--fill);color:var(--ink)}
 .vrow{display:flex;gap:6px;overflow-x:auto;padding:0 20px 4px;scroll-padding:20px}.vrow .r{flex:none;height:36px;font-size:15px}
+.vtags .r,.vsug .r{display:inline-flex;align-items:center;gap:6px}.vtags .r svg{opacity:.75}.vsug{padding-top:10px}.vtnote{padding:6px 20px 4px}
 .vseg{margin:0 20px 4px!important}.vseg button{padding:7px 8px!important}
 .vmore{display:flex;align-items:center;gap:10px;width:calc(100% - 40px);margin:18px 20px 0;padding:14px 18px;border-radius:18px;background:var(--gl);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);box-shadow:0 0 0 .5px var(--ring),inset 0 1px 0 var(--hl2);text-align:left}
 .vmore span{font-size:16px;font-weight:600}.vmore em{flex:1;min-width:0;font-style:normal;font-size:13px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
@@ -15730,14 +15731,14 @@ function rsets(w){
   return SC[w]={gi:gi,p:p,n:n};
 }
 /* ---------- writing voice (saved per song) ---------- */
-var PDEF={genre:'Any',mood:'Any',voice:'Neutral',dial:'',era:'Any',pov:'Any',tense:'Any',img:[],dev:[],reg:'Conversational',strict:true,cliche:false,refs:'',custom:''};
+var PDEF={genre:'Any',mood:'Any',voice:'Neutral',dial:'',era:'Any',pov:'Any',tense:'Any',img:[],dev:[],tags:[],reg:'Conversational',strict:true,cliche:false,refs:'',custom:''};
 function pgGet(){try{return JSON.parse(localStorage.getItem('songpad:prefs'))||{}}catch(e){return{}}}
 function mkPF(o){var p=JSON.parse(JSON.stringify(PDEF));o=o||{};Object.keys(o).forEach(function(k){if(k in PDEF)p[k]=o[k]});if(o.style&&!o.genre&&o.style!=='Any')p.genre=o.style;return p}
 var PF=mkPF(pgGet()),MC={};
 function savePF(){if(cur){cur.pf=JSON.parse(JSON.stringify(PF));cur.updated=Date.now();save()}try{localStorage.setItem('songpad:prefs',JSON.stringify(PF))}catch(e){}LSK=null;MC={};gearDot()}
 /* "touched" = the writer has set at least one of these away from its default. Both the gear
    dot and the auto-learned-voice gate below key off this one check so they never disagree. */
-function pfTouched(){return['genre','mood','dial','era','pov','tense','img','dev','refs','custom'].some(function(k){return JSON.stringify(PF[k])!==JSON.stringify(PDEF[k])})}
+function pfTouched(){return['genre','mood','dial','era','pov','tense','img','dev','tags','refs','custom'].some(function(k){return JSON.stringify(PF[k])!==JSON.stringify(PDEF[k])})}
 function gearDot(){$('#gear').classList.toggle('dot',pfTouched())}
 function fl(a){return a.filter(function(x){var f=W[x]&&W[x].f;return!f||(f==='c'&&PF.reg!=='Poetic')||(f==='s'&&(PF.reg==='Slang'||PF.reg==='Explicit'))})}
 /* ---------- learned voice: only while the writer hasn't touched Writing Voice themselves ----------
@@ -15791,7 +15792,7 @@ function learnedVoice(){
      set themselves, and only suppresses the one dimension an explicit choice actually covers
      (POV, imagery) — still never arguing with an explicit choice, just no longer throwing out
      everything else along with it. */
-  var suppressPov=PF.pov!=='Any',suppressImg=PF.img.length>0;
+  var suppressPov=PF.pov!=='Any',suppressImg=PF.img.length>0||(PF.tags||[]).length>0;
   var sig=songsSig()+'|'+suppressPov+'|'+suppressImg;
   if(LVC.sig!==sig){
     LVC.sig=sig;
@@ -15859,15 +15860,15 @@ function pfx(){var p=PF,a=[];
   if(p.era!=='Any')a.push(p.era==='Timeless'?'Era: timeless, avoid dated references.':'Era: write as if it were the '+p.era+' (or right '+p.era.toLowerCase()+'), with period-true references and slang.');
   if(p.pov!=='Any')a.push('Point of view: '+{I:'first person (I)',You:'second person, addressing "you"',We:'first person plural (we)',Story:'third-person storytelling'}[p.pov]+'.');
   if(p.tense!=='Any')a.push('Tense: '+p.tense.toLowerCase()+'.');
-  if(p.img.length)a.push('Draw imagery from: '+p.img.join(', ').toLowerCase()+'.');
-  if(p.dev.length)a.push('Techniques to use: '+p.dev.join(', ').toLowerCase()+'.');
+  var themes=(p.tags||[]).concat(p.img.map(imgLabel));
+  if(themes.length)a.push('Themes and key words the writer wants in this song: '+themes.join(', ')+'. Lean toward them and their world when choosing images and words, but only where one fits naturally: never force one into a line, and don\'t cram several into the same line.');
   a.push('Language: '+{Poetic:'poetic and imagistic, with metaphor and no slang',Conversational:'natural everyday speech, contractions welcome',Slang:'casual and slangy like real speech, never forced',Explicit:'raw and uncensored, with profanity where it lands naturally'}[p.reg]+'.');
   /* Always on, independent of the Clichés setting below — that toggle is specifically about stock
      rhyme pairs and worn-out phrases a songwriter would recognize as lazy writing. This is about a
      different, narrower thing: the surface tics that make text read as obviously AI-written even
      when the content itself is fine — so it applies whether or not clichés are allowed. */
   a.push('Write like a person drafting by hand, not an AI assistant: skip the tidy "it\'s not X, it\'s Y" contrast, stock openers like "in the silence/stillness" or "let me take you back", em-dash asides, and a neatly uplifting resolution by default. Let a line stay plain, unresolved, or a little rough rather than polishing every single one.');
-  if(p.cliche)a.push('Avoid clichés and stock rhyme pairs (fire/desire, heart/apart, eyes/skies, rain/pain, love/above) and stock phrases.');
+  a.push('Avoid clichés, stock phrases and stock rhyme pairs (fire/desire, heart/apart, eyes/skies, rain/pain, love/above).');
   if(p.refs.trim())a.push('Influences, for tone only: '+p.refs.trim()+'. Never quote or closely paraphrase existing lyrics.');
   if(p.custom.trim())a.push('Extra direction from the writer: '+p.custom.trim());
   return' '+a.join(' ')+learnedVoice()+learnedLinePref();
@@ -15896,7 +15897,10 @@ var SG_MAIN=[
 var SG_MORE=[
  ['Point of view','pov',[['Any','Any'],['I','I'],['You','You'],['We','We'],['Story','They']],'seg'],
  ['Tense','tense',['Any','Present','Past'],'seg'],
- ['Imagery','img',[
+ ['Rhymes','strict',[['Perfect and near',false],['Perfect only',true]],'seg'],
+ ['','refs','Influences','Artists or records for tone, e.g. Phoebe Bridgers'],
+ ['','custom','Anything else','e.g. short lines, no rhymes on “-ing”']];
+var VIMG=[
    ['City streets','city streets, skylines, subway platforms'],
    ['Small town','small-town main streets, porches, diners'],
    ['Suburbs','suburbs, cul-de-sacs, backyard pools'],
@@ -15913,26 +15917,18 @@ var SG_MORE=[
    ['Technology','phone screens, texts left on read, blue light at 2am'],
    ['Nostalgia objects','polaroids, mixtapes, old voicemails, handwriting'],
    ['Domestic','laundry, dishes, small routines, quiet arguments'],
-   ['Work','clocking in, tired hands, the grind']
- ],'multi'],
- ['Techniques','dev',[
-   ['Concrete detail','concrete, specific physical detail over vague abstraction'],
-   ['Metaphor','metaphor and extended imagery'],
-   ['Simile','simile, explicit like/as comparisons'],
-   ['Internal rhyme','internal rhyme within the line, not just at the end'],
-   ['Wordplay','wordplay, puns, double meanings'],
-   ['Repetition','repetition and refrain that builds'],
-   ['Dialogue','direct quoted dialogue'],
-   ['Second person','direct address to "you"'],
-   ['Specific names','specific real names, places and brands rather than generic ones'],
-   ['List structure','a list or catalog structure, naming several things in a row'],
-   ['Understatement','understatement, saying less than is felt'],
-   ['Callback','a callback line that returns changed by the end']
- ],'multi'],
- ['Rhymes','strict',[['Perfect and near',false],['Perfect only',true]],'seg'],
- ['Clichés','cliche',[['Allow',false],['Avoid',true]],'seg'],
- ['','refs','Influences','Artists or records for tone, e.g. Phoebe Bridgers'],
- ['','custom','Anything else','e.g. short lines, no rhymes on “-ing”']];
+   ['Work','clocking in, tired hands, the grind']];
+function imgLabel(d){for(var i=0;i<VIMG.length;i++)if(VIMG[i][1]===d)return VIMG[i][0];return d}
+var STARTER_THEMES=['Late nights','Leaving','Home','Small town','The city','Open road','The coast','Weather','Money','Faith','Phones and texts','Growing up','First love','Moving on','Family','Friends','Summer','Winter'];
+var TAG_SKIP={};'know want said gonna wanna gotta got get all out down one now here been back never ever every some more only into over still too again yeah ooh really think chorus verse bridge intro outro pre about always maybe make made take come going thing things around through because cause without even much well tell need tonight baby'.split(' ').forEach(function(w){TAG_SKIP[w]=1});
+/* words from the song worth offering as tags: repeated or in the title, not filler, most used first; then starter themes */
+function suggestedTags(have){var low={};have.forEach(function(t){low[t.toLowerCase()]=1});
+  function words(t){return(t||'').toLowerCase().replace(/’/g,"'").split(/[^a-z']+/).map(function(w){return w.replace(/'/g,'')}).filter(function(w){return w.length>=4&&!STOP[w]&&!TAG_SKIP[w]})}
+  var body=(cur&&cur.lyrics||'').split('\n').filter(function(l){return l.trim()[0]!=='['}).join('\n'),cnt={},first={};
+  words(body).forEach(function(w,i){cnt[w]=(cnt[w]||0)+1;if(!(w in first))first[w]=i});
+  words(cur&&cur.title).forEach(function(w){cnt[w]=(cnt[w]||0)+2;if(!(w in first))first[w]=-1});
+  var mine=Object.keys(cnt).filter(function(w){return cnt[w]>=2&&!low[w]}).sort(function(a,b){return cnt[b]-cnt[a]||first[a]-first[b]}).slice(0,6);
+  return mine.concat(STARTER_THEMES.filter(function(t){return!low[t.toLowerCase()]})).slice(0,14)}
 var moreOpen=false;
 function voiceSummary(){var p=PF,a=[];if(p.genre!=='Any')a.push(p.genre);if(p.mood!=='Any')a.push(p.mood);a.push(p.reg);if(p.dial.trim())a.push(p.dial.trim());return a.join(' · ')}
 function moreCount(){return SG_MORE.filter(function(g){return JSON.stringify(PF[g[1]])!==JSON.stringify(PDEF[g[1]])}).length}
@@ -15940,7 +15936,19 @@ function buildSettings(){
   var o=$('#opts'),sc=$('#sheet2').scrollTop;o.innerHTML='';
   var sum=document.createElement('div');sum.className='vsum';sum.innerHTML='<span></span><button class="vreset">Reset</button>';sum.firstChild.textContent=voiceSummary();
   sum.lastChild.onclick=function(){PF=mkPF({});savePF();buildSettings();rhyme()};o.appendChild(sum);
-  function refreshHeader(){sum.firstChild.textContent=voiceSummary();if(mb)mb.querySelector('em').textContent=moreCount()?moreCount()+' set':'Point of view, tense, imagery and more'}
+  function refreshHeader(){sum.firstChild.textContent=voiceSummary();if(mb)mb.querySelector('em').textContent=moreCount()?moreCount()+' set':'Point of view, tense, rhymes, influences'}
+  /* imagery picks from before themes existed become themes, so nothing set is hidden */
+  if(!PF.tags)PF.tags=[];if(PF.img.length){PF.img.map(imgLabel).forEach(function(l){if(PF.tags.indexOf(l)<0)PF.tags.push(l)});PF.img=[];savePF()}
+  /* themes and key words: tap to add, type your own, tap a tag to remove it */
+  var tl=document.createElement('div');tl.className='lab';tl.textContent='Themes and key words';o.appendChild(tl);
+  if(PF.tags.length){var tw=document.createElement('div');tw.className='opts vtags';PF.tags.forEach(function(t){var b=document.createElement('button');b.className='r f';b.setAttribute('aria-label','Remove '+t);b.innerHTML='<span></span><svg width="9" height="9" viewBox="0 0 10 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 2l6 6M8 2l-6 6"/></svg>';b.firstChild.textContent=t;
+    b.onclick=function(){PF.tags=PF.tags.filter(function(x){return x!==t});savePF();buildSettings();rhyme()};tw.appendChild(b)});o.appendChild(tw)}
+  var tf=document.createElement('div');tf.className='gf tf';var ti=document.createElement('input');ti.id='pf-tag';ti.placeholder='Add a theme or word';ti.setAttribute('enterkeyhint','done');ti.autocomplete='off';
+  function addTag(x){x=String(x||'').trim().slice(0,40);if(!x||PF.tags.some(function(t){return t.toLowerCase()===x.toLowerCase()}))return false;PF.tags.push(x);if(PF.tags.length>12)PF.tags.shift();savePF();rhyme();return true}
+  ti.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();if(addTag(ti.value)){buildSettings();var n=$('#pf-tag');if(n)n.focus()}else ti.value=''}};
+  tf.appendChild(ti);o.appendChild(tf);
+  var sg=suggestedTags(PF.tags);if(sg.length){var sw=document.createElement('div');sw.className='vrow vsug';sg.forEach(function(t){var b=document.createElement('button');b.className='r';b.innerHTML='<svg width="10" height="10" viewBox="0 0 10 10" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M5 1.5v7M1.5 5h7"/></svg><span></span>';b.lastChild.textContent=t;b.onclick=function(){if(addTag(t))buildSettings()};sw.appendChild(b)});o.appendChild(sw)}
+  var tn=document.createElement('div');tn.className='note vtnote';tn.textContent='Lines and rhymes lean toward these where they fit.';o.appendChild(tn);
   function field(g,box){var l=document.createElement('div');l.className='lab';box.appendChild(l);
     if(!g[0]){l.textContent=g[2];var w=document.createElement('div');w.className='gf tf';var inp=document.createElement('input');inp.id='pf-'+g[1];inp.placeholder=g[3];inp.value=PF[g[1]];inp.oninput=function(){PF[g[1]]=inp.value;refreshHeader();clearTimeout(inp._t);inp._t=setTimeout(savePF,300)};w.appendChild(inp);box.appendChild(w);return}
     l.textContent=g[0];var kind=g[3],w2=document.createElement('div');w2.className=kind==='seg'?'seg vseg':kind==='row'?'vrow':'opts';box.appendChild(w2);
@@ -15955,8 +15963,8 @@ function buildSettings(){
     if(kind==='row'){var on=w2.querySelector('.f');if(on)setTimeout(function(){on.scrollIntoView({block:'nearest',inline:'center'})},0)}}
   SG_MAIN.forEach(function(g){field(g,o)});
   var n=moreCount(),mb=document.createElement('button');mb.className='vmore'+(moreOpen?' open':'');mb.setAttribute('aria-expanded',moreOpen);
-  mb.innerHTML='<span>Fine-tune</span><em></em><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l4 4 4-4"/></svg>';
-  mb.querySelector('em').textContent=n?n+' set':'Point of view, tense, imagery and more';mb.onclick=function(){moreOpen=!moreOpen;buildSettings()};o.appendChild(mb);
+  mb.innerHTML='<span>More</span><em></em><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l4 4 4-4"/></svg>';
+  mb.querySelector('em').textContent=n?n+' set':'Point of view, tense, rhymes, influences';mb.onclick=function(){moreOpen=!moreOpen;buildSettings()};o.appendChild(mb);
   if(moreOpen){var box=document.createElement('div');box.className='vbox';o.appendChild(box);SG_MORE.forEach(function(g){field(g,box)})}
   var vl=document.createElement('div');vl.className='lab';vl.textContent='How the muse sees your writing';o.appendChild(vl);
   var vp=document.createElement('div');vp.className='gf vprof';o.appendChild(vp);
