@@ -29,6 +29,7 @@ final class LinesModel {
         var judged = false
         var best: Double = 0
         var used = false
+        var read = ""         // the thread the AI is following, shown above the lines
     }
 
     private(set) var cache: [String: Entry] = [:]
@@ -52,6 +53,7 @@ final class LinesModel {
         var range = NSRange(location: 0, length: 0)
         var src = ""
         var rewrite: NSRange?
+        var prev = ""         // the line the new one follows on from
     }
 
     func run(_ o: Request, again: Bool, env: PromptEnv) {
@@ -96,11 +98,16 @@ final class LinesModel {
         prompt += "\n\n"
         prompt += o.task
         prompt += "\n\n" + rule
-        prompt += "\n\nBefore writing, work out what the section is saying, who is speaking to whom, and what the next line needs to do (land the feeling, add a detail, turn the thought, set up the next line)."
-        prompt += "\n\nWrite 12 lines, 3 for each of these approaches:\n- image: one concrete, specific picture (an object, a place, a small physical detail) that carries the feeling without naming it.\n- move: an action or a moment, something someone does or says.\n- twist: turns the thought, a contrast, an admission or a line that reframes what came before.\n- plain: says it straight, in plain words the way a person would actually talk; simple and true, not clever."
+        let prev = o.prev.trimmingCharacters(in: .whitespaces)
+        if !prev.isEmpty {
+            prompt += "\n\nThe line right before the new one: \"" + prev + "\"\nRead it like a co-writer before writing anything. What is it saying, and what does it leave hanging? A line like \"so i'd rather sleep alone\" raises questions: rather than what? why? since when? who isn't there anymore? Work out the thread the writer is most likely pulling (the reason, the alternative, the person, what happens next) and have the new line pick it up, so the two lines read as one thought. Then match that line's voice exactly: same person (I, you, we) and tense, the same plainness or poetry, its contractions, slang and capitalisation, and a similar sentence shape."
+        } else {
+            prompt += "\n\nBefore writing, work out what the section is saying, who is speaking to whom, and what the next line needs to do (land the feeling, add a detail, turn the thought, set up the next line)."
+        }
+        prompt += "\n\nWrite 12 lines, 3 for each of these approaches. Every line follows the same thread; the approach is only the way in:\n- image: one concrete, specific picture (an object, a place, a small physical detail) that carries the feeling without naming it.\n- move: an action or a moment, something someone does or says.\n- twist: turns the thought, a contrast, an admission or a line that reframes what came before.\n- plain: says it straight, in plain words the way a person would actually talk; simple and true, not clever."
         prompt += "\n\nRules for every line:\n- It must make sense as a sentence and follow on from the line before. Sense comes before rhyme: never bend word order or pick a word just to hit the rhyme.\n- Match the tone, vocabulary and imagery of the section, so it sounds like the same writer.\n- About \(o.n) syllables (within 2), natural to sing.\n- No filler or padding (\"oh\", \"yeah\", \"baby\", \"tonight\", \"I know\", \"you see\" tacked on), no clichés (\"heart of gold\", \"tears like rain\", \"set me free\"), no greeting-card abstractions (soul, destiny, forever) unless the song already uses them.\n- Use at least 6 different end words across the 12 lines.\n- Never repeat, reword or echo a line already in the song; only the end sound should match the line it rhymes with.\n- Just the lyric line: no quotes, notes or the rhyme word in brackets."
         prompt += skip
-        prompt += "\n\nReturn ONLY JSON, best line first: [{\"line\":\"...\",\"angle\":\"image\"}, ...]"
+        prompt += "\n\nReturn ONLY JSON: {\"read\": \"the thread the next line picks up, under 10 words, in plain words (e.g. why she'd rather sleep alone)\", \"lines\": [{\"line\":\"...\",\"angle\":\"image\"}, ...]} with the best line first."
         do {
             let r = try await AIService.shared.json(prompt, tier: "write")
             var seen = Set<String>()
@@ -110,6 +117,7 @@ final class LinesModel {
                 if let t = x["line"]?.string { return (t, x["angle"]?.string?.lowercased() ?? "") }
                 return nil
             }
+            let read = (r["read"]?.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
             var l: [Option] = raw.enumerated().map { (i, x) in
                 let line = Self.deparen(x.0, lw: o.lw)
                 let w = RhymeEngine.normalise(RhymeContext.lastWord(line))
@@ -120,14 +128,14 @@ final class LinesModel {
             }.filter { !$0.line.isEmpty && seen.insert($0.line).inserted }
             l.sort { $0.sc < $1.sc }
             l = Prompts.filter(l, text: env.text, min: 6) { $0.line }
-            guard l.count >= 4 else { finish(o, l, judged: false); return }
+            guard l.count >= 4 else { finish(o, l, judged: false, read: read); return }
             cache[o.key]?.judging = true
             let top = Array(l.prefix(14))
             if let js = await Prompts.judge(top.map(\.line), env: env, section: o.section, what: String(o.task.prefix(600))) {
                 let ranked = top.enumerated().map { (i, x) in (x, (js[i] ?? 0) - x.sc * 0.55) }.sorted { $0.1 > $1.1 }.map(\.0)
-                finish(o, ranked, judged: true)
+                finish(o, ranked, judged: true, read: read)
             } else {
-                finish(o, l, judged: false)
+                finish(o, l, judged: false, read: read)
             }
         } catch {
             var off = false
@@ -136,7 +144,7 @@ final class LinesModel {
         }
     }
 
-    private func finish(_ o: Request, _ list: [Option], judged: Bool) {
+    private func finish(_ o: Request, _ list: [Option], judged: Bool, read: String = "") {
         // keep the order, but no more than two lines landing on the same end word
         var ends: [String: Int] = [:], out: [Option] = [], rest: [Option] = []
         for x in list {
@@ -147,7 +155,7 @@ final class LinesModel {
         if out.isEmpty {
             cache[o.key] = Entry(err: "No lines came back. Try again.", kind: o.kind, range: o.range, src: o.src)
         } else {
-            cache[o.key] = Entry(list: out, kind: o.kind, range: o.range, src: o.src, judged: judged, best: out.map(\.sc).min() ?? 0)
+            cache[o.key] = Entry(list: out, kind: o.kind, range: o.range, src: o.src, judged: judged, best: out.map(\.sc).min() ?? 0, read: o.kind == "line" || o.kind == "next" ? String(read.prefix(90)) : "")
         }
     }
 
@@ -220,12 +228,13 @@ struct LinesPanel: View {
         let t = context.partner
         let before = bridge.caretLine()?.before.trimmingCharacters(in: .whitespaces) ?? ""
         let n = !t.isEmpty ? RhymeEngine.shared.lineSyllables(t) : (context.stanza.last.map { RhymeEngine.shared.lineSyllables($0) } ?? 0)
+        let prev = context.stanza.last ?? ""
         let task = "You are writing line \(position + 1) of this stanza (rhyme scheme \(context.scheme))."
             + (!t.isEmpty ? " It should rhyme with line \(context.partnerIndex + 1): \"" + t + "\"." : " It starts a new rhyme, so end on a common word that is easy to rhyme.")
             + (before.isEmpty ? "" : " The line must begin with: \"" + before + "\".")
         Haptics.tap()
         model.run(.init(key: keyFor(), kind: "line", n: n > 0 ? n : 8, lw: t.isEmpty ? "" : RhymeContext.lastWord(t), keep: false, task: task,
-                        at: context.lineRange.location, section: context.stanza), again: again, env: e)
+                        at: context.lineRange.location, section: context.stanza, prev: prev), again: again, env: e)
     }
 
     // MARK: with a selection
@@ -279,13 +288,14 @@ struct LinesPanel: View {
         }
         let range = NSRange(location: a, length: b - a)
         model.run(.init(key: selKey(kind, sel), kind: kind, n: RhymeEngine.shared.lineSyllables(sel), lw: lw, keep: kind == "rw" || kind == "tighten", task: task,
-                        at: le, section: context.stanza, range: range, src: ns.substring(with: range), rewrite: kind == "next" ? nil : range),
+                        at: le, section: context.stanza, range: range, src: ns.substring(with: range), rewrite: kind == "next" ? nil : range, prev: kind == "next" ? line : ""),
                   again: again, env: e)
     }
 
     // MARK: pieces
 
     @ViewBuilder private func results(_ e: LinesModel.Entry, key: String, apply: @escaping (LinesModel.Option) -> Void) -> some View {
+        if !e.read.isEmpty { hint("Following: " + e.read) }
         if e.best > 0 && !e.judged { hint("No exact match this time. Closest fits first.") }
         // a native list so a suggestion can be swiped away (full width, no ✕)
         List {
