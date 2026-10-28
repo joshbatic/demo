@@ -248,7 +248,9 @@ final class MuseMemory {
         let n = outcomes(), lines = Prompts.catalog(library.songs).count
         guard lines >= 16 else { return }
         let p = profile
-        if p == nil || (p?.text ?? "").isEmpty || n - (p?.n ?? 0) >= 25 || (Clock.nowMs - (p?.at ?? 0) > 14 * 864e5 && n > (p?.n ?? 0)) {
+        // profiles from before they were shortened get redone
+        let long = (p?.text.split(separator: " ").count ?? 0) > 110
+        if p == nil || (p?.text ?? "").isEmpty || long || n - (p?.n ?? 0) >= 25 || (Clock.nowMs - (p?.at ?? 0) > 14 * 864e5 && n > (p?.n ?? 0)) {
             Task { await buildProfile(manual: false) }
         }
     }
@@ -281,8 +283,8 @@ final class MuseMemory {
         if !mc.isEmpty { pr += "\n\nLines of theirs a critic questioned that they defended as deliberate (strong evidence of their habits):\n" + mc.map { Prompts.q($0.q) + ($0.why.isEmpty ? "" : " (" + $0.why + ")") }.joined(separator: "\n") }
         let rr = Prompts.rateReads(4, skip: nil, songs: library.songs)
         if !rr.isEmpty { pr += "\n\nHow a critic who read their songs described their writing (secondary evidence; trust the lyrics over it):\n" + rr.map { "- " + $0 }.joined(separator: "\n") }
-        pr += "\n\nWrite a voice profile of 120 to 200 words as direct instructions to someone writing lines for them (\"Uses...\", \"Never...\"). Cover: what kind of concrete details and nouns they reach for; how literal or oblique they are; vocabulary and register (slang, swearing, plainness); line length and rhythm; how they rhyme (perfect, slant, internal, or loose); point of view and who they talk to; recurring themes; and what they clearly avoid. Be specific to THIS writer and quote short fragments of their own words as evidence. No praise, no generic advice that would fit any songwriter. Return JSON: {\"profile\":\"...\"}"
-        if pr.count > 20000 { pr = String(pr.prefix(19000)) + "\n\nWrite a voice profile of 120 to 200 words as direct instructions. Return JSON: {\"profile\":\"...\"}" }
+        pr += "\n\n" + Self.profileAsk
+        if pr.count > 20000 { pr = String(pr.prefix(19000)) + "\n\n" + Self.profileAsk }
         guard let r = try? await AIService.shared.json(pr, complex: true, ask: manual), uid == forUid else { return nil }
         let t = (r["profile"]?.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         guard !t.isEmpty else { return nil }
@@ -291,6 +293,8 @@ final class MuseMemory {
         storeProfile(push: true)
         return t
     }
+
+    static let profileAsk = "Sum up how they write in 40 to 70 words: 3 to 5 short, plain sentences written as instructions to someone writing lines for them (\"Uses...\", \"Never...\"). Only the most distinctive things: the details and words they reach for, how plain or poetic they are, how they rhyme, who they sing to, and what they avoid. Specific to THIS writer, no praise, nothing that would fit any songwriter. Return JSON: {\"profile\":\"...\"}"
 
     /// The writer edited the profile by hand: it's kept until they tap Relearn.
     func editProfile(_ text: String) {
@@ -385,11 +389,6 @@ enum Prompts {
         if s("mood") != "Any" && !s("mood").isEmpty { a.append("Mood: " + s("mood").lowercased() + ".") }
         let dial = s("dial").trimmingCharacters(in: .whitespaces)
         if !dial.isEmpty { a.append("Write specifically in this voice: " + dial + ". Use its real vocabulary, idioms and spelling naturally, never as caricature.") }
-        let era = s("era")
-        if era != "Any" && !era.isEmpty { a.append(era == "Timeless" ? "Era: timeless, avoid dated references." : "Era: write as if it were the " + era + " (or right " + era.lowercased() + "), with period-true references and slang.") }
-        let povs = ["I": "first person (I)", "You": "second person, addressing \"you\"", "We": "first person plural (we)", "Story": "third-person storytelling"]
-        if let pv = povs[s("pov")] { a.append("Point of view: " + pv + ".") }
-        if s("tense") != "Any" && !s("tense").isEmpty { a.append("Tense: " + s("tense").lowercased() + ".") }
         let themes = arr("tags") + arr("img").map { d in WritingVoice.imagery.first { $0.1 == d }?.0 ?? d }
         if !themes.isEmpty { a.append("Themes and key words the writer wants in this song: " + themes.joined(separator: ", ") + ". Lean toward them and their world when choosing images and words, but only where one fits naturally: never force one into a line, and don't cram several into the same line.") }
         let regs = ["Poetic": "poetic and imagistic, with metaphor and no slang", "Conversational": "natural everyday speech, contractions welcome",
@@ -397,17 +396,13 @@ enum Prompts {
         a.append("Language: " + (regs[s("reg")] ?? regs["Conversational"]!) + ".")
         a.append("Write like a person drafting by hand, not an AI assistant: skip the tidy \"it's not X, it's Y\" contrast, stock openers like \"in the silence/stillness\" or \"let me take you back\", em-dash asides, and a neatly uplifting resolution by default. Let a line stay plain, unresolved, or a little rough rather than polishing every single one.")
         a.append("Avoid clichés, stock phrases and stock rhyme pairs (fire/desire, heart/apart, eyes/skies, rain/pain, love/above).")
-        let refs = s("refs").trimmingCharacters(in: .whitespaces)
-        if !refs.isEmpty { a.append("Influences, for tone only: " + refs + ". Never quote or closely paraphrase existing lyrics.") }
-        let custom = s("custom").trimmingCharacters(in: .whitespaces)
-        if !custom.isEmpty { a.append("Extra direction from the writer: " + custom) }
         return " " + a.joined(separator: " ") + learnedVoice(env) + learnedLinePref(env)
     }
 
     /// Learns from the writer's own songs, only on dimensions they haven't set themselves.
     static func learnedVoice(_ env: PromptEnv) -> String {
         let p = env.song.voice
-        let suppressPov = (p["pov"]?.string ?? "Any") != "Any"
+        let suppressPov = false
         let suppressImg = !(p["img"]?.array ?? []).isEmpty || !(p["tags"]?.array ?? []).isEmpty
         let fp = fingerprint(env.songs, suppressPov: suppressPov, suppressImg: suppressImg)
         let hooks = hookLines(env.songs)

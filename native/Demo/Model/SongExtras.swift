@@ -99,7 +99,7 @@ nonisolated extension WritingVoice {
     }
 
     /// The fields that light the gear's dot when they differ from the defaults (pfTouched).
-    static let touchedKeys = ["genre", "mood", "dial", "era", "pov", "tense", "img", "dev", "tags", "refs", "custom"]
+    static let touchedKeys = ["genre", "mood", "dial", "img", "tags"]
     static func isTouched(_ p: [String: JSONValue]) -> Bool {
         touchedKeys.contains { CanonicalJSON.string(p[$0] ?? .null) != CanonicalJSON.string(defaults[$0] ?? .null) }
     }

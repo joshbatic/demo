@@ -6,7 +6,6 @@ struct VoiceSheet: View {
     let songID: String
     @Environment(\.library) private var library
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("voice.more") private var moreOpen = false
     @Environment(\.appSession) private var session
     @State private var profileDraft: String?
     @State private var profileSave: Task<Void, Never>?
@@ -35,20 +34,9 @@ struct VoiceSheet: View {
                     .pickerStyle(.segmented).listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets())
                 }
-                Section("Who’s singing") {
-                    TextField("e.g. 1970s Glasgow shipyard worker, Melbourne skater kid", text: stringBinding("dial"), axis: .vertical)
-                }
                 Section {
-                    DisclosureGroup(isExpanded: $moreOpen) {
-                        fineTune
-                    } label: {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("More")
-                            Text(moreCount > 0 ? "\(moreCount) set" : "Point of view, tense, rhymes, influences")
-                                .font(.footnote).foregroundStyle(.secondary)
-                        }
-                    }
-                } footer: {
+                    TextField("e.g. 1970s Glasgow shipyard worker, Melbourne skater kid", text: stringBinding("dial"), axis: .vertical)
+                } header: { Text("Who’s singing") } footer: {
                     Text("Saved with this song. Shapes the lines and words suggested for it.")
                 }
                 museProfile
@@ -141,15 +129,15 @@ struct VoiceSheet: View {
         Section {
             if let p = mz.profile, !p.text.isEmpty {
                 TextField("", text: Binding(get: { profileDraft ?? p.text }, set: { profileDraft = $0 }), axis: .vertical)
-                    .lineLimit(4...18)
+                    .lineLimit(2...6)
                     .onChange(of: profileDraft) { _, v in
                         guard let v else { return }
                         profileSave?.cancel()
                         profileSave = Task { try? await Task.sleep(for: .milliseconds(600)); if !Task.isCancelled { mz.editProfile(v) } }
                     }
             } else {
-                Text(lines < 16 ? "Write a few songs and the muse will describe your style here, then use it for every suggestion."
-                                : "Not learned yet. Tap Learn My Voice, or it will happen on its own as you write.")
+                Text(lines < 16 ? "Write a few songs and the muse will sum up your style here."
+                                : "Not learned yet.")
                     .foregroundStyle(.secondary)
             }
             Button(mz.profile?.text.isEmpty == false ? "Relearn" : "Learn My Voice") {
@@ -161,44 +149,10 @@ struct VoiceSheet: View {
                 }
             }
             .disabled(mz.building || lines < 8)
-        } header: { Text("How the muse sees your writing") } footer: {
+        } header: { Text("Your style") } footer: {
             if mz.building { Text("Learning from your songs…") }
-            else if mz.profile?.edited == true { Text("Your edits are kept. Relearn replaces them.") }
-            else if mz.profile != nil { Text("Learned from your songs and what you keep, rewrite and skip. Edit it if it’s off.") }
+            else if mz.profile != nil { Text("Learned from your songs. Edit it if it’s off.") }
         }
-    }
-
-    @ViewBuilder private var fineTune: some View {
-        labeled("Point of view") {
-            Picker("Point of view", selection: stringBinding("pov")) {
-                ForEach(WritingVoice.povs, id: \.1) { Text($0.0).tag($0.1) }
-            }.pickerStyle(.segmented)
-        }
-        labeled("Tense") {
-            Picker("Tense", selection: stringBinding("tense")) {
-                ForEach(WritingVoice.tenses, id: \.self) { Text($0).tag($0) }
-            }.pickerStyle(.segmented)
-        }
-        labeled("Rhymes") {
-            Picker("Rhymes", selection: boolBinding("strict")) {
-                Text("Perfect and near").tag(false)
-                Text("Perfect only").tag(true)
-            }.pickerStyle(.segmented)
-        }
-        labeled("Influences") {
-            TextField("Artists or records for tone, e.g. Phoebe Bridgers", text: stringBinding("refs"), axis: .vertical)
-        }
-        labeled("Anything else") {
-            TextField("e.g. short lines, no rhymes on “-ing”", text: stringBinding("custom"), axis: .vertical)
-        }
-    }
-
-    private func labeled<C: View>(_ title: String, @ViewBuilder _ c: () -> C) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
-            c()
-        }
-        .padding(.vertical, 4)
     }
 
     // MARK: chips
@@ -244,16 +198,8 @@ struct VoiceSheet: View {
         return a.joined(separator: " · ")
     }
 
-    private var moreCount: Int {
-        WritingVoice.fineTuneKeys.filter { CanonicalJSON.string(pf[$0] ?? .null) != CanonicalJSON.string(WritingVoice.defaults[$0] ?? .null) }.count
-    }
-
     private func stringBinding(_ k: String) -> Binding<String> {
         Binding(get: { pf[k]?.string ?? "" }, set: { set(k, .string($0)) })
-    }
-
-    private func boolBinding(_ k: String) -> Binding<Bool> {
-        Binding(get: { pf[k]?.bool ?? false }, set: { Haptics.selection(); set(k, .bool($0)) })
     }
 
     private func set(_ k: String, _ v: JSONValue) {
