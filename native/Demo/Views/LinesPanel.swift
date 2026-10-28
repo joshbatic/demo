@@ -308,11 +308,11 @@ struct LinesPanel: View {
 
     // MARK: pieces
 
-    /// "What should it say?": the writer's rough idea, which every suggestion then turns into a line.
+    /// "What are you going for?": the writer's rough idea, which every suggestion then turns into a line.
     private func sayField(_ go: @escaping () -> Void) -> some View {
         HStack(spacing: 8) {
             Image(systemName: "text.bubble").font(.system(size: 15)).foregroundStyle(.secondary)
-            TextField("What should it say? e.g. by the beach but…", text: $sayDraft)
+            TextField("What are you going for? e.g. at the beach, missing her", text: $sayDraft)
                 .font(.system(size: 16))
                 .focused($sayFocus)
                 .submitLabel(.go)
