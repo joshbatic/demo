@@ -672,6 +672,7 @@ body.ios .sacctav{width:30px;height:30px}
 .vsum span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vreset{flex:none;font-size:14px;font-weight:500;color:var(--mute);padding:4px 10px;border-radius:99px}.vreset:hover{background:var(--fill);color:var(--ink)}
 .vrow{display:flex;gap:6px;overflow-x:auto;padding:0 20px 4px;scroll-padding:20px}.vrow .r{flex:none;height:36px;font-size:15px}
+.sayf{display:flex;flex:none;align-items:center;gap:8px;height:40px;margin:0;padding:0 10px 0 14px;border-radius:20px;background:var(--fill,rgba(120,120,128,.12));color:var(--mute)}.sayf input{flex:1;min-width:0;border:0;background:none;font:inherit;font-size:16px;color:var(--ink,inherit);outline:none;padding:0}.sayx{border:0;background:none;padding:2px;color:var(--mute);opacity:.6;display:flex}.sayx[hidden]{display:none}
 .vtags .r,.vsug .r{display:inline-flex;align-items:center;gap:6px}.vtags .r svg{opacity:.75}.vsug{padding-top:10px}.vtnote{padding:6px 20px 4px}
 .vseg{margin:0 20px 4px!important}.vseg button{padding:7px 8px!important}
 .vmore{display:flex;align-items:center;gap:10px;width:calc(100% - 40px);margin:18px 20px 0;padding:14px 18px;border-radius:18px;background:var(--gl);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);box-shadow:0 0 0 .5px var(--ring),inset 0 1px 0 var(--hl2);text-align:left}
@@ -16772,9 +16773,10 @@ function lineView(c){
      "Tighten" on the same selection, or flipping Listen-to-whole-song and back, re-shows an
      already-fetched batch instantly instead of forcing a fresh AI call and losing the old one. */
   if(selT){
-    var g=getSel(),kN='S#next#'+selT+pfk(),kR='S#rw#'+selT+pfk(),kT='S#tighten#'+selT+pfk(),row=document.createElement('div');row.className='sch';
+    var sk=SAY?'#say:'+SAY:'',g=getSel(),kN='S#next#'+selT+pfk()+sk,kR='S#rw#'+selT+pfk()+sk,kT='S#tighten#'+selT+pfk()+sk,row=document.createElement('div');row.className='sch';
     [['Lines that rhyme',kN,'next'],['Rewrite selection',kR,'rw'],['Tighten',kT,'tighten']].forEach(function(x){var b=document.createElement('button');b.className='r'+(LSK===x[1]?' f':'');b.textContent=x[0];b.onmousedown=prevent;b.onclick=function(){selGen(selT,x[2],g.s,g.e,LSK===x[1],c.st)};row.appendChild(b)});
     rc.appendChild(row);
+    sayField(rc,function(){selGen(selT,LSK===kR?'rw':LSK===kT?'tighten':'next',g.s,g.e,false,c.st)});
     var active=(LSK===kN||LSK===kR||LSK===kT)?LSC[LSK]:null;
     if(active){
       if(active.busy)return hint(active.stage==='judge'?'Picking the best ones for you':LSK===kN?'Writing lines that rhyme with your selection':LSK===kT?'Tightening your selection':'Rewriting your selection',true);
@@ -16786,9 +16788,10 @@ function lineView(c){
     }
     return hint('Uses only what you selected: '+lsyl(selT)+' syllables, ending on “'+lastW(selT)+'”.');
   }
-  var key=(c.tl||'')+'#'+c.p+'#'+c.sch+pfk(),sr=document.createElement('div');sr.className='sch';
+  var key=(c.tl||'')+'#'+c.p+'#'+c.sch+pfk()+(SAY?'#say:'+SAY:''),sr=document.createElement('div');sr.className='sch';
   [['auto','Auto'],['ABAB','ABAB'],['AABB','AABB'],['ABBA','ABBA'],['ABCB','ABCB']].forEach(function(s){var b=document.createElement('button');b.className='r'+(scheme===s[0]?' f':'');b.textContent=s[1]+(s[0]==='auto'&&scheme==='auto'?' · '+c.sch:'');b.onmousedown=prevent;b.onclick=function(){scheme=s[0];if(cur){cur.scheme=s[0];save()}LSK=null;rhyme()};sr.appendChild(b)});
   rc.appendChild(sr);
+  sayField(rc,function(){suggest(c,false)});
   var st=LSC[key];
   if(st){
     LSK=key;
@@ -16802,13 +16805,13 @@ function lineView(c){
 }
 function suggest(c,again){
   var t=c.tl,part=c.cur.trim(),ml=melAt(c.ls);
-  runGen({k:(t||'')+'#'+c.p+'#'+c.sch+pfk(),kind:'line',n:ml?ml.n:t?lsyl(t):(lsyl(c.st[c.p-1]||'')||8),lw:t?nw(lastW(t)):'',again:again,
+  runGen({k:(t||'')+'#'+c.p+'#'+c.sch+pfk()+(SAY?'#say:'+SAY:''),say:SAY,kind:'line',n:ml?ml.n:t?lsyl(t):(lsyl(c.st[c.p-1]||'')||8),lw:t?nw(lastW(t)):'',again:again,
     at:c.ls,section:c.st,prev:c.p?c.st[c.p-1]||'':'',
     task:'You are writing line '+(c.p+1)+' of this stanza (rhyme scheme '+c.sch+').'+(t?' It should rhyme with line '+(c.ti+1)+': "'+t+'".':' It starts a new rhyme, so end on a common word that is easy to rhyme.')+(part?' The line must begin with: "'+part+'".':'')+(ml?' The melody for this line has '+ml.n+' syllables'+(ml.pat?', with this rhythm (CAPS are strong beats, ~ is a held note): '+ml.pat+'. Put naturally stressed syllables on the strong beats and open vowels on held notes.':'.'):'')});
 }
 function selGen(t,kind,a,b,again,section){
   var v=getText(),ls=v.lastIndexOf('\n',a-1)+1,le=v.indexOf('\n',b);if(le<0)le=v.length;var line=v.slice(ls,le),lw=lastW(t);
-  runGen({k:'S#'+kind+'#'+t+pfk(),kind:kind,n:lsyl(t),lw:nw(lw),keep:kind==='rw'||kind==='tighten',again:again,a:a,b:b,src:v.slice(a,b),
+  runGen({k:'S#'+kind+'#'+t+pfk()+(SAY?'#say:'+SAY:''),say:SAY,kind:kind,n:lsyl(t),lw:nw(lw),keep:kind==='rw'||kind==='tighten',again:again,a:a,b:b,src:v.slice(a,b),
     at:le,section:section,prev:kind==='next'?line:'',
     task:kind==='rw'?'Rewrite only this phrase: "'+t+'". It sits in the line: "'+line+'". Each option replaces just that phrase, so the full line must still read naturally. Keep roughly the same meaning and end on a word that rhymes with "'+lw+'" (keeping "'+lw+'" is allowed).':kind==='tighten'?'Rewrite only this phrase: "'+t+'". It sits in the line: "'+line+'". Each option replaces just that phrase with a noticeably shorter version — fewer syllables, same meaning, still ending on a word that rhymes with "'+lw+'" (keeping "'+lw+'" is allowed) — so the line sings tighter against the melody without losing what it says.':'Write a new line that rhymes with this phrase: "'+t+'". It will go right after the line: "'+line+'".'});
 }
@@ -17002,6 +17005,18 @@ function mzLineRow(host,o,apply,src,onGone){var w=document.createElement('div');
     var sk=document.createElement('button');sk.className='r';sk.textContent='Just Hide It';sk.onmousedown=prevent;sk.onclick=function(){mzReject(o.line,'',src);w.remove();if(onGone)onGone(o)};w.appendChild(sk)};
   w.appendChild(b);w.appendChild(x);host.appendChild(w);return w}
 
+/* the writer's own rough wording of what the line should say */
+function sayBrief(say){return'\n\nThe writer told you what they want this line to say, in their own rough words: "'+say.slice(0,300)+'"\nThat is the brief. Every line must say that, keeping any specific images, places or words they used, and only reshape it so it sings, scans and rhymes in this song\'s voice. Treat placeholders like "ra ra", "blah" or "something" as the part they haven\'t worked out yet, and fill it with something that fits. If you\'re rewriting a phrase, the new phrase should say this instead.'}
+/* "What should it say?": SAYD is what's typed, SAY what was sent (it's part of the cache key) */
+var SAY='',SAYD='';
+function sayField(rc,run){var w=document.createElement('div');w.className='sayf';
+  w.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/></svg><input id="sayin" placeholder="What should it say? e.g. by the beach but…" enterkeyhint="go" autocomplete="off"><button class="sayx" aria-label="Clear"><svg width="16" height="16" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="currentColor"/><path d="M7 7l6 6M13 7l-6 6" stroke="var(--bg,#fff)" stroke-width="1.8" stroke-linecap="round"/></svg></button>';
+  var i=w.querySelector('input'),x=w.querySelector('.sayx');i.value=SAYD;x.hidden=!SAYD&&!SAY;
+  i.oninput=function(){SAYD=i.value;x.hidden=!SAYD&&!SAY};
+  i.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();SAY=SAYD.trim();i.blur();run()}};
+  x.onmousedown=prevent;x.onclick=function(){SAY='';SAYD='';rhyme()};
+  rc.appendChild(w);if(sayField.focus){sayField.focus=0;i.focus();try{i.setSelectionRange(i.value.length,i.value.length)}catch(e){}}
+  i.onfocus=function(){sayField.focus=1};i.onblur=function(){setTimeout(function(){if(document.activeElement!==$('#sayin'))sayField.focus=0},0)}}
 function runGen(o){
   LSK=o.k;
   /* Cache hit: this exact generation (same rhyme target/section/voice/context state) was already
@@ -17022,11 +17037,11 @@ function runGen(o){
   rhymeSets(o.lw,function(S){
     var P=S.p.slice(0,40),Nr=PF.strict?[]:S.n.slice(0,16),ps={},ns={};P.forEach(function(x){ps[x]=1});Nr.forEach(function(x){ns[x]=1});if(o.keep&&o.lw)ps[o.lw]=1;
     var rule=o.lw?(P.length||Nr.length?'End words that rhyme with "'+o.lw+'" (pick the ones that serve what the line is saying; skip any that would sound forced): '+P.join(', ')+(Nr.length?'\nNear rhymes you may also use: '+Nr.join(', '):'')+'\nA strong word that isn\'t listed is fine if it rhymes to the ear.':'Rhyme with "'+o.lw+'" by ear.'):'No rhyme is required; end on a word that gives the next line somewhere to go.';
-    var prev=String(o.prev||'').trim();
+    var prev=String(o.prev||'').trim(),say=String(o.say||'').trim();
     var skip=GENHIST[o.k]&&GENHIST[o.k].length?'\n\nAlready suggested and passed over. Don\'t repeat or reword these, and take different routes (different image, end word and structure): '+GENHIST[o.k].map(function(x){return'"'+x+'"'}).join(' / '):'';
-    aiJson('You are a sharp, tasteful co-writer helping a songwriter find the next line. Your lines have to be good enough that they\'d actually keep one.'+pfx()+'\n\n'+songCtx(o)+museCtx(o.section)+'\n\n'+o.task+'\n\n'+rule+
+    aiJson('You are a sharp, tasteful co-writer helping a songwriter find the next line. Your lines have to be good enough that they\'d actually keep one.'+pfx()+'\n\n'+songCtx(o)+museCtx(o.section)+'\n\n'+o.task+'\n\n'+rule+(say?sayBrief(say):'')+
       (prev?'\n\nThe line right before the new one: "'+prev+'"\nRead it like a co-writer before writing anything. What is it saying, and what does it leave hanging? A line like "so i\'d rather sleep alone" raises questions: rather than what? why? since when? who isn\'t there anymore? Work out the thread the writer is most likely pulling (the reason, the alternative, the person, what happens next) and have the new line pick it up, so the two lines read as one thought. Then match that line\'s voice exactly: same person (I, you, we) and tense, the same plainness or poetry, its contractions, slang and capitalisation, and a similar sentence shape.':'\n\nBefore writing, work out what the section is saying, who is speaking to whom, and what the next line needs to do (land the feeling, add a detail, turn the thought, set up the next line).')+
-      '\n\nWrite 12 lines, 3 for each of these approaches. Every line follows the same thread; the approach is only the way in:\n- image: one concrete, specific picture (an object, a place, a small physical detail) that carries the feeling without naming it.\n- move: an action or a moment, something someone does or says.\n- twist: turns the thought, a contrast, an admission or a line that reframes what came before.\n- plain: says it straight, in plain words the way a person would actually talk; simple and true, not clever.'+
+      (say?'\n\nWrite 12 versions of the writer\'s idea, 3 for each of these approaches. Every one must still say what they asked for; the approach is only the way in:':'\n\nWrite 12 lines, 3 for each of these approaches. Every line follows the same thread; the approach is only the way in:')+'\n- image: one concrete, specific picture (an object, a place, a small physical detail) that carries the feeling without naming it.\n- move: an action or a moment, something someone does or says.\n- twist: turns the thought, a contrast, an admission or a line that reframes what came before.\n- plain: says it straight, in plain words the way a person would actually talk; simple and true, not clever.'+
       '\n\nRules for every line:\n- It must make sense as a sentence and follow on from the line before. Sense comes before rhyme: never bend word order or pick a word just to hit the rhyme.\n- Match the tone, vocabulary and imagery of the section, so it sounds like the same writer.\n- About '+o.n+' syllables (within 2), natural to sing.\n- No filler or padding ("oh", "yeah", "baby", "tonight", "I know", "you see" tacked on), no clichés ("heart of gold", "tears like rain", "set me free"), no greeting-card abstractions (soul, destiny, forever) unless the song already uses them.\n- Use at least 6 different end words across the 12 lines.\n- Never repeat, reword or echo a line already in the song; only the end sound should match the line it rhymes with.\n- Just the lyric line: no quotes, notes or the rhyme word in brackets.'+skip+
       '\n\nReturn ONLY JSON: {"read": "the thread the next line picks up, under 10 words, in plain words (e.g. why she\'d rather sleep alone)", "lines": [{"line":"...","angle":"image"}, ...]} with the best line first.',{cache:!o.again,modelTier:'write'}).then(function(r){
       /* Belt-and-braces: even with the prompt now telling it not to, the model occasionally still
@@ -17046,7 +17061,7 @@ function runGen(o){
         if(js)top.sort(function(a,b){return b.rk-a.rk});
         /* keep the order, but no more than two lines landing on the same end word */
         var ends={},keep=[],rest=[];(js?top:l).forEach(function(x){var w=nw(lastW(x.line));if((ends[w]||0)<2){ends[w]=(ends[w]||0)+1;keep.push(x)}else rest.push(x)});
-        var out=keep.concat(rest).slice(0,6);
+        var out=keep.concat(rest).slice(0,4);
         LSC[o.k]=out.length?{k:o.k,list:out,read:read,best:Math.min.apply(null,out.map(function(x){return x.sc})),kind:o.kind,a:o.a,b:o.b,src:o.src,judged:!!js}:{k:o.k,err:'No lines came back. Try again.'};rhyme();
         if(out.length&&document.body.classList.contains('kb')){var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'))ae.blur()}};
       if(l.length<4)return fin(null);

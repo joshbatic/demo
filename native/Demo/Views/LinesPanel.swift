@@ -54,6 +54,7 @@ final class LinesModel {
         var src = ""
         var rewrite: NSRange?
         var prev = ""         // the line the new one follows on from
+        var say = ""          // what the writer wants it to say, in their own words
     }
 
     func run(_ o: Request, again: Bool, env: PromptEnv) {
@@ -98,13 +99,16 @@ final class LinesModel {
         prompt += "\n\n"
         prompt += o.task
         prompt += "\n\n" + rule
+        let say = o.say.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !say.isEmpty { prompt += Self.sayBrief(say) }
         let prev = o.prev.trimmingCharacters(in: .whitespaces)
         if !prev.isEmpty {
             prompt += "\n\nThe line right before the new one: \"" + prev + "\"\nRead it like a co-writer before writing anything. What is it saying, and what does it leave hanging? A line like \"so i'd rather sleep alone\" raises questions: rather than what? why? since when? who isn't there anymore? Work out the thread the writer is most likely pulling (the reason, the alternative, the person, what happens next) and have the new line pick it up, so the two lines read as one thought. Then match that line's voice exactly: same person (I, you, we) and tense, the same plainness or poetry, its contractions, slang and capitalisation, and a similar sentence shape."
         } else {
             prompt += "\n\nBefore writing, work out what the section is saying, who is speaking to whom, and what the next line needs to do (land the feeling, add a detail, turn the thought, set up the next line)."
         }
-        prompt += "\n\nWrite 12 lines, 3 for each of these approaches. Every line follows the same thread; the approach is only the way in:\n- image: one concrete, specific picture (an object, a place, a small physical detail) that carries the feeling without naming it.\n- move: an action or a moment, something someone does or says.\n- twist: turns the thought, a contrast, an admission or a line that reframes what came before.\n- plain: says it straight, in plain words the way a person would actually talk; simple and true, not clever."
+        prompt += say.isEmpty ? "\n\nWrite 12 lines, 3 for each of these approaches. Every line follows the same thread; the approach is only the way in:" : "\n\nWrite 12 versions of the writer's idea, 3 for each of these approaches. Every one must still say what they asked for; the approach is only the way in:"
+        prompt += "\n- image: one concrete, specific picture (an object, a place, a small physical detail) that carries the feeling without naming it.\n- move: an action or a moment, something someone does or says.\n- twist: turns the thought, a contrast, an admission or a line that reframes what came before.\n- plain: says it straight, in plain words the way a person would actually talk; simple and true, not clever."
         prompt += "\n\nRules for every line:\n- It must make sense as a sentence and follow on from the line before. Sense comes before rhyme: never bend word order or pick a word just to hit the rhyme.\n- Match the tone, vocabulary and imagery of the section, so it sounds like the same writer.\n- About \(o.n) syllables (within 2), natural to sing.\n- No filler or padding (\"oh\", \"yeah\", \"baby\", \"tonight\", \"I know\", \"you see\" tacked on), no clichés (\"heart of gold\", \"tears like rain\", \"set me free\"), no greeting-card abstractions (soul, destiny, forever) unless the song already uses them.\n- Use at least 6 different end words across the 12 lines.\n- Never repeat, reword or echo a line already in the song; only the end sound should match the line it rhymes with.\n- Just the lyric line: no quotes, notes or the rhyme word in brackets."
         prompt += skip
         prompt += "\n\nReturn ONLY JSON: {\"read\": \"the thread the next line picks up, under 10 words, in plain words (e.g. why she'd rather sleep alone)\", \"lines\": [{\"line\":\"...\",\"angle\":\"image\"}, ...]} with the best line first."
@@ -151,12 +155,17 @@ final class LinesModel {
             let w = RhymeEngine.normalise(RhymeContext.lastWord(x.line))
             if ends[w, default: 0] < 2 { ends[w, default: 0] += 1; out.append(x) } else { rest.append(x) }
         }
-        out = Array((out + rest).prefix(6))
+        out = Array((out + rest).prefix(4))
         if out.isEmpty {
             cache[o.key] = Entry(err: "No lines came back. Try again.", kind: o.kind, range: o.range, src: o.src)
         } else {
             cache[o.key] = Entry(list: out, kind: o.kind, range: o.range, src: o.src, judged: judged, best: out.map(\.sc).min() ?? 0, read: o.kind == "line" || o.kind == "next" ? String(read.prefix(90)) : "")
         }
+    }
+
+    /// The writer's own rough wording of what the line should say.
+    static func sayBrief(_ say: String) -> String {
+        "\n\nThe writer told you what they want this line to say, in their own rough words: \"" + String(say.prefix(300)) + "\"\nThat is the brief. Every line must say that, keeping any specific images, places or words they used, and only reshape it so it sings, scans and rhymes in this song's voice. Treat placeholders like \"ra ra\", \"blah\" or \"something\" as the part they haven't worked out yet, and fill it with something that fits. If you're rewriting a phrase, the new phrase should say this instead."
     }
 
     /// Strips a trailing "(word)" that only repeats the line's own last word or the target word.
@@ -180,6 +189,9 @@ struct LinesPanel: View {
     var savedScheme: String
 
     @State private var whyFor: UUID?
+    @State private var sayDraft = ""
+    @State private var said = ""
+    @FocusState private var sayFocus: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -196,6 +208,7 @@ struct LinesPanel: View {
         let key = keyFor()
         chipRow([("auto", "Auto" + (savedScheme == "auto" ? " · " + context.scheme : "")), ("ABAB", "ABAB"), ("AABB", "AABB"), ("ABBA", "ABBA"), ("ABCB", "ABCB")],
                 on: savedScheme) { s in model.clear(); onScheme(s) }
+        sayField { write(again: false) }
         if let e = model.entry(key), model.current == key || model.current == nil {
             if e.busy { busyHint(e.judging ? "Picking the best ones for you" : "Writing line \(position + 1)") }
             else if let err = e.err {
@@ -220,7 +233,7 @@ struct LinesPanel: View {
 
     private func keyFor() -> String {
         guard let e = env() else { return "" }
-        return context.partner + "#\(position)#" + context.scheme + Prompts.pfk(e)
+        return context.partner + "#\(position)#" + context.scheme + Prompts.pfk(e) + (said.isEmpty ? "" : "#say:" + said)
     }
 
     private func write(again: Bool) {
@@ -234,7 +247,7 @@ struct LinesPanel: View {
             + (before.isEmpty ? "" : " The line must begin with: \"" + before + "\".")
         Haptics.tap()
         model.run(.init(key: keyFor(), kind: "line", n: n > 0 ? n : 8, lw: t.isEmpty ? "" : RhymeContext.lastWord(t), keep: false, task: task,
-                        at: context.lineRange.location, section: context.stanza, prev: prev), again: again, env: e)
+                        at: context.lineRange.location, section: context.stanza, prev: prev, say: said), again: again, env: e)
     }
 
     // MARK: with a selection
@@ -244,6 +257,7 @@ struct LinesPanel: View {
         let keys = Dictionary(uniqueKeysWithValues: kinds.map { ($0.0, selKey($0.0, sel)) })
         let activeKind = kinds.first { keys[$0.0] == model.current }?.0
         chipRow(kinds, on: activeKind ?? "") { k in gen(k, sel, again: model.current == keys[k]) }
+        sayField { gen(activeKind ?? "next", sel, again: false) }
         if let k = activeKind, let key = keys[k], let e = model.entry(key) {
             if e.busy {
                 busyHint(e.judging ? "Picking the best ones for you" : k == "next" ? "Writing lines that rhyme with your selection" : k == "tighten" ? "Tightening your selection" : "Rewriting your selection")
@@ -265,7 +279,7 @@ struct LinesPanel: View {
 
     private func selKey(_ kind: String, _ sel: String) -> String {
         guard let e = env() else { return "" }
-        return "S#" + kind + "#" + sel + Prompts.pfk(e)
+        return "S#" + kind + "#" + sel + Prompts.pfk(e) + (said.isEmpty ? "" : "#say:" + said)
     }
 
     private func gen(_ kind: String, _ sel: String, again: Bool) {
@@ -288,11 +302,39 @@ struct LinesPanel: View {
         }
         let range = NSRange(location: a, length: b - a)
         model.run(.init(key: selKey(kind, sel), kind: kind, n: RhymeEngine.shared.lineSyllables(sel), lw: lw, keep: kind == "rw" || kind == "tighten", task: task,
-                        at: le, section: context.stanza, range: range, src: ns.substring(with: range), rewrite: kind == "next" ? nil : range, prev: kind == "next" ? line : ""),
+                        at: le, section: context.stanza, range: range, src: ns.substring(with: range), rewrite: kind == "next" ? nil : range, prev: kind == "next" ? line : "", say: said),
                   again: again, env: e)
     }
 
     // MARK: pieces
+
+    /// "What should it say?": the writer's rough idea, which every suggestion then turns into a line.
+    private func sayField(_ go: @escaping () -> Void) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "text.bubble").font(.system(size: 15)).foregroundStyle(.secondary)
+            TextField("What should it say? e.g. by the beach but…", text: $sayDraft)
+                .font(.system(size: 16))
+                .focused($sayFocus)
+                .submitLabel(.go)
+                .onSubmit {
+                    said = sayDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+                    sayFocus = false
+                    go()
+                }
+            if !sayDraft.isEmpty || !said.isEmpty {
+                Button {
+                    Haptics.selection()
+                    sayDraft = ""; said = ""; sayFocus = false
+                } label: {
+                    Image(systemName: "xmark.circle.fill").font(.system(size: 17)).foregroundStyle(.tertiary)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Clear")
+            }
+        }
+        .padding(.horizontal, 14).frame(height: 40)
+        .background(BarFill.color, in: Capsule())
+    }
 
     @ViewBuilder private func results(_ e: LinesModel.Entry, key: String, apply: @escaping (LinesModel.Option) -> Void) -> some View {
         if !e.read.isEmpty { hint("Following: " + e.read) }
