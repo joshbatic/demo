@@ -17003,7 +17003,7 @@ function sayBrief(say){return'\n\nThe writer told you what they want this line t
 /* "What are you going for?": SAYD is what's typed, SAY what was sent (it's part of the cache key) */
 var SAY='',SAYD='';
 function sayField(rc,run){var w=document.createElement('div');w.className='sayf';
-  w.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/></svg><input id="sayin" placeholder="What are you going for? e.g. at the beach, missing her" enterkeyhint="go" autocomplete="off"><button class="sayx" aria-label="Clear"><svg width="16" height="16" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="currentColor"/><path d="M7 7l6 6M13 7l-6 6" stroke="var(--bg,#fff)" stroke-width="1.8" stroke-linecap="round"/></svg></button>';
+  w.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/></svg><input id="sayin" placeholder="What are you going for?" enterkeyhint="go" autocomplete="off"><button class="sayx" aria-label="Clear"><svg width="16" height="16" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="currentColor"/><path d="M7 7l6 6M13 7l-6 6" stroke="var(--bg,#fff)" stroke-width="1.8" stroke-linecap="round"/></svg></button>';
   var i=w.querySelector('input'),x=w.querySelector('.sayx');i.value=SAYD;x.hidden=!SAYD&&!SAY;
   i.oninput=function(){SAYD=i.value;x.hidden=!SAYD&&!SAY};
   i.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();SAY=SAYD.trim();i.blur();run()}};
