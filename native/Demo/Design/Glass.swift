@@ -100,10 +100,14 @@ struct TileIcon: View {
 
     /// iOS Settings style: a flat square in one system colour with a white filled symbol. No gloss or gradient.
     var body: some View {
+        // every symbol is fitted into the same centred box, so wide and tall ones read the same size
         Image(systemName: name)
-            .font(.system(size: size * 0.55, weight: .medium))
+            .resizable()
+            .scaledToFit()
+            .fontWeight(.semibold)
             .symbolRenderingMode(.monochrome)
             .foregroundStyle(.white)
+            .frame(width: size * 0.6, height: size * 0.6)
             .frame(width: size, height: size)
             .background(color, in: RoundedRectangle(cornerRadius: size * 0.235, style: .continuous))
             .accessibilityHidden(true)
