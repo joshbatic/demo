@@ -138,11 +138,11 @@ struct PaywallView: View {
 }
 
 /// The paywall's background: a soft wash of peach, pink, violet and blue across the top that melts into the
-/// page, like the glow on Apple's own Pro and Apple Music pages. Quieter in dark mode.
+/// page, like the glow on Apple's own Pro and Apple Music pages. Barely there in dark mode.
 struct PaywallWash: View {
     @Environment(\.colorScheme) private var scheme
     var body: some View {
-        let a = scheme == .dark ? 0.42 : 0.55
+        let a = scheme == .dark ? 0.16 : 0.55
         let bg = Color(uiColor: .systemBackground)
         ZStack {
             bg

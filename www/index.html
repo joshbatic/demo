@@ -1174,8 +1174,8 @@ body.sprinting #rhy{display:none}
 @media (min-width:700px){#pw{inset:auto;left:50%;top:50%;width:440px;height:min(820px,92vh);margin:0;border-radius:30px;overflow:hidden;transform:translate(-50%,calc(-50% + 40px)) scale(.97);opacity:0;transition:transform .36s cubic-bezier(.32,.72,0,1),opacity .25s;box-shadow:0 30px 80px rgba(0,0,0,.3)}#pw.on{transform:translate(-50%,-50%);opacity:1}}
 .pwsc{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative;padding:calc(env(safe-area-inset-top,0px) + 18px) 0 24px}
 .pwbg{position:absolute;left:0;right:0;top:0;height:430px;pointer-events:none;background:radial-gradient(90% 70% at 85% 0%,#FFD6A5 0,rgba(255,214,165,0) 60%),linear-gradient(155deg,#FFC2DA 0%,#D9C6FF 55%,#B9A6FF 100%);opacity:.62;-webkit-mask-image:linear-gradient(#000 35%,transparent);mask-image:linear-gradient(#000 35%,transparent)}
-:root[data-theme="dark"] .pwbg{opacity:.34}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pwbg{opacity:.34}}
+:root[data-theme="dark"] .pwbg{opacity:.13}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pwbg{opacity:.13}}
 .pwx{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:16px;z-index:2;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--ink);background:var(--gl);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);box-shadow:0 0 0 .5px var(--ring),0 1px 2px var(--sh2),0 2px 10px var(--sh2),inset 0 1px 0 var(--hl);transition:transform .2s cubic-bezier(.34,1.4,.5,1)}
 .pwx:active{transform:scale(.9)}
 .pwhero{position:relative;text-align:center;padding:42px 28px 6px}

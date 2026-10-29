@@ -532,15 +532,20 @@ struct EdgeFade: View {
     let edge: VerticalEdge
     var solidTo: CGFloat = 0.45
     var material: Material = .ultraThinMaterial
+    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        Rectangle()
-            .fill(material)
-            .mask {
-                LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: solidTo), .init(color: .clear, location: 1)],
-                               startPoint: edge == .top ? .top : .bottom, endPoint: edge == .top ? .bottom : .top)
+        let mask = LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: solidTo), .init(color: .clear, location: 1)],
+                                  startPoint: edge == .top ? .top : .bottom, endPoint: edge == .top ? .bottom : .top)
+        Group {
+            // in dark mode the frosted material reads as a grey band over a black page: fade the page itself instead
+            if scheme == .dark {
+                Rectangle().fill(Color(uiColor: .systemBackground)).mask { mask }
+            } else {
+                Rectangle().fill(material).mask { mask }
             }
-            .ignoresSafeArea(edges: edge == .top ? .top : .bottom)
-            .allowsHitTesting(false)
+        }
+        .ignoresSafeArea(edges: edge == .top ? .top : .bottom)
+        .allowsHitTesting(false)
     }
 }
