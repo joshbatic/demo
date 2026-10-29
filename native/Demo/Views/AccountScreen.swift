@@ -225,7 +225,7 @@ struct AccountScreen: View {
                     case .denied: Text("Off")
                     default: Text("Turn On").foregroundStyle(.blue)
                     }
-                } label: { Label { Text("Notifications").foregroundStyle(.primary) } icon: { TileIcon("bell.fill", Theme.Tile.red) } }
+                } label: { Label { Text("Notifications").foregroundStyle(.primary) } icon: { TileIcon("bell.badge.fill", Theme.Tile.red) } }
             }
             if notifOpen && [UNAuthorizationStatus.authorized, .provisional, .ephemeral].contains(push.status) {
                 prefToggle("cowrite", "Co-writing", "When someone accepts your invite or edits a song you share")
@@ -294,24 +294,24 @@ struct AccountScreen: View {
                     Label {
                         Text("Credits").foregroundStyle(.primary)
                     } icon: {
-                        TileIcon("signature", Theme.tint)
+                        TileIcon("music.note.list", Theme.Tile.orange)
                     }
                 }
             }
             Button { Haptics.tap(); importing = true } label: {
-                Label { Text("Import Songs").foregroundStyle(.primary) } icon: { TileIcon("square.and.arrow.down.fill", Theme.Tile.blue) }
+                Label { Text("Import Songs").foregroundStyle(.primary) } icon: { TileIcon("tray.and.arrow.down.fill", Theme.Tile.blue) }
             }
             Button {
                 Haptics.tap()
                 if let u = library.exportFile() { exportURL = u } else { session.toast = "No songs to export yet" }
             } label: {
-                Label { Text("Export All Songs").foregroundStyle(.primary) } icon: { TileIcon("square.and.arrow.up.fill", Theme.Tile.green) }
+                Label { Text("Export All Songs").foregroundStyle(.primary) } icon: { TileIcon("tray.and.arrow.up.fill", Theme.Tile.green) }
             }
             LabeledContent {
                 if let st = storage {
                     Text(SongFiles.size(st.used) + " of " + SongFiles.size(st.limit)).foregroundStyle(st.used >= st.limit ? Color.red : .secondary)
                 } else { Text("—") }
-            } label: { Label { Text("Storage") } icon: { TileIcon("cloud", Theme.Tile.gray) } }
+            } label: { Label { Text("Storage") } icon: { TileIcon("externaldrive.fill", Theme.Tile.gray) } }
         }
     }
 
@@ -359,7 +359,7 @@ struct AccountScreen: View {
     private var supportSection: some View {
         Section("About & support") {
             Button { openURL(URL(string: "https://hellodemo.app/privacy.html")!) } label: {
-                Label { Text("Privacy Policy").foregroundStyle(.primary) } icon: { TileIcon("lock", Theme.Tile.blue) }
+                Label { Text("Privacy Policy").foregroundStyle(.primary) } icon: { TileIcon("lock.fill", Theme.Tile.blue) }
             }
             Button { openURL(URL(string: "https://hellodemo.app/terms.html")!) } label: {
                 Label { Text("Terms of Service").foregroundStyle(.primary) } icon: { TileIcon("doc.text.fill", Theme.Tile.gray) }

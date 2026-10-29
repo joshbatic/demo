@@ -96,15 +96,16 @@ struct TileIcon: View {
     let name: String
     let color: Color
     var size: CGFloat = 30
-    /// `color` is kept for callers but no longer drawn: settings icons are flat, one colour and line-weight.
     init(_ name: String, _ color: Color, size: CGFloat = 30) { self.name = name; self.color = color; self.size = size }
 
+    /// iOS Settings style: a flat square in one system colour with a white filled symbol. No gloss or gradient.
     var body: some View {
-        Image(systemName: name.hasSuffix(".fill") ? String(name.dropLast(5)) : name)
-            .font(.system(size: size * 0.66, weight: .regular))
+        Image(systemName: name)
+            .font(.system(size: size * 0.55, weight: .medium))
             .symbolRenderingMode(.monochrome)
-            .foregroundStyle(Theme.tint)
+            .foregroundStyle(.white)
             .frame(width: size, height: size)
+            .background(color, in: RoundedRectangle(cornerRadius: size * 0.235, style: .continuous))
             .accessibilityHidden(true)
     }
 }
@@ -143,8 +144,9 @@ struct TileLabelStyle: LabelStyle {
         Label {
             configuration.title.foregroundStyle(.primary)
         } icon: {
-            configuration.icon.font(.system(size: 20, weight: .regular)).foregroundStyle(Theme.tint)
+            configuration.icon.font(.system(size: 16, weight: .medium)).foregroundStyle(.white)
                 .frame(width: 30, height: 30)
+                .background(color, in: RoundedRectangle(cornerRadius: 30 * 0.235, style: .continuous))
         }
     }
 }

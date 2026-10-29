@@ -324,7 +324,7 @@ struct IdeaSheet: View {
                 if let c = current {
                     Section {
                         Button { Task { await startSong(c) } } label: {
-                            Label { Text("Start a Song").foregroundStyle(.primary) } icon: { TileIcon("sparkles", Theme.Tile.orange) }
+                            Label { Text("Start a Song").foregroundStyle(.primary) } icon: { TileIcon("music.note", Theme.Tile.orange) }
                         }
                         Button("Delete Idea", role: .destructive) { confirmDelete = true }
                     }
