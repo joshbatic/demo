@@ -51,7 +51,6 @@ struct PaywallView: View {
         }
         // becoming Pro closes it
         .onChange(of: session.plan.isPro) { _, pro in if pro { dismiss() } }
-        // why a purchase couldn't start goes to the Xcode console for now, not on screen
         .onChange(of: store.note) { _, n in if let n { print("[Paywall] " + n) } }
     }
 
@@ -84,6 +83,12 @@ struct PaywallView: View {
             }
             .buttonStyle(PressScale())
             .disabled(store.busy != nil)
+            // why a purchase or restore couldn't go through, right under the button
+            if let n = store.note {
+                Text(n).font(.system(size: 13, weight: .medium)).foregroundStyle(.red)
+                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                    .transition(.opacity)
+            }
             Text((store.trialEligible ? "\(Pro.trialDays) days free, then " : "") + "\(store.price(year: year))\(year ? " a year" : " a month"), charged to your Apple ID. Renews automatically unless you cancel at least 24 hours before the period ends, in Settings › Apple ID › Subscriptions.")
                 .font(.system(size: 11.5)).foregroundStyle(.secondary).multilineTextAlignment(.center)
             HStack(spacing: 16) {
