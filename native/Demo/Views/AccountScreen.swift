@@ -294,9 +294,7 @@ struct AccountScreen: View {
                     Label {
                         Text("Credits").foregroundStyle(.primary)
                     } icon: {
-                        Image(systemName: "scribble.variable").font(.system(size: 15, weight: .semibold)).foregroundStyle(.white)
-                            .frame(width: 30, height: 30)
-                            .background { TileBackground(colors: [Color(hex: 0x1C1C1E)]) }
+                        TileIcon("signature", Theme.tint)
                     }
                 }
             }
@@ -313,7 +311,7 @@ struct AccountScreen: View {
                 if let st = storage {
                     Text(SongFiles.size(st.used) + " of " + SongFiles.size(st.limit)).foregroundStyle(st.used >= st.limit ? Color.red : .secondary)
                 } else { Text("—") }
-            } label: { Label { Text("Storage") } icon: { TileIcon("externaldrive.fill", Theme.Tile.gray) } }
+            } label: { Label { Text("Storage") } icon: { TileIcon("cloud", Theme.Tile.gray) } }
         }
     }
 
@@ -336,7 +334,7 @@ struct AccountScreen: View {
                 Button { withAnimation(.snappy) { blockedOpen.toggle() } } label: {
                     LabeledContent {
                         Text("\(blocked.count)")
-                    } label: { Label { Text("Blocked").foregroundStyle(.primary) } icon: { TileIcon("hand.raised.slash.fill", Theme.Tile.pink) } }
+                    } label: { Label { Text("Blocked").foregroundStyle(.primary) } icon: { TileIcon("nosign", Theme.Tile.pink) } }
                 }
                 if blockedOpen {
                     ForEach(blocked) { b in
@@ -361,7 +359,7 @@ struct AccountScreen: View {
     private var supportSection: some View {
         Section("About & support") {
             Button { openURL(URL(string: "https://hellodemo.app/privacy.html")!) } label: {
-                Label { Text("Privacy Policy").foregroundStyle(.primary) } icon: { TileIcon("hand.raised.fill", Theme.Tile.blue) }
+                Label { Text("Privacy Policy").foregroundStyle(.primary) } icon: { TileIcon("lock", Theme.Tile.blue) }
             }
             Button { openURL(URL(string: "https://hellodemo.app/terms.html")!) } label: {
                 Label { Text("Terms of Service").foregroundStyle(.primary) } icon: { TileIcon("doc.text.fill", Theme.Tile.gray) }

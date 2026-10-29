@@ -96,15 +96,15 @@ struct TileIcon: View {
     let name: String
     let color: Color
     var size: CGFloat = 30
+    /// `color` is kept for callers but no longer drawn: settings icons are flat, one colour and line-weight.
     init(_ name: String, _ color: Color, size: CGFloat = 30) { self.name = name; self.color = color; self.size = size }
 
     var body: some View {
-        Image(systemName: name)
-            .font(.system(size: size * 0.53, weight: .semibold))
+        Image(systemName: name.hasSuffix(".fill") ? String(name.dropLast(5)) : name)
+            .font(.system(size: size * 0.66, weight: .regular))
             .symbolRenderingMode(.monochrome)
-            .foregroundStyle(.white)
+            .foregroundStyle(Theme.tint)
             .frame(width: size, height: size)
-            .background { TileBackground(colors: [color], size: size) }
             .accessibilityHidden(true)
     }
 }
@@ -143,9 +143,8 @@ struct TileLabelStyle: LabelStyle {
         Label {
             configuration.title.foregroundStyle(.primary)
         } icon: {
-            configuration.icon.font(.system(size: 16, weight: .semibold)).foregroundStyle(.white)
+            configuration.icon.font(.system(size: 20, weight: .regular)).foregroundStyle(Theme.tint)
                 .frame(width: 30, height: 30)
-                .background { TileBackground(colors: [color]) }
         }
     }
 }
