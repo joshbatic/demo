@@ -97,9 +97,9 @@ final class Store {
             }
             user = uid
             let o = try await Purchases.shared.offerings()
-            monthPrice = o.current?.monthly?.storeProduct.localizedPriceString
-            yearPrice = o.current?.annual?.storeProduct.localizedPriceString
-            let ids = [o.current?.monthly, o.current?.annual].compactMap { $0?.storeProduct.productIdentifier }
+            monthPrice = Self.pkg(o.current, year: false)?.storeProduct.localizedPriceString
+            yearPrice = Self.pkg(o.current, year: true)?.storeProduct.localizedPriceString
+            let ids = [Self.pkg(o.current, year: false), Self.pkg(o.current, year: true)].compactMap { $0?.storeProduct.productIdentifier }
             if !ids.isEmpty {
                 let el = await Purchases.shared.checkTrialOrIntroDiscountEligibility(productIdentifiers: ids)
                 trialEligible = el.values.contains { $0.status == .eligible }
@@ -107,12 +107,27 @@ final class Store {
             let ci = try await Purchases.shared.customerInfo()
             if ci.entitlements.active[Config.proEntitlement] != nil && !session.plan.isPro { await sync(ci: true, session: session) }
             if o.current == nil { note = "The App Store didn’t send the subscriptions (no current offering in RevenueCat)." }
-            else if o.current?.monthly == nil || o.current?.annual == nil { note = "The App Store sent the offering, but without a Monthly and an Annual package." }
+            else if Self.pkg(o.current, year: false) == nil || Self.pkg(o.current, year: true) == nil {
+                let got = o.current?.availablePackages.map { $0.identifier + " (" + $0.storeProduct.productIdentifier + ")" }.joined(separator: ", ") ?? ""
+                note = "The offering is missing a " + (Self.pkg(o.current, year: false) == nil ? "monthly" : "yearly") + " plan. It has: " + (got.isEmpty ? "nothing" : got) + "."
+            }
         } catch {
             note = "Couldn’t load the subscriptions: " + error.localizedDescription
         }
         #endif
     }
+
+    #if canImport(RevenueCat)
+    /// The monthly or yearly package: RevenueCat's standard one, else any package whose product renews monthly or
+    /// yearly (a package saved with a custom identifier), else one whose product ID says so.
+    static func pkg(_ o: Offering?, year: Bool) -> Package? {
+        guard let o else { return nil }
+        if let p = year ? o.annual : o.monthly { return p }
+        let unit: SubscriptionPeriod.Unit = year ? .year : .month
+        if let p = o.availablePackages.first(where: { $0.storeProduct.subscriptionPeriod?.unit == unit && $0.storeProduct.subscriptionPeriod?.value == 1 }) { return p }
+        return o.availablePackages.first { $0.storeProduct.productIdentifier.hasSuffix(year ? "yearly" : "monthly") }
+    }
+    #endif
 
     func buy(year: Bool, session: AppSession) async {
         note = nil
@@ -124,10 +139,10 @@ final class Store {
         guard Purchases.isConfigured else { note = note ?? "Subscriptions couldn’t start. Try again in a moment."; return }
         do {
             let o = try await Purchases.shared.offerings()
-            guard let pkg = year ? o.current?.annual : o.current?.monthly else {
+            guard let pkg = Self.pkg(o.current, year: year) else {
                 note = o.current == nil
                     ? "The App Store didn’t send the subscriptions yet. Check the products in App Store Connect and the current offering in RevenueCat."
-                    : "No \(year ? "yearly" : "monthly") plan in the current offering."
+                    : "No \(year ? "yearly" : "monthly") plan in the current offering. It has: " + (o.current?.availablePackages.map { $0.identifier + " (" + $0.storeProduct.productIdentifier + ")" }.joined(separator: ", ") ?? "nothing") + "."
                 return
             }
             let r = try await Purchases.shared.purchase(package: pkg)
