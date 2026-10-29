@@ -110,10 +110,11 @@ struct ProBannerView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Text(Store.shared.trialEligible ? "Try Free" : "See Pro").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.verified)
                 }
-                .padding(.leading, 14).padding(.trailing, 16).padding(.vertical, 13)
+                .padding(.leading, 16).padding(.trailing, 16).padding(.vertical, 14)
                 .contentShape(Rectangle())
-                .glass(in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-                .padding(.horizontal, 16)
+                .glass(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .frame(maxWidth: 560)
+                .padding(.horizontal, 10)
                 .offset(y: max(0, drag))
                 .gesture(DragGesture(minimumDistance: 6)
                     .onChanged { drag = $0.translation.height }
@@ -156,11 +157,12 @@ struct RemoteBannerView: View {
                 Image(systemName: "xmark").font(.system(size: 12, weight: .bold)).foregroundStyle(.secondary).padding(.top, 3)
             }
             .padding(14)
-            .background(b.warn ? Color.orange.opacity(0.14) : Color.clear, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-            .glass(in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .background(b.warn ? Color.orange.opacity(0.14) : Color.clear, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .glass(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
             .contentShape(Rectangle())
             .onTapGesture { Haptics.tap(); withAnimation(.snappy) { config.dismissBanner() } }
-            .padding(.horizontal, 12)
+            .frame(maxWidth: 560)
+            .padding(.horizontal, 10)
             .hudHit("cfg")
             .transition(.move(edge: .top).combined(with: .opacity))
             .task(id: b.id) {

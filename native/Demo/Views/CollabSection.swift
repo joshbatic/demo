@@ -204,7 +204,8 @@ struct InviteBanner: View {
             }
             .padding(14)
             .glass(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-            .padding(.horizontal, 12)
+            .frame(maxWidth: 560)
+            .padding(.horizontal, 10)
             .hudHit("invite")
             .transition(.move(edge: .top).combined(with: .opacity))
             .task(id: inv.id) {

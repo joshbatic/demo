@@ -298,12 +298,16 @@ struct ToastView: View {
         let text = session.toast ?? library.notice
         VStack {
             if let text {
+                // full width like a system notification: one glass card, text on the left
                 Text(text)
-                    .font(.subheadline.weight(.medium))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 18).padding(.vertical, 11)
-                    .glassCapsule()
-                    .padding(.horizontal, 24)
+                    .font(.system(size: 15, weight: .medium))
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16).padding(.vertical, 14)
+                    .glass(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .frame(maxWidth: 560)
+                    .padding(.horizontal, 10)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .task(id: text) {
                         try? await Task.sleep(for: .seconds(3.2))
