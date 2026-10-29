@@ -19,9 +19,9 @@ nonisolated enum Config {
     static let listenHost = "listen.hellodemo.app"
     /// The build number, shared with the web and Mac apps' APP_SEQ (the repo's commit count, written by
     /// scripts/stamp-version.sh), so Admin › Minimum Build ("Time to update") covers every app on one scale.
-    static let appSeq = 631
+    static let appSeq = 633
     /// The commit that build was made from (also written by scripts/stamp-version.sh), shown with it in Account.
-    static let appHash = "302dc2b"
+    static let appHash = "9d42c64"
     /// The version people see (Account › Version), the same number as the Mac app: 1.0.0.
     static var appVersion: String { Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0" }
     /// Sent with diagnostics and push registration: the version and build number.
