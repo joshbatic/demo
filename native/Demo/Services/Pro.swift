@@ -123,8 +123,10 @@ final class Store {
     static func pkg(_ o: Offering?, year: Bool) -> Package? {
         guard let o else { return nil }
         if let p = year ? o.annual : o.monthly { return p }
-        let unit: SubscriptionPeriod.Unit = year ? .year : .month
-        if let p = o.availablePackages.first(where: { $0.storeProduct.subscriptionPeriod?.unit == unit && $0.storeProduct.subscriptionPeriod?.value == 1 }) { return p }
+        if let p = o.availablePackages.first(where: {
+            guard let per = $0.storeProduct.subscriptionPeriod, per.value == 1 else { return false }
+            return year ? per.unit == .year : per.unit == .month
+        }) { return p }
         return o.availablePackages.first { $0.storeProduct.productIdentifier.hasSuffix(year ? "yearly" : "monthly") }
     }
     #endif
