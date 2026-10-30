@@ -8,7 +8,8 @@
 //   APPLE_TEAM_ID       the Apple Developer team ID
 //   APPLE_KEY_ID        the key's ID
 //   APPLE_PRIVATE_KEY   the whole .p8 file, BEGIN/END lines included
-//   APPLE_CLIENT_ID     optional; the iPhone app's bundle ID (default app.hellodemo.demo)
+//   APPLE_CLIENT_ID     optional; tried first. The iPhone app's bundle ID (app.hellodemo.demo) is always tried too,
+//                       since the code the app sends belongs to it (a web Services ID here gives invalid_client).
 // Without them it answers { ok: false, skipped: true } and the app deletes the account anyway.
 // Callers must be signed in.
 
@@ -47,23 +48,26 @@ Deno.serve(async (req) => {
   let body: { code?: unknown; check?: unknown } = {};
   try { body = await req.json(); } catch { /* empty */ }
   const team = env("APPLE_TEAM_ID"), keyId = env("APPLE_KEY_ID"), pem = env("APPLE_PRIVATE_KEY");
-  const clientId = env("APPLE_CLIENT_ID") || "app.hellodemo.demo";
+  const clientIds = [...new Set([env("APPLE_CLIENT_ID"), "app.hellodemo.demo"].filter(Boolean))];
+  const form = (o: Record<string, string>) => new URLSearchParams(o).toString();
+  const headers = { "Content-Type": "application/x-www-form-urlencoded" };
 
-  // { check: true }: are the secrets right? Apple answers invalid_grant to a made-up code when the key is good,
-  // and invalid_client when the team, key ID or key is wrong. Nothing about anyone's account is involved.
+  // { check: true }: are the secrets right? Apple answers invalid_grant to a made-up code when the key is good for
+  // that client ID, and invalid_client when it isn't. Nothing about anyone's account is involved.
   if (body.check === true) {
     if (!team || !keyId || !pem) return json({ ok: false, error: "secrets not set" });
-    try {
-      const secret = await clientSecret(team, keyId, pem, clientId);
-      const t = await fetch("https://appleid.apple.com/auth/token", {
-        method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ client_id: clientId, client_secret: secret, code: "check", grant_type: "authorization_code" }).toString(),
-      });
-      const tj = await t.json().catch(() => ({}));
-      return json({ ok: tj?.error === "invalid_grant", apple: tj?.error ?? t.status });
-    } catch (e) {
-      return json({ ok: false, error: (e as Error)?.message });
+    const out: Record<string, unknown> = {};
+    for (const clientId of clientIds) {
+      try {
+        const secret = await clientSecret(team, keyId, pem, clientId);
+        const t = await fetch("https://appleid.apple.com/auth/token", {
+          method: "POST", headers, body: form({ client_id: clientId, client_secret: secret, code: "check", grant_type: "authorization_code" }),
+        });
+        const tj = await t.json().catch(() => ({}));
+        out[clientId] = tj?.error ?? t.status;
+      } catch (e) { out[clientId] = (e as Error)?.message; }
     }
+    return json({ clientIds: out });
   }
 
   const sb = createClient(env("SUPABASE_URL"), env("SUPABASE_ANON_KEY"), {
@@ -74,28 +78,34 @@ Deno.serve(async (req) => {
 
   const code = typeof body.code === "string" ? body.code.trim() : "";
   if (!code) return json({ error: "No authorization code." }, 400);
-
   if (!team || !keyId || !pem) { console.warn("apple-revoke: secrets not set"); return json({ ok: false, skipped: true }); }
 
-  try {
-    const secret = await clientSecret(team, keyId, pem, clientId);
-    const form = (o: Record<string, string>) => new URLSearchParams(o).toString();
-    const headers = { "Content-Type": "application/x-www-form-urlencoded" };
-    const t = await fetch("https://appleid.apple.com/auth/token", {
-      method: "POST", headers,
-      body: form({ client_id: clientId, client_secret: secret, code, grant_type: "authorization_code" }),
-    });
-    const tj = await t.json().catch(() => ({}));
-    const token: string = tj.refresh_token || tj.access_token || "";
-    if (!t.ok || !token) { console.error("apple-revoke token", t.status, tj?.error); return json({ ok: false, error: tj?.error || `token ${t.status}` }); }
-    const r = await fetch("https://appleid.apple.com/auth/revoke", {
-      method: "POST", headers,
-      body: form({ client_id: clientId, client_secret: secret, token, token_type_hint: tj.refresh_token ? "refresh_token" : "access_token" }),
-    });
-    if (!r.ok) { console.error("apple-revoke revoke", r.status); return json({ ok: false, error: `revoke ${r.status}` }); }
-    return json({ ok: true });
-  } catch (e) {
-    console.error("apple-revoke", (e as Error)?.message);
-    return json({ ok: false, error: "Couldn't reach Apple." });
+  let last = "";
+  for (const clientId of clientIds) {
+    try {
+      const secret = await clientSecret(team, keyId, pem, clientId);
+      const t = await fetch("https://appleid.apple.com/auth/token", {
+        method: "POST", headers, body: form({ client_id: clientId, client_secret: secret, code, grant_type: "authorization_code" }),
+      });
+      const tj = await t.json().catch(() => ({}));
+      const token: string = tj.refresh_token || tj.access_token || "";
+      if (!t.ok || !token) {
+        last = tj?.error || `token ${t.status}`;
+        console.error("apple-revoke token", clientId, t.status, tj?.error);
+        if (tj?.error === "invalid_client") continue;   // the code belongs to another client ID: try the next
+        return json({ ok: false, error: last });
+      }
+      const r = await fetch("https://appleid.apple.com/auth/revoke", {
+        method: "POST", headers,
+        body: form({ client_id: clientId, client_secret: secret, token, token_type_hint: tj.refresh_token ? "refresh_token" : "access_token" }),
+      });
+      if (!r.ok) { console.error("apple-revoke revoke", clientId, r.status); return json({ ok: false, error: `revoke ${r.status}` }); }
+      console.log("apple-revoke ok", clientId);
+      return json({ ok: true });
+    } catch (e) {
+      console.error("apple-revoke", (e as Error)?.message);
+      last = "Couldn't reach Apple.";
+    }
   }
+  return json({ ok: false, error: last });
 });
