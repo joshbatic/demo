@@ -16,8 +16,9 @@ enum Confirm {
         a.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in cancelled() })
         // one at a time (a modifier on a list section runs once per row)
         guard let top = topController(), !(top is UIAlertController) else { return }
-        // an iPad needs somewhere to point; mid-screen with no arrow keeps it a plain card
-        if let pop = a.popoverPresentationController {
+        // an iPad needs somewhere to point; mid-screen with no arrow keeps it a plain card. Only there: on iOS 26 an
+        // iPhone action sheet given a source turns into a small floating card instead of the full-width sheet.
+        if UIDevice.current.userInterfaceIdiom != .phone, let pop = a.popoverPresentationController {
             pop.sourceView = top.view
             pop.sourceRect = CGRect(x: top.view.bounds.midX, y: top.view.bounds.midY, width: 0, height: 0)
             pop.permittedArrowDirections = []
@@ -32,7 +33,7 @@ enum Confirm {
         for i in items { a.addAction(UIAlertAction(title: i.title, style: i.red ? .destructive : .default) { _ in done(); i.run() }) }
         a.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in done() })
         guard let top = topController(), !(top is UIAlertController) else { done(); return }
-        if let pop = a.popoverPresentationController {
+        if UIDevice.current.userInterfaceIdiom != .phone, let pop = a.popoverPresentationController {
             pop.sourceView = top.view
             pop.sourceRect = CGRect(x: top.view.bounds.midX, y: top.view.bounds.midY, width: 0, height: 0)
             pop.permittedArrowDirections = []
