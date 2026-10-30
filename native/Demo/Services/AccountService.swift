@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import UIKit
 import Supabase
+import AuthenticationServices
 
 /// Account › profile, links, blocks, storage, notifications prefs, support and delete (spec §6, data spec §5).
 extension AppSession {
@@ -283,6 +284,14 @@ extension AppSession {
     /// Deletes every stored file, then the account itself; then signs out. Returns an error to show, or nil.
     func deleteAccount() async -> String? {
         guard let uid = userID else { return nil }
+        // Signed in with Apple: confirm with Apple once more, and the server revokes *[demo]'s access to the
+        // Apple ID (App Store Guideline 5.1.1(v)). Cancelling stops the deletion; a server hiccup doesn't.
+        let ids = (try? await Backend.client.auth.session)?.user.identities ?? []
+        let viaApple = ids.contains { $0.provider == "apple" }
+        if viaApple {
+            guard let code = await AppleCode.request() else { return "Confirm with Apple to delete your account." }
+            _ = try? await Backend.function("apple-revoke", body: ["code": .string(code)])
+        }
         let storage = Backend.client.storage
         for bucket in ["song-files", "shares"] {
             var paths: [String] = []
@@ -320,5 +329,44 @@ extension AppSession {
         await signOut()
         toast = "Your account and everything in it has been deleted."
         return nil
+    }
+}
+
+/// A fresh Sign in with Apple authorization code (for revoking the account's Apple tokens on delete).
+@MainActor
+final class AppleCode: NSObject, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
+    private static var current: AppleCode?
+    private var done: CheckedContinuation<String?, Never>?
+
+    static func request() async -> String? {
+        let me = AppleCode()
+        current = me
+        defer { current = nil }
+        return await withCheckedContinuation { c in
+            me.done = c
+            let req = ASAuthorizationAppleIDProvider().createRequest()
+            req.requestedScopes = []
+            let ctl = ASAuthorizationController(authorizationRequests: [req])
+            ctl.delegate = me
+            ctl.presentationContextProvider = me
+            ctl.performRequests()
+        }
+    }
+
+    private func finish(_ v: String?) { done?.resume(returning: v); done = nil }
+
+    nonisolated func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        let code = (authorization.credential as? ASAuthorizationAppleIDCredential)?.authorizationCode.flatMap { String(data: $0, encoding: .utf8) }
+        MainActor.assumeIsolated { finish(code) }
+    }
+
+    nonisolated func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        MainActor.assumeIsolated { finish(nil) }
+    }
+
+    nonisolated func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        MainActor.assumeIsolated {
+            UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.flatMap(\.windows).first { $0.isKeyWindow } ?? ASPresentationAnchor()
+        }
     }
 }
