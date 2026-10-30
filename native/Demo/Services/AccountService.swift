@@ -286,8 +286,15 @@ extension AppSession {
         guard let uid = userID else { return nil }
         // Signed in with Apple: confirm with Apple once more, and the server revokes *[demo]'s access to the
         // Apple ID (App Store Guideline 5.1.1(v)). Cancelling stops the deletion; a server hiccup doesn't.
-        let ids = (try? await Backend.client.auth.session)?.user.identities ?? []
-        let viaApple = ids.contains { $0.provider == "apple" }
+        // the session's identities aren't always filled in, so ask the server for the user too, and check the
+        // provider list Supabase keeps in app_metadata
+        let fresh = try? await Backend.client.auth.user()
+        let cached = (try? await Backend.client.auth.session)?.user
+        let viaApple = [fresh, cached].compactMap { $0 }.contains { u in
+            (u.identities ?? []).contains { $0.provider == "apple" }
+                || u.appMetadata["provider"]?.stringValue == "apple"
+                || (u.appMetadata["providers"]?.arrayValue ?? []).contains { $0.stringValue == "apple" }
+        }
         if viaApple {
             guard let code = await AppleCode.request() else { return "Confirm with Apple to delete your account." }
             _ = try? await Backend.function("apple-revoke", body: ["code": .string(code)])
