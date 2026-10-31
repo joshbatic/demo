@@ -53,12 +53,23 @@ fi
 codesign --verify --deep --strict "$APP"
 
 DMG="dist/demo-$VER-mac.dmg"
-STAGE=$(mktemp -d)
-cp -R "$APP" "$STAGE/"
-ln -s /Applications "$STAGE/Applications"
 rm -f "$DMG"
-hdiutil create -volname "[demo]" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
-rm -rf "$STAGE"
+# The install window: soft-glow background (build/dmg-background.png, @2x picked up automatically),
+# the app on the left, Applications on the right. appdmg writes the layout directly, no Finder needed.
+CFG=$(mktemp -d)/dmg.json
+cat > "$CFG" <<JSON
+{ "title": "[demo]", "icon-size": 128, "background": "$PWD/build/dmg-background.png",
+  "window": { "size": { "width": 660, "height": 400 } },
+  "contents": [ { "x": 174, "y": 204, "type": "file", "path": "$PWD/$APP" },
+                { "x": 494, "y": 204, "type": "link", "path": "/Applications" } ] }
+JSON
+if ! npx --yes appdmg@0.6.6 "$CFG" "$DMG"; then
+  echo "appdmg failed: making a plain DMG instead."
+  rm -f "$DMG"; STAGE=$(mktemp -d)
+  cp -R "$APP" "$STAGE/"; ln -s /Applications "$STAGE/Applications"
+  hdiutil create -volname "[demo]" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
+  rm -rf "$STAGE"
+fi
 
 if [ -n "${DEVELOPER_ID:-}" ] && [ -n "${NOTARY_PROFILE:-}" ]; then
   codesign --force --timestamp --sign "$DEVELOPER_ID" "$DMG"
