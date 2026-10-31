@@ -67,7 +67,8 @@ Deno.serve(async (req) => {
         out[clientId] = tj?.error ?? t.status;
       } catch (e) { out[clientId] = (e as Error)?.message; }
     }
-    return json({ clientIds: out });
+    // the team and key IDs aren't secret (they're in every client secret Apple sees): shown so they can be compared
+    return json({ clientIds: out, team, keyId, keyLines: pem.split(/\\n|\n/).length });
   }
 
   const sb = createClient(env("SUPABASE_URL"), env("SUPABASE_ANON_KEY"), {
