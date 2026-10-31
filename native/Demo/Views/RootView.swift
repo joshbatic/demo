@@ -6,7 +6,7 @@ struct RootView: View {
     /// The widest the app's content gets (iPad, Mac, iPhone landscape); wider windows show background either side.
     static let columnWidth: CGFloat = 720
     @Environment(\.appSession) private var session
-    @AppStorage(Onboarding.doneKey) private var onboarded = false
+    @State private var onboardTick = 0
 
     var body: some View {
         ZStack {
@@ -18,8 +18,14 @@ struct RootView: View {
             case .waitlist(let status):
                 WaitlistView(status: status).transition(.opacity)
             case .ready:
-                if onboarded { SongListScreen().transition(.opacity) }
-                else { OnboardingView { withAnimation(.smooth(duration: 0.4)) { onboarded = true } }.transition(.opacity) }
+                if !Onboarding.needed(session.userID, tick: onboardTick) { SongListScreen().transition(.opacity) }
+                else {
+                    OnboardingView {
+                        Onboarding.markDone(session.userID)
+                        withAnimation(.smooth(duration: 0.4)) { onboardTick += 1 }
+                    }
+                    .transition(.opacity)
+                }
             }
         }
         .animation(.smooth(duration: 0.35), value: session.phase)
@@ -333,8 +339,22 @@ struct ToastView: View {
 // MARK: - onboarding
 
 enum Onboarding {
-    /// Set once this device has been through onboarding (a fresh install shows it once, after signing in).
+    /// Set once this device has been through onboarding (Push uses it to know the notification ask has had its turn).
     static let doneKey = "songpad:onboarded"
+
+    /// Every new account sees onboarding once, on its first sign-in: an account made in the last hour that hasn't
+    /// finished it on this device. Existing accounts signing in on a new device go straight to their songs.
+    static func needed(_ uid: String?, tick: Int = 0) -> Bool {
+        guard let uid else { return false }
+        if UserDefaults.standard.bool(forKey: doneKey + ":" + uid) { return false }
+        guard let created = Backend.client.auth.currentUser?.createdAt else { return false }
+        return Date().timeIntervalSince(created) < 3600
+    }
+
+    static func markDone(_ uid: String?) {
+        UserDefaults.standard.set(true, forKey: doneKey)
+        if let uid { UserDefaults.standard.set(true, forKey: doneKey + ":" + uid) }
+    }
 }
 
 /// A short first-run: three things *[demo] does, your name and username (co-writers find you by it), and
