@@ -35,9 +35,16 @@ jobs:
           security set-keychain-settings -lut 21600 "$KC"
           security unlock-keychain -p "$KP" "$KC"
           security import "$RUNNER_TEMP/cert.p12" -P "$P12_PASS" -A -t cert -f pkcs12 -k "$KC"
+          # Apple's Developer ID intermediate certificates, so each signature carries the full chain the notary checks
+          for ca in DeveloperIDG2CA DeveloperIDCA; do
+            curl -fsSL "https://www.apple.com/certificateauthority/$ca.cer" -o "$RUNNER_TEMP/$ca.cer" && \
+              security import "$RUNNER_TEMP/$ca.cer" -k "$KC" -A >/dev/null 2>&1 || true
+          done
           security set-key-partition-list -S apple-tool:,apple: -k "$KP" "$KC" >/dev/null
           security list-keychains -d user -s "$KC" $(security list-keychains -d user | tr -d '"')
           rm -f "$RUNNER_TEMP/cert.p12"
+          # which signing identities the .p12 brought in (the one used must say "Developer ID Application")
+          security find-identity -v -p codesigning "$KC" | sed 's/^ *[0-9]*) [0-9A-F]* /  /' 
       - name: Notarisation login (if set up)
         env:
           AID: ${{ secrets.NOTARY_APPLE_ID }}
