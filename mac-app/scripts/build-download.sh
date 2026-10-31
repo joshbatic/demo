@@ -25,7 +25,7 @@ rm -f "$APP/Contents/Resources/app/dev-build"   # never ship the developer versi
 bash scripts/trim-languages.sh "$APP"           # English only: about 40 MB smaller
 
 if [ -n "${DEVELOPER_ID:-}" ]; then
-  echo "Signing with $DEVELOPER_ID…"
+  echo "Signing with ${DEVELOPER_ID}…"
   codesign --deep --force --options runtime --timestamp --entitlements build/entitlements.mac.plist --sign "$DEVELOPER_ID" "$APP"
 else
   echo "No DEVELOPER_ID: signing ad hoc (people will need Open Anyway the first time)."
