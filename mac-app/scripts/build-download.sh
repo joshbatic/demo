@@ -29,10 +29,19 @@ if [ -n "${DEVELOPER_ID:-}" ]; then
   # Apple's notary wants every piece of code signed on its own, inside out, with the hardened runtime and a
   # timestamp (codesign --deep skips some of Electron's helpers and libraries).
   sign() { codesign --force --options runtime --timestamp --entitlements build/entitlements.mac.plist --sign "$DEVELOPER_ID" "$1"; }
-  # 1. loose executables and libraries anywhere inside (crashpad handler, ShipIt, dylibs, native modules)
+  # 1. loose executables and libraries anywhere inside (crashpad handler, ShipIt, dylibs, native modules).
+  #    A bundle's own main executable (Electron Framework's binary, a helper app's MacOS/…) is left for step 2:
+  #    signing it signs the whole bundle, which only works once everything inside is signed.
   while IFS= read -r -d '' f; do
+    case "$f" in
+      *.app/Contents/MacOS/*) continue ;;
+    esac
+    dir=$(dirname "$f"); base=$(basename "$f")
+    case "$dir" in
+      *"/$base.framework/Versions/"*) [ "$(basename "$dir")" != "Helpers" ] && [ "$(basename "$dir")" != "Resources" ] && [ "$(basename "$dir")" != "Libraries" ] && continue ;;
+    esac
     if file -b "$f" | grep -q "Mach-O"; then sign "$f"; fi
-  done < <(find "$APP/Contents/Frameworks" "$APP/Contents/Resources" -type f \( -perm -u+x -o -name "*.dylib" -o -name "*.node" -o -name "*.so" \) -print0)
+  done < <(find "$APP/Contents/Frameworks" "$APP/Contents/Resources" -depth -type f \( -perm -u+x -o -name "*.dylib" -o -name "*.node" -o -name "*.so" \) -print0)
   # 2. bundles, deepest first: frameworks and the helper apps
   while IFS= read -r -d '' b; do sign "$b"; done < <(find "$APP/Contents/Frameworks" -depth \( -name "*.framework" -o -name "*.app" \) -print0)
   # 3. the app itself
