@@ -342,13 +342,11 @@ enum Onboarding {
     /// Set once this device has been through onboarding (Push uses it to know the notification ask has had its turn).
     static let doneKey = "songpad:onboarded"
 
-    /// Every new account sees onboarding once, on its first sign-in: an account made in the last hour that hasn't
-    /// finished it on this device. Existing accounts signing in on a new device go straight to their songs.
+    /// Every account sees onboarding the first time it signs in on a device (a new account, or an existing one on a
+    /// new device), and not again on that device once it's finished or skipped.
     static func needed(_ uid: String?, tick: Int = 0) -> Bool {
         guard let uid else { return false }
-        if UserDefaults.standard.bool(forKey: doneKey + ":" + uid) { return false }
-        guard let created = Backend.client.auth.currentUser?.createdAt else { return false }
-        return Date().timeIntervalSince(created) < 3600
+        return !UserDefaults.standard.bool(forKey: doneKey + ":" + uid)
     }
 
     static func markDone(_ uid: String?) {
@@ -358,7 +356,7 @@ enum Onboarding {
 }
 
 /// A short first-run: three things *[demo] does, your name and username (co-writers find you by it), and
-/// notifications. Every step can be skipped; it's shown once per install.
+/// notifications. Every step can be skipped; it's shown once per account on each device.
 struct OnboardingView: View {
     var done: () -> Void
     @Environment(\.appSession) private var session

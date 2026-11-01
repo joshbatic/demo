@@ -19043,11 +19043,12 @@ function onAuthUser(){
 }
 
 /* ---------- first-run onboarding: three things *[demo] does, then your name and username (co-writers find you by
-   it). Once per device, after signing in; every step can be skipped. The iPhone app has its own (RootView.swift). */
+   it). Once per account on each device, after signing in; every step can be skipped. The iPhone app has its own (RootView.swift). */
 var OB={i:0,busy:false,err:''};
-function obDone(){try{return localStorage.getItem('songpad:onboarded')==='1'}catch(e){return true}}
+function obKey(){return 'songpad:onboarded'+(AUTH_USER&&AUTH_USER.id?':'+AUTH_USER.id:'')}
+function obDone(){try{return localStorage.getItem(obKey())==='1'}catch(e){return true}}
 function obMaybe(){if(!AUTH_USER||DEV_MODE||DEV_BUILD||obDone()||$('#ob'))return;if(BETA&&BETA.st&&['open','admin','approved'].indexOf(BETA.st)<0)return;obOpen()}
-function obClose(){try{localStorage.setItem('songpad:onboarded','1')}catch(e){}var o=$('#ob');if(!o)return;o.classList.remove('on');setTimeout(function(){o.remove()},300);try{haptic('success')}catch(e){}
+function obClose(){try{localStorage.setItem(obKey(),'1');localStorage.setItem('songpad:onboarded','1')}catch(e){}var o=$('#ob');if(!o)return;o.classList.remove('on');setTimeout(function(){o.remove()},300);try{haptic('success')}catch(e){}
   /* then Pro, once, as the last thing onboarding shows (like the iPhone app) */
   if(!isPro())setTimeout(function(){if(!isPro()&&!$('#pw.on'))openPaywall('')},700)}
 function obOpen(){var o=document.createElement('div');o.id='ob';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','Welcome to *[demo]');document.body.appendChild(o);
