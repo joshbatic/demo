@@ -8,6 +8,7 @@ struct DemoWidgetBundle: WidgetBundle {
     var body: some Widget {
         RecordWidget()
         SongsWidget()
-        RecordControl()
+        // RecordControl() (Control Centre) is off while the Home Screen widgets are checked: if it fails to load,
+        // iOS drops the whole extension, and none of the widgets show in the gallery.
     }
 }
