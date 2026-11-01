@@ -8,10 +8,15 @@
 #   MAC_DEVELOPER_ID    the certificate's name, e.g. Developer ID Application: … (KZL3T52VV3)
 #   NOTARY_APPLE_ID, NOTARY_PASSWORD (an app-specific password), NOTARY_TEAM_ID (KZL3T52VV3)
 name: Mac download
+# Mac machines use GitHub's free minutes ten times faster in a private repo, so this no longer rebuilds on every app
+# change (mac-app/app/index.html changes with each one). It rebuilds when the Mac app itself changes, every Monday
+# (so the download picks up a week of app changes), and from Actions › Mac download › Run workflow.
 on:
   push:
     branches: [main]
-    paths: ["mac-app/**"]
+    paths: ["mac-app/main.js", "mac-app/preload.js", "mac-app/package.json", "mac-app/build/**", "mac-app/scripts/**", ".github/workflows/mac-download.yml"]
+  schedule:
+    - cron: "17 20 * * 0"   # Monday 6:47 am Adelaide
   workflow_dispatch:
 concurrency: { group: mac-download, cancel-in-progress: true }
 permissions: { contents: write }
@@ -61,9 +66,20 @@ jobs:
           cd mac-app
           bash scripts/build-download.sh
           cp dist/demo-*-mac.dmg "$RUNNER_TEMP/demo-mac.dmg"
-      - name: Replace the file on the latest release
+      # The public download lives on joshbatic/demo-releases (a public repo with only release files), so this repo
+      # can be private. RELEASES_TOKEN: a fine-grained token with Contents read/write on demo-releases only.
+      - name: Publish to the public downloads repo
+        env: { GH_TOKEN: "${{ secrets.RELEASES_TOKEN }}" }
+        run: |
+          if [ -z "$GH_TOKEN" ]; then echo "No RELEASES_TOKEN yet: skipping demo-releases."; exit 0; fi
+          R=joshbatic/demo-releases
+          TAG=$(gh api "repos/$R/releases/latest" -q .tag_name 2>/dev/null || true)
+          if [ -z "$TAG" ]; then TAG=mac; gh release create "$TAG" --repo "$R" --title "*[demo] for Mac" --notes "The latest *[demo] for Mac. Download demo-mac.dmg."; fi
+          gh release upload "$TAG" "$RUNNER_TEMP/demo-mac.dmg" --clobber --repo "$R"
+          echo "Uploaded demo-mac.dmg to $R $TAG"
+      - name: Also replace it on this repo's latest release (while it's public)
         env: { GH_TOKEN: "${{ github.token }}" }
         run: |
-          TAG=$(gh api "repos/${{ github.repository }}/releases/latest" -q .tag_name)
+          TAG=$(gh api "repos/${{ github.repository }}/releases/latest" -q .tag_name 2>/dev/null || true)
+          if [ -z "$TAG" ]; then exit 0; fi
           gh release upload "$TAG" "$RUNNER_TEMP/demo-mac.dmg" --clobber --repo "${{ github.repository }}"
-          echo "Uploaded demo-mac.dmg to $TAG"
