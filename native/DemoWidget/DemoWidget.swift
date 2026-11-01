@@ -12,7 +12,7 @@ struct RecordWidget: Widget {
         }
         .configurationDisplayName("Record Idea")
         .description("One tap and you’re recording. Write it down before it’s gone.")
-        .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryRectangular, .accessoryInline])
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }
 
@@ -39,6 +39,8 @@ struct RecordView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         case .accessoryInline:
             Label("Record Idea", systemImage: "mic.fill")
+        case .systemMedium:
+            medium
         default:
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
@@ -60,6 +62,48 @@ struct RecordView: View {
                 .foregroundStyle(Color(.systemBackground))
                 .frame(maxWidth: .infinity).padding(.vertical, 9)
                 .background(Color.primary, in: Capsule())
+            }
+        }
+    }
+}
+
+extension RecordView {
+    /// Medium: your latest idea on the left; Record and Write buttons on the right.
+    var medium: some View {
+        HStack(spacing: 14) {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: 8) {
+                    Mark(size: 26)
+                    Text("Ideas").font(.system(size: 15, weight: .bold))
+                    if snap.ideaCount > 0 {
+                        Text("\(snap.ideaCount)").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                    }
+                }
+                Spacer(minLength: 8)
+                if let idea = snap.idea, !idea.isEmpty {
+                    Text("Latest").font(.caption2.weight(.semibold)).foregroundStyle(.secondary).textCase(.uppercase)
+                    Text(idea).font(.system(size: 15)).lineLimit(3).padding(.top, 2)
+                } else {
+                    Text("Write it down before it’s gone.").font(.system(size: 15)).foregroundStyle(.secondary).lineLimit(3)
+                }
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(spacing: 8) {
+                Link(destination: Links.url("record")) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "mic.fill").font(.system(size: 22, weight: .semibold))
+                        Text("Record").font(.system(size: 13, weight: .semibold))
+                    }
+                    .foregroundStyle(Color(.systemBackground))
+                    .frame(width: 96).frame(maxHeight: .infinity)
+                    .background(Color.primary, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                }
+                Link(destination: Links.url("new-idea")) {
+                    Label("Write", systemImage: "pencil").font(.system(size: 13, weight: .semibold))
+                        .frame(width: 96, height: 36)
+                        .background(Color(.secondarySystemFill), in: Capsule())
+                }
             }
         }
     }
@@ -140,4 +184,5 @@ struct SongsView: View {
 }
 
 #Preview(as: .systemMedium) { SongsWidget() } timeline: { SnapEntry(date: .now, snap: .sample) }
+#Preview(as: .systemMedium) { RecordWidget() } timeline: { SnapEntry(date: .now, snap: .sample) }
 #Preview(as: .systemSmall) { RecordWidget() } timeline: { SnapEntry(date: .now, snap: .sample) }
