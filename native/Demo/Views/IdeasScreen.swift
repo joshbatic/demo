@@ -107,6 +107,15 @@ struct IdeasScreen: View {
             }
         }
         .onChange(of: recorder.notice) { _, n in if let n { session.toast = n; recorder.notice = nil } }
+        // opened from the app icon's menu or a widget: start recording, or put the keyboard up
+        .onChange(of: session.ideasStart, initial: true) { _, a in
+            guard let a else { return }
+            session.ideasStart = nil
+            Task {
+                try? await Task.sleep(for: .milliseconds(350))   // let the push animation land first
+                if a == "record" { if !recorder.isRecording { record() } } else { jotFocused = true }
+            }
+        }
     }
 
     private var header: some View {

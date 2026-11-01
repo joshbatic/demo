@@ -110,6 +110,22 @@ struct SongListScreen: View {
                 session.openSongID = nil
                 if id.isEmpty { path = [] } else if library.song(id) != nil { path = [id] }
             }
+            // the app icon's menu or a widget: a new song, or Ideas ready to record or type
+            .onChange(of: session.quickAction, initial: true) { _, a in
+                guard let a else { return }
+                session.quickAction = nil
+                switch a {
+                case "new-song":
+                    Haptics.tap()
+                    let s = Song.new(artist: session.myName)
+                    library.add(s)
+                    path = [s.id]
+                case "record", "new-idea":
+                    session.ideasStart = a
+                    if path != [IdeasRow.route] { path = [IdeasRow.route] }
+                default: break
+                }
+            }
             .fileImporter(isPresented: $importing, allowedContentTypes: [.json, .plainText, .text], allowsMultipleSelection: true) { r in
                 if case .success(let urls) = r, !urls.isEmpty { Haptics.success(); session.toast = library.importFiles(urls) }
             }

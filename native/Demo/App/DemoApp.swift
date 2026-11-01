@@ -27,6 +27,8 @@ struct DemoApp: App {
                 .task { await session.start() }
                 // the rhyme dictionary loads in the background so it's ready when a song opens
                 .task(priority: .utility) { await Task.detached(priority: .utility) { RhymeEngine.shared.load() }.value }
+                // widgets and the Control Centre button open the app with a demo-native:// link
+                .onOpenURL { QuickActions.open($0) }
         }
         .onChange(of: scenePhase) { _, phase in
             switch phase {
@@ -34,8 +36,11 @@ struct DemoApp: App {
                 // leaving the app: write everything down and push it now (spec §2.2)
                 session.library.flushSave()
                 session.library.sync()
+                // the icon's menu ("Last song") and the widgets follow what you just did
+                QuickActions.refresh(session.library)
             case .active:
                 Haptics.warm()
+                QuickActions.refresh(session.library)
                 Task { await session.library.checkRemote() }
                 RemoteConfig.shared.foreground()
                 Task { await Push.shared.refreshStatus() }

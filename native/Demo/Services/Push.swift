@@ -125,6 +125,14 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
         return true
     }
 
+    /// The scene's delegate catches the app icon's long-press menu (QuickActions.swift).
+    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession,
+                     options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        let c = UISceneConfiguration(name: nil, sessionRole: connectingSceneSession.role)
+        c.delegateClass = QuickSceneDelegate.self
+        return c
+    }
+
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         MainActor.assumeIsolated { Push.shared.gotToken(deviceToken) }
     }

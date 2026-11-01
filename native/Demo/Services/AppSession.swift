@@ -33,8 +33,12 @@ final class AppSession {
     /// Account, from anywhere (a notification, the Pro banner); `accountFocus` opens a section ("support").
     var accountOpen = false
     var accountFocus: String?
-    /// A song to open (from a notification).
+    /// A song to open (from a notification, the app icon's menu or a widget).
     var openSongID: String?
+    /// The app icon's menu or a widget: "new-song", "record" or "new-idea" (QuickActions.swift).
+    var quickAction: String?
+    /// Ideas should start recording ("record") or put the keyboard up ("new-idea") when it opens.
+    var ideasStart: String?
     let library = LibraryStore()
 
     nonisolated struct Profile: Codable, Equatable {
