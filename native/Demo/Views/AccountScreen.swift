@@ -796,7 +796,7 @@ struct LinkTile: View {
                                                  .init(color: Color(hex: 0xFD5949), location: 0.45), .init(color: Color(hex: 0xD6249F), location: 0.6),
                                                  .init(color: Color(hex: 0x285AEB), location: 0.9)],
                                          center: UnitPoint(x: 0.3, y: 1.07), startRadius: 0, endRadius: 30 * 1.3))
-                glyph(.white, size: 17)
+                glyph(.white, size: 20)
             default:
                 TileBackground(colors: [Color(hex: 0x000000)])
                 glyph(Color(hex: 0x25F4EE)).offset(x: -0.8, y: -0.8)
