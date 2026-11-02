@@ -1069,6 +1069,12 @@ button.cell:active,button.row:active,.drow:active,.accplan:active,.accme:active,
 .shspin{width:18px;height:18px;border-radius:50%;border:2px solid var(--sep);border-top-color:var(--ink);flex:none;animation:shspin .8s linear infinite}@keyframes shspin{to{transform:rotate(360deg)}}
 .shacts{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px}.shacts .go2{flex:1 1 auto;height:44px;font-size:15.5px;min-width:120px}
 .relnote{padding:8px 20px 0;font-size:13px;color:var(--mute);line-height:1.4}
+.relfind{margin:0 16px 12px}.rfq{display:flex;gap:8px;align-items:center}
+.rfq input{flex:1;min-width:0;height:38px;border:0;border-radius:12px;background:var(--fill);padding:0 12px;font-size:16px;outline:0;color:var(--ink)}
+.rfres{margin-top:6px}.rfres .relnote{padding:8px 4px 0}
+.rfrow{display:flex;gap:11px;align-items:center;width:100%;text-align:left;padding:7px 6px;border-radius:12px}.rfrow:hover{background:var(--fill)}
+.rfrow img{flex:none;width:44px;height:44px;border-radius:8px;background:var(--fill);object-fit:cover}.rfrow span{min-width:0}
+.rfrow b{display:block;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rfrow em{display:block;font-style:normal;font-size:13px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .relnote.warn{color:var(--red)}
 #p-rel .cell.form .fl{width:112px}
 #p-rel .cell.form input[type=date]{min-height:22px;-webkit-appearance:none;appearance:none;text-align:left}
@@ -15360,8 +15366,8 @@ OY-B-AH-L	foible92
 EH-M-ER-IH-JH-D	hemorrhaged93
 AH-S-IH-N	bussin52s`;
 /* git commit this build came from, shown at the bottom of Account. Written by scripts/stamp-version.sh — don't edit by hand. */
-var APP_COMMIT='cb7d3e7';
-var APP_SEQ=714;
+var APP_COMMIT='44e9e68';
+var APP_SEQ=717;
 /* the version people see, the same as the iPhone app's; Account shows it with the build number so every device can be compared */
 var APP_VERSION='1.1.0';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
@@ -21172,7 +21178,7 @@ $('#shareb').onclick=openShare;$('#done8').onclick=function(){sheet(false)};
 
 /* ---------- credits & splits, release details ---------- */
 var CREDIT_ROLES=['Writer','Composer','Lyricist','Producer','Performer','Featured artist','Mix engineer','Mastering engineer','Other'],SPLIT_ROLES={Writer:1,Composer:1,Lyricist:1};
-var REL_FIELDS=[['isrc','ISRC','CC-XXX-YY-NNNNN','text'],['upc','UPC / EAN','12 or 13 digits','text'],['date','Release date','','date'],['label','Label','Independent','text'],['genre','Genre','e.g. Indie pop','text']];
+var REL_FIELDS=[['isrc','ISRC','CC-XXX-YY-NNNNN','text'],['upc','UPC / EAN','12 or 13 digits','text'],['date','Release date','','date'],['label','Label','Independent','text'],['genre','Genre','e.g. Indie pop','text'],['iswc','ISWC','T-123.456.789-0','text']];
 function renderRel(){var o=$('#rel-body');if(!o||!cur)return;var song=cur,keepTop=$('#p-rel')?$('#p-rel').scrollTop:0;o.innerHTML='';
   var C=song.credits||[],R=song.release||{};
   function addCredit(){song.credits=song.credits||[];var first=!song.credits.length;var dpn=(!AUTH_USER&&DEV_MODE)?devProfileGet():{};song.credits.push({name:first?(myName()||dpn.display_name||dpn.username||''):'',role:'Writer',split:first?'100':''});sfTouch(song);renderRel();var ins=o.querySelectorAll('.relrow .rn'),last=ins[ins.length-1];if(last&&!last.value)try{last.focus()}catch(e){}}
@@ -21195,10 +21201,10 @@ function renderRel(){var o=$('#rel-body');if(!o||!cur)return;var song=cur,keepTo
     var tot=Math.round(ws.reduce(function(s,c){return s+(parseFloat(c.split)||0)},0)*100)/100;
     if(Math.abs(tot-100)<.01)note.textContent='Writer splits total 100%.';else{note.className='relnote warn';note.textContent='Writer splits add up to '+tot+'%. They should total 100%.'}}
   paintSplit();
-  var rg=accSection(o,'Release'),rnote=document.createElement('div');
+  var rg=accSection(o,'Release',[['Find Release',function(){relFind(song,rg)}]]),rnote=document.createElement('div');
   REL_FIELDS.forEach(function(f){var r=document.createElement('label');r.className='cell form notile';var l=document.createElement('span');l.className='ct fl';l.textContent=f[1];r.appendChild(l);
     var ip=document.createElement('input');ip.type=f[3];ip.placeholder=f[2];ip.value=R[f[0]]||'';ip.setAttribute('aria-label',f[1]);
-    if(f[0]==='isrc'){ip.autocapitalize='characters';ip.spellcheck=false;ip.autocomplete='off'}if(f[0]==='upc'){ip.inputMode='numeric';ip.autocomplete='off'}
+    if(f[0]==='isrc'||f[0]==='iswc'){ip.autocapitalize='characters';ip.spellcheck=false;ip.autocomplete='off'}if(f[0]==='upc'){ip.inputMode='numeric';ip.autocomplete='off'}
     ip.oninput=function(){var v=ip.value;if(f[0]==='isrc'){v=v.toUpperCase();if(v!==ip.value)ip.value=v}if(f[0]==='upc'){v=v.replace(/\D/g,'');if(v!==ip.value)ip.value=v}
       song.release=song.release||{};song.release[f[0]]=v;sfTouch(song);paintRel()};r.appendChild(ip);rg.appendChild(r)});
   var er=document.createElement('div');er.className='cell notile';var el=document.createElement('span');el.className='ct';el.textContent='Explicit';er.appendChild(el);
@@ -21211,6 +21217,30 @@ function renderRel(){var o=$('#rel-body');if(!o||!cur)return;var song=cur,keepTo
     rnote.className='relnote'+(bad.length?' warn':'');rnote.textContent=bad.length?bad.join(' '):'';rnote.hidden=!bad.length}
   paintRel();
   var pr=$('#p-rel');if(pr)pr.scrollTop=keepTop}
+
+/* Find Release: look the song up in Apple Music's catalogue (supabase/functions/release-lookup) and fill in its
+   ISRC, UPC, release date, label and genre, plus the ISWC when MusicBrainz has one. Search opens with the title and artist. */
+function relStore(){var l=((navigator.language||'en-AU').split('-')[1]||'').toLowerCase();return /^[a-z]{2}$/.test(l)?l:'au'}
+function relFind(song,group){var old=$('#relfind');if(old){old.remove();return}
+  var p=document.createElement('div');p.id='relfind';p.className='relfind';
+  p.innerHTML='<div class="rfq"><input type="search" placeholder="Song title and artist" aria-label="Find a release"><button class="go2" type="button">Search</button></div><div class="rfres" aria-live="polite"></div>';
+  group.parentNode.insertBefore(p,group);
+  var q=p.querySelector('input'),res=p.querySelector('.rfres'),note=function(t){res.innerHTML='<div class="relnote"></div>';res.firstChild.textContent=t};
+  q.value=[song.title,song.artist||myName()].filter(Boolean).join(' ');
+  function go(){var t=q.value.trim();if(t.length<2)return;note('Searching Apple Music…');
+    fnCall('release-lookup',{action:'search',q:t,storefront:relStore()}).then(function(d){var L=d.results||[];res.innerHTML='';
+      if(!L.length)return note('Nothing on Apple Music by that name. New releases can take a few days to appear.');
+      L.forEach(function(x){var b=document.createElement('button');b.type='button';b.className='rfrow';b.innerHTML='<img alt=""><span><b></b><em></em></span>';
+        if(x.art)b.querySelector('img').src=x.art;b.querySelector('b').textContent=x.title;b.querySelector('em').textContent=[x.artist,x.album,(x.date||'').slice(0,4)].filter(Boolean).join(' · ');
+        b.onclick=function(){note('Getting the details…');fnCall('release-lookup',{action:'detail',id:x.id,storefront:relStore()}).then(function(d2){p.remove();relApply(song,d2)},function(e){note('Couldn’t get the details: '+e.message)})};
+        res.appendChild(b)});
+      var f=document.createElement('div');f.className='relnote';f.textContent='From Apple Music. Pick your song and its details fill in.';res.appendChild(f)},
+      function(e){note(e.message)})}
+  p.querySelector('button').onclick=go;q.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();go()}};go();try{q.focus({preventScroll:true})}catch(e){}}
+function relApply(song,x){song.release=song.release||{};var R=song.release,got=[];
+  [['isrc','ISRC'],['upc','UPC'],['date','release date'],['label','label'],['genre','genre'],['iswc','ISWC']].forEach(function(f){var v=x[f[0]];if(!v)return;v=String(v);if(f[0]==='date')v=v.slice(0,10);if(f[0]==='isrc'||f[0]==='iswc')v=v.toUpperCase();R[f[0]]=v;got.push(f[1])});
+  if(x.url)R.appleMusic=String(x.url);sfTouch(song);renderRel();haptic('success');
+  toast(got.length?'Filled in '+(got.length>1?got.slice(0,-1).join(', ')+' and '+got[got.length-1]:got[0]):'Apple Music had no details for that one')}
 
 /* ---------- perform mode ---------- */
 var pfRaf=0,pfOn=false,pfSpd=1,pfSize=34,pfLock=null,SPD=[.5,.75,1,1.25,1.5,2,3];
