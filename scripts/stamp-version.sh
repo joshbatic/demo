@@ -17,7 +17,7 @@ fi
 hash=$(git rev-parse --short HEAD)
 # APP_SEQ counts commits, so newer builds always have bigger numbers (Admin › Settings › Minimum Build uses it)
 seq=$(git rev-list --count HEAD)
-files=(www/index.html web-artifact/songpad.html mac-app/app/index.html)
+files=(www/index.html web-artifact/songpad.html mac-app/app/index.html docs/app/index.html)
 
 for f in "${files[@]}"; do
   [ -f "$f" ] || continue
