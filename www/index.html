@@ -985,7 +985,7 @@ button.cell:active,button.row:active,.drow:active,.accplan:active,.accme:active,
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.gr{color:#fff;border-radius:7px;background-image:none!important;box-shadow:none}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.gr svg{width:18px;height:18px;display:block}
 #acc .tile.gt{color:var(--ic);background:linear-gradient(#fff,#F3F3F6);box-shadow:inset 0 0 0 .5px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.08),inset 0 1px 0 #fff}
-#acc .tile.gt svg{width:19px;height:19px;display:block}
+#acc .tile.gt svg{width:18px;height:18px;display:block}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #acc .tile.gt{color:var(--icd);background:linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.08));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.12),inset 0 1px 0 rgba(255,255,255,.14)}}
 :root[data-theme="dark"] #acc .tile.gt{color:var(--icd);background:linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.08));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.12),inset 0 1px 0 rgba(255,255,255,.14)}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile svg{width:17px;height:17px}
@@ -20045,22 +20045,12 @@ var ACC_ICO={
   cam:'<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M9.2 4h5.6l1.5 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2.7z"/><circle cx="12" cy="12.5" r="3.6" fill="var(--tint)"/><circle cx="12" cy="12.5" r="2" fill="currentColor"/></svg>',
   note:'<svg viewBox="3.20 2.60 18.10 18.10" fill="currentColor"><circle cx="8.6" cy="17.6" r="3.1"/><path d="M10.4 17.6V4.6l8.6-2v4l-6.4 1.5v9.5z"/></svg>'
 };
-/* the account page's icons: one outline set, one line weight, drawn in colour on a glass tile */
+/* the account page's icons: filled, SF Symbols-weight glyphs, drawn in colour on a glass tile */
 var ACC_LN={
-  person:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.3" r="3.6"/><path d="M4.8 20c.9-3.7 3.7-5.7 7.2-5.7s6.3 2 7.2 5.7"/></svg>',
-  bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16.3V11a6 6 0 0 1 12 0v5.3l1.6 2H4.4z"/><path d="M10 20.6a2.1 2.1 0 0 0 4 0"/></svg>',
-  sign:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><g transform="translate(12 12.5) scale(1.18) translate(-12 -12.5)"><path d="M3.5 14.5c1.6-2.6 3.4-6.8 2.6-7.6-.9-.9-2.6 3.6-2.3 6.1.3 2.6 2.4 2.2 3.9.3 1.2-1.5 1.8-3.4 2.6-3.1.8.3-.4 2.9.4 3.2.8.3 1.7-1.6 2.5-1.4.8.2.3 1.8 1.1 1.9.9.1 2.3-1.4 3.4-1.6"/><path d="M3.5 18.5h17"/></g></svg>',
-  down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v10M8 9.6l4 4 4-4"/><path d="M4.5 14.8v2.7A3 3 0 0 0 7.5 20.5h9a3 3 0 0 0 3-3v-2.7"/></svg>',
-  up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14V4M8 7.9l4-4 4 4"/><path d="M4.5 14.8v2.7A3 3 0 0 0 7.5 20.5h9a3 3 0 0 0 3-3v-2.7"/></svg>',
-  disk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6.5" width="17" height="11" rx="3"/><path d="M7.2 12h4.6"/><circle cx="16.3" cy="12" r=".6" fill="currentColor"/></svg>',
-  spark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 4.5l1.5 4.2a3 3 0 0 0 1.8 1.8l4.2 1.5-4.2 1.5a3 3 0 0 0-1.8 1.8l-1.5 4.2L9 15.3a3 3 0 0 0-1.8-1.8L3 12l4.2-1.5A3 3 0 0 0 9 8.7z"/><path d="M18.5 3v3.4M16.8 4.7h3.4"/></svg>',
-  reset:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 12a7.4 7.4 0 1 0 2.2-5.3"/><path d="M4.6 3.8v4.4H9"/></svg>',
-  block:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M6.4 6.4l11.2 11.2"/></svg>',
-  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4l7 2.7v5.3c0 4.3-2.9 7.6-7 9.1-4.1-1.5-7-4.8-7-9.1V6.1z"/></svg>',
-  lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.3 10.5V8a3.7 3.7 0 0 1 7.4 0v2.5"/></svg>',
-  doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7.2 3.5h6.6l4.7 4.7v10.3a2 2 0 0 1-2 2H7.2a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2z"/><path d="M13.6 3.7v4.7h4.7M8.8 13h6.4M8.8 16.4h4.2"/></svg>',
-  help:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 4.5h13a2.5 2.5 0 0 1 2.5 2.5v8a2.5 2.5 0 0 1-2.5 2.5h-6.3l-4.4 3.3v-3.3H5.5A2.5 2.5 0 0 1 3 15V7a2.5 2.5 0 0 1 2.5-2.5z"/><path d="M10 9.4a2.1 2.1 0 1 1 2.9 1.9c-.6.3-.9.7-.9 1.3"/><circle cx="12" cy="14.6" r=".5" fill="currentColor"/></svg>',
-  swap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.6" r="3.1"/><path d="M3.3 19.3c.7-3.2 2.9-5 5.7-5s5 1.8 5.7 5"/><path d="M15.2 5.9a2.8 2.8 0 1 1 .9 5.3M17 14.4c2 .4 3.4 2 3.8 4.9"/></svg>'
+  person:ACC_ICO.person,bell:ACC_ICO.bell,down:ACC_ICO.down,up:ACC_ICO.up,disk:ACC_ICO.disk,spark:ACC_ICO.spark,
+  reset:ACC_ICO.reset,block:ACC_ICO.block,lock:ACC_ICO.lock,doc:ACC_ICO.doc,help:ACC_ICO.help,swap:ACC_ICO.swap,
+  sign:'<svg viewBox="2.4 4.4 19.2 15.6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 14.5c1.6-2.6 3.4-6.8 2.6-7.6-.9-.9-2.6 3.6-2.3 6.1.3 2.6 2.4 2.2 3.9.3 1.2-1.5 1.8-3.4 2.6-3.1.8.3-.4 2.9.4 3.2.8.3 1.7-1.6 2.5-1.4.8.2.3 1.8 1.1 1.9.9.1 2.3-1.4 3.4-1.6"/><path d="M3.5 18.6h17"/></svg>',
+  shield:'<svg viewBox="3.2 2.4 17.6 19.2" fill="currentColor"><path d="M12 2.6c.3 0 .6.1.9.2l6.2 2.4c.7.3 1.1.9 1.1 1.6v4.7c0 4.9-3.4 8.6-7.6 10-.4.1-.8.1-1.2 0-4.2-1.4-7.6-5.1-7.6-10V6.8c0-.7.4-1.3 1.1-1.6l6.2-2.4c.3-.1.6-.2.9-.2z"/></svg>'
 };
 /* the same colours as iOS uses them in dark mode, a touch brighter */
 var ACC_DARK={'#007AFF':'#0A84FF','#FF3B30':'#FF453A','#FF9500':'#FF9F0A','#34C759':'#30D158','#8E8E93':'#98989D','#AF52DE':'#BF5AF2','#5856D6':'#7D7AFF','#FF2D55':'#FF375F','#FA2D48':'#FF4560'};

@@ -114,7 +114,7 @@ struct TileIcon: View {
     }
 }
 
-/// The account page's tile: a small frosted-glass square with the symbol drawn in outline, in its own colour.
+/// The account page's tile: a small frosted-glass square with the filled symbol in its own system colour.
 /// Every row gets the same tile, so the page reads as one set while the colours keep it lively.
 struct GlassTile: View {
     let name: String
@@ -129,7 +129,7 @@ struct GlassTile: View {
         Image(systemName: name)
             .resizable()
             .scaledToFit()
-            .fontWeight(.medium)
+            .fontWeight(.semibold)
             .symbolRenderingMode(.monochrome)
             .foregroundStyle(color)
             .frame(width: size * 0.6, height: size * 0.6)
