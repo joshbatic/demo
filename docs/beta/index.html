@@ -1511,7 +1511,7 @@ body.desktop #albread .arx{top:12px}
   <div class="abs fadeT lhf"></div>
   <div class="lhead"><h1>*[demo]</h1><button class="gl acct" id="acctb" aria-label="Account"><i class="protag" id="acctplan" hidden>Beta</i><img id="acctav" class="acctav" alt="" hidden><svg id="acctsvg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.9-3.6 3.7-5.6 7-5.6s6.1 2 7 5.6"/></svg><i class="invdot" id="invdot1" hidden></i></button></div>
   <div class="dock"><div class="gl sbox"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="Search"></div>
-  <button class="gl cbtn" id="new" aria-label="New song"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6"/><path d="M18.5 3.5l2 2L11 15l-3 1 1-3z"/></svg></button></div>
+  <button class="gl cbtn" id="new" aria-label="New song" title="New song (hold for more)" style="-webkit-touch-callout:none;-webkit-user-select:none;user-select:none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6"/><path d="M18.5 3.5l2 2L11 15l-3 1 1-3z"/></svg></button></div>
 </div>
 
 <div class="view" id="vIdeas">
@@ -15380,8 +15380,8 @@ OY-B-AH-L	foible92
 EH-M-ER-IH-JH-D	hemorrhaged93
 AH-S-IH-N	bussin52s`;
 /* git commit this build came from, shown at the bottom of Account. Written by scripts/stamp-version.sh — don't edit by hand. */
-var APP_COMMIT='039676d';
-var APP_SEQ=731;
+var APP_COMMIT='d498fc6';
+var APP_SEQ=733;
 /* the version people see, the same as the iPhone app's; Account shows it with the build number so every device can be compared */
 var APP_VERSION='1.1.0';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
@@ -16144,7 +16144,17 @@ $('#q').oninput=renderList;
 /* real UUIDs so song ids are always valid for the shared_songs table, whether or not the song is ever shared */
 function uuid4(){try{if(window.crypto&&crypto.randomUUID)return crypto.randomUUID()}catch(e){}return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c==='x'?r:(r&3|8);return v.toString(16)})}
 function newSong(){var nm=myName();var s={pf:mkPF({}),id:uuid4(),title:'',lyrics:'',chords:'',key:'',bpm:'',capo:'',time:'',tuning:'',status:'Idea',folder:'',notes:'',artist:nm,_autoArtist:nm,updated:Date.now()};songs.push(s);save();openSong(s.id)}
-$('#new').onclick=newSong;
+var NEW_ICO={song:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6"/><path d="M17.6 3.6a2 2 0 0 1 2.8 2.8L12 14.8l-3.6.8.8-3.6z"/></svg>',
+  folder:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5a2 2 0 0 1 2-2h3.8l2 2.2h7.2a2 2 0 0 1 2 2v7.8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M12 11.2v5M9.5 13.7h5"/></svg>',
+  album:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="7" width="13.5" height="13.5" rx="2.5"/><path d="M7 3.5h11a2.5 2.5 0 0 1 2.5 2.5v11"/></svg>'};
+/* the songs list's new button: a tap starts a song; press and hold it (or right-click) for New Song, New Folder or New Album */
+(function(){var b=$('#new'),t=0,held=false;
+  function menu(){albMenu(b,[{t:'New Song',ico:NEW_ICO.song,fn:newSong},{t:'New Folder',ico:NEW_ICO.folder,fn:function(){createFolder(false)}},{t:'New Album',ico:NEW_ICO.album,fn:albNew}])}
+  function stop(){clearTimeout(t)}
+  b.addEventListener('pointerdown',function(e){if(e.button)return;held=false;stop();t=setTimeout(function(){held=true;try{navigator.vibrate&&navigator.vibrate(8)}catch(x){}menu()},450)});
+  ['pointerup','pointerleave','pointercancel'].forEach(function(k){b.addEventListener(k,stop)});
+  b.addEventListener('contextmenu',function(e){e.preventDefault();stop();held=true;menu()});
+  b.onclick=function(){if(held){held=false;return}newSong()}})();
 
 /* ---------- editor ---------- */
 var KY=['','C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];KY.slice(1).forEach(function(k){KY.push(k+'m')});
