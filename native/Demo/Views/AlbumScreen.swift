@@ -3,29 +3,33 @@ import PhotosUI
 
 // MARK: - look
 
-/// An album's colour, the way Apple Music does it: the artwork's main colour, muted and mid-dark,
-/// filling the whole page so the artwork and white words sit on it.
+/// An album's colours: the share page's background (shBg), the artwork's main colour washing diagonally into
+/// the next with a glow of a third, and words in a deep shade of the main colour rather than plain black.
 struct AlbumLook {
-    let main: HSL
+    let bg: SharePalette.Background
 
     init(_ a: Album) {
         var pal: [HSL] = []
         if let art = a.artDataURL, let img = CoverView.image(art) { pal = SharePalette.fromArt(img) }
         if pal.isEmpty { pal = CoverPick(id: a.id).hexes.map(SharePalette.hex) }
-        main = pal.first { $0.s >= 0.14 } ?? pal[0]
+        bg = SharePalette.background(pal, 0)
     }
 
-    private var sat: Double { main.s < 0.14 ? 0.04 : min(0.4, max(0.22, main.s * 0.5)) }
-    /// The page colour (the Read Lyrics button's words use it too).
-    var page: Color { SharePalette.color(HSL(h: main.h, s: sat, l: 0.33)) }
-    private var top: Color { SharePalette.color(HSL(h: main.h, s: sat, l: 0.4)) }
+    /// The words (the Read Lyrics button is filled with it).
+    var ink: Color { SharePalette.color(bg.ink) }
 
     var background: some View {
-        LinearGradient(colors: [top, page], startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.6)).ignoresSafeArea()
+        GeometryReader { g in
+            ZStack {
+                LinearGradient(colors: [SharePalette.color(bg.top), SharePalette.color(bg.bot)], startPoint: UnitPoint(x: 0.25, y: 0), endPoint: UnitPoint(x: 0.75, y: 1))
+                RadialGradient(colors: [SharePalette.color(bg.glow), SharePalette.color(bg.glow).opacity(0)], center: UnitPoint(x: 0.88, y: 0.04), startRadius: 0, endRadius: g.size.width * 0.72)
+            }
+        }
+        .ignoresSafeArea()
     }
 }
 
-/// A song's progress as a small coloured tag: Idea, Draft, Demo, Finished. Made for the album's dark page.
+/// A song's progress as a small coloured tag: Idea, Draft, Demo, Finished.
 struct StatusTag: View {
     let status: String
     var body: some View {
@@ -38,10 +42,10 @@ struct StatusTag: View {
     }
     private var colours: (fill: Color, ink: Color) {
         switch status {
-        case "Finished": return (Color(hex: 0x34C759).opacity(0.24), Color(hex: 0xA8F2BC))
-        case "Demo": return (Color(hex: 0x0A84FF).opacity(0.3), Color(hex: 0xADD5FF))
-        case "Draft": return (Color(hex: 0xFF9F0A).opacity(0.26), Color(hex: 0xFFD28F))
-        default: return (Color.white.opacity(0.13), Color.white.opacity(0.72))
+        case "Finished": return (Color(hex: 0x34C759).opacity(0.2), Color(hex: 0x1F7A36))
+        case "Demo": return (Color(hex: 0x007AFF).opacity(0.15), Color(hex: 0x0A5AC4))
+        case "Draft": return (Color(hex: 0xFF9500).opacity(0.2), Color(hex: 0xA35500))
+        default: return (Color.black.opacity(0.07), Color(hex: 0x5E5E63))
         }
     }
 }
@@ -134,7 +138,7 @@ struct AlbumShelf: View {
 
 // MARK: - the album page
 
-/// Like an album in Apple Music: the page in the artwork's colour, the square artwork, title, artist,
+/// Laid out like an album in Apple Music, on the share page's colours: the square artwork, title, artist,
 /// the main button between two round ones, then the tracklist.
 struct AlbumScreen: View {
     let albumID: String
@@ -166,7 +170,7 @@ struct AlbumScreen: View {
             if tracks.isEmpty {
                 VStack(spacing: 6) {
                     Text("No songs yet").font(.system(size: 17, weight: .semibold))
-                    Text("Write a new one, or add songs you’ve already started.").font(.system(size: 15)).foregroundStyle(.white.opacity(0.65))
+                    Text("Write a new one, or add songs you’ve already started.").font(.system(size: 15)).foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity).padding(.vertical, 30)
@@ -179,7 +183,7 @@ struct AlbumScreen: View {
                     .listRowSeparator(.hidden)
                     .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 14))
                     .overlay(alignment: .top) {
-                        Rectangle().fill(.white.opacity(0.16)).frame(height: 0.5).padding(.leading, i == 0 ? 0 : 36)
+                        Rectangle().fill(.quaternary).frame(height: 0.5).padding(.leading, i == 0 ? 0 : 36)
                     }
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) { remove(s) } label: { Label("Remove", systemImage: "minus.circle") }
@@ -193,8 +197,8 @@ struct AlbumScreen: View {
             }
             if !tracks.isEmpty {
                 VStack(alignment: .leading, spacing: 0) {
-                    Rectangle().fill(.white.opacity(0.16)).frame(height: 0.5)
-                    Text(footer(a, tracks)).font(.system(size: 13)).foregroundStyle(.white.opacity(0.6)).padding(.top, 12)
+                    Rectangle().fill(.quaternary).frame(height: 0.5)
+                    Text(footer(a, tracks)).font(.system(size: 13)).foregroundStyle(.secondary).padding(.top, 12)
                 }
                 .padding(.bottom, 40)
                 .listRowSeparator(.hidden).listRowBackground(Color.clear)
@@ -205,11 +209,11 @@ struct AlbumScreen: View {
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .background(look.background)
-        .foregroundStyle(.white)
-        // the page is always dark-ish, so glass, menus and swipe buttons take their dark look
-        .environment(\.colorScheme, .dark)
         .toolbar(.hidden, for: .navigationBar)
         .safeAreaInset(edge: .top, spacing: 0) { topBar(a, tracks) }
+        .foregroundStyle(look.ink)
+        // the colours are pastel in dark mode too (like the share page), so glass and menus take their light look
+        .environment(\.colorScheme, .light)
         .sheet(isPresented: $editing) { AlbumEditSheet(album: a) }
         .sheet(isPresented: $adding) { AddSongsSheet(albumID: a.id) }
         .fullScreenCover(isPresented: $reading) { AlbumReader(album: a, look: look) }
@@ -225,7 +229,7 @@ struct AlbumScreen: View {
         GlassGroup(spacing: 10) {
             HStack {
                 Button { Haptics.tap(); dismiss() } label: {
-                    Icon("ic-back", 22).foregroundStyle(.white).frame(width: 48, height: 48).contentShape(Circle())
+                    Icon("ic-back", 22).foregroundStyle(.primary).frame(width: 48, height: 48).contentShape(Circle())
                 }
                 .buttonStyle(PressScale())
                 .glassCircle()
@@ -233,7 +237,7 @@ struct AlbumScreen: View {
                 Spacer()
                 HStack(spacing: 4) {
                     ShareLink(item: tracklist(a, tracks)) {
-                        Icon("ic-share", 21).foregroundStyle(.white).frame(width: 48, height: 48).contentShape(Rectangle())
+                        Icon("ic-share", 21).foregroundStyle(.primary).frame(width: 48, height: 48).contentShape(Rectangle())
                     }
                     .accessibilityLabel("Share tracklist")
                     Menu {
@@ -243,7 +247,7 @@ struct AlbumScreen: View {
                             Button(role: .destructive) { confirmDelete = true } label: { Label("Delete \(a.kind)", systemImage: "trash") }
                         }
                     } label: {
-                        Icon("ic-more", 21).foregroundStyle(.white).frame(width: 48, height: 48).contentShape(Rectangle())
+                        Icon("ic-more", 21).foregroundStyle(.primary).frame(width: 48, height: 48).contentShape(Rectangle())
                     }
                     .accessibilityLabel("More")
                 }
@@ -268,10 +272,10 @@ struct AlbumScreen: View {
             .padding(.top, 10)
             Text(a.displayTitle).font(.system(size: 23, weight: .bold)).tracking(-0.4).multilineTextAlignment(.center).padding(.top, 24)
             if !artist.isEmpty {
-                Text(artist).font(.system(size: 21)).tracking(-0.3).foregroundStyle(.white.opacity(0.92)).lineLimit(1).padding(.top, 2)
+                Text(artist).font(.system(size: 21)).tracking(-0.3).foregroundStyle(.primary).lineLimit(1).padding(.top, 2)
             }
             Text([a.kind, a.year, tracks.isEmpty ? "" : "\(fin) of \(tracks.count) finished"].filter { !$0.isEmpty }.joined(separator: " · "))
-                .font(.system(size: 13, weight: .semibold)).foregroundStyle(.white.opacity(0.68)).padding(.top, 6)
+                .font(.system(size: 13, weight: .semibold)).foregroundStyle(.secondary).padding(.top, 6)
             // Apple Music's Shuffle · Play · Add, here Add Songs · Read Lyrics · New Song
             GlassGroup(spacing: 14) {
                 HStack(spacing: 16) {
@@ -279,9 +283,9 @@ struct AlbumScreen: View {
                     Button { Haptics.tap(); reading = true } label: {
                         Label("Read Lyrics", systemImage: "book.fill")
                             .font(.system(size: 17, weight: .semibold))
-                            .foregroundStyle(look.page)
+                            .foregroundStyle(.white)
                             .frame(width: 176, height: 52)
-                            .background(.white, in: Capsule())
+                            .background(look.ink, in: Capsule())
                             .contentShape(Capsule())
                     }
                     .buttonStyle(PressScale())
@@ -296,7 +300,7 @@ struct AlbumScreen: View {
 
     private func round(_ icon: String, _ label: String, _ action: @escaping () -> Void) -> some View {
         Button { Haptics.tap(); action() } label: {
-            Image(systemName: icon).font(.system(size: 19, weight: .semibold)).foregroundStyle(.white)
+            Image(systemName: icon).font(.system(size: 19, weight: .semibold)).foregroundStyle(.primary)
                 .frame(width: 52, height: 52).contentShape(Circle())
         }
         .buttonStyle(PressScale())
@@ -308,10 +312,10 @@ struct AlbumScreen: View {
         HStack(spacing: 12) {
             Button { Haptics.tap(); pushRoute(s.id) } label: {
                 HStack(spacing: 14) {
-                    Text("\(i + 1)").font(.system(size: 16)).monospacedDigit().foregroundStyle(.white.opacity(0.55)).frame(width: 22)
+                    Text("\(i + 1)").font(.system(size: 16)).monospacedDigit().foregroundStyle(.secondary).frame(width: 22)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(s.displayTitle).font(.system(size: 17)).foregroundStyle(.white).lineLimit(1)
-                        Text(s.previewLine).font(.system(size: 14)).foregroundStyle(.white.opacity(0.6)).lineLimit(1)
+                        Text(s.displayTitle).font(.system(size: 17)).foregroundStyle(.primary).lineLimit(1)
+                        Text(s.previewLine).font(.system(size: 14)).foregroundStyle(.secondary).lineLimit(1)
                     }
                     Spacer(minLength: 8)
                     StatusTag(status: s.status)
@@ -327,7 +331,7 @@ struct AlbumScreen: View {
                     Button(role: .destructive) { remove(s) } label: { Label("Remove from Album", systemImage: "minus.circle") }
                 }
             } label: {
-                Image(systemName: "ellipsis").font(.system(size: 16, weight: .semibold)).foregroundStyle(.white.opacity(0.8))
+                Image(systemName: "ellipsis").font(.system(size: 16, weight: .semibold)).foregroundStyle(.primary)
                     .frame(width: 34, height: 44).contentShape(Rectangle())
             }
             .accessibilityLabel("Song options")
@@ -384,33 +388,32 @@ struct AlbumReader: View {
                     AlbumArt(album: album, size: 56, radius: 8)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(album.displayTitle).font(.system(size: 17, weight: .semibold)).lineLimit(1)
-                        Text([album.kind, album.year].filter { !$0.isEmpty }.joined(separator: " · ")).font(.system(size: 14)).foregroundStyle(.white.opacity(0.65))
+                        Text([album.kind, album.year].filter { !$0.isEmpty }.joined(separator: " · ")).font(.system(size: 14)).foregroundStyle(.secondary)
                     }
                 }
                 .padding(.bottom, 24)
                 ForEach(Array(library.albumSongs(album.id).enumerated()), id: \.element.id) { i, s in
                     VStack(alignment: .leading, spacing: 0) {
-                        Text("\(i + 1)").font(.system(size: 13, weight: .semibold)).monospacedDigit().foregroundStyle(.white.opacity(0.55))
+                        Text("\(i + 1)").font(.system(size: 13, weight: .semibold)).monospacedDigit().foregroundStyle(.secondary)
                         Text(s.displayTitle).font(.system(size: 30, weight: .bold)).tracking(-0.5).padding(.top, 2).padding(.bottom, 14)
                         lyrics(s)
                     }
                     .padding(.vertical, 24)
-                    .overlay(alignment: .top) { if i > 0 { Rectangle().fill(.white.opacity(0.16)).frame(height: 0.5) } }
+                    .overlay(alignment: .top) { if i > 0 { Rectangle().fill(.quaternary).frame(height: 0.5) } }
                 }
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(look.ink)
             .padding(.horizontal, 26)
             .padding(.top, 8).padding(.bottom, 60)
             .frame(maxWidth: 640, alignment: .leading)
             .frame(maxWidth: .infinity)
         }
         .background(look.background)
-        .environment(\.colorScheme, .dark)
         .safeAreaInset(edge: .top, spacing: 0) {
             HStack {
                 Spacer()
                 Button { Haptics.tap(); dismiss() } label: {
-                    Icon("ic-close", 20).foregroundStyle(.white).frame(width: 46, height: 46).contentShape(Circle())
+                    Icon("ic-close", 20).foregroundStyle(.primary).frame(width: 46, height: 46).contentShape(Circle())
                 }
                 .buttonStyle(PressScale())
                 .glassCircle()
@@ -418,13 +421,15 @@ struct AlbumReader: View {
             }
             .padding(.horizontal, 16).padding(.top, 4)
         }
+        .foregroundStyle(look.ink)
+        .environment(\.colorScheme, .light)
     }
 
     /// [Section] lines as small headings, blank lines as gaps.
     @ViewBuilder private func lyrics(_ s: Song) -> some View {
         let raw = s.lyrics.components(separatedBy: "\n").map { $0.trimmingCharacters(in: .whitespaces) }
         if raw.allSatisfy(\.isEmpty) {
-            Text("No lyrics yet").font(.system(size: 22, weight: .semibold)).foregroundStyle(.white.opacity(0.45))
+            Text("No lyrics yet").font(.system(size: 22, weight: .semibold)).foregroundStyle(.tertiary)
         } else {
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(raw.enumerated()), id: \.offset) { _, l in
@@ -432,9 +437,9 @@ struct AlbumReader: View {
                         Color.clear.frame(height: 18)
                     } else if l.hasPrefix("[") && l.hasSuffix("]") {
                         Text(l.dropFirst().dropLast().uppercased()).font(.system(size: 12, weight: .semibold)).tracking(0.8)
-                            .foregroundStyle(.white.opacity(0.55)).padding(.top, 8).padding(.bottom, 4)
+                            .foregroundStyle(.secondary).padding(.top, 8).padding(.bottom, 4)
                     } else {
-                        Text(l).font(.system(size: 22, weight: .semibold)).lineSpacing(4).foregroundStyle(.white.opacity(0.94)).padding(.vertical, 3)
+                        Text(l).font(.system(size: 22, weight: .semibold)).lineSpacing(4).foregroundStyle(.primary).padding(.vertical, 3)
                     }
                 }
             }

@@ -1369,8 +1369,8 @@ body.nglass .ngsw{opacity:0!important}
 #ob .obsec{height:30px;font-size:16px;font-weight:500;color:var(--mute);background:none}
 #ob .obsec[hidden]{display:block;visibility:hidden}
 /* ---- albums: a row of tiles in the song list, an Apple Music style album page washed in the artwork's colours,
-   a full-screen lyric reader, and the sheets to make one and add songs to it. --apg (the page colour) and --awl
-   (its top wash) are set from the artwork by albPaint() ---- */
+   a full-screen lyric reader, and the sheets to make one and add songs to it. --abg (the share page's background)
+   and --ak (its ink, as "h,s%,l%") are set from the artwork by albPaint() ---- */
 .alrow{display:flex;gap:14px;overflow-x:auto;padding:6px 24px 8px;scroll-snap-type:x mandatory;scroll-padding:0 24px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .alrow::-webkit-scrollbar{display:none}
 .altile{flex:none;width:150px;text-align:left;scroll-snap-align:start;color:var(--ink);-webkit-tap-highlight-color:transparent}
@@ -1381,19 +1381,20 @@ body.nglass .ngsw{opacity:0!important}
 .altile span{display:block;font-size:13px;color:var(--mute);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .altile.alnew .alart{background:var(--fill);box-shadow:none;color:var(--ink)}
 .rpin.ralb{margin-right:-6px}
-#vAlbum{background:var(--apg,#3a3a40);max-width:none}
-/* like an album in Apple Music: the whole page in the artwork's colour (muted, mid-dark) with white words, light or dark mode */
-#vAlbum,#albread{--ink:#fff;--mute:rgba(255,255,255,.62);--sep:rgba(255,255,255,.16);--fill:rgba(255,255,255,.08);--ring:rgba(255,255,255,.12);color:#fff}
-:is(#vAlbum,#albread) .gl{background:rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 .5px rgba(255,255,255,.12),0 4px 14px rgba(0,0,0,.12)}
-.around{flex:none;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;color:#fff;transition:transform .2s cubic-bezier(.34,1.4,.5,1)}
+#vAlbum{background:var(--abg,#eee);max-width:none}
+/* laid out like an album in Apple Music, on the share page's colours (shBg): pastel from the artwork in light and dark
+   mode alike, with words in a deep shade of the main colour */
+#vAlbum,#albread{--ink:hsl(var(--ak,240,8%,15%));--mute:hsla(var(--ak,240,8%,15%),.6);--sep:hsla(var(--ak,240,8%,15%),.13);--fill:hsla(var(--ak,240,8%,15%),.06);--ring:hsla(var(--ak,240,8%,15%),.08);color:var(--ink);color-scheme:light}
+:is(#vAlbum,#albread) .gl{background:rgba(255,255,255,.42);box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 0 0 .5px rgba(255,255,255,.5),0 4px 14px hsla(var(--ak,240,8%,15%),.1)}
+.around{flex:none;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;color:var(--ink);transition:transform .2s cubic-bezier(.34,1.4,.5,1)}
 .around:active{transform:scale(.93)}
-.aplay{flex:none;width:176px;height:52px;border-radius:99px;display:flex;align-items:center;justify-content:center;gap:9px;background:#fff;color:var(--apg,#333);font-size:17px;font-weight:600;letter-spacing:-.2px;transition:transform .2s cubic-bezier(.34,1.4,.5,1),opacity .15s}
+.aplay{flex:none;width:176px;height:52px;border-radius:99px;display:flex;align-items:center;justify-content:center;gap:9px;background:var(--ink);color:#fff;font-size:17px;font-weight:600;letter-spacing:-.2px;transition:transform .2s cubic-bezier(.34,1.4,.5,1),opacity .15s}
 .aplay:active{transform:scale(.96)}.aplay[disabled]{opacity:.55}
-.atag{flex:none;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:99px;margin-left:6px;background:rgba(255,255,255,.13);color:rgba(255,255,255,.74)}
-.atag.t-finished{background:rgba(52,199,89,.24);color:#a8f2bc}.atag.t-demo{background:rgba(10,132,255,.3);color:#add5ff}.atag.t-draft{background:rgba(255,159,10,.26);color:#ffd28f}
+.atag{flex:none;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:99px;margin-left:6px;background:rgba(0,0,0,.07);color:#5e5e63}
+.atag.t-finished{background:rgba(52,199,89,.2);color:#1f7a36}.atag.t-demo{background:rgba(0,122,255,.15);color:#0a5ac4}.atag.t-draft{background:rgba(255,149,0,.2);color:#a35500}
 #vAlbum,#albread{--aw:var(--awl);--ac:#fff}
 #ascroll{padding:calc(env(safe-area-inset-top,0px) + 66px) 0 calc(70px + env(safe-area-inset-bottom,0px))}
-.awash{position:absolute;left:0;right:0;top:0;height:960px;background:var(--aw,transparent);pointer-events:none;transition:background .3s}
+.awash{display:none;position:absolute;left:0;right:0;top:0;height:960px;background:var(--aw,transparent);pointer-events:none;transition:background .3s}
 #amount{position:relative;max-width:640px;margin:0 auto;padding:0 20px}
 .albbar{position:absolute;top:0;left:0;right:0;max-width:720px;margin:0 auto;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 0;pointer-events:none}
 .albbar>*{pointer-events:auto}
@@ -1402,10 +1403,10 @@ body.nglass .ngsw{opacity:0!important}
 body.desktop #vAlbum .albbar{-webkit-app-region:drag}body.desktop #vAlbum .albbar button{-webkit-app-region:no-drag}
 @media (max-width:899px){body.desktop #vAlbum .albbar{padding-left:86px}}
 .ahd{text-align:center;padding-top:4px}
-.aart{display:grid;place-items:center;width:264px;height:264px;border-radius:10px;margin:6px auto 24px;background:var(--cv1) center/cover;overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,.28),0 3px 10px rgba(0,0,0,.12)}
+.aart{display:grid;place-items:center;width:264px;height:264px;border-radius:10px;margin:6px auto 24px;background:var(--cv1) center/cover;overflow:hidden;box-shadow:0 18px 40px hsla(var(--ak,240,8%,15%),.22),0 3px 10px hsla(var(--ak,240,8%,15%),.1)}
 .attl{margin:0;font-size:23px;font-weight:700;line-height:1.22;letter-spacing:-.35px;overflow-wrap:anywhere}
-.aby{font-size:21px;line-height:1.25;letter-spacing:-.3px;color:rgba(255,255,255,.92);margin-top:2px;overflow-wrap:anywhere}
-.ameta{margin-top:6px;font-size:13px;font-weight:600;color:rgba(255,255,255,.68)}
+.aby{font-size:21px;line-height:1.25;letter-spacing:-.3px;color:var(--ink);opacity:.9;margin-top:2px;overflow-wrap:anywhere}
+.ameta{margin-top:6px;font-size:13px;font-weight:600;color:var(--mute)}
 .abtns{display:flex;gap:16px;justify-content:center;align-items:center;margin:22px 0 24px}
 .acap{flex:1;min-width:0;height:50px;border-radius:99px;display:flex;align-items:center;justify-content:center;gap:9px;font-size:17px;font-weight:600;letter-spacing:-.2px;color:var(--ac);transition:transform .2s cubic-bezier(.34,1.4,.5,1),filter .15s}
 .acap:active{transform:scale(.96)}@media (hover:hover){.acap:hover{filter:brightness(.97)}}
@@ -1427,18 +1428,18 @@ body.desktop #vAlbum .albbar{-webkit-app-region:drag}body.desktop #vAlbum .albba
 .aempty{text-align:center;color:var(--mute);padding:30px 0 6px;font-size:16px}
 .aempty .acap{display:inline-flex;flex:none;padding:0 22px;margin-top:14px}
 /* the reader: every song in track order, large and plain */
-#albread{position:fixed;inset:0;z-index:7;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--apg,#3a3a40);opacity:0;transform:translateY(24px);transition:opacity .25s,transform .32s cubic-bezier(.32,.72,0,1)}
+#albread{position:fixed;inset:0;z-index:7;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--abg,#eee);background-attachment:fixed;opacity:0;transform:translateY(24px);transition:opacity .25s,transform .32s cubic-bezier(.32,.72,0,1)}
 #albread.on{opacity:1;transform:none}
 #albread .arin{position:relative;max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 76px) 24px calc(90px + env(safe-area-inset-bottom,0px))}
 #albread .arx{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);right:16px;z-index:2;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--ink)}
 body.desktop #albread .arx{top:12px}
 #albread .arh{text-align:center;margin-bottom:8px}
 #albread .arh b{display:block;font-size:28px;font-weight:700;letter-spacing:-.5px;line-height:1.2}
-#albread .arh span{display:block;font-size:20px;color:rgba(255,255,255,.85);margin-top:2px}
+#albread .arh span{display:block;font-size:20px;color:var(--mute);margin-top:2px}
 #albread .ars{margin-top:48px}
 #albread .arn{font-size:13px;font-weight:600;color:var(--mute);letter-spacing:.02em}
 #albread h3{margin:2px 0 14px;font-size:26px;font-weight:700;letter-spacing:-.4px;line-height:1.2}
-#albread .arl{font-size:22px;font-weight:600;line-height:1.45;color:rgba(255,255,255,.94);overflow-wrap:anywhere}
+#albread .arl{font-size:22px;font-weight:600;line-height:1.45;color:var(--ink);overflow-wrap:anywhere}
 #albread .arsec{font-size:13px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:20px 0 4px}
 #albread .arsec:first-child{margin-top:0}
 #albread .argap{height:.9em}#albread .argap+.arsec{margin-top:6px}
@@ -21306,9 +21307,7 @@ $('#aback').onclick=albClose;
 /* the page's colours: a pastel wash from the artwork (or the album's own gradient), fading to the page, and an
    accent that's a deep shade of the main colour. Dark mode fades to black with the colours turned down */
 function albPalette(a){var fall=covHex(a.id||'').map(hexHsl);return artOk(a.art)?artPalette(a.art).then(function(p){return p.length?p:fall}):Promise.resolve(fall)}
-function albPaint(el,pal){var c=pal.filter(function(x){return x[1]>=.14})[0]||pal[0]||[220,.05,.5],h=Math.round(c[0]),sat=c[1]<.14?4:Math.round(Math.min(.4,Math.max(.22,c[1]*.5))*100);
-  var pg='hsl('+h+','+sat+'%,33%)';el.style.setProperty('--apg',pg);
-  el.style.setProperty('--awl','linear-gradient(180deg,hsl('+h+','+sat+'%,40%) 0%,'+pg+' 60%)')}
+function albPaint(el,pal){var b=shBg(pal,0);el.style.setProperty('--abg',b.css);el.style.setProperty('--ak',b.k)}
 function albTheme(a){var k=a.id+':'+(a.art?a.art.length+a.art.slice(-24):'');if(ALB.pk===k&&ALB.pal){albPaint($('#vAlbum'),ALB.pal);return}
   ALB.pk=k;albPalette(a).then(function(p){if(ALB.pk!==k)return;ALB.pal=p;albPaint($('#vAlbum'),p);var rd=$('#albread');if(rd)albPaint(rd,p)})}
 function albLines(s){return(s.lyrics||'').split('\n').filter(function(x){x=x.trim();return x&&!/^\[[^\]]*\]$/.test(x)}).length}
