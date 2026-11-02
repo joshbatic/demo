@@ -168,6 +168,7 @@ struct SignInView: View {
             Spacer()
             AppIconView(size: 104).padding(.bottom, 28)
             Text("*[demo]").font(.system(size: 40, weight: .bold)).tracking(-0.8)
+            Text("Every song starts as a demo.").font(.system(size: 19, weight: .semibold)).padding(.top, 2)
             Text("Sign in to use *[demo]. Your songs sync to your account and stay backed up.")
                 .font(.body).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 .padding(.horizontal, 36).padding(.top, 10)
