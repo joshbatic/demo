@@ -237,7 +237,12 @@ struct EditorScreen: View {
     private func titleRow(_ s: Song) -> some View {
         HStack(alignment: .center, spacing: 14) {
             // tap the cover to choose a photo (spec §4.1)
-            Button { Haptics.tap(); pickArt = true } label: { CoverView(song: s, size: 64) }
+            // a song in an album with artwork shows the album's: that's changed on the album
+            Button {
+                Haptics.tap()
+                if library.album(s.albumID)?.artDataURL != nil { session.toast = "This song uses its album’s artwork. Change it on the album." }
+                else { pickArt = true }
+            } label: { CoverView(song: s, size: 64) }
                 .buttonStyle(PressScale())
                 .accessibilityLabel("Cover art")
             VStack(alignment: .leading, spacing: 2) {

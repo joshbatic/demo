@@ -365,6 +365,8 @@ final class LibraryStore {
     // MARK: albums (supabase/albums.sql): one row each, last writer wins on `updated`
 
     var liveAlbums: [Album] { albums.filter { !$0.deleted } }
+    /// The cover a song shows: its album's artwork when it's in an album that has some, otherwise its own.
+    func coverArt(_ s: Song) -> String? { album(s.albumID)?.artDataURL ?? s.artDataURL }
     func album(_ id: String) -> Album? { id.isEmpty ? nil : albums.first { $0.id == id && !$0.deleted } }
 
     /// An album's songs in order (only songs whose album still exists count).

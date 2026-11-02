@@ -12,10 +12,11 @@ struct CoverView: View {
     var square = false
     var corner: CGFloat { square ? 0 : size * 0.26 }
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.library) private var library
 
     var body: some View {
         Group {
-            if let art = song.artDataURL, let img = CoverView.image(art) {
+            if let art = library.coverArt(song), let img = CoverView.image(art) {
                 Image(uiImage: img).resizable().scaledToFill()
             } else {
                 generated

@@ -16152,7 +16152,7 @@ function renderList(){setTimeout(function(){addNewZone($('#list'))},0);
     var h=document.createElement('div');h.className='gh'+(isPin?' ghpin':'');if(!isPin)h.dataset.folder=f==='Songs'?'':f;h.innerHTML='<b></b>';h.firstChild.textContent=isPin?'Pinned':f;L.appendChild(h);
     if(f!=='Songs'&&!isPin){var pe=document.createElement('button');pe.className='fren';pe.setAttribute('aria-label','Rename folder '+f);pe.title='Rename folder';pe.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5l4 4L8 20H4v-4z"/></svg>';pe.onclick=function(){renameFolder(h,f)};h.appendChild(pe);h.ondblclick=function(e){if(e.target.closest('.frin'))return;e.preventDefault();renameFolder(h,f)}}
     g[f].forEach(function(s){
-      var ls=llines(s),b=rowEl('song',s);b.insertAdjacentHTML('afterbegin','<i class="th"></i><div class="tx"><b></b><span></span><em></em></div>');var th=b.firstChild;if(s.art)th.style.backgroundImage=artCss(s.art);else th.innerHTML=cover(s);
+      var ls=llines(s),b=rowEl('song',s);b.insertAdjacentHTML('afterbegin','<i class="th"></i><div class="tx"><b></b><span></span><em></em></div>');var th=b.firstChild;if(songArt(s))th.style.backgroundImage=artCss(songArt(s));else th.innerHTML=cover(s);
       b.querySelector('b').textContent=s.title||ls[0]||'New Song';
       b.querySelector('span').textContent=s.ph&&!s.title&&!(s.lyrics||'').trim()?'Empty folder. Tap to write its first song, or drag songs here.':(s.title?ls[0]:ls[1])||'No lyrics yet';if(isPin)delete b.dataset.folder;b.querySelector('em').textContent=[isPin&&s.folder?s.folder:'',s.shared?'Shared':'',s.artist,s.status,s.key,s.bpm?s.bpm+' BPM':'',fd(s.updated)].filter(Boolean).join(' · ');
       if(albMine(s))albRowBtn(b,s);
@@ -16240,7 +16240,9 @@ function artOk(a){return typeof a==='string'&&/^data:image\/(jpeg|png|webp|gif);
 /* other people's profile pictures: only your own uploads (data:) or Google / Apple / this project's storage */
 function avOk(u){return typeof u==='string'&&(/^data:image\/(jpeg|png|webp|gif);base64,/.test(u)||/^https:\/\/([a-z0-9-]+\.)*(googleusercontent\.com|cygfgurzvmbtcegkpnss\.supabase\.co|apple\.com)\//i.test(u))}
 function artCss(a){return artOk(a)?'url("'+a+'")':''}
-function hdr(){if(!cur)return;$('#cr-fold').textContent=cur.folder||'Unfiled';$('#cr-song').textContent=cur.title||'Untitled';var cv=$('#cov');cv.style.backgroundImage=cur.art?artCss(cur.art):'';cv.innerHTML=cur.art?'':cover(cur);var ar=$('#artist');ar.textContent=cur.artist||'';ar.style.display=cur.artist?'':'none';$('#sub').textContent=[cur.status,cur.key,cur.bpm?cur.bpm+' BPM':''].filter(Boolean).join(' · ');$('#rmart').style.display=cur.art?'':'none';renderCollabHint()}
+/* the cover a song shows: its album's artwork when it's in an album that has some, otherwise its own */
+function songArt(s){var a=s&&typeof albOf==='function'&&albOf(s);return a&&artOk(a.art)?a.art:(s&&s.art)||''}
+function hdr(){if(!cur)return;$('#cr-fold').textContent=cur.folder||'Unfiled';$('#cr-song').textContent=cur.title||'Untitled';var cv=$('#cov');cv.style.backgroundImage=songArt(cur)?artCss(songArt(cur)):'';cv.innerHTML=songArt(cur)?'':cover(cur);var ar=$('#artist');ar.textContent=cur.artist||'';ar.style.display=cur.artist?'':'none';$('#sub').textContent=[cur.status,cur.key,cur.bpm?cur.bpm+' BPM':''].filter(Boolean).join(' · ');$('#rmart').style.display=cur.art?'':'none';renderCollabHint()}
 /* keeping the line you're on centred is for typing. While you drag out a selection with the mouse the page
    stays still, and with several lines selected it only scrolls if the end of the selection goes off-screen */
 var selDrag=false;
@@ -16319,7 +16321,7 @@ function buildFmt(){
 $('#aa').onmousedown=function(e){e.preventDefault()};
 $('#aa').onclick=function(){var on=!$('#fmt').classList.contains('on');$('#fmt').classList.toggle('on',on);this.setAttribute('aria-pressed',on);if(on)updateFmtState()};
 /* cover art + copy */
-$('#cov').onclick=function(){$('#artin').click()};
+$('#cov').onclick=function(){var a=cur&&albOf(cur);if(a&&artOk(a.art)){toast('This song uses the album’s artwork');albEdit(a);return}$('#artin').click()};
 $('#artin').onchange=function(){
   var f=this.files&&this.files[0];this.value='';if(!f||!cur)return;var rd=new FileReader();
   rd.onload=function(){var im=new Image();im.onload=function(){var s=480,c=document.createElement('canvas');c.width=c.height=s;var m=Math.min(im.width,im.height);c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,s,s);cur.art=c.toDataURL('image/jpeg',.8);cur.updated=Date.now();save();hdr()};im.onerror=function(){toast('Could not read that image')};im.src=rd.result};
@@ -16635,7 +16637,7 @@ function renderSide(){setTimeout(function(){addNewZone($('#slist'))},0);
     if(shut)return;
     g[fn].forEach(function(s){
       var b=rowEl('si'+(cur&&cur.id===s.id?' on':''),s);if(isPin)delete b.dataset.folder;b.insertAdjacentHTML('afterbegin','<i class="th"></i><div class="tx"><b></b><span></span></div>');
-      var th=b.firstChild;if(s.art)th.style.backgroundImage=artCss(s.art);else th.innerHTML=cover(s);
+      var th=b.firstChild;if(songArt(s))th.style.backgroundImage=artCss(songArt(s));else th.innerHTML=cover(s);
       b.querySelector('b').textContent=s.title||llines(s)[0]||'New Song';var sm=[s.shared?'Shared':'',s.artist].filter(Boolean).join(' · ');b.querySelector('span').textContent=sm;b.querySelector('span').style.display=sm?'':'none';
       b.onclick=function(){openSong(s.id);if(!wideMQ.matches)sideOn(false)};L.appendChild(b)});
   });
@@ -17359,7 +17361,7 @@ function chorusText(){var v=getText(),m=/^[ \t]*\[chorus\][ \t]*$/im.exec(v);if(
 /* ---------- rhyme map + syllable counts ---------- */
 var VIEW={map:false,syl:false,ctx:true};try{Object.assign(VIEW,JSON.parse(localStorage.getItem('songpad:view'))||{})}catch(e){}
 var STOP={};'a an the and or but to of in on at by for with as is it its be am are was were i me my we us our you your he him his she her they them their this that these those so do did does not no just oh if then than from can will would could should have has had there what when where who how im ive id dont cant wont aint like'.split(' ').forEach(function(w){STOP[w]=1});
-var rvT;function refreshViews(){clearTimeout(rvT);rvT=setTimeout(function(){rmap();gut();rateMarks();if(cur&&!cur.art)$('#cov').innerHTML=cover(cur)},140)}
+var rvT;function refreshViews(){clearTimeout(rvT);rvT=setTimeout(function(){rmap();gut();rateMarks();if(cur&&!songArt(cur))$('#cov').innerHTML=cover(cur)},140)}
 function rmap(){
   if(!window.CSS||!CSS.highlights||!window.Highlight)return;for(var i=0;i<8;i++)CSS.highlights.delete('rm'+i);if(!VIEW.map||!cur)return;
   var v=getText(),tok=[],stz=0,pos=0;
@@ -20228,7 +20230,7 @@ function renderAccount(){if(PW.on)pwRender();var o=$('#acc'),pro=isPro(),page=AC
       var nW=credited.filter(function(s){return!coOf(s)}).length;
       var st=document.createElement('div');st.className='crstat';[[credited.length,credited.length===1?'Song':'Songs'],[nW,'Written'],[credited.length-nW,'Co-written']].forEach(function(x){var d=document.createElement('div');d.innerHTML='<b></b><span></span>';d.firstChild.textContent=x[0];d.lastChild.textContent=x[1];st.appendChild(d)});g4.appendChild(st);
       credited.forEach(function(s){var r=document.createElement('button');r.className='cell crrow';
-        var th=document.createElement('i');th.className='crth';if(s.art)th.style.backgroundImage=artCss(s.art);else th.innerHTML=cover(s);r.appendChild(th);
+        var th=document.createElement('i');th.className='crth';if(songArt(s))th.style.backgroundImage=artCss(songArt(s));else th.innerHTML=cover(s);r.appendChild(th);
         var mid=document.createElement('span');mid.className='c2';mid.innerHTML='<b></b><span></span>';mid.firstChild.textContent=s.title;
         var mine=(s.credits||[]).filter(function(c){return c&&c.name&&me&&String(c.name).toLowerCase()===me})[0],others=(s.credits||[]).filter(function(c){return c&&c.name&&c!==mine}).map(function(c){return String(c.name).split(/\s+/)[0]});
         var co=coOf(s),rel=s.release&&s.release.date?new Date(s.release.date):null;
@@ -20867,7 +20869,7 @@ function artPalette(src){return new Promise(function(res){var im=new Image();im.
     var out=[];Object.keys(bins).map(function(k){var b=bins[k];return{w:b.w,c:rgbHsl(b.r/b.n,b.g/b.n,b.b/b.n)}}).sort(function(a,b){return b.w-a.w}).forEach(function(o){
       if(out.length<5&&!out.some(function(p){return(p[1]<.14&&o.c[1]<.14)||(p[1]>=.14&&o.c[1]>=.14&&Math.min(Math.abs(p[0]-o.c[0]),360-Math.abs(p[0]-o.c[0]))<28)}))out.push(o.c)});
     res(out)}catch(e){res([])}};im.onerror=function(){res([])};im.src=src})}
-function songPalette(s){var fall=covHex(s.id||'').map(hexHsl);return artOk(s.art)?artPalette(s.art).then(function(p){return p.length?p:fall}):Promise.resolve(fall)}
+function songPalette(s){var fall=covHex(s.id||'').map(hexHsl),art=songArt(s);return artOk(art)?artPalette(art).then(function(p){return p.length?p:fall}):Promise.resolve(fall)}
 /* the background: the colour, deep at the top and near-black at the foot, with a glow of the next colour */
 /* the background: pastel like the default covers. The chosen colour washes diagonally into the next one,
    with a soft glow of a third in the corner; text is a deep shade of the main colour rather than plain black */
@@ -20881,7 +20883,7 @@ function shBlocks(song,audioId){var sy=song.sync,tl=sy&&sy.lines&&(!audioId||sy.
     var m=/^\[([^\]]*)\]$/.exec(t);if(m){out.push({sec:m[1]});return}
     var at=null;if(tl&&tl[k]&&String(tl[k].text||'').trim()===t)at=tl[k].t;k++;out.push({line:t,t:at})});
   while(out.length&&out[out.length-1].gap)out.pop();return out}
-function shCoverSrc(song){if(artOk(song.art))return song.art;return'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(cover(song).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" ').replace(/<rect class="cvdim"[^>]*><\/rect>|<rect class="cvdim"[^>]*\/>/,''))}
+function shCoverSrc(song){if(artOk(songArt(song)))return songArt(song);return'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(cover(song).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" ').replace(/<rect class="cvdim"[^>]*><\/rect>|<rect class="cvdim"[^>]*\/>/,''))}
 function shName(song){return(song.title||'Untitled').replace(/[\\\/:*?"<>|]+/g,'').trim()||'Untitled'}
 /* ---- the image ---- */
 function shLoadImg(src){return new Promise(function(res){var im=new Image();im.onload=function(){res(im)};im.onerror=function(){res(null)};im.src=src})}
@@ -21110,7 +21112,7 @@ function shLinkErr(e){var m=(e&&(e.message||e.error||e.code))||String(e||''),st=
   if(st==='upload'&&deny)return'Supabase refused the upload ('+m+').';
   if(st==='save'&&deny)return'this link belongs to someone else. Try again and you’ll get your own link.';
   return sfErr(e)+(st?' ['+st+': '+m+']':'')}
-function shArtBlob(song){if(artOk(song.art))return fetch(song.art).then(function(r){return r.blob()});
+function shArtBlob(song){if(artOk(songArt(song)))return fetch(songArt(song)).then(function(r){return r.blob()});
   return shLoadImg(shCoverSrc(song)).then(function(im){var c=document.createElement('canvas');c.width=c.height=480;if(im)c.getContext('2d').drawImage(im,0,0,480,480);return new Promise(function(res){c.toBlob(res,'image/jpeg',.9)})})}
 /* a share link belongs to whoever made it: on a song written together, the other writer's link can't be updated
    by you (and vice versa), so you get your own link instead of an access error */
@@ -21470,7 +21472,7 @@ function albAddPaint(){var a=albGet(ALB.addTo),L=$('#aal');if(!a||!L)return;var 
   var all=songs.filter(function(s){return albMine(s)&&s.album!==a.id}),list=all.filter(function(s){return!q||((s.title||'')+' '+(s.lyrics||'')).toLowerCase().indexOf(q)>=0}).sort(function(x,y){return(y.updated||0)-(x.updated||0)});
   if(!list.length)L.innerHTML='<div class="aempty">'+(q?'No results':all.length?'':'All your songs are in this album')+'</div>';
   list.forEach(function(s){var ls=llines(s),o=albOf(s),r=document.createElement('button');r.className='aarow'+(ALB.sel[s.id]?' on':'');r.setAttribute('aria-pressed',!!ALB.sel[s.id]);
-    r.innerHTML='<i class="th"></i><div class="tx"><b></b><span></span></div><i class="ack">'+ALB_I.chk+'</i>';var th=r.firstChild;if(s.art)th.style.backgroundImage=artCss(s.art);else th.innerHTML=cover(s);
+    r.innerHTML='<i class="th"></i><div class="tx"><b></b><span></span></div><i class="ack">'+ALB_I.chk+'</i>';var th=r.firstChild;if(songArt(s))th.style.backgroundImage=artCss(songArt(s));else th.innerHTML=cover(s);
     r.querySelector('b').textContent=s.title||ls[0]||'New Song';r.querySelector('span').textContent=o?'In “'+(o.title||'Untitled Album')+'”':((s.title?ls[0]:ls[1])||'No lyrics yet');
     r.onclick=function(){if(ALB.sel[s.id])delete ALB.sel[s.id];else ALB.sel[s.id]=++ALB.seq;var on=!!ALB.sel[s.id];r.classList.toggle('on',on);r.setAttribute('aria-pressed',on);albAddCount()};L.appendChild(r)});
   albAddCount()}
