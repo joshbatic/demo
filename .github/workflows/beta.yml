@@ -1,0 +1,35 @@
+# The private beta: every push to `dev` puts that version of the web app at hellodemo.app/beta/ (unlisted, not
+# indexed), so new features can be tried in a browser before they're released. Everything else on the website,
+# the public web app (hellodemo.app/app) and the Mac download only change when scripts/release.sh releases dev.
+# Note: the beta uses the same accounts and songs as the real app.
+name: Beta
+on:
+  push:
+    branches: [dev]
+    paths: ["www/index.html"]
+  workflow_dispatch:
+concurrency: { group: beta, cancel-in-progress: true }
+permissions: { contents: write }
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: dev, path: dev }
+      - uses: actions/checkout@v4
+        with: { ref: main, path: site }
+      - name: Copy the dev web app to docs/beta
+        run: |
+          mkdir -p site/docs/beta
+          cp site/docs/app/icon-*.png site/docs/app/manifest.json site/docs/beta/ 2>/dev/null || true
+          # keep it out of search results, and mark it as the beta
+          sed -e '0,/<head>/s##<head><meta name="robots" content="noindex,nofollow">#' \
+              -e 's#<title>\*\[demo\]</title>#<title>*[demo] beta</title>#' dev/www/index.html > site/docs/beta/index.html
+      - name: Publish
+        working-directory: site
+        run: |
+          git config user.name "demo beta"; git config user.email "beta@hellodemo.app"
+          git add docs/beta
+          git diff --cached --quiet && { echo "No change."; exit 0; }
+          git commit -q -m "Beta: $(cd ../dev && git rev-parse --short HEAD)"
+          git push -q origin main
