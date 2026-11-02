@@ -776,12 +776,11 @@ struct CreditsPage: View {
 }
 
 /// The tile beside each link: the service's own logo (from the app's images) on its own colour.
-/// Apple Music shows its logo once an image named "brand-apple_music" is added to the asset catalog.
 struct LinkTile: View {
     let kind: String
 
-    /// The current app icons: Spotify's green mark on black, Apple Music's red, Instagram's 2022 gradient
-    /// (yellow bottom-left to purple top-right), and TikTok's note with its cyan and red edges.
+    /// The current app icons: Spotify's green mark on black, Apple Music's red, Instagram's gradient
+    /// (warm yellow glowing from the bottom left, through pink to blue), and TikTok's note with its cyan and red edges.
     var body: some View {
         ZStack {
             switch kind {
@@ -789,14 +788,15 @@ struct LinkTile: View {
                 TileBackground(colors: [Color(hex: 0x000000)])
                 glyph(Color(hex: 0x1ED760), size: 20)
             case "apple_music":
-                TileBackground(colors: [Color(hex: 0xFF5C7A), Color(hex: 0xFA233B)])
-                glyph(.white)
+                TileBackground(colors: [Color(hex: 0xFB5C74), Color(hex: 0xFA233B)])
+                glyph(.white, size: 16)
             case "instagram":
-                RoundedRectangle(cornerRadius: 30 * 0.27, style: .continuous)
-                    .fill(LinearGradient(colors: [Color(hex: 0xFFD600), Color(hex: 0xFF7A00), Color(hex: 0xFF0069), Color(hex: 0xD300C5), Color(hex: 0x7638FA)],
-                                         startPoint: .bottomLeading, endPoint: .topTrailing))
-                    .overlay { TileBackground(colors: [.clear]).opacity(0.6) }
-                glyph(.white)
+                RoundedRectangle(cornerRadius: 30 * 0.235, style: .continuous)
+                    .fill(RadialGradient(stops: [.init(color: Color(hex: 0xFDF497), location: 0), .init(color: Color(hex: 0xFDF497), location: 0.05),
+                                                 .init(color: Color(hex: 0xFD5949), location: 0.45), .init(color: Color(hex: 0xD6249F), location: 0.6),
+                                                 .init(color: Color(hex: 0x285AEB), location: 0.9)],
+                                         center: UnitPoint(x: 0.3, y: 1.07), startRadius: 0, endRadius: 30 * 1.3))
+                glyph(.white, size: 17)
             default:
                 TileBackground(colors: [Color(hex: 0x000000)])
                 glyph(Color(hex: 0x25F4EE)).offset(x: -0.8, y: -0.8)
