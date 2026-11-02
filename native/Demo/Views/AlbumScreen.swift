@@ -3,38 +3,46 @@ import PhotosUI
 
 // MARK: - look
 
-/// An album's colours: the artwork's palette washed pastel (the share page's shBg), and a deep accent for its words.
+/// An album's colour, the way Apple Music does it: the artwork's main colour, muted and mid-dark,
+/// filling the whole page so the artwork and white words sit on it.
 struct AlbumLook {
-    let bg: SharePalette.Background
     let main: HSL
 
     init(_ a: Album) {
         var pal: [HSL] = []
         if let art = a.artDataURL, let img = CoverView.image(art) { pal = SharePalette.fromArt(img) }
         if pal.isEmpty { pal = CoverPick(id: a.id).hexes.map(SharePalette.hex) }
-        bg = SharePalette.background(pal, 0)
-        main = pal[0]
+        main = pal.first { $0.s >= 0.14 } ?? pal[0]
     }
 
-    /// The artist name and buttons: a deep, saturated shade of the main colour (lighter in dark mode).
-    func accent(_ scheme: ColorScheme) -> Color {
-        let grey = main.s < 0.14
-        return SharePalette.color(HSL(h: main.h, s: grey ? 0.06 : 0.58, l: scheme == .dark ? 0.74 : (grey ? 0.3 : 0.4)))
-    }
+    private var sat: Double { main.s < 0.14 ? 0.04 : min(0.4, max(0.22, main.s * 0.5)) }
+    /// The page colour (the Read Lyrics button's words use it too).
+    var page: Color { SharePalette.color(HSL(h: main.h, s: sat, l: 0.33)) }
+    private var top: Color { SharePalette.color(HSL(h: main.h, s: sat, l: 0.4)) }
 
-    /// The page: the main colour at the top, washing into the next, then the plain page under the songs.
-    func background(_ scheme: ColorScheme) -> some View {
-        let dark = scheme == .dark
-        let top = SharePalette.color(dark ? HSL(h: bg.top.h, s: bg.top.s * 0.7, l: 0.3) : bg.top)
-        let mid = SharePalette.color(dark ? HSL(h: bg.bot.h, s: bg.bot.s * 0.6, l: 0.2) : bg.bot)
-        let glow = SharePalette.color(dark ? HSL(h: bg.glow.h, s: bg.glow.s * 0.6, l: 0.32) : bg.glow)
-        return ZStack {
-            Color(uiColor: .systemBackground)
-            LinearGradient(stops: [.init(color: top, location: 0), .init(color: mid, location: 0.36), .init(color: mid.opacity(0), location: 0.66)],
-                           startPoint: .top, endPoint: .bottom)
-            RadialGradient(colors: [glow.opacity(0.8), glow.opacity(0)], center: UnitPoint(x: 0.88, y: 0.1), startRadius: 0, endRadius: 300)
+    var background: some View {
+        LinearGradient(colors: [top, page], startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.6)).ignoresSafeArea()
+    }
+}
+
+/// A song's progress as a small coloured tag: Idea, Draft, Demo, Finished. Made for the album's dark page.
+struct StatusTag: View {
+    let status: String
+    var body: some View {
+        let c = colours
+        Text(status.isEmpty ? "Idea" : status)
+            .font(.system(size: 11.5, weight: .semibold))
+            .padding(.horizontal, 9).padding(.vertical, 3)
+            .foregroundStyle(c.ink)
+            .background(c.fill, in: Capsule())
+    }
+    private var colours: (fill: Color, ink: Color) {
+        switch status {
+        case "Finished": return (Color(hex: 0x34C759).opacity(0.24), Color(hex: 0xA8F2BC))
+        case "Demo": return (Color(hex: 0x0A84FF).opacity(0.3), Color(hex: 0xADD5FF))
+        case "Draft": return (Color(hex: 0xFF9F0A).opacity(0.26), Color(hex: 0xFFD28F))
+        default: return (Color.white.opacity(0.13), Color.white.opacity(0.72))
         }
-        .ignoresSafeArea()
     }
 }
 
@@ -126,17 +134,18 @@ struct AlbumShelf: View {
 
 // MARK: - the album page
 
+/// Like an album in Apple Music: the page in the artwork's colour, the square artwork, title, artist,
+/// the main button between two round ones, then the tracklist.
 struct AlbumScreen: View {
     let albumID: String
     @Environment(\.appSession) private var session
     @Environment(\.library) private var library
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.colorScheme) private var scheme
+    @Environment(\.pushRoute) private var pushRoute
     @State private var editing = false
     @State private var adding = false
     @State private var reading = false
     @State private var confirmDelete = false
-    @Environment(\.pushRoute) private var pushRoute
 
     var body: some View {
         if let a = library.album(albumID) {
@@ -147,31 +156,30 @@ struct AlbumScreen: View {
     }
 
     private func page(_ a: Album) -> some View {
-        let look = AlbumLook(a), accent = look.accent(scheme)
-        let tracks = library.albumSongs( a.id)
+        let look = AlbumLook(a)
+        let tracks = library.albumSongs(a.id)
         return List {
-            header(a, tracks, accent)
+            header(a, tracks, look)
                 .listRowSeparator(.hidden).listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
                 .moveDisabled(true)
             if tracks.isEmpty {
                 VStack(spacing: 6) {
                     Text("No songs yet").font(.system(size: 17, weight: .semibold))
-                    Text("Write a new one, or add songs you’ve already started.").font(.system(size: 15)).foregroundStyle(.secondary)
+                    Text("Write a new one, or add songs you’ve already started.").font(.system(size: 15)).foregroundStyle(.white.opacity(0.65))
                         .multilineTextAlignment(.center)
-                    Button("Add Songs") { Haptics.tap(); adding = true }.font(.system(size: 16, weight: .semibold)).foregroundStyle(accent).padding(.top, 8)
                 }
-                .frame(maxWidth: .infinity).padding(.vertical, 36)
+                .frame(maxWidth: .infinity).padding(.vertical, 30)
                 .listRowSeparator(.hidden).listRowBackground(Color.clear)
                 .moveDisabled(true)
             }
             ForEach(Array(tracks.enumerated()), id: \.element.id) { i, s in
-                trackRow(i, s, tracks, accent)
+                trackRow(i, s, tracks)
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 16))
+                    .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 14))
                     .overlay(alignment: .top) {
-                        Rectangle().fill(Color(uiColor: .separator)).frame(height: 0.5).padding(.leading, i == 0 ? 0 : 32)
+                        Rectangle().fill(.white.opacity(0.16)).frame(height: 0.5).padding(.leading, i == 0 ? 0 : 36)
                     }
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) { remove(s) } label: { Label("Remove", systemImage: "minus.circle") }
@@ -185,8 +193,8 @@ struct AlbumScreen: View {
             }
             if !tracks.isEmpty {
                 VStack(alignment: .leading, spacing: 0) {
-                    Rectangle().fill(Color(uiColor: .separator)).frame(height: 0.5)
-                    Text(footer(a, tracks)).font(.system(size: 13)).foregroundStyle(.secondary).padding(.top, 12)
+                    Rectangle().fill(.white.opacity(0.16)).frame(height: 0.5)
+                    Text(footer(a, tracks)).font(.system(size: 13)).foregroundStyle(.white.opacity(0.6)).padding(.top, 12)
                 }
                 .padding(.bottom, 40)
                 .listRowSeparator(.hidden).listRowBackground(Color.clear)
@@ -196,11 +204,14 @@ struct AlbumScreen: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
-        .background(look.background(scheme))
+        .background(look.background)
+        .foregroundStyle(.white)
+        // the page is always dark-ish, so glass, menus and swipe buttons take their dark look
+        .environment(\.colorScheme, .dark)
         .toolbar(.hidden, for: .navigationBar)
         .safeAreaInset(edge: .top, spacing: 0) { topBar(a, tracks) }
         .sheet(isPresented: $editing) { AlbumEditSheet(album: a) }
-        .sheet(isPresented: $adding) { AddSongsSheet(albumID: a.id, accent: accent) }
+        .sheet(isPresented: $adding) { AddSongsSheet(albumID: a.id) }
         .fullScreenCover(isPresented: $reading) { AlbumReader(album: a, look: look) }
         .confirmDestroy("Delete “\(a.displayTitle)”?", isPresented: $confirmDelete,
                         message: "Its songs stay in your library.", action: "Delete \(a.kind)") {
@@ -214,15 +225,15 @@ struct AlbumScreen: View {
         GlassGroup(spacing: 10) {
             HStack {
                 Button { Haptics.tap(); dismiss() } label: {
-                    Icon("ic-back", 22).foregroundStyle(.primary).frame(width: 46, height: 46).contentShape(Circle())
+                    Icon("ic-back", 22).foregroundStyle(.white).frame(width: 48, height: 48).contentShape(Circle())
                 }
                 .buttonStyle(PressScale())
                 .glassCircle()
                 .accessibilityLabel("Songs")
                 Spacer()
-                HStack(spacing: 0) {
+                HStack(spacing: 4) {
                     ShareLink(item: tracklist(a, tracks)) {
-                        Icon("ic-share", 21).foregroundStyle(.primary).frame(width: 46, height: 46).contentShape(Rectangle())
+                        Icon("ic-share", 21).foregroundStyle(.white).frame(width: 48, height: 48).contentShape(Rectangle())
                     }
                     .accessibilityLabel("Share tracklist")
                     Menu {
@@ -232,11 +243,11 @@ struct AlbumScreen: View {
                             Button(role: .destructive) { confirmDelete = true } label: { Label("Delete \(a.kind)", systemImage: "trash") }
                         }
                     } label: {
-                        Icon("ic-more", 21).foregroundStyle(.primary).frame(width: 46, height: 46).contentShape(Rectangle())
+                        Icon("ic-more", 21).foregroundStyle(.white).frame(width: 48, height: 48).contentShape(Rectangle())
                     }
                     .accessibilityLabel("More")
                 }
-                .padding(.horizontal, 2)
+                .padding(.horizontal, 6)
                 .glassCapsule(interactive: true)
             }
         }
@@ -244,67 +255,68 @@ struct AlbumScreen: View {
         .padding(.top, 4).padding(.bottom, 6)
     }
 
-    private func header(_ a: Album, _ tracks: [Song], _ accent: Color) -> some View {
+    private func header(_ a: Album, _ tracks: [Song], _ look: AlbumLook) -> some View {
         let fin = tracks.filter(\.isFinished).count
         let artist = a.artist.trimmingCharacters(in: .whitespaces).isEmpty ? session.myName : a.artist
         return VStack(spacing: 0) {
             Button { Haptics.tap(); editing = true } label: {
-                AlbumArt(album: a, size: 236, radius: 12)
-                    .shadow(color: .black.opacity(0.22), radius: 22, y: 14)
+                AlbumArt(album: a, size: 264, radius: 10)
+                    .shadow(color: .black.opacity(0.28), radius: 20, y: 10)
             }
             .buttonStyle(PressScale())
             .accessibilityLabel("Edit artwork")
-            .padding(.top, 6)
-            Text(a.displayTitle).font(.system(size: 22, weight: .bold)).tracking(-0.4).multilineTextAlignment(.center).padding(.top, 20)
+            .padding(.top, 10)
+            Text(a.displayTitle).font(.system(size: 23, weight: .bold)).tracking(-0.4).multilineTextAlignment(.center).padding(.top, 24)
             if !artist.isEmpty {
-                Text(artist).font(.system(size: 22)).tracking(-0.4).foregroundStyle(accent).lineLimit(1).padding(.top, 1)
+                Text(artist).font(.system(size: 21)).tracking(-0.3).foregroundStyle(.white.opacity(0.92)).lineLimit(1).padding(.top, 2)
             }
             Text([a.kind, a.year, tracks.isEmpty ? "" : "\(fin) of \(tracks.count) finished"].filter { !$0.isEmpty }.joined(separator: " · "))
-                .font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary).padding(.top, 5)
-            GlassGroup(spacing: 12) {
-                HStack(spacing: 12) {
-                    pill("Read Lyrics", "book", accent) { reading = true }
-                        .disabled(tracks.isEmpty).opacity(tracks.isEmpty ? 0.5 : 1)
-                    pill("New Song", "square.and.pencil", accent) { newSong(a) }
+                .font(.system(size: 13, weight: .semibold)).foregroundStyle(.white.opacity(0.68)).padding(.top, 6)
+            // Apple Music's Shuffle · Play · Add, here Add Songs · Read Lyrics · New Song
+            GlassGroup(spacing: 14) {
+                HStack(spacing: 16) {
+                    round("plus", "Add Songs") { adding = true }
+                    Button { Haptics.tap(); reading = true } label: {
+                        Label("Read Lyrics", systemImage: "book.fill")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(look.page)
+                            .frame(width: 176, height: 52)
+                            .background(.white, in: Capsule())
+                            .contentShape(Capsule())
+                    }
+                    .buttonStyle(PressScale())
+                    .disabled(tracks.isEmpty).opacity(tracks.isEmpty ? 0.55 : 1)
+                    round("square.and.pencil", "New Song") { newSong(a) }
                 }
             }
-            .padding(.top, 18).padding(.bottom, 16)
+            .padding(.top, 20).padding(.bottom, 22)
         }
         .frame(maxWidth: .infinity)
     }
 
-    private func pill(_ title: String, _ icon: String, _ accent: Color, _ action: @escaping () -> Void) -> some View {
+    private func round(_ icon: String, _ label: String, _ action: @escaping () -> Void) -> some View {
         Button { Haptics.tap(); action() } label: {
-            Label(title, systemImage: icon)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(accent)
-                .frame(maxWidth: .infinity, minHeight: 50)
-                .contentShape(Capsule())
+            Image(systemName: icon).font(.system(size: 19, weight: .semibold)).foregroundStyle(.white)
+                .frame(width: 52, height: 52).contentShape(Circle())
         }
         .buttonStyle(PressScale())
-        .glassCapsule(interactive: true)
+        .glassCircle()
+        .accessibilityLabel(label)
     }
 
-    private func trackRow(_ i: Int, _ s: Song, _ tracks: [Song], _ accent: Color) -> some View {
-        HStack(spacing: 14) {
+    private func trackRow(_ i: Int, _ s: Song, _ tracks: [Song]) -> some View {
+        HStack(spacing: 12) {
             Button { Haptics.tap(); pushRoute(s.id) } label: {
                 HStack(spacing: 14) {
-                    Text("\(i + 1)").font(.system(size: 15)).monospacedDigit().foregroundStyle(.tertiary).frame(width: 18)
+                    Text("\(i + 1)").font(.system(size: 16)).monospacedDigit().foregroundStyle(.white.opacity(0.55)).frame(width: 22)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(s.displayTitle).font(.system(size: 16)).foregroundStyle(.primary).lineLimit(1)
-                        Text(s.previewLine).font(.system(size: 13)).foregroundStyle(.secondary).lineLimit(1)
+                        Text(s.displayTitle).font(.system(size: 17)).foregroundStyle(.white).lineLimit(1)
+                        Text(s.previewLine).font(.system(size: 14)).foregroundStyle(.white.opacity(0.6)).lineLimit(1)
                     }
                     Spacer(minLength: 8)
-                    if s.isFinished {
-                        Image(systemName: "checkmark.circle.fill").font(.system(size: 15)).foregroundStyle(accent)
-                            .accessibilityLabel("Finished")
-                    }
-                    if s.audioCount > 0 {
-                        Image(systemName: "waveform").font(.system(size: 14)).foregroundStyle(.tertiary)
-                            .accessibilityLabel("Has audio")
-                    }
+                    StatusTag(status: s.status)
                 }
-                .frame(minHeight: 62)
+                .frame(minHeight: 64)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -315,7 +327,7 @@ struct AlbumScreen: View {
                     Button(role: .destructive) { remove(s) } label: { Label("Remove from Album", systemImage: "minus.circle") }
                 }
             } label: {
-                Image(systemName: "ellipsis").font(.system(size: 15, weight: .semibold)).foregroundStyle(.secondary)
+                Image(systemName: "ellipsis").font(.system(size: 16, weight: .semibold)).foregroundStyle(.white.opacity(0.8))
                     .frame(width: 34, height: 44).contentShape(Rectangle())
             }
             .accessibilityLabel("Song options")
@@ -338,7 +350,7 @@ struct AlbumScreen: View {
     private func newSong(_ a: Album) {
         var s = Song.new(artist: session.myName)
         s.albumID = a.id
-        s.track = (library.albumSongs( a.id).map(\.track).max() ?? 0) + 1
+        s.track = (library.albumSongs(a.id).map(\.track).max() ?? 0) + 1
         library.add(s)
         pushRoute(s.id)
     }
@@ -358,47 +370,47 @@ struct AlbumScreen: View {
 
 // MARK: - Read Lyrics
 
-/// Every song's words in track order, big and calm on the album's colours: for reading through the whole record.
+/// Every song's words in track order, big and bold on the album's colour, like lyrics in Apple Music.
 struct AlbumReader: View {
     let album: Album
     let look: AlbumLook
     @Environment(\.library) private var library
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        let accent = look.accent(scheme)
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 14) {
                     AlbumArt(album: album, size: 56, radius: 8)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(album.displayTitle).font(.system(size: 17, weight: .semibold)).lineLimit(1)
-                        Text([album.kind, album.year].filter { !$0.isEmpty }.joined(separator: " · ")).font(.system(size: 14)).foregroundStyle(.secondary)
+                        Text([album.kind, album.year].filter { !$0.isEmpty }.joined(separator: " · ")).font(.system(size: 14)).foregroundStyle(.white.opacity(0.65))
                     }
                 }
                 .padding(.bottom, 24)
-                ForEach(Array(library.albumSongs( album.id).enumerated()), id: \.element.id) { i, s in
+                ForEach(Array(library.albumSongs(album.id).enumerated()), id: \.element.id) { i, s in
                     VStack(alignment: .leading, spacing: 0) {
-                        Text("\(i + 1)").font(.system(size: 13, weight: .semibold)).monospacedDigit().foregroundStyle(accent)
-                        Text(s.displayTitle).font(.system(size: 28, weight: .bold)).tracking(-0.5).padding(.top, 2).padding(.bottom, 14)
+                        Text("\(i + 1)").font(.system(size: 13, weight: .semibold)).monospacedDigit().foregroundStyle(.white.opacity(0.55))
+                        Text(s.displayTitle).font(.system(size: 30, weight: .bold)).tracking(-0.5).padding(.top, 2).padding(.bottom, 14)
                         lyrics(s)
                     }
-                    .padding(.vertical, 22)
-                    .overlay(alignment: .top) { if i > 0 { Rectangle().fill(Color(uiColor: .separator)).frame(height: 0.5) } }
+                    .padding(.vertical, 24)
+                    .overlay(alignment: .top) { if i > 0 { Rectangle().fill(.white.opacity(0.16)).frame(height: 0.5) } }
                 }
             }
+            .foregroundStyle(.white)
             .padding(.horizontal, 26)
             .padding(.top, 8).padding(.bottom, 60)
             .frame(maxWidth: 640, alignment: .leading)
             .frame(maxWidth: .infinity)
         }
-        .background(look.background(scheme))
+        .background(look.background)
+        .environment(\.colorScheme, .dark)
         .safeAreaInset(edge: .top, spacing: 0) {
             HStack {
                 Spacer()
                 Button { Haptics.tap(); dismiss() } label: {
-                    Icon("ic-close", 20).foregroundStyle(.primary).frame(width: 46, height: 46).contentShape(Circle())
+                    Icon("ic-close", 20).foregroundStyle(.white).frame(width: 46, height: 46).contentShape(Circle())
                 }
                 .buttonStyle(PressScale())
                 .glassCircle()
@@ -412,17 +424,17 @@ struct AlbumReader: View {
     @ViewBuilder private func lyrics(_ s: Song) -> some View {
         let raw = s.lyrics.components(separatedBy: "\n").map { $0.trimmingCharacters(in: .whitespaces) }
         if raw.allSatisfy(\.isEmpty) {
-            Text("No lyrics yet").font(.system(size: 20)).foregroundStyle(.tertiary)
+            Text("No lyrics yet").font(.system(size: 22, weight: .semibold)).foregroundStyle(.white.opacity(0.45))
         } else {
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(raw.enumerated()), id: \.offset) { _, l in
                     if l.isEmpty {
-                        Color.clear.frame(height: 16)
+                        Color.clear.frame(height: 18)
                     } else if l.hasPrefix("[") && l.hasSuffix("]") {
                         Text(l.dropFirst().dropLast().uppercased()).font(.system(size: 12, weight: .semibold)).tracking(0.8)
-                            .foregroundStyle(.secondary).padding(.top, 8).padding(.bottom, 4)
+                            .foregroundStyle(.white.opacity(0.55)).padding(.top, 8).padding(.bottom, 4)
                     } else {
-                        Text(l).font(.system(size: 20)).lineSpacing(5).padding(.vertical, 2)
+                        Text(l).font(.system(size: 22, weight: .semibold)).lineSpacing(4).foregroundStyle(.white.opacity(0.94)).padding(.vertical, 3)
                     }
                 }
             }
