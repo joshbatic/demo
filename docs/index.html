@@ -34,10 +34,10 @@ a{color:inherit;text-decoration:none}
   background:radial-gradient(60% 50% at 50% 38%,#fff 0%,rgba(255,255,255,0) 70%),radial-gradient(120% 90% at 50% 0%,#f7f7f8,#e9e9eb 70%,#e2e2e5)}
 .disc{width:min(300px,62vw);aspect-ratio:1;position:relative;filter:drop-shadow(0 30px 40px rgba(0,0,0,.22)) drop-shadow(0 6px 10px rgba(0,0,0,.18))}
 .disc svg{width:100%;height:100%;display:block;overflow:visible}
-.spin{transform-origin:100px 100px;animation:spin 14s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.disc:hover .spin{animation-duration:5s}
-@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+.spin{transform-origin:100px 100px}
+/* grab it and give it a spin, like a record */
+.disc{cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.disc.held{cursor:grabbing}
 h1{margin:44px 0 0;font-size:clamp(44px,7vw,72px);line-height:1.04;font-weight:700;letter-spacing:-.035em}
 .tag{margin:12px 0 0;font-size:clamp(19px,2.4vw,24px);line-height:1.3;color:var(--mute);font-weight:500;letter-spacing:-.015em}
 .ways{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:34px}
@@ -219,6 +219,23 @@ var APP_STORE='';
 document.querySelectorAll('[data-appstore]').forEach(function(a){if(!APP_STORE)return;a.href=APP_STORE;var s=a.querySelector('span');if(a.dataset.label)(s||a).textContent=a.dataset.label});
 /* the closing button is the hero's, copied */
 var src=document.querySelector('.hero .disc svg'),end=document.querySelector('.end .disc');end.innerHTML=src.outerHTML.replace(/id="(\w+)"/g,'id="$1-2"').replace(/url\(#(\w+)\)/g,'url(#$1-2)');
+/* the button turns on its own, and you can grab it and spin it: it follows your finger, then coasts back
+   to its own pace (it stays still for people who've turned motion down, until they spin it) */
+(function(){var calm=matchMedia('(prefers-reduced-motion: reduce)').matches,BASE=calm?0:360/14;
+  document.querySelectorAll('.disc').forEach(function(d){var g=d.querySelector('.spin');if(!g)return;
+    var a=0,v=BASE,held=false,last=0,pa=0,pt=0,raf=0;
+    function ang(e){var r=d.getBoundingClientRect();return Math.atan2(e.clientY-(r.top+r.height/2),e.clientX-(r.left+r.width/2))*180/Math.PI}
+    function paint(){g.setAttribute('transform','rotate('+a.toFixed(2)+' 100 100)')}
+    function tick(t){var dt=last?Math.min(.05,(t-last)/1000):0;last=t;
+      if(!held){v+=(BASE-v)*(1-Math.exp(-dt*0.9));a+=v*dt;paint()}
+      raf=(!held&&Math.abs(v)<.01&&!BASE)?0:requestAnimationFrame(tick)}
+    function go(){if(!raf){last=0;raf=requestAnimationFrame(tick)}}
+    d.addEventListener('pointerdown',function(e){held=true;d.classList.add('held');d.setPointerCapture(e.pointerId);pa=ang(e);pt=performance.now();v=0;go()});
+    d.addEventListener('pointermove',function(e){if(!held)return;var n=ang(e),dA=n-pa;if(dA>180)dA-=360;if(dA<-180)dA+=360;
+      var now=performance.now(),dt=Math.max(.008,(now-pt)/1000);a+=dA;v=v*.5+(dA/dt)*.5;pa=n;pt=now;paint()});
+    function up(){if(!held)return;held=false;d.classList.remove('held');if(performance.now()-pt>90)v=0;v=Math.max(-2400,Math.min(2400,v));go()}
+    d.addEventListener('pointerup',up);d.addEventListener('pointercancel',up);
+    go()})})();
 /* the bar frosts once the page scrolls */
 var nav=document.getElementById('nav');function f(){nav.classList.toggle('solid',scrollY>20)}addEventListener('scroll',f,{passive:true});f();
 </script>
