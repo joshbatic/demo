@@ -19811,7 +19811,7 @@ function signInOAuth(provider,forceChooser,label){try{localStorage.removeItem('s
     return;
   }
   oauthDbg('plain web branch: calling signInWithOAuth (redirects in place)');
-  c.auth.signInWithOAuth({provider:provider,options:{redirectTo:window.location.href,queryParams:qp}}).catch(function(e){fail(e)})
+  c.auth.signInWithOAuth({provider:provider,options:{redirectTo:location.origin+location.pathname,queryParams:qp}}).catch(function(e){fail(e)})
 }
 /* sign-in is Apple (plus demo accounts by email), like the iPhone app; the [developer] Mac app also has Google */
 var SWITCH_PICK=false;
