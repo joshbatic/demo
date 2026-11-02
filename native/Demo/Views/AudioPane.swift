@@ -339,6 +339,8 @@ struct AudioPane: View {
             s.touch(); library.put(s)
             Haptics.success()
             session.toast = saved > 1_048_576 ? "Added “\(display)” as \(ext.uppercased()), saving \(SongFiles.size(saved))" : "Added “\(display)”"
+            // an empty Key and BPM, filled from what's in the audio
+            if audio { await TempoKeyFill.run(songID: songID, itemID: id, url: local, library: library, session: session) }
             try? FileManager.default.removeItem(at: dir)
         } catch {
             Haptics.warning()

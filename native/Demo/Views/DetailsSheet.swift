@@ -45,6 +45,8 @@ struct DetailsSheet: View {
             }
             // the tabs sit just under the title bar, full width, at the large iOS size
             .contentMargins(.top, 4, for: .scrollContent)
+            // a song with audio but no key or tempo yet: listen for them
+            .task { TempoKeyFill.check(songID: songID, library: library, session: session) }
             .topBar {
                 SegTabs(items: DetailsTab.allCases.map { ($0, $0.title) }, selection: tab) { pick($0) }
                     .padding(.horizontal, 20).padding(.top, 2).padding(.bottom, 10)
