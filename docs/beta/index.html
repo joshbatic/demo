@@ -984,6 +984,10 @@ button.cell:active,button.row:active,.drow:active,.accplan:active,.accme:active,
 /* iOS 26 Settings tiles: the colour faintly lit from above, a hairline edge, a crisp white glyph (no blur) */
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.gr{color:#fff;border-radius:7px;background-image:none!important;box-shadow:none}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.gr svg{width:18px;height:18px;display:block}
+#acc .tile.gt{color:var(--ic);background:linear-gradient(#fff,#F3F3F6);box-shadow:inset 0 0 0 .5px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.08),inset 0 1px 0 #fff}
+#acc .tile.gt svg{width:19px;height:19px;display:block}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #acc .tile.gt{color:var(--icd);background:linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.08));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.12),inset 0 1px 0 rgba(255,255,255,.14)}}
+:root[data-theme="dark"] #acc .tile.gt{color:var(--icd);background:linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.08));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.12),inset 0 1px 0 rgba(255,255,255,.14)}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile svg{width:17px;height:17px}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-spotify{background:#000;color:#1ED760;box-shadow:inset 0 0 0 .5px rgba(255,255,255,.2)}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-spotify svg{width:20px;height:20px}
@@ -15366,8 +15370,8 @@ OY-B-AH-L	foible92
 EH-M-ER-IH-JH-D	hemorrhaged93
 AH-S-IH-N	bussin52s`;
 /* git commit this build came from, shown at the bottom of Account. Written by scripts/stamp-version.sh — don't edit by hand. */
-var APP_COMMIT='c3b3c07';
-var APP_SEQ=721;
+var APP_COMMIT='7ae8f66';
+var APP_SEQ=723;
 /* the version people see, the same as the iPhone app's; Account shows it with the build number so every device can be compared */
 var APP_VERSION='1.1.0';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
@@ -20041,12 +20045,32 @@ var ACC_ICO={
   cam:'<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M9.2 4h5.6l1.5 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2.7z"/><circle cx="12" cy="12.5" r="3.6" fill="var(--tint)"/><circle cx="12" cy="12.5" r="2" fill="currentColor"/></svg>',
   note:'<svg viewBox="3.20 2.60 18.10 18.10" fill="currentColor"><circle cx="8.6" cy="17.6" r="3.1"/><path d="M10.4 17.6V4.6l8.6-2v4l-6.4 1.5v9.5z"/></svg>'
 };
+/* the account page's icons: one outline set, one line weight, drawn in colour on a glass tile */
+var ACC_LN={
+  person:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.3" r="3.6"/><path d="M4.8 20c.9-3.7 3.7-5.7 7.2-5.7s6.3 2 7.2 5.7"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16.3V11a6 6 0 0 1 12 0v5.3l1.6 2H4.4z"/><path d="M10 20.6a2.1 2.1 0 0 0 4 0"/></svg>',
+  sign:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><g transform="translate(12 12.5) scale(1.18) translate(-12 -12.5)"><path d="M3.5 14.5c1.6-2.6 3.4-6.8 2.6-7.6-.9-.9-2.6 3.6-2.3 6.1.3 2.6 2.4 2.2 3.9.3 1.2-1.5 1.8-3.4 2.6-3.1.8.3-.4 2.9.4 3.2.8.3 1.7-1.6 2.5-1.4.8.2.3 1.8 1.1 1.9.9.1 2.3-1.4 3.4-1.6"/><path d="M3.5 18.5h17"/></g></svg>',
+  down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v10M8 9.6l4 4 4-4"/><path d="M4.5 14.8v2.7A3 3 0 0 0 7.5 20.5h9a3 3 0 0 0 3-3v-2.7"/></svg>',
+  up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14V4M8 7.9l4-4 4 4"/><path d="M4.5 14.8v2.7A3 3 0 0 0 7.5 20.5h9a3 3 0 0 0 3-3v-2.7"/></svg>',
+  disk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6.5" width="17" height="11" rx="3"/><path d="M7.2 12h4.6"/><circle cx="16.3" cy="12" r=".6" fill="currentColor"/></svg>',
+  spark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 4.5l1.5 4.2a3 3 0 0 0 1.8 1.8l4.2 1.5-4.2 1.5a3 3 0 0 0-1.8 1.8l-1.5 4.2L9 15.3a3 3 0 0 0-1.8-1.8L3 12l4.2-1.5A3 3 0 0 0 9 8.7z"/><path d="M18.5 3v3.4M16.8 4.7h3.4"/></svg>',
+  reset:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 12a7.4 7.4 0 1 0 2.2-5.3"/><path d="M4.6 3.8v4.4H9"/></svg>',
+  block:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M6.4 6.4l11.2 11.2"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4l7 2.7v5.3c0 4.3-2.9 7.6-7 9.1-4.1-1.5-7-4.8-7-9.1V6.1z"/></svg>',
+  lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.3 10.5V8a3.7 3.7 0 0 1 7.4 0v2.5"/></svg>',
+  doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7.2 3.5h6.6l4.7 4.7v10.3a2 2 0 0 1-2 2H7.2a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2z"/><path d="M13.6 3.7v4.7h4.7M8.8 13h6.4M8.8 16.4h4.2"/></svg>',
+  help:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 4.5h13a2.5 2.5 0 0 1 2.5 2.5v8a2.5 2.5 0 0 1-2.5 2.5h-6.3l-4.4 3.3v-3.3H5.5A2.5 2.5 0 0 1 3 15V7a2.5 2.5 0 0 1 2.5-2.5z"/><path d="M10 9.4a2.1 2.1 0 1 1 2.9 1.9c-.6.3-.9.7-.9 1.3"/><circle cx="12" cy="14.6" r=".5" fill="currentColor"/></svg>',
+  swap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.6" r="3.1"/><path d="M3.3 19.3c.7-3.2 2.9-5 5.7-5s5 1.8 5.7 5"/><path d="M15.2 5.9a2.8 2.8 0 1 1 .9 5.3M17 14.4c2 .4 3.4 2 3.8 4.9"/></svg>'
+};
+/* the same colours as iOS uses them in dark mode, a touch brighter */
+var ACC_DARK={'#007AFF':'#0A84FF','#FF3B30':'#FF453A','#FF9500':'#FF9F0A','#34C759':'#30D158','#8E8E93':'#98989D','#AF52DE':'#BF5AF2','#5856D6':'#7D7AFF','#FF2D55':'#FF375F','#FA2D48':'#FF4560'};
 var ACC_SOLID={'Find Release':'#FA2D48','Credits':'#FF9500','Start a Song':'#FF9500','Name & Username':'#007AFF','Notifications':'#FF3B30','Requests':'#FF9500','Waitlist Lock':'#FF9500','Import Songs':'#007AFF','Export All Songs':'#34C759','Storage':'#8E8E93','AI Features':'#AF52DE','Reset What Rate Learned':'#5856D6','Blocked':'#FF2D55','Privacy Policy':'#007AFF','Terms of Service':'#8E8E93','Contact Support':'#34C759','Switch Account':'#5856D6'};
 function accCell(o){
   var b=document.createElement(o.onclick?'button':'div');b.className='cell'+(o.tile?'':' notile')+(o.cls?' '+o.cls:'');
-  if(o.tile){var t=document.createElement('span');t.className='tile'+(o.tileCls?' '+o.tileCls:'')+(o.grad!=null?' gr':'');t.innerHTML=o.tile;
+  if(o.tile){var t=document.createElement('span');t.className='tile'+(o.tileCls?' '+o.tileCls:'')+(o.grad!=null&&!o.glass?' gr':'');t.innerHTML=o.tile;
     /* iOS Settings style: a flat square in one system colour, white filled glyph, no gloss */
-    if(o.grad!=null){t.style.background=ACC_SOLID[o.label]||['#007AFF','#34C759','#FF9500','#AF52DE','#5856D6','#FF2D55','#30B0C7','#8E8E93'][o.grad%8];t.classList.add('solid')}b.appendChild(t)}
+    if(o.glass){var gc=ACC_SOLID[o.label]||'#8E8E93';t.classList.add('gt');t.style.setProperty('--ic',gc);t.style.setProperty('--icd',ACC_DARK[gc]||gc)}
+    else if(o.grad!=null){t.style.background=ACC_SOLID[o.label]||['#007AFF','#34C759','#FF9500','#AF52DE','#5856D6','#FF2D55','#30B0C7','#8E8E93'][o.grad%8];t.classList.add('solid')}b.appendChild(t)}
   var l=document.createElement('span');l.className='ct';l.textContent=o.label;b.appendChild(l);
   if(o.value!=null&&o.value!==''){var v=document.createElement('span');v.className='cv'+(o.valueCls?' '+o.valueCls:'');v.textContent=o.value;b.appendChild(v)}
   if(o.chev){var c=document.createElement('span');c.className='chev';c.innerHTML=o.chev==='ext'?ACC_ICO.ext:ACC_ICO.chev;b.appendChild(c)}
@@ -20117,11 +20141,11 @@ function renderAccount(){if(PW.on)pwRender();var o=$('#acc'),pro=isPro(),page=AC
         else saveUsername(rawUser,dn).then(function(){renameMyArtistCredit(oldName,myName());ACC_EDIT=null;ACC_DRAFT={};toast('Saved');renderAccount();if(rawUser)setTimeout(function(){pushAsk('You’ll get a notification when someone invites you to a song.')},1800)},function(err){if(btn)btn.disabled=false;toast(err.message)})}
     }else{
       if(page==='main'){var pg1=accSection(o,'');
-      pg1.appendChild(accCell({tile:ACC_ICO.person,grad:1,label:'Name & Username',value:handle?'@'+handle:'Not set',valueCls:handle?'':'add',chev:true,onclick:function(){ACC_EDIT='profile';ACC_DRAFT={};ACC_AUTOFOCUS='profile';renderAccount()}}))}
+      pg1.appendChild(accCell({glass:1,tile:ACC_LN.person,grad:1,label:'Name & Username',value:handle?'@'+handle:'Not set',valueCls:handle?'':'add',chev:true,onclick:function(){ACC_EDIT='profile';ACC_DRAFT={};ACC_AUTOFOCUS='profile';renderAccount()}}))}
       /* iPhone: notifications for invites and help desk replies */
       if(page==='main'&&pushPlugin()&&!devFake){var pg2=accSection(o,'');var pg=PUSH.perm==='granted'?'On':PUSH.perm==='denied'?'Off':'Turn On';
         var npOpen=ACC_EDIT==='notif'&&PUSH.perm==='granted';
-        pg2.appendChild(accCell({tile:ACC_ICO.bell,grad:4,label:'Notifications',value:pg,valueCls:pg==='Turn On'?'add':'',chev:PUSH.perm==='granted',cls:npOpen?'open':'',onclick:function(){
+        pg2.appendChild(accCell({glass:1,tile:ACC_LN.bell,grad:4,label:'Notifications',value:pg,valueCls:pg==='Turn On'?'add':'',chev:PUSH.perm==='granted',cls:npOpen?'open':'',onclick:function(){
           if(PUSH.perm==='granted'){ACC_EDIT=npOpen?null:'notif';if(!npOpen)npLoad();renderAccount();return}
           else if(PUSH.perm==='denied')toast('Notifications are off for *[demo]. Turn them on in Settings › *[demo] › Notifications.');
           else pushAsk('Notifications are on')}}));
@@ -20247,7 +20271,7 @@ function renderAccount(){if(PW.on)pwRender();var o=$('#acc'),pro=isPro(),page=AC
   }
   if(page==='main'&&BETA.admin&&AUTH_USER&&!DEV_MODE&&!DEV_BUILD){betaAdminLoad();var sm=BETA.sum||{},bOpen2=ACC_EDIT==='beta';
     var gq=accSection(o,'Beta Requests');
-    gq.appendChild(accCell({tile:ACC_ICO.person,grad:11,label:'Requests',value:BETA.sum?String(sm.pending||0)+' waiting':'…',chev:true,cls:bOpen2?'open':'',onclick:function(){ACC_EDIT=bOpen2?null:'beta';betaAdminLoad(true);renderAccount()}}));
+    gq.appendChild(accCell({glass:1,tile:ACC_LN.person,grad:11,label:'Requests',value:BETA.sum?String(sm.pending||0)+' waiting':'…',chev:true,cls:bOpen2?'open':'',onclick:function(){ACC_EDIT=bOpen2?null:'beta';betaAdminLoad(true);renderAccount()}}));
     if(bOpen2){if(BETA.list&&!BETA.list.length){var be=document.createElement('div');be.className='crempty';be.innerHTML='<b>No requests waiting</b><span></span>';be.lastChild.textContent='New requests from hellodemo.app/beta show up here.';gq.appendChild(be)}
       (BETA.list||[]).forEach(function(rq){var d=document.createElement('div');d.className='brq';d.innerHTML='<b></b><div class="bm"></div>';
         d.querySelector('b').textContent=rq.name||rq.email;
@@ -20259,42 +20283,42 @@ function renderAccount(){if(PW.on)pwRender();var o=$('#acc'),pro=isPro(),page=AC
         var ok=document.createElement('button');ok.className='ok';ok.textContent=busy?'…':'Approve';ok.disabled=busy;ok.onclick=function(){betaDecide(rq,true)};
         var no=document.createElement('button');no.textContent='Decline';no.disabled=busy;no.onclick=function(){betaDecide(rq,false)};
         ac.appendChild(ok);ac.appendChild(no);d.appendChild(ac);gq.appendChild(d)})}
-    gq.appendChild(accCell({tile:ACC_ICO.lock,grad:2,label:'Waitlist Lock',value:BETA.sum?(sm.gate?'On':'Off'):'…',valueCls:sm.gate?'':'add',onclick:function(){if(BETA.sum)betaSetGate(!sm.gate)}}));
+    gq.appendChild(accCell({glass:1,tile:ACC_LN.lock,grad:2,label:'Waitlist Lock',value:BETA.sum?(sm.gate?'On':'Off'):'…',valueCls:sm.gate?'':'add',onclick:function(){if(BETA.sum)betaSetGate(!sm.gate)}}));
     var nq=document.createElement('div');nq.className='note';nq.style.paddingTop='8px';nq.textContent=BETA.sum?(sm.approved||0)+' approved · '+(sm.declined||0)+' declined. With the lock on, only approved accounts can use *[demo].':'Only you can see this.';o.appendChild(nq)}
   if(page==='main'){
   var g2=accSection(o,'Your songs');
   if(AUTH_USER){var nCred=songs.filter(function(s){return s.title&&s.status==='Finished'}).length;
-    g2.appendChild(accCell({tile:ACC_ICO.sign,grad:3,tileCls:'credtile',label:'Credits',value:nCred?String(nCred):'',chev:true,onclick:function(){accGo('credits')}}))}
-  g2.appendChild(accCell({tile:ACC_ICO.down,grad:2,label:'Import Songs',chev:true,onclick:function(){sheet(false);$('#impin').click()}}));
-  g2.appendChild(accCell({tile:ACC_ICO.up,grad:7,label:'Export All Songs',chev:true,onclick:function(){sheet(false);$('#expb').click()}}));
+    g2.appendChild(accCell({glass:1,tile:ACC_LN.sign,grad:3,tileCls:'credtile',label:'Credits',value:nCred?String(nCred):'',chev:true,onclick:function(){accGo('credits')}}))}
+  g2.appendChild(accCell({glass:1,tile:ACC_LN.down,grad:2,label:'Import Songs',chev:true,onclick:function(){sheet(false);$('#impin').click()}}));
+  g2.appendChild(accCell({glass:1,tile:ACC_LN.up,grad:7,label:'Export All Songs',chev:true,onclick:function(){sheet(false);$('#expb').click()}}));
   /* storage used against the account's limit; fetched fresh each time Account opens, then shown */
   if(AUTH_USER&&!DEV_MODE){var sv=STORE?(STORE.limit!=null?sfSize(STORE.used)+' of '+sfSize(STORE.limit):sfSize(STORE.used)||'0 KB'):'…';
-    g2.appendChild(accCell({tile:ACC_ICO.disk,grad:5,label:'Storage',value:sv,valueCls:sfFull()?'full':''}));
+    g2.appendChild(accCell({glass:1,tile:ACC_LN.disk,grad:5,label:'Storage',value:sv,valueCls:sfFull()?'full':''}));
     if(!renderAccount.st||Date.now()-renderAccount.st>15000){renderAccount.st=Date.now();var was=sv;sfUsage(true).then(function(x){if(!x)return;var nv=x.limit!=null?sfSize(x.used)+' of '+sfSize(x.limit):sfSize(x.used)||'0 KB';if(nv!==was)renderAccount()})}}
   /* Muse & Privacy: what's sent to AI, what Rate has learned, and who you've blocked, together */
   var g3=accSection(o,'Muse & privacy');
-  g3.appendChild(accCell({tile:ACC_ICO.spark,grad:4,label:'AI Features',value:aiOk()==='yes'?'On':'Off',valueCls:aiOk()==='yes'?'':'add',onclick:function(){
+  g3.appendChild(accCell({glass:1,tile:ACC_LN.spark,grad:4,label:'AI Features',value:aiOk()==='yes'?'On':'Off',valueCls:aiOk()==='yes'?'':'add',onclick:function(){
     if(aiOk()==='yes'){aiSet('no');toast('AI features are off');renderAccount()}else{aiSet('');aiConsent(true).then(function(){toast('AI features are on');renderAccount()},function(){renderAccount()})}}}));
-  g3.appendChild(accCell({tile:ACC_ICO.reset,grad:0,label:'Reset What Rate Learned',onclick:function(){var n=0;songs.forEach(function(s){if(s.rating&&s.rating.personality){s.rating.personality='';s.updated=Date.now();n++}});if(n)save();toast('Rate will learn your style fresh')}}));
+  g3.appendChild(accCell({glass:1,tile:ACC_LN.reset,grad:0,label:'Reset What Rate Learned',onclick:function(){var n=0;songs.forEach(function(s){if(s.rating&&s.rating.personality){s.rating.personality='';s.updated=Date.now();n++}});if(n)save();toast('Rate will learn your style fresh')}}));
   if(AUTH_USER&&!DEV_MODE){if(BLOCKS===null||!renderAccount.bl||Date.now()-renderAccount.bl>15000){renderAccount.bl=Date.now();loadBlocks()}
     if(BLOCKS&&BLOCKS.length){var bOpen=ACC_EDIT==='blocked';
-      g3.appendChild(accCell({tile:ACC_ICO.block,grad:6,label:'Blocked',value:String(BLOCKS.length),chev:true,cls:bOpen?'open':'',onclick:function(){ACC_EDIT=bOpen?null:'blocked';renderAccount()}}));
+      g3.appendChild(accCell({glass:1,tile:ACC_LN.block,grad:6,label:'Blocked',value:String(BLOCKS.length),chev:true,cls:bOpen?'open':'',onclick:function(){ACC_EDIT=bOpen?null:'blocked';renderAccount()}}));
       if(bOpen)BLOCKS.forEach(function(b){g3.appendChild(accCell({label:b.name,value:'Unblock',valueCls:'add',cls:'sub',onclick:function(){unblockUser(b)}}))})}}
   var nAI=document.createElement('div');nAI.className='note';nAI.style.paddingTop='8px';nAI.textContent='AI features send what you’re working on to '+aiWho()+'.';o.appendChild(nAI);
   var gl=accSection(o,'About & support');
-  gl.appendChild(accCell({tile:ACC_ICO.lock,grad:10,label:'Privacy Policy',chev:true,onclick:function(){openDoc('privacy')}}));
-  gl.appendChild(accCell({tile:ACC_ICO.doc,grad:3,label:'Terms of Service',chev:true,onclick:function(){openDoc('terms')}}));
+  gl.appendChild(accCell({glass:1,tile:ACC_LN.shield,grad:10,label:'Privacy Policy',chev:true,onclick:function(){openDoc('privacy')}}));
+  gl.appendChild(accCell({glass:1,tile:ACC_LN.doc,grad:3,label:'Terms of Service',chev:true,onclick:function(){openDoc('terms')}}));
   /* Contact Support: a message to the help desk (supabase/functions/support), with the replies underneath */
   if(AUTH_USER&&!DEV_MODE){var sOpen=ACC_EDIT==='support';supLoad();var sAns=(SUP.list||[]).filter(function(t){return t.status==='replied'}).length;
-    gl.appendChild(accCell({tile:ACC_ICO.help,grad:8,label:'Contact Support',value:sAns?sAns+(sAns===1?' reply':' replies'):'',chev:true,cls:sOpen?'open':'',onclick:function(){ACC_EDIT=sOpen?null:'support';if(!sOpen)supLoad(true);renderAccount()}}));
+    gl.appendChild(accCell({glass:1,tile:ACC_LN.help,grad:8,label:'Contact Support',value:sAns?sAns+(sAns===1?' reply':' replies'):'',chev:true,cls:sOpen?'open':'',onclick:function(){ACC_EDIT=sOpen?null:'support';if(!sOpen)supLoad(true);renderAccount()}}));
     if(sOpen)supForm(gl)}
-  else gl.appendChild(accCell({tile:ACC_ICO.help,grad:8,label:'Contact Support',value:'help@hellodemo.app',chev:'ext',onclick:function(){openLink('mailto:help@hellodemo.app')}}));
+  else gl.appendChild(accCell({glass:1,tile:ACC_LN.help,grad:8,label:'Contact Support',value:'help@hellodemo.app',chev:'ext',onclick:function(){openLink('mailto:help@hellodemo.app')}}));
   }
   /* developer tools ([developer] only), then the account actions last, where Settings keeps Sign Out */
   if(page==='main'&&ga&&(devFake||DEV_BUILD)&&dvl){o.appendChild(dvl);o.appendChild(ga)}
   if(AUTH_USER||devFake){
     var actg=null;if(page==='main'){actg=accSection(o,'');
-    actg.appendChild(accCell({tile:ACC_ICO.swap,grad:9,label:'Switch Account',chev:true,onclick:function(){/* back to the sign-in screen */signOutGoogle();SWITCH_PICK=true}}))}
+    actg.appendChild(accCell({glass:1,tile:ACC_LN.swap,grad:9,label:'Switch Account',chev:true,onclick:function(){/* back to the sign-in screen */signOutGoogle();SWITCH_PICK=true}}))}
     if(page==='main'){var og=actg||accSection(o,'');
     og.appendChild(accCell({label:'Sign Out',cls:'danger',onclick:function(){var nat=natDestroy({title:'Sign out of *[demo]?',message:'Your songs stay safe in your account.',ok:'Sign Out'});if(nat){nat.then(function(ok){if(ok)signOutGoogle()});return}signOutGoogle()}}))}
     /* deleting the account: a second, deliberate step that says exactly what goes */
