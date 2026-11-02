@@ -357,9 +357,9 @@ html.devbuild #splash .spl-l,html.devbuild #splash .spl-d{display:none}html.devb
 /* sheet */
 #scrim{position:fixed;inset:0;background:rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .2s;z-index:4}
 #scrim.on{opacity:1;pointer-events:auto}
-#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet10,#sheet11{position:fixed;left:0;right:0;bottom:0;height:88%;max-width:720px;margin:0 auto;background:var(--sheet);-webkit-backdrop-filter:blur(40px) saturate(190%);backdrop-filter:blur(40px) saturate(190%);box-shadow:none;border-radius:38px 38px 0 0;transform:translateY(105%);transition:transform .32s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;z-index:5;padding-bottom:env(safe-area-inset-bottom,0px)}
-#sheet.on,#sheet2.on,#sheet3.on,#sheet4.on,#sheet5.on,#sheet6.on,#sheet7.on,#sheet8.on,#sheet10.on,#sheet11.on{transform:none;box-shadow:0 0 0 .5px var(--ring),0 -4px 24px var(--sh2),inset 0 1px 0 var(--hl)}
-#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet10,#sheet11{height:auto;max-height:84%;overflow-y:auto;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet10,#sheet11,#sheet12,#sheet13{position:fixed;left:0;right:0;bottom:0;height:88%;max-width:720px;margin:0 auto;background:var(--sheet);-webkit-backdrop-filter:blur(40px) saturate(190%);backdrop-filter:blur(40px) saturate(190%);box-shadow:none;border-radius:38px 38px 0 0;transform:translateY(105%);transition:transform .32s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;z-index:5;padding-bottom:env(safe-area-inset-bottom,0px)}
+#sheet.on,#sheet2.on,#sheet3.on,#sheet4.on,#sheet5.on,#sheet6.on,#sheet7.on,#sheet8.on,#sheet10.on,#sheet11.on,#sheet12.on,#sheet13.on{transform:none;box-shadow:0 0 0 .5px var(--ring),0 -4px 24px var(--sh2),inset 0 1px 0 var(--hl)}
+#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet10,#sheet11,#sheet12,#sheet13{height:auto;max-height:84%;overflow-y:auto;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 /* Account scrolls differently from the other auto-height sheets above: the whole sheet (including
    its .sh title/Done header) was the scroll container, so the header scrolled away with the content
    instead of staying put like it does in Details (#sheet), where only the inner pane scrolls and the
@@ -379,7 +379,7 @@ html.devbuild #splash .spl-l,html.devbuild #splash .spl-d{display:none}html.devb
    motion stutter; on top of the sheet's own blur the cards look the same without their own. */
 [role=dialog] :is(.gf,.sh button,#stk-out,.vsum,.vmore,.cupv,.plancard,.devcard,#chd,.dictwm button){-webkit-backdrop-filter:none;backdrop-filter:none}
 /* Muse, Rate, Clean up and Share: the same fixed header, with only the body below it scrolling */
-#sheet3,#sheet4,#sheet5,#sheet8,#sheet10,#sheet11{overflow-y:hidden}
+#sheet3,#sheet4,#sheet5,#sheet8,#sheet10,#sheet11,#sheet12,#sheet13{overflow-y:hidden}
 .sbd{flex:1;min-height:0;overflow-y:auto}
 /* the idea sheet: same fixed header, only the body scrolls */
 #sheet7{overflow-y:hidden;display:flex;flex-direction:column}
@@ -1289,7 +1289,7 @@ body.nglass #dback,body.nglass #dacct,body.nglass #dtabs,body.nglass #det,body.n
 html.ngsheet,html.ngsheet body{background:transparent!important}
 html.ngsheet body>.view,html.ngsheet body>#side,html.ngsheet body>#scrim2,html.ngsheet body>.dragbar{visibility:hidden!important}
 html.ngsheet #scrim{filter:opacity(0)!important}
-html.ngsheet :is(#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet10,#sheet11,#dictSheet){background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}
+html.ngsheet :is(#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet10,#sheet11,#sheet12,#sheet13,#dictSheet){background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}
 
 /* a gentle iOS spring (a touch of overshoot) for things that pop in: banners and toasts */
 :root{--spring:linear(0,0.02,0.071,0.144,0.229,0.321,0.413,0.503,0.588,0.666,0.735,0.796,0.849,0.893,0.929,0.958,0.981,0.999,1.012,1.021,1.027,1.03,1.031,1.031,1.03,1.028,1.025,1.022,1.019,1.017,1.014,1.011,1.009,1.007,1.005,1.004,1)}
@@ -1308,7 +1308,7 @@ body.nglass .ngsw{opacity:0!important}
 
 /* sheets scroll right to the bottom edge, like iOS: no padding under the scrolling body (that left an empty strip
    above the home indicator); the room for the home indicator is inside each scrolling body instead */
-#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet10,#sheet11,#dictSheet{padding-bottom:0!important}
+#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet10,#sheet11,#sheet12,#sheet13,#dictSheet{padding-bottom:0!important}
 #acc,#opts,.sbd,#ibd{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
 #sheet .pane{padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
 #p-aud,#p-rel{padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
@@ -1368,6 +1368,104 @@ body.nglass .ngsw{opacity:0!important}
 #ob .obgo:disabled{opacity:.5}
 #ob .obsec{height:30px;font-size:16px;font-weight:500;color:var(--mute);background:none}
 #ob .obsec[hidden]{display:block;visibility:hidden}
+/* ---- albums: a row of tiles in the song list, an Apple Music style album page washed in the artwork's colours,
+   a full-screen lyric reader, and the sheets to make one and add songs to it. --awl/--acl (light) and --awd/--acd
+   (dark) are set from the artwork by albPaint() ---- */
+.alrow{display:flex;gap:14px;overflow-x:auto;padding:6px 24px 8px;scroll-snap-type:x mandatory;scroll-padding:0 24px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.alrow::-webkit-scrollbar{display:none}
+.altile{flex:none;width:150px;text-align:left;scroll-snap-align:start;color:var(--ink);-webkit-tap-highlight-color:transparent}
+.altile .alart{display:grid;place-items:center;width:150px;height:150px;border-radius:9px;margin-bottom:7px;background:var(--cv1) center/cover;overflow:hidden;box-shadow:0 0 0 .5px var(--ring),0 4px 14px var(--sh2);color:var(--mute);transition:transform .2s cubic-bezier(.34,1.4,.5,1),filter .15s}
+.altile:active .alart{transform:scale(.96)}
+@media (hover:hover){.altile:hover .alart{filter:brightness(.96)}}
+.altile b{display:block;font-size:15px;font-weight:600;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.altile span{display:block;font-size:13px;color:var(--mute);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.altile.alnew .alart{background:var(--fill);box-shadow:none;color:var(--ink)}
+.rpin.ralb{margin-right:-6px}
+#vAlbum{background:var(--bg);max-width:none}
+#vAlbum,#albread{--aw:var(--awl);--ac:var(--acl,var(--ink))}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) :is(#vAlbum,#albread){--aw:var(--awd);--ac:var(--acd,var(--ink))}}
+:root[data-theme="dark"] :is(#vAlbum,#albread){--aw:var(--awd);--ac:var(--acd,var(--ink))}
+#ascroll{padding:calc(env(safe-area-inset-top,0px) + 66px) 0 calc(70px + env(safe-area-inset-bottom,0px))}
+.awash{position:absolute;left:0;right:0;top:0;height:960px;background:var(--aw,var(--bg));pointer-events:none;transition:background .3s}
+#amount{position:relative;max-width:640px;margin:0 auto;padding:0 20px}
+.albbar{position:absolute;top:0;left:0;right:0;max-width:720px;margin:0 auto;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 0;pointer-events:none}
+.albbar>*{pointer-events:auto}
+.albbar .ib{color:var(--ink)}
+.agrp{display:flex;align-items:center;border-radius:99px;padding:0 3px}.agrp .ib{width:46px}
+body.desktop #vAlbum .albbar{-webkit-app-region:drag}body.desktop #vAlbum .albbar button{-webkit-app-region:no-drag}
+@media (max-width:899px){body.desktop #vAlbum .albbar{padding-left:86px}}
+.ahd{text-align:center;padding-top:4px}
+.aart{display:grid;place-items:center;width:236px;height:236px;border-radius:12px;margin:0 auto 22px;background:var(--cv1) center/cover;overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,.16),0 3px 10px rgba(0,0,0,.08),0 0 0 .5px var(--ring)}
+.attl{margin:0;font-size:22px;font-weight:700;line-height:1.22;letter-spacing:-.35px;overflow-wrap:anywhere}
+.aby{font-size:22px;line-height:1.25;letter-spacing:-.35px;color:var(--ac);overflow-wrap:anywhere}
+.ameta{margin-top:7px;font-size:13px;font-weight:500;color:var(--mute)}
+.abtns{display:flex;gap:14px;margin:22px 0 22px}
+.acap{flex:1;min-width:0;height:50px;border-radius:99px;display:flex;align-items:center;justify-content:center;gap:9px;font-size:17px;font-weight:600;letter-spacing:-.2px;color:var(--ac);transition:transform .2s cubic-bezier(.34,1.4,.5,1),filter .15s}
+.acap:active{transform:scale(.96)}@media (hover:hover){.acap:hover{filter:brightness(.97)}}
+.acap svg{flex:none}
+.atl{border-top:.5px solid var(--sep);margin-right:-20px}
+.atr{display:flex;align-items:center;min-height:66px;position:relative;padding-right:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .12s}
+.atr+.atr::before{content:'';position:absolute;top:0;left:34px;right:0;border-top:.5px solid var(--sep)}
+.atr:active{background:var(--fill)}
+.atr.drag{opacity:.4}.atr.over-a{box-shadow:inset 0 2px 0 var(--ac)}.atr.over-b{box-shadow:inset 0 -2px 0 var(--ac)}
+.atr .an{flex:none;width:34px;font-size:17px;color:var(--mute);font-variant-numeric:tabular-nums}
+.atr .atx{flex:1;min-width:0;padding:11px 8px 11px 0}
+.atr .atx b{display:block;font-size:16px;font-weight:400;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.atr .atx span{display:block;font-size:14.5px;line-height:1.3;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.atr .afin{flex:none;display:flex;color:var(--ac);margin-left:6px}.atr .afin path{stroke:var(--bg)}
+.atr .awv{flex:none;display:flex;color:var(--mute);margin-left:6px}
+.atr .amo{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--mute);margin-left:4px}
+@media (hover:hover){.atr .amo:hover{background:var(--fill);color:var(--ink)}}
+.afoot{border-top:.5px solid var(--sep);margin-right:-20px;padding:12px 20px 0 0;font-size:14px;color:var(--mute)}
+.aempty{text-align:center;color:var(--mute);padding:30px 0 6px;font-size:16px}
+.aempty .acap{display:inline-flex;flex:none;padding:0 22px;margin-top:14px}
+/* the reader: every song in track order, large and plain */
+#albread{position:fixed;inset:0;z-index:7;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg);opacity:0;transform:translateY(24px);transition:opacity .25s,transform .32s cubic-bezier(.32,.72,0,1)}
+#albread.on{opacity:1;transform:none}
+#albread .arin{position:relative;max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 76px) 24px calc(90px + env(safe-area-inset-bottom,0px))}
+#albread .arx{position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);right:16px;z-index:2;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--ink)}
+body.desktop #albread .arx{top:12px}
+#albread .arh{text-align:center;margin-bottom:8px}
+#albread .arh b{display:block;font-size:28px;font-weight:700;letter-spacing:-.5px;line-height:1.2}
+#albread .arh span{display:block;font-size:20px;color:var(--ac);margin-top:2px}
+#albread .ars{margin-top:48px}
+#albread .arn{font-size:13px;font-weight:600;color:var(--ac);letter-spacing:.02em}
+#albread h3{margin:2px 0 14px;font-size:26px;font-weight:700;letter-spacing:-.4px;line-height:1.2}
+#albread .arl{font-size:20px;line-height:1.5;overflow-wrap:anywhere}
+#albread .arsec{font-size:13px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:20px 0 4px}
+#albread .arsec:first-child{margin-top:0}
+#albread .argap{height:.9em}#albread .argap+.arsec{margin-top:6px}
+#albread .arnone{color:var(--mute);font-size:17px}
+/* menus: a small glass list by the button that opened it (the iPhone app uses the system action sheet) */
+.amenubg{position:fixed;inset:0;z-index:40}
+.amenu{position:fixed;z-index:41;min-width:220px;max-width:290px;padding:6px;border-radius:16px;background:var(--sheet);-webkit-backdrop-filter:blur(40px) saturate(190%);backdrop-filter:blur(40px) saturate(190%);box-shadow:0 0 0 .5px var(--ring),0 12px 40px rgba(0,0,0,.2);opacity:0;transform:scale(.9);transition:opacity .14s,transform .24s cubic-bezier(.34,1.3,.5,1)}
+.amenu.on{opacity:1;transform:none}
+.amenu button{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:left;padding:10px 12px;border-radius:10px;font-size:16px;color:var(--ink)}
+.amenu button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.amenu button svg{flex:none;color:var(--mute)}
+.amenu button.d,.amenu button.d svg{color:var(--red)}
+.amenu button:disabled{opacity:.35}
+.amenu button.sep{margin-top:7px;position:relative}.amenu button.sep::before{content:'';position:absolute;top:-4px;left:10px;right:10px;border-top:.5px solid var(--sep)}
+@media (hover:hover){.amenu button:not(:disabled):hover{background:var(--fill)}}
+.amenu button:focus{outline:none}.amenu button:focus-visible{background:var(--fill)}
+/* the album sheet and Add Songs */
+#albf{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+.aeart{display:grid;place-items:center;width:150px;height:150px;border-radius:12px;margin:4px auto 8px;background:var(--cv1) center/cover;overflow:hidden;box-shadow:0 10px 26px var(--sh2),0 0 0 .5px var(--ring)}
+.aeacts{display:flex;justify-content:center;gap:18px;margin-bottom:8px}
+.aeacts button{font-size:15px;font-weight:600;color:var(--ink);padding:6px 4px}.aeacts button.ghost{color:var(--mute);font-weight:500}
+#sheet12 .seg{margin:0 20px 6px}
+#sheet13{height:84%}
+.aaq{flex:none}
+.aaq input{-webkit-appearance:none;appearance:none}
+.aarow{display:flex;align-items:center;gap:12px;width:100%;padding:8px 20px;text-align:left;color:var(--ink);-webkit-tap-highlight-color:transparent}
+.aarow:active{background:var(--fill)}
+.aarow .th{width:44px;height:44px;border-radius:9px}
+.aarow .tx{flex:1;min-width:0}
+.aarow b{display:block;font-size:16px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aarow span{display:block;font-size:14px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aarow .ack{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:transparent;box-shadow:inset 0 0 0 1.5px var(--mute)}
+.aarow.on .ack{background:var(--tint);color:var(--ontint);box-shadow:none}
+#aal .aempty{padding:40px 24px}
 </style>
 </head>
 <body>
@@ -1380,7 +1478,7 @@ body.nglass .ngsw{opacity:0!important}
 </div>
 
 <div class="view on" id="vList">
-  <div class="scroll"><div id="list"></div><div class="ioln"><button id="newfolderb">New Folder</button><span>·</span><button id="impb">Import Songs</button><span>·</span><button id="expb">Export All Songs</button></div></div>
+  <div class="scroll"><div id="list"></div><div class="ioln"><button id="newfolderb">New Folder</button><span>·</span><button id="newalbumb">New Album</button><span>·</span><button id="impb">Import Songs</button><span>·</span><button id="expb">Export All Songs</button></div></div>
   <div class="abs fadeT lhf"></div>
   <div class="lhead"><h1>*[demo]</h1><button class="gl acct" id="acctb" aria-label="Account"><i class="protag" id="acctplan" hidden>Beta</i><img id="acctav" class="acctav" alt="" hidden><svg id="acctsvg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.9-3.6 3.7-5.6 7-5.6s6.1 2 7 5.6"/></svg><i class="invdot" id="invdot1" hidden></i></button></div>
   <div class="dock"><div class="gl sbox"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="Search"></div>
@@ -1393,6 +1491,11 @@ body.nglass .ngsw{opacity:0!important}
   <div class="lhead"><div style="display:flex;align-items:center;gap:6px;padding-left:10px"><button class="gl ib" id="ideaBack" aria-label="Back"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h1 style="padding:0 0 0 10px">Ideas</h1></div></div>
   <div class="dock"><div class="gl sbox"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="iq" type="search" placeholder="Search ideas"></div>
   <button class="gl cbtn" id="inew" aria-label="New idea"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
+</div>
+
+<div class="view" id="vAlbum">
+  <div class="scroll" id="ascroll"><div class="awash" aria-hidden="true"></div><div id="amount"></div></div>
+  <div class="albbar"><button class="gl ib" id="aback" aria-label="Back"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="gl agrp"><button class="ib" id="ashare" aria-label="Copy tracklist" title="Copy tracklist"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v11.5M8 7.2l4-3.9 4 3.9"/><path d="M8.5 10.5H7a2 2 0 0 0-2 2V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6.5a2 2 0 0 0-2-2h-1.5"/></svg></button><button class="ib" id="amore" aria-label="Album options" title="Album options"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg></button></div></div>
 </div>
 
 <div class="view" id="vEdit">
@@ -1454,6 +1557,8 @@ body.nglass .ngsw{opacity:0!important}
 <div id="sheet11" role="dialog" aria-label="Admin"><div class="sh"><b>Admin</b><button id="done11">Done</button></div><div id="adm" class="sbd"></div></div>
 <div id="sheet10" role="dialog" aria-label="Beta Requests"><div class="sh"><b>Beta Requests</b><button id="done10">Done</button></div><div id="brq" class="sbd"></div></div>
 <div id="sheet8" role="dialog" aria-label="Share song"><div class="sh"><b>Share</b><button id="done8">Done</button></div><div id="shr" class="sbd"></div></div>
+<div id="sheet12" role="dialog" aria-label="Album"><div class="sh"><button class="accback" id="alb-x" aria-label="Cancel" title="Cancel"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><b id="alb-t">New Album</b><button id="alb-ok">Save</button></div><div class="sbd" id="albf"></div></div>
+<div id="sheet13" role="dialog" aria-label="Add Songs"><div class="sh"><button class="accback" id="aa-x" aria-label="Cancel" title="Cancel"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><b id="aa-t">Add Songs</b><button id="aa-ok">Add</button></div><div class="gf tf aaq"><input id="aaq" type="search" placeholder="Search your songs" aria-label="Search your songs" autocomplete="off"></div><div class="sbd" id="aal"></div></div>
 <div id="sheet7" role="dialog" aria-label="Idea"><div class="sh"><b id="ititle">Idea</b><button id="isave">Done</button></div><div class="ibd" id="ibd"><div id="imemow"></div><div class="ifield"><textarea id="itext" rows="3" placeholder="A line, a title, an idea…" aria-label="Idea"></textarea></div><div class="gf accg" id="iacts"></div></div></div>
 <div id="dictSheet" role="dialog" aria-label="Dictionary">
   <div class="sh"><b>Dictionary</b><button id="dictdone">Done</button></div>
@@ -1463,6 +1568,7 @@ body.nglass .ngsw{opacity:0!important}
 </div>
 <div id="sprint" class="gl" hidden><span id="sp-t">5:00</span><button id="sp-x">Stop</button></div>
 <input type="file" accept="image/*" id="artin" hidden>
+<input type="file" accept="image/*" id="albartin" hidden>
 <input type="file" accept="image/*" id="avin" hidden>
 <input type="file" accept=".json,.txt,application/json,text/plain" id="impin" multiple hidden>
 <input type="file" accept="audio/*,.m4a,.mp3,.wav,.aac,.caf,.ogg,.webm" id="melin" hidden>
@@ -15251,7 +15357,7 @@ var APP_SEQ=676;
 var APP_VERSION='1.0.0';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
 function currentKey(){if(typeof DEV_MODE!=='undefined'&&DEV_MODE&&!AUTH_USER)return K_DEV;if(typeof AUTH_USER!=='undefined'&&AUTH_USER&&AUTH_USER.id)return K+':'+AUTH_USER.id;return K}
-function load(){ACTIVE_KEY=currentKey();try{songs=JSON.parse(localStorage.getItem(ACTIVE_KEY))||[]}catch(e){songs=[]}seedGuide();loadIdeas()}
+function load(){ACTIVE_KEY=currentKey();try{songs=JSON.parse(localStorage.getItem(ACTIVE_KEY))||[]}catch(e){songs=[]}seedGuide();loadIdeas();loadAlbums()}
 /* ---------- built-in guide: a "How *[demo] works" song every account starts with ----------
    Added once per library (each account, and Dev Mode) with a fixed id and a fixed, old `updated`
    stamp. The fixed id means two devices adding it to the same account make one song, not two; the
@@ -15587,7 +15693,7 @@ function haptic(kind){
   }catch(e){}
 }
 /* screens by depth: going deeper pushes (slides in from the right), going back pops; same depth just fades */
-var NAV_DEPTH={vList:0,vIdeas:1,vEdit:1},navT=0;
+var NAV_DEPTH={vList:0,vIdeas:1,vAlbum:1,vEdit:2},navT=0;
 /* no slide in the Mac app (window.desktop is its bridge) - it keeps the quick fade, like a desktop app */
 var NAV_SKIP=false;
 function navCalm(){if(window.desktop)return true;try{return matchMedia('(prefers-reduced-motion: reduce)').matches||(document.body.classList.contains('side')&&matchMedia('(min-width:980px)').matches)}catch(e){return false}}
@@ -16030,9 +16136,9 @@ function llines(s){return(s.lyrics||'').split('\n').filter(function(x){return x.
 function renderList(){setTimeout(function(){addNewZone($('#list'))},0);
   var q=$('#q').value.toLowerCase(),L=$('#list');L.innerHTML='';
   var rows=songs.filter(function(s){return!q||(s.title+' '+s.lyrics).toLowerCase().indexOf(q)>=0}).sort(function(a,b){return b.updated-a.updated});
-  if(!q){L.appendChild(ideasCard())}
+  if(!q){L.appendChild(ideasCard());albSection(L)}
   if(!rows.length){L.insertAdjacentHTML('beforeend',songs.length?'<div class="empty">No Results</div>':'<div class="empty"><b>No songs yet</b><p>Tap the pencil to write your first line.</p></div>');return}
-  var g={},pin=[];rows.forEach(function(s){if(isPinned(s)){pin.push(s);return}var f=s.folder||'Songs';(g[f]=g[f]||[]).push(s)});
+  var g={},pin=[];rows.forEach(function(s){if(isPinned(s)){pin.push(s);return}if(!q&&albOf(s))return;var f=s.folder||'Songs';(g[f]=g[f]||[]).push(s)});
   if(pin.length)g['\u0000pin']=pin;
   Object.keys(g).sort(function(a,b){return a==='\u0000pin'?-1:b==='\u0000pin'?1:g[b][0].updated-g[a][0].updated}).forEach(function(f){var isPin=f==='\u0000pin';
     var h=document.createElement('div');h.className='gh'+(isPin?' ghpin':'');if(!isPin)h.dataset.folder=f==='Songs'?'':f;h.innerHTML='<b></b>';h.firstChild.textContent=isPin?'Pinned':f;L.appendChild(h);
@@ -16041,6 +16147,7 @@ function renderList(){setTimeout(function(){addNewZone($('#list'))},0);
       var ls=llines(s),b=rowEl('song',s);b.insertAdjacentHTML('afterbegin','<i class="th"></i><div class="tx"><b></b><span></span><em></em></div>');var th=b.firstChild;if(s.art)th.style.backgroundImage=artCss(s.art);else th.innerHTML=cover(s);
       b.querySelector('b').textContent=s.title||ls[0]||'New Song';
       b.querySelector('span').textContent=s.ph&&!s.title&&!(s.lyrics||'').trim()?'Empty folder. Tap to write its first song, or drag songs here.':(s.title?ls[0]:ls[1])||'No lyrics yet';if(isPin)delete b.dataset.folder;b.querySelector('em').textContent=[isPin&&s.folder?s.folder:'',s.shared?'Shared':'',s.artist,s.status,s.key,s.bpm?s.bpm+' BPM':'',fd(s.updated)].filter(Boolean).join(' · ');
+      if(albMine(s))albRowBtn(b,s);
       b.onclick=function(){openSong(s.id)};L.appendChild(b)});
   });
 }
@@ -16055,7 +16162,7 @@ var KY=['','C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];KY.slice(1).for
 $('#f-key').innerHTML=KY.map(function(k){return'<option value="'+k+'">'+(k||'None')+'</option>'}).join('');
 var map={'#title':'title','#f-artist':'artist','#chd':'chords','#f-key':'key','#f-bpm':'bpm','#f-tuning':'tuning','#f-status':'status','#f-folder':'folder','#f-notes':'notes'};
 Object.keys(map).forEach(function(sel){$(sel).addEventListener('input',function(){if(!cur)return;cur[map[sel]]=this.value;cur.updated=Date.now();save();if(sel==='#f-key')chordChips();hdr()})});
-function openSong(id){
+function openSong(id){if(window.ALB)ALB.ret=null;
   cur=songs.filter(function(s){return s.id===id})[0];if(!cur)return;sheet(false);LSK=null;scheme=cur.scheme||'auto';if(typeof setRateMode==='function'&&rateMode)setRateMode(false);PF=mkPF(cur.pf||pgGet());MC={};gearDot();
   Object.keys(map).forEach(function(sel){$(sel).value=cur[map[sel]]||''});setLyr(cur);hdr();
   $('#fl').innerHTML=Array.from(new Set(songs.map(function(s){return s.folder}).filter(Boolean))).map(function(f){return'<option value="'+f.replace(/"/g,'&quot;')+'">'}).join('');
@@ -16064,7 +16171,9 @@ function openSong(id){
   if(blank||!mob){l.focus();l.setSelectionRange(l.value.length,l.value.length)}else lastSel={s:l.value.length,e:l.value.length};
   $('#sc').scrollTop=0;setTimeout(reveal,60);if(blank){setTimeout(function(){$('#sc').scrollTop=0},80)}autoSnap();refreshViews();sendPres();sfStopPreview();AUD_OPEN=null;if(lpAu&&lpAu._song!==cur.id)npStop();paintPlayB();
 }
-function toList(){if(typeof npStop==='function')npStop();sheet(false);cur=null;renderList();show('vList')}
+function toList(){if(typeof npStop==='function')npStop();sheet(false);cur=null;renderList();
+  /* a song opened from an album goes back to that album */
+  if(window.ALB&&ALB.ret&&albGet(ALB.ret)){openAlbum(ALB.ret);return}show('vList')}
 function goBack(){var c0=cur;if(c0&&c0.ph&&(c0.title||(c0.lyrics||'').trim()))delete c0.ph;if(c0&&!c0.title&&!(c0.lyrics||'').trim()&&!c0.chords&&!c0.notes&&!c0.art&&!(c0.audio||[]).length&&!(c0.files||[]).length&&!(c0.credits||[]).length&&!c0.key&&!c0.bpm&&!c0.shared&&!c0.folder)songs=songs.filter(function(s){return s!==c0});save();toList()}
 $('#back').onclick=goBack;
 $('#logo').onclick=function(){var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'||ae.id==='q'))ae.blur();goBack()};
@@ -16075,11 +16184,11 @@ var delArm=0;$('#del').onclick=function(){var b=this,s0=cur;
 /* sheet headers: Done is a round glass checkmark and the full-screen players close with a round ✕ (iOS 26) */
 (function(){var CHK='<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.8l4.6 4.6L19 7.6"/></svg>',
   X='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
-  document.querySelectorAll('.sh>button').forEach(function(b){if(b.id==='accback')return;b.classList.add('shok');b.setAttribute('aria-label','Done');b.title='Done';b.innerHTML=CHK});
+  document.querySelectorAll('.sh>button').forEach(function(b){if(b.id==='accback'||b.classList.contains('accback'))return;b.classList.add('shok');b.setAttribute('aria-label','Done');b.title='Done';b.innerHTML=CHK});
   ['#lp-x','#pf-x'].forEach(function(q){var b=document.querySelector(q);if(b){b.setAttribute('aria-label','Close');b.title='Close';b.innerHTML=X}})})();
 function sheet(on,w){if(on&&!wideMQ.matches&&document.body.classList.contains('side'))sideOn(false);
   if(on){var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'||ae.id==='q'))ae.blur()}
-  if(!on){try{ideaCommit()}catch(e){}var fa=document.activeElement;if(fa&&fa.blur&&fa.closest&&fa.closest('[role=dialog]'))fa.blur();$('#sheet').classList.remove('on');$('#sheet2').classList.remove('on');$('#sheet3').classList.remove('on');$('#sheet4').classList.remove('on');$('#sheet5').classList.remove('on');$('#sheet6').classList.remove('on');$('#sheet7').classList.remove('on');$('#sheet8').classList.remove('on');var s10=$('#sheet10');if(s10)s10.classList.remove('on');var s11=$('#sheet11');if(s11)s11.classList.remove('on')}else $('#'+(w||'sheet')).classList.add('on');$('#scrim').classList.toggle('on',on)}
+  if(!on){try{ideaCommit()}catch(e){}var fa=document.activeElement;if(fa&&fa.blur&&fa.closest&&fa.closest('[role=dialog]'))fa.blur();$('#sheet').classList.remove('on');$('#sheet2').classList.remove('on');$('#sheet3').classList.remove('on');$('#sheet4').classList.remove('on');$('#sheet5').classList.remove('on');$('#sheet6').classList.remove('on');$('#sheet7').classList.remove('on');$('#sheet8').classList.remove('on');var s10=$('#sheet10');if(s10)s10.classList.remove('on');var s11=$('#sheet11');if(s11)s11.classList.remove('on');['#sheet12','#sheet13'].forEach(function(q){var e=$(q);if(e)e.classList.remove('on')})}else $('#'+(w||'sheet')).classList.add('on');$('#scrim').classList.toggle('on',on)}
 $('#det').onclick=function(){dtab('inf');renderVers();renderCollab();sheet(true)};$('#done').onclick=function(){sheet(false)};$('#scrim').onclick=function(){sheet(false);closeDict()};
 /* Escape (Mac and web) closes whatever is on top: the dictionary, then any open sheet, then a floating sidebar */
 document.addEventListener('keydown',function(e){if(e.key!=='Escape'||e.defaultPrevented||e.isComposing)return;
@@ -16231,7 +16340,7 @@ function sideOn(on){if(on){var ae=document.activeElement;if(ae&&ae!==document.bo
    automatically on desktop widths whenever a non-list view becomes active. Reads the actual active
    view rather than body.listv so it's correct even on first load, before show() has ever run. */
 function syncSideVisibility(){
-  var vid=(document.querySelector('.view.on')||{}).id,onList=vid==='vList'||vid==='vIdeas'||vid==='vDash'; /* Ideas is full-width like the song list: no docked sidebar over its box */
+  var vid=(document.querySelector('.view.on')||{}).id,onList=vid==='vList'||vid==='vIdeas'||vid==='vAlbum'||vid==='vDash'; /* Ideas is full-width like the song list: no docked sidebar over its box */
   if(onList){if(document.body.classList.contains('side'))sideOn(false)}
   else if(wideMQ.matches)sideOn(true)
 }
@@ -16241,7 +16350,7 @@ syncSideVisibility();
   var ES={on:false,open:false,moved:false,x:0,y:0,w:260,lastPx:0,lastX:0,lastT:0,vel:0},BS={on:false,u:null};
   /* the song list sits underneath while the song is dragged off it, drifting in from the left like iOS; on release
      the swipe itself is the transition, so show() is told not to play its own slide on top */
-  function bsUnder(){var u=$('#vList');return u&&u!==BS.v?u:null}
+  function bsUnder(){var u=$(BS.v&&BS.v.id==='vEdit'&&window.ALB&&ALB.ret?'#vAlbum':'#vList');return u&&u!==BS.v?u:null}
   function bsPaint(dx){var w=innerWidth,p=Math.min(1,dx/w);BS.v.style.transform='translate3d('+dx+'px,0,0)';if(BS.u)BS.u.style.transform='translate3d('+(-28*(1-p))+'%,0,0)';if(BS.u)BS.u.style.filter='brightness('+(.94+.06*p)+')'}
   document.addEventListener('touchmove',function(e){if(!BS.on)return;var t=e.touches[0],dx=t.clientX-BS.x,dy=t.clientY-BS.y;
     if(!BS.moved){if(Math.abs(dy)>14&&Math.abs(dy)>Math.abs(dx)){BS.on=false;return}if(dx<8)return;BS.moved=true;BS.x=t.clientX-dx;
@@ -16253,7 +16362,7 @@ syncSideVisibility();
     var rest=go?innerWidth-BS.dx:BS.dx,ms=Math.round(Math.max(140,Math.min(260,rest/Math.max(1.4,Math.abs(BS.vel)))));
     var ease='transform '+ms+'ms cubic-bezier(.2,.8,.2,1),filter '+ms+'ms';v.style.transition=ease;if(u)u.style.transition=ease;
     requestAnimationFrame(function(){bsPaint(go?innerWidth:0)});if(go)haptic('light');
-    setTimeout(function(){if(go){NAV_SKIP=true;if(v.id==='vEdit')goBack();else show('vList');NAV_SKIP=false}bsClear()},ms+10)}
+    setTimeout(function(){if(go){NAV_SKIP=true;if(v.id==='vEdit')goBack();else if(v.id==='vAlbum')albClose();else show('vList');NAV_SKIP=false}bsClear()},ms+10)}
   document.addEventListener('touchend',function(){bsEnd(false)},{passive:true});document.addEventListener('touchcancel',function(){bsEnd(true)},{passive:true});
   function sideEl(){return $('#side')}
   /* iOS-style rubber-band resistance: 'over' is how far past the edge the raw drag would go.
@@ -16268,7 +16377,7 @@ syncSideVisibility();
     var t=e.touches[0],open=document.body.classList.contains('side');
     if(!open&&t.clientX>24)return;
     /* from the left edge of a song or Ideas, the swipe goes back to the song list, like iOS's back gesture */
-    if(!open){var vw=document.querySelector('.view.on');if(vw&&(vw.id==='vEdit'||vw.id==='vIdeas')){BS.on=true;BS.moved=false;BS.x=t.clientX;BS.y=t.clientY;BS.v=vw;BS.vel=0;BS.lx=t.clientX;BS.lt=performance.now();return}}
+    if(!open){var vw=document.querySelector('.view.on');if(vw&&(vw.id==='vEdit'||vw.id==='vIdeas'||vw.id==='vAlbum')){BS.on=true;BS.moved=false;BS.x=t.clientX;BS.y=t.clientY;BS.v=vw;BS.vel=0;BS.lx=t.clientX;BS.lt=performance.now();return}}
     if(open&&!(e.target.closest&&e.target.closest('#side')))return;
     ES.x=t.clientX;ES.y=t.clientY;ES.on=true;ES.open=open;ES.moved=false;ES.w=(sideEl()&&sideEl().offsetWidth)||260;
     ES.lastX=t.clientX;ES.lastT=performance.now();ES.vel=0
@@ -18113,7 +18222,7 @@ function ngMirror(g,root){var c=NG_MC[g.id];
   if(c.dirty||Math.abs(R.width-c.w)>.5||Math.abs(R.height-c.h)>.5||now-c.t>400){var parts=[];ngWalk(root,root,R,{l:R.left,t:R.top,r:R.right,b:R.bottom},parts,1);c.parts=parts;c.dirty=false;c.w=R.width;c.h=R.height;c.t=now}
   return c.parts}
 /* ---- glass sheets ---- */
-var NG_SH='#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet10,#sheet11,#dictSheet';
+var NG_SH='#sheet,#sheet2,#sheet3,#sheet4,#sheet5,#sheet6,#sheet7,#sheet8,#sheet10,#sheet11,#sheet12,#sheet13,#dictSheet';
 var NG_SHON=NG_SH.split(',').map(function(q){return q+'.on'}).join(',');
 NG.under=false;NG.offT=null;
 function ngSheetOpen(){return document.querySelector(NG_SHON)}
@@ -18152,12 +18261,14 @@ function ngSegs(out,rd){var seen={},n=0;NG.reg={};
 /* ---- press-and-hold on a song: the system context menu ---- */
 function ngCtxLink(b,s){var a=document.createElement('a');a.className='ngrowlink';a.tabIndex=-1;a.setAttribute('aria-hidden','true');
   var mine=!(s.shared&&s.owner&&AUTH_USER&&s.owner!==AUTH_USER.id),ls=(s.lyrics||'').split('\n').map(function(x){return x.trim()}).filter(Boolean),pin=isPinned(s);
-  var acts=[[{id:'open',t:'Open',sf:'arrow.up.forward.app'}],[{id:'pin',t:pin?'Unpin':'Pin',sf:pin?'pin.slash':'pin'},{id:'copy',t:'Copy Lyrics',sf:'doc.on.doc'}],[{id:'del',t:mine?'Delete Song':'Leave Song',sf:mine?'trash':'rectangle.portrait.and.arrow.right',d:1}]];
+  var acts=[[{id:'open',t:'Open',sf:'arrow.up.forward.app'}],[{id:'pin',t:pin?'Unpin':'Pin',sf:pin?'pin.slash':'pin'},{id:'copy',t:'Copy Lyrics',sf:'doc.on.doc'}].concat(albMine(s)?[albOf(s)?{id:'unalbum',t:'Remove from Album',sf:'square.stack'}:{id:'album',t:'Add to Album',sf:'square.stack'}]:[]),[{id:'del',t:mine?'Delete Song':'Leave Song',sf:mine?'trash':'rectangle.portrait.and.arrow.right',d:1}]];
   var q=new URLSearchParams({id:s.id,t:s.title||ls[0]||'New Song',s:[s.shared?'Shared':'',s.artist,s.status,s.key,fd(s.updated)].filter(Boolean).join(' · '),l:ls.slice(s.title?0:1,s.title?9:10).join('\n'),a:JSON.stringify(acts)});
   a.href='demo-row://song?'+q.toString().replace(/\+/g,'%20');a.addEventListener('click',function(e){e.preventDefault()});b.appendChild(a)}
 function ngRowAction(d){var s=d&&songs.filter(function(x){return x.id===d.id})[0];if(!s)return;NG.hz=Date.now();
   if(d.action==='open'){openSong(s.id);if(!wideMQ.matches&&document.body.classList.contains('side'))sideOn(false);return}
   if(d.action==='pin'){setPin(s,!isPinned(s));return}
+  if(d.action==='album'){albPickFor(s,null);return}
+  if(d.action==='unalbum'){albRemove(s);toast('Removed from album');return}
   if(d.action==='copy'){var t=(s.title?s.title+'\n\n':'')+(s.lyrics||'');try{navigator.clipboard.writeText(t).then(function(){toast('Lyrics copied')},function(){toast('Copy blocked')})}catch(e){toast('Copy not available')}return}
   if(d.action==='del'){var mine=!(s.shared&&s.owner&&AUTH_USER&&s.owner!==AUTH_USER.id),nm=s.title||'this song';
     var go=function(ok){if(ok)removeSong(s)};var nd=natDestroy({title:mine?'Delete “'+nm+'”?':'Leave “'+nm+'”?',message:mine?'This can’t be undone.':'It stays with its owner.',ok:mine?'Delete Song':'Leave Song'});
@@ -19550,6 +19661,7 @@ function cloudPush(){if(!libReady())return;clearTimeout(libT);libT=setTimeout(fu
 function cloudPull(){libSeenAt=null;cloudSync(true);libListen()}
 function cloudSync(first){
   if(!libReady())return;
+  albSync();
   if(libBusy){libAgain=true;return}
   libBusy=true;var c=sbClient(),uid=AUTH_USER.id,tries=0;
   function done(){libBusy=false;if(libAgain){libAgain=false;cloudSync()}}
@@ -19570,7 +19682,7 @@ function cloudSync(first){
       if(as.n||ai.n){
         try{localStorage.setItem(ACTIVE_KEY,JSON.stringify(songs))}catch(e){}
         try{localStorage.setItem(ideasKey(),JSON.stringify(ideas))}catch(e){}
-        desktopMirror();renderList();renderSide();
+        desktopMirror();renderList();renderSide();albRefresh();
         paintVault();
         if(document.getElementById('vIdeas').classList.contains('on'))renderIdeas();
         if(openId&&!songs.some(function(s){return s.id===openId})){toList();toast('That song was deleted on another device')}
@@ -19756,7 +19868,7 @@ var PLAN={tier:'free'};try{var _pl=JSON.parse(localStorage.getItem('songpad:plan
 var PRICE={month:'A$8.99',year:'A$69.99',trial:7},FREE_MEMOS=10,FREE_MEMO_SECS=60;
 function isPro(){return PLAN.tier!=='free'}
 function planName(){return PLAN.tier==='pro'?'Pro':PLAN.tier==='beta'?'Beta':'Free'}
-var FEAT={lines:'Lines',rate:'Rate',perform:'Perform mode',voice:'Writing voice',listen:'Listening to the whole song',melody:'Melody',share:'Inviting co-writers',muse:'Muse',audio:'Adding music and files',sync:'Lyric sync',play:'Play with Lyrics',release:'Release details',memos:'More voice memos',ai:'More AI'};
+var FEAT={lines:'Lines',rate:'Rate',perform:'Perform mode',voice:'Writing voice',listen:'Listening to the whole song',melody:'Melody',share:'Inviting co-writers',muse:'Muse',audio:'Adding music and files',sync:'Lyric sync',play:'Play with Lyrics',release:'Release details',memos:'More voice memos',ai:'More AI',albums:'Albums'};
 function planSave(p){var was=PLAN.tier;PLAN=p;if(AUTH_USER&&!PLAN.uid)PLAN.uid=AUTH_USER.id;try{localStorage.setItem('songpad:plan',JSON.stringify(PLAN))}catch(e){}if(was!==PLAN.tier){applyPlan();try{refreshAccount()}catch(e){}if(cur){try{paintPlayer()}catch(e){}if($('#p-aud')&&$('#p-aud').classList.contains('on'))try{renderAud()}catch(e){}}if(PLAN.tier!=='free')try{ideaMemosPending()}catch(e){}}}
 function planRefresh(){var c=sbClient();if(!c||!AUTH_USER)return Promise.resolve();if(PLAN.uid&&PLAN.uid!==AUTH_USER.id)planSave({tier:'free'});
   return c.rpc('my_plan').then(function(r){if(r.error||!r.data||!r.data.tier)return;var d=r.data;
@@ -19795,7 +19907,7 @@ function showProBanner(msg,k){
 }
 function hideProBanner(){$('#probanner').classList.remove('on');clearTimeout(probT)}
 $('#pb-x').onmousedown=prevent;$('#pb-x').onclick=function(e){e.stopPropagation();hideProBanner()};
-function upsellMsg(k){if(k==='memos')return'Synced voice memos come with Pro.';if(k==='ai')return'That’s today’s free AI. Pro has more.';var f=FEAT[k]||'That';return f+(/details$/.test(f)?' come':' comes')+' with Pro.'}
+function upsellMsg(k){if(k==='albums')return'Free has one album. Pro makes as many as you like.';if(k==='memos')return'Synced voice memos come with Pro.';if(k==='ai')return'That’s today’s free AI. Pro has more.';var f=FEAT[k]||'That';return f+(/details$/.test(f)?' come':' comes')+' with Pro.'}
 function upsell(k,msg){showProBanner(msg||upsellMsg(k),k)}
 /* In-app subscriptions, iPhone only, through RevenueCat (@revenuecat/purchases-capacitor). This only buys and restores:
    the server decides the plan (supabase/functions/revenuecat asks RevenueCat and writes plans), so Pro follows the
@@ -21080,6 +21192,223 @@ $('#lm').onclick=function(){if(!lines&&!isPro())return upsell('lines');lines=!li
 lyr.addEventListener('input',function(){if(getText()===''&&lyr.innerHTML!=='')lyr.innerHTML='';if(cur){cur.lyrics=getText();cur.rich=lyr.innerHTML;cur.updated=Date.now();lastEdit=Date.now();save()}setTimeout(function(){rhyme();reveal()},0);refreshViews()});
 document.addEventListener('selectionchange',function(){if(document.activeElement===$('#lyr'))setTimeout(function(){rhyme();reveal(true);updateFmtState()},0)});
 
+/* ---------- albums (supabase/albums.sql) ----------
+   Each album is its own row in the albums table: { id, title, kind, year, artist, art, updated }, synced row by row
+   (the newer `updated` wins). Deleting leaves a tombstone row { id, deleted, updated } so it stays deleted everywhere.
+   Songs join an album through their own keys in the library: song.album (the album's id) and song.track (its order),
+   so membership syncs with the songs. An album id that doesn't exist (or is deleted) is ignored. Only your own songs
+   go in an album: not someone else's shared song, not the guide. Free has one album; Pro and beta as many as they like. */
+var albums=[],ALB={id:null,ret:null,t:null,busy:false,again:false,off:false,pk:'',pal:null,sel:{},seq:0,addTo:null,edit:null};
+var ALB_KINDS=['Album','EP','Single'];
+var ALB_I={
+  book:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.3 5.2 8 4.6 3.5 4.6v13.6c4.5 0 6.8.6 8.5 1.9 1.7-1.3 4-1.9 8.5-1.9V4.6c-4.5 0-6.8.6-8.5 1.9z"/><path d="M12 6.5v13.6"/></svg>',
+  pen:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5l4 4L8 20H4v-4z"/></svg>',
+  plus:'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  more:'<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>',
+  fin:'<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M7.6 12.4l3 3 5.8-6.2" fill="none" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  wave:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 10v4M8 6.5v11M12 9v6M16 4.5v15M20 10v4"/></svg>',
+  stack:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="7.5" width="13" height="13" rx="2.5"/><path d="M7.5 4h10a3 3 0 0 1 3 3v10"/></svg>',
+  chk:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.8l4.6 4.6L19 7.6"/></svg>',
+  x:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>'};
+/* ---- storage: kept per library (each account, and Dev Mode), next to its songs ---- */
+function albKey(){return'songpad:albums:'+(ACTIVE_KEY||currentKey())}
+function loadAlbums(){try{albums=JSON.parse(localStorage.getItem(albKey()))||[]}catch(e){albums=[]}if(!Array.isArray(albums))albums=[];ALB.pk=''}
+function albStore(){try{localStorage.setItem(albKey(),JSON.stringify(albums))}catch(e){toast('Could not save in this browser')}}
+function saveAlbums(){albStore();albPush()}
+function albLive(){return albums.filter(function(a){return a&&a.id&&!a.deleted}).sort(function(a,b){return(b.updated||0)-(a.updated||0)})}
+function albGet(id){if(!id)return null;for(var i=0;i<albums.length;i++){var a=albums[i];if(a&&a.id===id)return a.deleted?null:a}return null}
+function albMine(s){return!!s&&s.id!==GUIDE_ID&&!s.ph&&!(s.shared&&s.owner&&!(AUTH_USER&&s.owner===AUTH_USER.id))}
+function albOf(s){return albMine(s)&&albGet(s.album)||null}
+function albSongs(a){return songs.filter(function(s){return s.album===a.id&&albMine(s)}).sort(function(x,y){return(x.track||0)-(y.track||0)||(x.updated||0)-(y.updated||0)})}
+function albArtist(a){return(a&&a.artist)||myName()}
+/* ---- sync: pull every row, take what's newer there, push what's newer here, then tell the other devices ---- */
+function albPush(){if(!libReady())return;clearTimeout(ALB.t);ALB.t=setTimeout(albSync,400)}
+function albSync(){if(ALB.off||!libReady())return;if(ALB.busy){ALB.again=true;return}
+  ALB.busy=true;var c=sbClient(),uid=AUTH_USER.id,key=albKey();
+  function done(){ALB.busy=false;if(ALB.again){ALB.again=false;albSync()}}
+  c.from('albums').select('id,data,updated').eq('user_id',uid).then(function(r){
+    if(!AUTH_USER||AUTH_USER.id!==uid||albKey()!==key)return done();
+    if(r&&r.error){if(/relation|does not exist|schema cache|42P01|PGRST20/i.test(r.error.message||''))ALB.off=true;else console.warn('albums pull failed',r.error.message);return done()}
+    var by={},rem={},got=0;albums.forEach(function(a){if(a&&a.id)by[a.id]=a});
+    ((r&&r.data)||[]).forEach(function(row){if(!row||typeof row.id!=='string')return;rem[row.id]=row;var l=by[row.id],u=+row.updated||0;if(l&&(l.updated||0)>=u)return;
+      var d=Object.assign({},row.data||{},{id:row.id,updated:u});if(l)albums[albums.indexOf(l)]=d;else albums.push(d);by[row.id]=d;got++});
+    var up=albums.filter(function(a){if(!a||!a.id)return false;var x=rem[a.id];return!x||(a.updated||0)>(+x.updated||0)}).map(function(a){return{user_id:uid,id:a.id,data:a,updated:a.updated||0}});
+    if(got){albStore();albRefresh()}
+    if(!up.length)return done();
+    c.from('albums').upsert(up,{onConflict:'user_id,id'}).then(function(w){if(w&&w.error){console.warn('albums save failed',w.error.message);return done()}libPing();done()},function(e){console.warn('albums save failed',e);done()})
+  },function(e){console.warn('albums pull failed',e);done()})}
+/* whatever shows albums, redrawn after a change here or from another device */
+function albRefresh(){try{if($('#vList').classList.contains('on'))renderList()}catch(e){}
+  if(!$('#vAlbum').classList.contains('on')||!ALB.id)return;
+  if(!albGet(ALB.id)){albClose();toast('That album was deleted on another device');return}albRender()}
+/* ---- membership: changing it bumps each song's `updated`, so it syncs like any edit ---- */
+function albRenumber(a){albSongs(a).forEach(function(s,i){if(s.track!==i+1){s.track=i+1;s.updated=Date.now()}})}
+function albAdd(a,list){var n=albSongs(a).reduce(function(m,s){return Math.max(m,s.track||0)},0),old={};
+  list.forEach(function(s){if(!albMine(s)||s.album===a.id)return;var o=albGet(s.album);if(o)old[o.id]=o;s.album=a.id;s.track=++n;s.updated=Date.now()});
+  Object.keys(old).forEach(function(k){albRenumber(old[k])});save();albRefresh()}
+function albRemove(s){var a=albGet(s.album);s.album='';delete s.track;s.updated=Date.now();if(a)albRenumber(a);save();albRefresh()}
+function albMove(a,s,d){var l=albSongs(a),i=l.indexOf(s),j=i+d;if(i<0||j<0||j>=l.length)return;l.splice(i,1);l.splice(j,0,s);
+  l.forEach(function(x,k){if(x.track!==k+1){x.track=k+1;x.updated=Date.now()}});save();albRender()}
+/* ---- artwork: the picture, or the album's own pastel gradient with a record on it ---- */
+function albCover(a){return'<svg class="cvs" viewBox="0 0 40 40" aria-hidden="true">'+covGrad(a.id||'')+'<circle cx="20" cy="20" r="9.5" fill="none" stroke="#fff" stroke-width="1.4" opacity=".75"/><circle cx="20" cy="20" r="2.3" fill="#fff" opacity=".85"/></svg>'}
+function albArt(el,a){if(artOk(a.art)){el.style.backgroundImage=artCss(a.art);el.innerHTML=''}else{el.style.backgroundImage='';el.innerHTML=albCover(a)}}
+/* ---- the song list: a row of album tiles under Ideas, ending with New Album ---- */
+function albSection(L){var list=albLive();if(!list.length)return;
+  var h=document.createElement('div');h.className='gh';h.innerHTML='<b>Albums</b>';L.appendChild(h);
+  var row=document.createElement('div');row.className='alrow';
+  list.forEach(function(a){var n=albSongs(a).length,t=document.createElement('button');t.className='altile';t.innerHTML='<i class="alart"></i><b></b><span></span>';
+    albArt(t.firstChild,a);t.querySelector('b').textContent=a.title||'Untitled Album';t.querySelector('span').textContent=(a.kind||'Album')+' · '+n+(n===1?' song':' songs');
+    t.onclick=function(){openAlbum(a.id)};row.appendChild(t)});
+  var nb=document.createElement('button');nb.className='altile alnew';nb.innerHTML='<i class="alart">'+ALB_I.plus+'</i><b>New Album</b><span>&nbsp;</span>';nb.onclick=function(){albNew()};row.appendChild(nb);
+  L.appendChild(row)}
+$('#newalbumb').onclick=function(){albNew()};
+/* the album button that shows beside Pin on a song row (hover on the Mac, press and hold on a phone); right-click too */
+function albRowBtn(b,s){var x=document.createElement('button');x.className='rpin ralb';var inA=albOf(s);x.setAttribute('aria-label',inA?'Album options':'Add to album');x.title=inA?'In “'+(inA.title||'Untitled Album')+'”':'Add to album';x.innerHTML=ALB_I.stack;
+  x.onclick=function(e){e.stopPropagation();albPickFor(s,x)};var p=b.querySelector('.rpin');b.insertBefore(x,p||null);
+  b.addEventListener('contextmenu',function(e){if(e.target.closest('input,textarea'))return;e.preventDefault();albPickFor(s,{x:e.clientX,y:e.clientY})})}
+/* Add to Album: each album, then New Album…; a song already in one can come out of it */
+function albPickFor(s,at){var inA=albOf(s),items=[];
+  albLive().forEach(function(a){if(inA&&a.id===inA.id)return;items.push({t:(inA?'Move to “':'Add to “')+(a.title||'Untitled Album')+'”',fn:function(){albAdd(a,[s]);toast('Added to “'+(a.title||'Untitled Album')+'”')}})});
+  items.push({t:'New Album…',ico:ALB_I.plus.replace(/width="30" height="30"/,'width="16" height="16"'),sep:1,fn:function(){albNew(function(a){albAdd(a,[s]);toast('Added to “'+(a.title||'Untitled Album')+'”')})}});
+  if(inA)items.push({t:'Remove from Album',d:1,sep:1,fn:function(){albRemove(s);toast('Removed from “'+(inA.title||'Untitled Album')+'”')}});
+  albMenu(at,items,s.title||'Song')}
+/* ---- menus: the system action sheet on iPhone, a small glass list elsewhere. `at` is a button or a {x,y} point ---- */
+function albMenu(at,items,title){var A=natPlug('ActionSheet');items=items.filter(function(o){return o&&!o.off});
+  if(A){natBlur();var o={options:items.map(function(i){return{title:i.t,style:i.d?'DESTRUCTIVE':'DEFAULT'}}).concat([{title:'Cancel',style:'CANCEL'}])};if(title)o.title=title;
+    A.showActions(o).then(function(r){var it=r&&items[r.index];if(it)it.fn()},function(){});return}
+  albMenuClose();var bg=document.createElement('div');bg.className='amenubg';bg.onclick=albMenuClose;bg.oncontextmenu=function(e){e.preventDefault();albMenuClose()};
+  var m=document.createElement('div');m.className='amenu';m.setAttribute('role','menu');
+  items.forEach(function(it){var b=document.createElement('button');b.setAttribute('role','menuitem');b.className=(it.d?'d':'')+(it.sep&&m.firstChild?' sep':'');b.innerHTML='<span></span>'+(it.ico||'');b.firstChild.textContent=it.t;
+    b.onclick=function(e){e.stopPropagation();albMenuClose();it.fn()};m.appendChild(b)});
+  document.body.appendChild(bg);document.body.appendChild(m);
+  var r=at&&at.getBoundingClientRect?at.getBoundingClientRect():{left:at.x,right:at.x,top:at.y,bottom:at.y},w=m.offsetWidth,h=m.offsetHeight,
+    x=Math.min(innerWidth-w-8,Math.max(8,at&&at.getBoundingClientRect?r.right-w:r.left)),y=r.bottom+6;if(y+h>innerHeight-8)y=Math.max(8,r.top-h-6);
+  m.style.left=x+'px';m.style.top=y+'px';m.style.transformOrigin=(r.left>x+w/2?'right':'left')+' '+(y<r.top?'bottom':'top');
+  requestAnimationFrame(function(){m.classList.add('on')});var f=m.querySelector('button');if(f)try{f.focus({preventScroll:true})}catch(e){}}
+function albMenuClose(){document.querySelectorAll('.amenu,.amenubg').forEach(function(e){e.remove()})}
+document.addEventListener('keydown',function(e){var m=document.querySelector('.amenu');if(!m)return;
+  if(e.key==='Escape'){e.preventDefault();e.stopPropagation();albMenuClose();return}
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();var bs=[].slice.call(m.querySelectorAll('button')),i=bs.indexOf(document.activeElement);i=(i+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length;bs[i].focus()}},true);
+window.addEventListener('resize',albMenuClose);
+/* ---- the album page ---- */
+function openAlbum(id){var a=albGet(id);if(!a)return;sheet(false);albMenuClose();if(document.body.classList.contains('side'))sideOn(false);
+  var same=ALB.id===id&&$('#vAlbum').classList.contains('on');ALB.id=id;ALB.ret=null;albRender();show('vAlbum');if(!same)$('#ascroll').scrollTop=0}
+function albClose(){ALB.id=null;ALB.ret=null;albReadClose();albMenuClose();renderList();show('vList')}
+$('#aback').onclick=albClose;
+/* the page's colours: a pastel wash from the artwork (or the album's own gradient), fading to the page, and an
+   accent that's a deep shade of the main colour. Dark mode fades to black with the colours turned down */
+function albPalette(a){var fall=covHex(a.id||'').map(hexHsl);return artOk(a.art)?artPalette(a.art).then(function(p){return p.length?p:fall}):Promise.resolve(fall)}
+function albPaint(el,pal){var s=shBg(pal,0),n=pal.length,c=pal[0]||[220,.1,.5],b=pal[1%n]||c,g=pal[2%n]||b,grey=c[1]<.14,h=Math.round(c[0]);
+  function dk(x,l,al){var sat=x[1]<.14?8:Math.round(Math.max(.32,Math.min(.6,x[1]))*100);return'hsla('+Math.round(x[0])+','+sat+'%,'+Math.round(l*100)+'%,'+al+')'}
+  el.style.setProperty('--awl','radial-gradient(85% 420px at 86% 0,'+s.glow+','+s.glow0+' 72%),linear-gradient(180deg,'+s.top+' 0%,'+s.bot+' 34%,var(--bg) 62%)');
+  el.style.setProperty('--awd','radial-gradient(85% 420px at 86% 0,'+dk(g,.3,.55)+','+dk(g,.3,0)+' 72%),linear-gradient(180deg,'+dk(c,.26,.95)+' 0%,'+dk(b,.17,.85)+' 34%,var(--bg) 62%)');
+  el.style.setProperty('--acl','hsl('+h+','+(grey?8:55)+'%,38%)');el.style.setProperty('--acd','hsl('+h+','+(grey?8:62)+'%,74%)')}
+function albTheme(a){var k=a.id+':'+(a.art?a.art.length+a.art.slice(-24):'');if(ALB.pk===k&&ALB.pal){albPaint($('#vAlbum'),ALB.pal);return}
+  ALB.pk=k;albPalette(a).then(function(p){if(ALB.pk!==k)return;ALB.pal=p;albPaint($('#vAlbum'),p);var rd=$('#albread');if(rd)albPaint(rd,p)})}
+function albLines(s){return(s.lyrics||'').split('\n').filter(function(x){x=x.trim();return x&&!/^\[[^\]]*\]$/.test(x)}).length}
+function albAgo(t){var s=(Date.now()-t)/1000,d=Math.floor(s/86400);if(s<60)return'just now';if(s<3600){var m=Math.round(s/60);return m+(m===1?' minute ago':' minutes ago')}
+  if(s<86400){var h=Math.round(s/3600);return h+(h===1?' hour ago':' hours ago')}if(d===1)return'yesterday';if(d<30)return d+' days ago';
+  return'on '+new Date(t).toLocaleDateString([],{day:'numeric',month:'short',year:new Date(t).getFullYear()===new Date().getFullYear()?undefined:'numeric'})}
+function albRender(){var a=albGet(ALB.id),M=$('#amount');if(!a||!M)return;albTheme(a);
+  var list=albSongs(a),fin=list.filter(function(s){return s.status==='Finished'}).length,ar=albArtist(a);
+  M.innerHTML='<div class="ahd"><div class="aart"></div><h2 class="attl"></h2><div class="aby"></div><div class="ameta"></div>'+
+    '<div class="abtns"><button class="gl acap" id="aread">'+ALB_I.book+'<span>Read Lyrics</span></button><button class="gl acap" id="anew">'+ALB_I.pen+'<span>New Song</span></button></div></div><div class="atl"></div>';
+  albArt(M.querySelector('.aart'),a);M.querySelector('.attl').textContent=a.title||'Untitled Album';
+  var by=M.querySelector('.aby');by.textContent=ar;by.hidden=!ar;
+  M.querySelector('.ameta').textContent=[a.kind||'Album',a.year,list.length?fin+' of '+list.length+' finished':''].filter(Boolean).join(' · ');
+  $('#aread').onclick=function(){if(!list.length){toast('Add songs to read them here');return}albRead(a)};$('#anew').onclick=function(){albNewSong(a)};
+  var T=M.querySelector('.atl');
+  if(!list.length){T.className='aempty';T.innerHTML='<div>No songs yet</div><button class="gl acap">'+ALB_I.plus.replace(/width="30" height="30"/,'width="19" height="19"')+'<span>Add Songs</span></button>';T.querySelector('button').onclick=function(){albAddSongs(a)}}
+  list.forEach(function(s,i){var ls=llines(s),r=document.createElement('div');r.className='atr';r.setAttribute('role','button');r.tabIndex=0;
+    r.innerHTML='<span class="an"></span><div class="atx"><b></b><span></span></div>'+(s.status==='Finished'?'<i class="afin" title="Finished">'+ALB_I.fin+'</i>':'')+((s.audio||[]).length?'<i class="awv" title="Has audio">'+ALB_I.wave+'</i>':'')+'<button class="amo" aria-label="Song options">'+ALB_I.more+'</button>';
+    r.querySelector('.an').textContent=i+1;r.querySelector('b').textContent=s.title||ls[0]||'New Song';r.querySelector('.atx span').textContent=(s.title?ls[0]:ls[1])||'No lyrics yet';
+    r.onclick=function(e){if(e.target.closest('.amo'))return;albOpenSong(a,s)};r.onkeydown=function(e){if((e.key==='Enter'||e.key===' ')&&e.target===r){e.preventDefault();albOpenSong(a,s)}};
+    r.querySelector('.amo').onclick=function(e){e.stopPropagation();albMenu(this,[{t:'Open',fn:function(){albOpenSong(a,s)}},{t:'Move Up',off:!i,sep:1,fn:function(){albMove(a,s,-1)}},{t:'Move Down',off:i===list.length-1,fn:function(){albMove(a,s,1)}},
+      {t:'Remove from Album',d:1,sep:1,fn:function(){albRemove(s);toast('Removed from “'+(a.title||'Untitled Album')+'”')}}],s.title||'Song')};
+    albDrag(r,a,s);T.appendChild(r)});
+  if(list.length){var ft=document.createElement('div');ft.className='afoot';var nl=list.reduce(function(n,s){return n+albLines(s)},0),ed=list.reduce(function(m,s){return Math.max(m,s.updated||0)},a.updated||0);
+    ft.textContent=list.length+(list.length===1?' song, ':' songs, ')+nl+(nl===1?' line':' lines')+' · Edited '+albAgo(ed);M.appendChild(ft)}}
+/* drag a track up or down the list to reorder it (mouse and trackpad) */
+function albDrag(r,a,s){r.draggable=true;
+  r.addEventListener('dragstart',function(e){ALB.drag=s.id;r.classList.add('drag');try{e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',s.title||'Song')}catch(_){}e.stopPropagation()});
+  r.addEventListener('dragend',function(){ALB.drag=null;document.querySelectorAll('.atr').forEach(function(x){x.classList.remove('drag','over-a','over-b')})});
+  r.addEventListener('dragover',function(e){if(!ALB.drag||ALB.drag===s.id)return;e.preventDefault();e.stopPropagation();var b=r.getBoundingClientRect(),low=e.clientY>b.top+b.height/2;r.classList.toggle('over-a',!low);r.classList.toggle('over-b',low)});
+  r.addEventListener('dragleave',function(){r.classList.remove('over-a','over-b')});
+  r.addEventListener('drop',function(e){if(!ALB.drag)return;e.preventDefault();e.stopPropagation();var low=r.classList.contains('over-b'),l=albSongs(a),m=l.filter(function(x){return x.id===ALB.drag})[0];ALB.drag=null;if(!m||m===s)return albRender();
+    l.splice(l.indexOf(m),1);l.splice(l.indexOf(s)+(low?1:0),0,m);l.forEach(function(x,k){if(x.track!==k+1){x.track=k+1;x.updated=Date.now()}});save();albRender()})}
+function albOpenSong(a,s){openSong(s.id);if(cur&&cur.id===s.id)ALB.ret=a.id}
+/* New Song: a blank song at the end of the album, open in the editor */
+function albNewSong(a){var nm=myName(),n=albSongs(a).reduce(function(m,s){return Math.max(m,s.track||0)},0);
+  var s={pf:mkPF({}),id:uuid4(),title:'',lyrics:'',chords:'',key:'',bpm:'',capo:'',time:'',tuning:'',status:'Idea',folder:'',notes:'',artist:nm,_autoArtist:nm,album:a.id,track:n+1,updated:Date.now()};
+  songs.push(s);save();albOpenSong(a,s)}
+/* Share: the tracklist as plain text */
+$('#ashare').onclick=function(){var a=albGet(ALB.id);if(!a)return;var l=albSongs(a);
+  var t=[a.title||'Untitled Album',[a.kind||'Album',a.year].filter(Boolean).join(' · ')].concat(albArtist(a)?[albArtist(a)]:[]).join('\n')+'\n\n'+(l.length?l.map(function(s,i){return(i+1)+'. '+(s.title||llines(s)[0]||'New Song')}).join('\n'):'No songs yet');
+  try{navigator.clipboard.writeText(t).then(function(){toast('Tracklist copied')},function(){toast('Copy blocked')})}catch(e){toast('Copy not available')}};
+$('#amore').onclick=function(){var a=albGet(ALB.id);if(!a)return;albMenu(this,[{t:'Edit Album',fn:function(){albEdit(a)}},{t:'Add Songs',fn:function(){albAddSongs(a)}},{t:'Delete Album',d:1,sep:1,fn:function(){albDelete(a)}}],a.title||'Album')};
+/* Delete: a tombstone row, and its songs go back to the list */
+function albDelete(a){var nm=a.title||'this album',go=function(ok){if(!ok)return;var now=Date.now();
+    songs.forEach(function(s){if(s.album===a.id){s.album='';delete s.track;s.updated=now}});save();
+    var i=albums.indexOf(a);albums[i>=0?i:albums.length]={id:a.id,deleted:true,updated:now};saveAlbums();haptic('medium');albClose();toast('Album deleted')};
+  var nd=natDestroy({title:'Delete “'+nm+'”?',message:'Its songs stay in your library.',ok:'Delete Album'});if(nd)nd.then(go);else go(confirm('Delete “'+nm+'”? Its songs stay in your library.'))}
+/* ---- Read Lyrics: every song in track order, full screen ---- */
+function albRead(a){var el=$('#albread');if(!el){el=document.createElement('div');el.id='albread';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');document.body.appendChild(el)}
+  el.setAttribute('aria-label',(a.title||'Album')+' lyrics');el.hidden=false;if(ALB.pal)albPaint(el,ALB.pal);
+  el.innerHTML='<div class="awash" aria-hidden="true"></div><button class="gl arx" aria-label="Close" title="Close">'+ALB_I.x+'</button><div class="arin"><div class="arh"><b></b><span></span></div></div>';
+  var I=el.querySelector('.arin');I.querySelector('b').textContent=a.title||'Untitled Album';var sp=I.querySelector('.arh span');sp.textContent=albArtist(a);sp.hidden=!albArtist(a);
+  albSongs(a).forEach(function(s,i){var d=document.createElement('section');d.className='ars';d.innerHTML='<div class="arn"></div><h3></h3><div class="arl"></div>';d.firstChild.textContent='Track '+(i+1);d.querySelector('h3').textContent=s.title||llines(s)[0]||'New Song';
+    var L=d.querySelector('.arl'),gap=false,any=false;(s.lyrics||'').split('\n').forEach(function(x){var t=x.trim(),m=/^\[([^\]]*)\]$/.exec(t),e=document.createElement('div');
+      if(!t){if(any&&!gap){e.className='argap';L.appendChild(e);gap=true}return}gap=false;
+      if(m){e.className='arsec';e.textContent=m[1]}else{e.textContent=t;any=true}L.appendChild(e);any=true});
+    if(!L.firstChild){L.className='arl arnone';L.textContent='No lyrics yet'}I.appendChild(d)});
+  el.querySelector('.arx').onclick=albReadClose;el.scrollTop=0;requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('on')})});
+  setTimeout(function(){try{el.querySelector('.arx').focus({preventScroll:true})}catch(e){}},60)}
+function albReadClose(){var el=$('#albread');if(!el||el.hidden)return;el.classList.remove('on');setTimeout(function(){if(!el.classList.contains('on'))el.hidden=true},300)}
+document.addEventListener('keydown',function(e){var el=$('#albread');if(e.key==='Escape'&&el&&!el.hidden&&el.classList.contains('on')){e.preventDefault();e.stopPropagation();albReadClose()}},true);
+/* ---- New / Edit Album sheet. Free can make one album; a second opens the paywall ---- */
+function albNew(after){if(!isPro()&&albLive().length>=1){haptic('warning');openPaywall('albums');return}albEdit(null,after)}
+function albEdit(a,after){var E=ALB.edit={a:a,id:a?a.id:uuid4(),art:a&&artOk(a.art)?a.art:'',kind:a&&a.kind||'Album',after:after||null};
+  $('#alb-t').textContent=a?'Edit Album':'New Album';var o=$('#albf');o.innerHTML='';
+  var art=document.createElement('button');art.className='aeart';art.setAttribute('aria-label','Choose artwork');art.onclick=function(){$('#albartin').click()};o.appendChild(art);
+  var acts=document.createElement('div');acts.className='aeacts';acts.innerHTML='<button>Choose Photo</button><button class="ghost">Remove</button>';o.appendChild(acts);
+  acts.firstChild.onclick=art.onclick;acts.lastChild.onclick=function(){E.art='';paint()};
+  function paint(){albArt(art,{id:E.id,art:E.art});acts.lastChild.hidden=!E.art}E.paint=paint;paint();
+  function fld(lab,id,val,ph){var l=document.createElement('div');l.className='lab';l.textContent=lab;o.appendChild(l);var w=document.createElement('div');w.className='gf tf';
+    var i=document.createElement('input');i.id=id;i.value=val||'';i.placeholder=ph||'';i.setAttribute('aria-label',lab);i.autocomplete='off';i.setAttribute('enterkeyhint','done');i.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();albSaveEdit()}};w.appendChild(i);o.appendChild(w);return i}
+  fld('Title','alb-title',a&&a.title,'Album title');
+  var kl=document.createElement('div');kl.className='lab';kl.textContent='Type';o.appendChild(kl);var sg=document.createElement('div');sg.className='seg';sg.setAttribute('role','radiogroup');sg.setAttribute('aria-label','Type');
+  ALB_KINDS.forEach(function(k){var b=document.createElement('button');b.textContent=k;b.setAttribute('role','radio');b.onclick=function(){E.kind=k;pk()};sg.appendChild(b)});o.appendChild(sg);
+  function pk(){[].forEach.call(sg.children,function(b){var on=b.textContent===E.kind;b.className=on?'on':'';b.setAttribute('aria-checked',on)})}pk();
+  var yr=fld('Year','alb-year',a?a.year:String(new Date().getFullYear()),String(new Date().getFullYear()));yr.inputMode='numeric';yr.maxLength=4;
+  fld('Artist','alb-artist',a&&a.artist,myName()||'Artist');
+  $('#alb-ok').setAttribute('aria-label','Save');$('#alb-ok').title='Save';o.scrollTop=0;sheet(true,'sheet12');
+  if(!a&&!matchMedia('(pointer:coarse)').matches)setTimeout(function(){var t=$('#alb-title');if(t)t.focus()},350)}
+$('#albartin').onchange=function(){var f=this.files&&this.files[0],E=ALB.edit;this.value='';if(!f||!E)return;var rd=new FileReader();
+  rd.onload=function(){var im=new Image();im.onload=function(){var s=480,c=document.createElement('canvas');c.width=c.height=s;var m=Math.min(im.width,im.height);c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,s,s);E.art=c.toDataURL('image/jpeg',.8);if(E.paint)E.paint()};im.onerror=function(){toast('Could not read that image')};im.src=rd.result};
+  rd.onerror=function(){toast('Could not read that image')};rd.readAsDataURL(f)};
+function albSaveEdit(){var E=ALB.edit;if(!E)return;var v=function(id){var i=$(id);return i?i.value.trim():''},now=Date.now();
+  var d={id:E.id,title:v('#alb-title').slice(0,120)||'Untitled Album',kind:E.kind,year:v('#alb-year').replace(/\D/g,'').slice(0,4),artist:v('#alb-artist').slice(0,120),art:E.art||'',updated:now};
+  var a=E.a&&albGet(E.a.id),isNew=!a;
+  if(isNew){if(!isPro()&&albLive().length>=1){sheet(false);openPaywall('albums');return}albums.push(d);a=d}else{Object.assign(a,d);delete a.deleted}
+  ALB.edit=null;saveAlbums();sheet(false);haptic('success');
+  if(E.after){E.after(a);if(!$('#vAlbum').classList.contains('on'))renderList();return}
+  if(isNew)openAlbum(a.id);else albRefresh()}
+$('#alb-ok').onclick=albSaveEdit;$('#alb-x').onclick=function(){ALB.edit=null;sheet(false)};
+/* ---- Add Songs: your own songs not in this album, searchable; Add puts the ticked ones at the end, in the order ticked ---- */
+function albAddSongs(a){ALB.sel={};ALB.seq=0;ALB.addTo=a.id;$('#aaq').value='';albAddPaint();$('#aal').scrollTop=0;sheet(true,'sheet13')}
+function albAddPaint(){var a=albGet(ALB.addTo),L=$('#aal');if(!a||!L)return;var q=$('#aaq').value.toLowerCase().trim();L.innerHTML='';
+  var all=songs.filter(function(s){return albMine(s)&&s.album!==a.id}),list=all.filter(function(s){return!q||((s.title||'')+' '+(s.lyrics||'')).toLowerCase().indexOf(q)>=0}).sort(function(x,y){return(y.updated||0)-(x.updated||0)});
+  if(!list.length)L.innerHTML='<div class="aempty">'+(q?'No results':all.length?'':'All your songs are in this album')+'</div>';
+  list.forEach(function(s){var ls=llines(s),o=albOf(s),r=document.createElement('button');r.className='aarow'+(ALB.sel[s.id]?' on':'');r.setAttribute('aria-pressed',!!ALB.sel[s.id]);
+    r.innerHTML='<i class="th"></i><div class="tx"><b></b><span></span></div><i class="ack">'+ALB_I.chk+'</i>';var th=r.firstChild;if(s.art)th.style.backgroundImage=artCss(s.art);else th.innerHTML=cover(s);
+    r.querySelector('b').textContent=s.title||ls[0]||'New Song';r.querySelector('span').textContent=o?'In “'+(o.title||'Untitled Album')+'”':((s.title?ls[0]:ls[1])||'No lyrics yet');
+    r.onclick=function(){if(ALB.sel[s.id])delete ALB.sel[s.id];else ALB.sel[s.id]=++ALB.seq;var on=!!ALB.sel[s.id];r.classList.toggle('on',on);r.setAttribute('aria-pressed',on);albAddCount()};L.appendChild(r)});
+  albAddCount()}
+function albAddCount(){var n=Object.keys(ALB.sel).length;$('#aa-t').textContent=n?n+' Selected':'Add Songs';var b=$('#aa-ok');b.setAttribute('aria-label',n?'Add '+n+(n===1?' song':' songs'):'Add');b.title='Add'}
+$('#aaq').oninput=albAddPaint;
+$('#aa-ok').onclick=function(){var a=albGet(ALB.addTo),n=Object.keys(ALB.sel).length;if(!a)return sheet(false);if(!n){sheet(false);return}
+  var pick=songs.filter(function(s){return ALB.sel[s.id]}).sort(function(x,y){return ALB.sel[x.id]-ALB.sel[y.id]});ALB.sel={};sheet(false);albAdd(a,pick);haptic('success');toast(n===1?'Added 1 song':'Added '+n+' songs')};
+$('#aa-x').onclick=function(){ALB.sel={};sheet(false)};
 vset();applyPlan();load();renderList();renderSide();paintAcctIcons();
 if(songs.length){songs.sort(function(a,b){return b.updated-a.updated});openSong(songs[0].id)}else newSong();
 </script>
