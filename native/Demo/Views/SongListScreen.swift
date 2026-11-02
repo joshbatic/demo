@@ -240,7 +240,7 @@ struct SongListScreen: View {
             Text("·").foregroundStyle(.tertiary)
             Button("Import Songs") { Haptics.tap(); importing = true }
             Text("·").foregroundStyle(.tertiary)
-            Button("Export All Songs") { exportAll() }
+            Button("Export") { exportAll() }
         }
         .buttonStyle(.borderless)
         .font(.system(size: 14))
