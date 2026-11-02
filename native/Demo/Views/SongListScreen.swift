@@ -550,6 +550,12 @@ struct SearchDock: View {
     let action: () -> Void
     @FocusState private var focused: Bool
 
+    private var dockIcon: some View {
+        Icon(icon, 24).foregroundStyle(.primary)
+            .frame(width: 52, height: 52)
+            .contentShape(Circle())
+    }
+
     struct DockItem: Identifiable {
         let id = UUID()
         let title: String
@@ -583,38 +589,34 @@ struct SearchDock: View {
                 .onTapGesture { focused = true }
                 .glassCapsule(interactive: true)
 
-                Button {
-                    Haptics.tap()
-                    action()
-                } label: {
-                    Icon(icon, 24).foregroundStyle(.primary)
-                        .frame(width: 52, height: 52)
-                        .contentShape(Circle())
+                if menu.isEmpty {
+                    Button {
+                        Haptics.tap()
+                        action()
+                    } label: { dockIcon }
+                    .buttonStyle(.plain)
+                    .glassCircle()
+                    .accessibilityLabel(label)
+                } else {
+                    // Apple's own tap-or-hold button: a tap runs `action`, pressing and holding opens the menu
+                    Menu {
+                        ForEach(menu) { it in
+                            Button { it.run() } label: { Label(it.title, systemImage: it.symbol) }
+                        }
+                    } label: { dockIcon } primaryAction: {
+                        Haptics.tap()
+                        action()
+                    }
+                    .menuIndicator(.hidden)
+                    .buttonStyle(.plain)
+                    .glassCircle()
+                    .accessibilityLabel(label)
+                    .accessibilityHint("Press and hold for more")
                 }
-                .buttonStyle(.plain)
-                .glassCircle()
-                .modifier(DockMenu(items: menu))
-                .accessibilityLabel(label)
             }
         }
         .padding(.horizontal, 14)
         .padding(.bottom, 8)
-    }
-}
-
-/// The dock button's press-and-hold menu, only when it has items (otherwise holding it does nothing).
-private struct DockMenu: ViewModifier {
-    let items: [SearchDock.DockItem]
-    func body(content: Content) -> some View {
-        if items.isEmpty {
-            content
-        } else {
-            content.contextMenu {
-                ForEach(items) { it in
-                    Button { it.run() } label: { Label(it.title, systemImage: it.symbol) }
-                }
-            }
-        }
     }
 }
 
