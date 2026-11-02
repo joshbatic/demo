@@ -57,6 +57,34 @@ html.devbuild #vDash .dgroup,html.devbuild #vDash .abox,html.devbuild #vDash .as
 html.devbuild #vDash .dgroup{margin:0 16px 22px}
 html.devbuild #vDash .alab{font-size:15px;font-weight:650;color:var(--ink);margin:22px 4px 10px}
 html.devbuild #vDash .anote{padding:12px 4px 0}
+/* Dashboard › Business (bizRender) */
+#biz{padding:4px 16px 12px}#biz[hidden]{display:none}
+.bztabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:2px -16px 14px;padding:0 16px}.bztabs::-webkit-scrollbar{display:none}
+.bztabs button{flex:none;padding:7px 14px;border-radius:999px;background:var(--fill);font-size:14px;font-weight:600;color:var(--ink)}
+.bztabs button.on{background:var(--ink);color:var(--bg)}
+.bzhd h2{font-size:24px;font-weight:700;letter-spacing:-.01em;margin:0}
+.bznote{margin:3px 0 0;color:var(--mute);font-size:14.5px;line-height:1.4;cursor:text}.bznote.add{opacity:.6}
+.bznoteed{display:block;width:100%;box-sizing:border-box;margin-top:4px;font:inherit;font-size:14.5px;border-radius:10px;padding:8px 10px;background:var(--dcard,var(--row));border:0;box-shadow:0 0 0 .5px var(--ring);color:var(--ink);resize:vertical}
+.bzact{display:flex;gap:8px;margin:12px 0 16px}.bzact input{flex:1;min-width:0;border:0;border-radius:10px;padding:8px 12px;background:var(--fill);font-size:15px;color:var(--ink);outline:0}
+.bzbtn{padding:8px 14px;border-radius:10px;background:var(--fill);font-size:14.5px;font-weight:600;color:var(--ink)}.bzbtn.strong{background:var(--ink);color:var(--bg)}.bzbtn.red{color:var(--red)}
+html.devbuild #vDash #biz .bzg{margin:0 0 18px}
+.bzrow+.bzrow{border-top:.5px solid var(--sep)}
+.bzr{display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;background:none;text-align:left;color:var(--ink)}.bzr:active{background:var(--fill)}
+.bzt{flex:1;min-width:0}.bzt b{display:block;font-weight:500;font-size:16px;line-height:1.3}.bzt span{display:block;color:var(--mute);font-size:13.5px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bzrow.open .bzt span{white-space:normal}
+.bzv{display:flex;gap:6px;align-items:center;flex:none}
+.bzpill{font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.bz-green{background:rgba(52,199,89,.16);color:#248A3D}.bz-orange{background:rgba(255,149,0,.16);color:#C93400}.bz-red{background:rgba(255,59,48,.14);color:#D70015}.bz-gray{background:rgba(118,118,128,.14);color:var(--mute)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .bz-green{color:#30D158}:root:not([data-theme="light"]) .bz-orange{color:#FF9F0A}:root:not([data-theme="light"]) .bz-red{color:#FF6961}}
+:root[data-theme="dark"] .bz-green{color:#30D158}:root[data-theme="dark"] .bz-orange{color:#FF9F0A}:root[data-theme="dark"] .bz-red{color:#FF6961}
+.bzmoney{font-variant-numeric:tabular-nums;color:var(--mute);font-size:14px}
+.bzed{padding:2px 14px 12px;display:grid;gap:8px}
+.bzf{display:block}.bzf>span{display:block;font-size:12px;font-weight:600;color:var(--mute);margin:0 2px 3px}
+.bzf textarea,.bzf select{display:block;width:100%;box-sizing:border-box;border:0;border-radius:9px;padding:8px 10px;background:var(--fill);font:inherit;font-size:15px;line-height:1.35;color:var(--ink);resize:none;overflow:hidden;outline:0}
+.bzbar{display:flex;justify-content:space-between;margin-top:4px}
+.bzadd{display:block;width:100%;padding:11px 14px;text-align:left;color:#007AFF;font-size:15px;font-weight:500;background:none;border-top:.5px solid var(--sep)}.bzadd span{font-weight:600}
+.bzsec{cursor:text}.bzsecin{display:block;font-size:15px;font-weight:650;margin:0 0 10px;border:0;background:var(--fill);border-radius:8px;padding:4px 8px;color:var(--ink);outline:0}
+.bznew{margin:2px 0 8px}
 #dseg{display:flex;gap:4px;padding:3px;margin:2px 16px 14px;border-radius:12px;background:var(--fill)}#dseg[hidden]{display:none}#dseg button{flex:1;padding:8px 4px;border-radius:9px;font-size:14px;font-weight:600;color:var(--ink);background:none}#dseg button.on{background:var(--segon);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .dkpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:2px 0 24px}
 .dk{position:relative;padding:14px 16px 13px;min-width:0}
@@ -15380,8 +15408,8 @@ OY-B-AH-L	foible92
 EH-M-ER-IH-JH-D	hemorrhaged93
 AH-S-IH-N	bussin52s`;
 /* git commit this build came from, shown at the bottom of Account. Written by scripts/stamp-version.sh — don't edit by hand. */
-var APP_COMMIT='7fa4e4e';
-var APP_SEQ=737;
+var APP_COMMIT='ebe458c';
+var APP_SEQ=739;
 /* the version people see, the same as the iPhone app's; Account shows it with the build number so every device can be compared */
 var APP_VERSION='1.1.0';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
@@ -18639,6 +18667,7 @@ var DI_FLAG='<path d="M5 21V4"/><path d="M5 4h12l-2.5 4 2.5 4H5"/>';var DI={flag
   text:'<path d="M5 6h14M5 11h14M5 16h9"/>',
   phone:'<rect x="7" y="2.8" width="10" height="18.4" rx="2.6"/><path d="M11 18h2"/>',
   mac:'<rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M8.5 20h7M12 16.5V20"/>',
+  brief:'<rect x="3.5" y="7" width="17" height="12.5" rx="2.5"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3.5 12.5h17"/>',
   globe:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 2.5 14.4 0 17M12 3.5c-2.5 2.6-2.5 14.4 0 17"/>'
 };
 /* Admin › Settings rows get the same solid icon tiles as More */
@@ -18647,6 +18676,90 @@ function dIco(k,w){return'<svg width="'+(w||22)+'" height="'+(w||22)+'" viewBox=
 /* the solid colour square behind each admin icon */
 function dTile(k,col){return'<i class="dtile" style="background:'+col+'">'+dIco(k,17)+'</i>'}
 var DCOL={blue:'#007AFF',green:'#34C759',teal:'#30B0C7',orange:'#FF9500',red:'#FF3B30',purple:'#AF52DE',indigo:'#5856D6',gray:'#8E8E93',pink:'#FF2D55',mint:'#00C7BE'};
+/* ---------- Business: the master sheet (Overview, Services, Supabase, Setup, Features, Security, Builds, Repo),
+   kept in Supabase's biz_sheets (admins only, supabase/business.sql) and edited here. Each sheet is a list of
+   rows grouped under section headings; tap a row to edit it. Saves as you go; Export makes an .xlsx. ---------- */
+var BIZ={sheets:null,at:0,cur:'overview',open:null,q:'',busy:false,err:'',saving:{},saved:0};
+try{var bzc=JSON.parse(localStorage.getItem('songpad:biz')||'null');if(bzc&&bzc.sheets)BIZ.sheets=bzc.sheets}catch(e){}
+function bizLoad(force){if(BIZ.busy||(!force&&BIZ.at&&Date.now()-BIZ.at<30000)){bizRender();return}var c=sbClient();if(!c){bizRender();return}BIZ.busy=true;bizRender();
+  c.from('biz_sheets').select('*').order('sort').then(function(r){BIZ.busy=false;if(r.error){BIZ.err=r.error.message||'Couldn’t load';bizRender();return}
+    BIZ.err='';BIZ.at=Date.now();BIZ.sheets=(r.data||[]).map(function(s){return{id:s.id,name:s.name,sort:s.sort,title:s.title,note:s.note,cols:s.cols||[],rows:s.rows||[],updated_at:s.updated_at}});
+    try{localStorage.setItem('songpad:biz',JSON.stringify({sheets:BIZ.sheets}))}catch(e){}bizRender()},function(){BIZ.busy=false;BIZ.err='Couldn’t reach Supabase';bizRender()})}
+function bizSheet(){var s=BIZ.sheets||[];return s.filter(function(x){return x.id===BIZ.cur})[0]||s[0]}
+var bizT={};function bizSave(sh){sh.updated_at=new Date().toISOString();try{localStorage.setItem('songpad:biz',JSON.stringify({sheets:BIZ.sheets}))}catch(e){}
+  clearTimeout(bizT[sh.id]);BIZ.saving[sh.id]=1;bizFoot();bizT[sh.id]=setTimeout(function(){var c=sbClient();if(!c)return;
+    c.from('biz_sheets').upsert({id:sh.id,name:sh.name,sort:sh.sort,title:sh.title,note:sh.note,cols:sh.cols,rows:sh.rows,updated_at:sh.updated_at,updated_by:AUTH_USER&&AUTH_USER.id||null})
+    .then(function(r){delete BIZ.saving[sh.id];if(r.error){toast('Couldn’t save: '+(r.error.message||'try again'));}else BIZ.saved=Date.now();bizFoot()},function(){delete BIZ.saving[sh.id];toast('Couldn’t save. Check your connection.');bizFoot()})},600)}
+function bizFoot(){var f=document.getElementById('bzfoot');if(!f)return;var sh=bizSheet();f.textContent=Object.keys(BIZ.saving).length?'Saving…':sh&&sh.updated_at?'Saved · edited '+admAgo(sh.updated_at):''}
+var BIZ_COL={Live:'green',Done:'green',Fixed:'green',Beta:'orange',Check:'orange','Needs setup':'red','To do':'red',Open:'red',High:'red',Medium:'orange',Low:'gray',Planned:'gray',Optional:'gray','Not used yet':'gray'};
+function bizPill(v){var p=document.createElement('span');p.className='bzpill bz-'+(BIZ_COL[v]||'gray');p.textContent=v;return p}
+function bizMoney(sh){var i=sh.cols.findIndex(function(c){return c.k==='money'});if(i<0)return null;var t=0;sh.rows.forEach(function(r){if(r.c){var v=parseFloat(String(r.c[i]||'').replace(/[^0-9.\-]/g,''));if(!isNaN(v))t+=v}});return t}
+function bizCount(id,vals){var sh=(BIZ.sheets||[]).filter(function(x){return x.id===id})[0];if(!sh)return 0;var i=sh.cols.findIndex(function(c){return c.k==='status'});if(i<0)return 0;
+  return sh.rows.filter(function(r){return r.c&&vals.indexOf(r.c[i])>=0}).length}
+function bizRender(){var o=document.getElementById('biz');if(!o||o.hidden)return;var ae=document.activeElement;
+  if(ae&&o.contains(ae)&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT')&&ae.dataset.bk!=='q')return;
+  var top=document.getElementById('dscroll')?document.getElementById('dscroll').scrollTop:0;o.innerHTML='';
+  if(!BIZ.sheets){o.innerHTML='<div class="dempty"><b></b><p></p></div>';o.querySelector('b').textContent=BIZ.err?'Couldn’t load the sheet':'Loading…';o.querySelector('p').textContent=BIZ.err||'';return}
+  if(!BIZ.sheets.length){o.innerHTML='<div class="dempty"><b>No sheets yet</b><p>Run supabase/business.sql, then add the sheets.</p></div>';return}
+  var sh=bizSheet();BIZ.cur=sh.id;
+  /* the sheets, as a row of pills */
+  var tabs=document.createElement('div');tabs.className='bztabs';BIZ.sheets.forEach(function(s){var b=document.createElement('button');b.textContent=s.name;b.className=s.id===sh.id?'on':'';
+    b.onclick=function(){if(BIZ.cur===s.id)return;haptic('light');BIZ.cur=s.id;BIZ.open=null;BIZ.q='';bizRender();var d=document.getElementById('dscroll');if(d)d.scrollTop=0};tabs.appendChild(b)});o.appendChild(tabs);
+  var hd=document.createElement('div');hd.className='bzhd';hd.innerHTML='<div><h2></h2><p class="bznote" tabindex="0" role="button" aria-label="Edit the note"></p></div>';
+  hd.querySelector('h2').textContent=sh.title||sh.name;var np=hd.querySelector('.bznote');np.textContent=sh.note||'Add a note';if(!sh.note)np.classList.add('add');
+  np.onclick=function(){var t=document.createElement('textarea');t.className='bznoteed';t.value=sh.note||'';t.rows=2;t.dataset.bk='note';np.replaceWith(t);t.focus();
+    t.onblur=function(){var v=t.value.trim();if(v!==(sh.note||'')){sh.note=v;bizSave(sh)}setTimeout(bizRender,0)}};
+  var ex=document.createElement('div');ex.className='bzact';
+  var q=document.createElement('input');q.type='search';q.placeholder='Search '+sh.name;q.value=BIZ.q;q.dataset.bk='q';q.oninput=function(){BIZ.q=q.value;var p=q.selectionStart;bizRender();var n=document.querySelector('#biz input[data-bk="q"]');if(n){n.focus();try{n.setSelectionRange(p,p)}catch(e){}}};
+  var xb=document.createElement('button');xb.className='bzbtn';xb.textContent='Export';xb.onclick=bizExport;ex.appendChild(q);ex.appendChild(xb);hd.appendChild(ex);o.appendChild(hd);
+  if(sh.id==='overview'){var k=document.createElement('div');k.className='dkpis';o.appendChild(k);
+    var card=function(lab,val,note,red){var c=document.createElement('div');c.className='dcard dk'+(red?' red':'');c.innerHTML='<span class="dkl"></span><b></b><em></em>';c.querySelector('.dkl').textContent=lab;c.querySelector('b').textContent=val;c.querySelector('em').textContent=note;k.appendChild(c)};
+    var svc=(BIZ.sheets||[]).filter(function(x){return x.id==='services'})[0],m=svc?bizMoney(svc):null;
+    card('Services live',String(bizCount('services',['Live'])),bizCount('services',['Needs setup'])+' need setting up');
+    card('Running cost',m?'A$'+(Math.round(m*100)/100).toLocaleString('en-AU'):'—',m?'A$'+Math.round(m*12).toLocaleString('en-AU')+' a year':'Add costs in Services');
+    card('Setup to do',String(bizCount('setup',['To do','Check','Open'])),bizCount('setup',['Done'])+' done',bizCount('setup',['To do'])>0);
+    card('Security open',String(bizCount('security',['Open'])),bizCount('security',['Planned'])+' planned',bizCount('security',['Open'])>0)}
+  /* rows, grouped under their section headings */
+  var groups=[],g={s:null,i:-1,rows:[]};groups.push(g);sh.rows.forEach(function(r,i){if(r.s!=null){g={s:r.s,i:i,rows:[]};groups.push(g)}else g.rows.push(i)});
+  var qq=BIZ.q.trim().toLowerCase(),si=sh.cols.findIndex(function(c){return c.k==='status'}),mi=sh.cols.findIndex(function(c){return c.k==='money'});
+  groups.forEach(function(gr){var idx=gr.rows.filter(function(i){return!qq||sh.rows[i].c.join(' ').toLowerCase().indexOf(qq)>=0});
+    if(gr.s==null&&!gr.rows.length)return;if(qq&&!idx.length)return;
+    if(gr.s!=null){var l=document.createElement('div');l.className='dlab bzsec';l.textContent=gr.s;l.tabIndex=0;l.title='Rename';
+      l.onclick=function(){var t=document.createElement('input');t.className='bzsecin';t.value=gr.s;t.dataset.bk='sec';l.replaceWith(t);t.focus();t.select();
+        var done=function(){var v=t.value.trim();if(v&&v!==gr.s){sh.rows[gr.i].s=v;bizSave(sh)}else if(!v&&!gr.rows.length){sh.rows.splice(gr.i,1);bizSave(sh)}setTimeout(bizRender,0)};
+        t.onblur=done;t.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();t.blur()}}};o.appendChild(l)}
+    var box=document.createElement('div');box.className='dgroup bzg';o.appendChild(box);
+    idx.forEach(function(i){var r=sh.rows[i],open=BIZ.open===sh.id+':'+i;var row=document.createElement('div');row.className='bzrow'+(open?' open':'');
+      var hb=document.createElement('button');hb.className='bzr';hb.innerHTML='<span class="bzt"><b></b><span></span></span><span class="bzv"></span>';
+      hb.querySelector('b').textContent=r.c[0]||'Untitled';
+      var sub=[];for(var j=1;j<r.c.length;j++)if(j!==si&&j!==mi&&r.c[j]){sub.push(r.c[j]);break}
+      hb.querySelector('.bzt span').textContent=sub.join(' · ');
+      var v=hb.querySelector('.bzv');if(mi>=0&&r.c[mi]){var mv=document.createElement('span');mv.className='bzmoney';mv.textContent='A$'+r.c[mi];v.appendChild(mv)}if(si>=0&&r.c[si])v.appendChild(bizPill(r.c[si]));
+      hb.onclick=function(){haptic('light');BIZ.open=open?null:sh.id+':'+i;bizRender()};row.appendChild(hb);
+      if(open){var ed=document.createElement('div');ed.className='bzed';sh.cols.forEach(function(col,j){var f=document.createElement('label');f.className='bzf';f.innerHTML='<span></span>';f.firstChild.textContent=col.n;
+          var inp;if(col.k==='status'){inp=document.createElement('select');var opts=(col.o||[]).slice();if(r.c[j]&&opts.indexOf(r.c[j])<0)opts.unshift(r.c[j]);[''].concat(opts).forEach(function(x){var op=document.createElement('option');op.value=x;op.textContent=x||'None';inp.appendChild(op)});inp.value=r.c[j]||''}
+          else{inp=document.createElement('textarea');inp.rows=1;inp.value=r.c[j]||'';if(col.k==='money')inp.inputMode='decimal';var fit=function(){inp.style.height='auto';inp.style.height=inp.scrollHeight+'px'};inp.addEventListener('input',fit);setTimeout(fit,0)}
+          inp.dataset.bk='f'+j;inp.addEventListener('change',function(){var nv=inp.value.trim();if(nv!==(r.c[j]||'')){while(r.c.length<sh.cols.length)r.c.push('');r.c[j]=nv;bizSave(sh);if(inp.tagName==='SELECT')bizRender()}});
+          inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey&&inp.tagName==='TEXTAREA'){e.preventDefault();inp.blur()}});
+          f.appendChild(inp);ed.appendChild(f)});
+        var bar=document.createElement('div');bar.className='bzbar';
+        var del=document.createElement('button');del.className='bzbtn red';del.textContent='Delete Row';del.onclick=function(){if(del.dataset.arm!=='1'){del.dataset.arm='1';del.textContent='Tap again to delete';setTimeout(function(){if(del.isConnected){del.dataset.arm='';del.textContent='Delete Row'}},2500);return}sh.rows.splice(i,1);BIZ.open=null;bizSave(sh);haptic('warning');bizRender()};
+        var dn=document.createElement('button');dn.className='bzbtn strong';dn.textContent='Done';dn.onmousedown=prevent;dn.onclick=function(){var a=document.activeElement;if(a&&a.blur)a.blur();BIZ.open=null;setTimeout(bizRender,0)};
+        bar.appendChild(del);bar.appendChild(dn);ed.appendChild(bar);row.appendChild(ed)}
+      box.appendChild(row)});
+    if(!qq){var add=document.createElement('button');add.className='bzadd';add.innerHTML='<span>+</span> Add Row';add.onclick=function(){var at=gr.rows.length?gr.rows[gr.rows.length-1]+1:gr.i+1;sh.rows.splice(at,0,{c:sh.cols.map(function(){return''})});BIZ.open=sh.id+':'+at;bizSave(sh);bizRender();
+        setTimeout(function(){var f=document.querySelector('#biz [data-bk="f0"]');if(f)f.focus()},30)};box.appendChild(add)}});
+  if(!qq){var ns=document.createElement('button');ns.className='bzbtn bznew';ns.textContent='New Section';ns.onclick=function(){sh.rows.push({s:'New section'});sh.rows.push({c:sh.cols.map(function(){return''})});BIZ.open=sh.id+':'+(sh.rows.length-1);bizSave(sh);bizRender()};o.appendChild(ns)}
+  else if(!o.querySelector('.bzrow')){var e0=document.createElement('div');e0.className='anote';e0.textContent='Nothing matches “'+BIZ.q+'”.';o.appendChild(e0)}
+  var ft=document.createElement('div');ft.className='anote';ft.id='bzfoot';o.appendChild(ft);bizFoot();
+  var d=document.getElementById('dscroll');if(d)d.scrollTop=top}
+/* Export: every sheet as a tab in one .xlsx (SheetJS, loaded the first time it's needed) */
+function bizExport(){var go=function(){var X=window.XLSX,wb=X.utils.book_new();(BIZ.sheets||[]).forEach(function(sh){var aoa=[[sh.title||sh.name],[sh.note||''],[],sh.cols.map(function(c){return c.n})];
+      sh.rows.forEach(function(r){aoa.push(r.s!=null?[r.s]:r.c.map(function(v,j){return sh.cols[j]&&sh.cols[j].k==='money'&&v!==''&&!isNaN(+v)?+v:v}))});
+      var ws=X.utils.aoa_to_sheet(aoa);ws['!cols']=sh.cols.map(function(c,j){return{wch:j===0?28:Math.min(60,Math.max(12,c.n.length+4))}});X.utils.book_append_sheet(wb,ws,sh.name.slice(0,31))});
+    var out=X.write(wb,{bookType:'xlsx',type:'array'}),blob=new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='*[demo] business '+new Date().toISOString().slice(0,10)+'.xlsx';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},4000);toast('Exported the sheet')};
+  if(window.XLSX)return go();var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=go;s.onerror=function(){toast('Couldn’t load the exporter. Check your connection.')};document.head.appendChild(s)}
 /* the overview's numbers get an icon each */
 var STAT_ICO={'Accounts':['person','blue'],'New today':['plus','green'],'Signed in today':['clock','teal'],'Waiting for beta':['hourglass','orange'],'Storage used':['disk','gray'],'AI units today':['spark','purple'],'Errors today':['warn','red'],'Help desk':['bubble','pink'],'Reports':['flag','red'],'Services':['pulse','green'],'Songs':['note','indigo']};
 DI.tray='<path d="M3.5 13.5l2.8-8h11.4l2.8 8V19H3.5z"/><path d="M3.5 13.5h5l1.2 2.2h4.6l1.2-2.2h5"/>';
@@ -18654,10 +18767,10 @@ DI.mail='<rect x="3.5" y="5.5" width="17" height="13" rx="2.2"/><path d="M4.2 7.
 DI.refresh='<path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3M19.5 4.5v4.6h-4.6"/>';
 /* iPhone: five tabs. Mac (a wide window): a sidebar instead, like Mail or System Settings */
 var DTABS=[['dash','Dashboard','grid'],['users','Users','people'],['inbox','Inbox','tray'],['songs','Songs','note'],['more','Settings','gear']];
-var DMORE=[[['settings','App Settings','gear','gray'],['debug','Debug','hammer','indigo']],
+var DMORE=[[['biz','Business','brief','indigo']],[['settings','App Settings','gear','gray'],['debug','Debug','hammer','indigo']],
   [['errors','Errors','warn','red'],['status','Service Status','pulse','green']],
   [['sb','Supabase Dashboard','db','mint',function(){openLink(SB_DASH)}],['sbu','Supabase Users','person','teal',function(){openLink(SB_DASH+'/auth/users')}],['fn','Edge Function Logs','term','purple',function(){openLink(SB_DASH+'/functions')}],['rs','Resend Emails','mail','blue',function(){openLink('https://resend.com/emails')}],['oa','OpenAI Usage','spark','gray',function(){openLink('https://platform.openai.com/usage')}]]];
-var DSIDE=[['',[['dash','Dashboard','grid'],['songs','My Songs','note']]],
+var DSIDE=[['',[['dash','Dashboard','grid'],['songs','My Songs','note'],['biz','Business','brief']]],
   ['People',[['users','Users','people'],['help','Help','bubble'],['reports','Reports','flag'],['beta','Beta Requests','hourglass']]],
   ['System',[['errors','Errors','warn'],['status','Status','pulse'],['settings','Settings','gear'],['debug','Debug','hammer']]],
   ['Open',[['sb','Supabase','db',function(){openLink(SB_DASH)}],['rs','Resend','mail',function(){openLink('https://resend.com/emails')}],['oa','OpenAI','spark',function(){openLink('https://platform.openai.com/usage')}]]]];
@@ -18677,7 +18790,7 @@ function dashBuild(){if($('#dtabs'))return;
   document.body.appendChild(sd);
   var m=$('#dmount');var seg=document.createElement('div');seg.id='dseg';seg.className='bseg';m.appendChild(seg);
   ['adm','brq'].forEach(function(id){var el=$('#'+id);if(el&&m)m.appendChild(el)});
-  var mo=document.createElement('div');mo.id='dmore';m.appendChild(mo);var gate=document.createElement('div');gate.id='dgate';m.appendChild(gate);
+  var mo=document.createElement('div');mo.id='dmore';m.appendChild(mo);var bz=document.createElement('div');bz.id='biz';bz.hidden=true;m.appendChild(bz);var gate=document.createElement('div');gate.id='dgate';m.appendChild(gate);
   $('#dback').onclick=function(){dashGo(DASH.tab)};$('#dacct').onclick=function(){openAccount('')}}
 function dashGo(t,sub){if(!DEV_BUILD)return;dashBuild();
   /* older links: Help was a tab, and Reports and Beta lived under More */
@@ -18687,13 +18800,13 @@ function dashGo(t,sub){if(!DEV_BUILD)return;dashBuild();
   DASH.tab=t;DASH.sub=sub||null;if(!$('#vDash').classList.contains('on')){sheet(false);try{var ae=document.activeElement;if(ae&&ae.blur&&ae!==document.body)ae.blur()}catch(e){}show('vDash')}$('#dscroll').scrollTop=0;dashRender();
   /* fetch what the page needs once, here: dashRender itself never loads, so data arriving can redraw it safely */
   if(AUTH_USER&&BETA.admin){if(t==='inbox'){if(DASH.ib==='beta'){betaAdminLoad(true);betaTabLoad(BRQ_TAB,true)}else admTab(DASH.ib)}
-    else if(t!=='more'||sub){var at=sub||(t==='dash'?'overview':t);admTab(at)}else{betaAdminLoad();admLoadOverview()}}}
+    else if(sub==='biz')bizLoad();else if(t!=='more'||sub){var at=sub||(t==='dash'?'overview':t);admTab(at)}else{betaAdminLoad();admLoadOverview()}}}
 function dInboxN(){return{help:TKT.data&&TKT.data.counts&&TKT.data.counts.open||0,reports:RPT.data&&RPT.data.counts&&RPT.data.counts.open||0,beta:BETA.admin&&BETA.sum&&BETA.sum.pending||0}}
 function dashRender(){if(!DEV_BUILD||!$('#vDash'))return;dashBuild();
-  var t=DASH.tab,sub=DASH.sub,adm=$('#adm'),brq=$('#brq'),mo=$('#dmore'),gate=$('#dgate'),seg=$('#dseg'),side=dSideOn();
-  var titles={dash:'Dashboard',users:'Users',inbox:'Inbox',more:'Settings'},subT={help:'Help',reports:'Reports',beta:'Beta Requests',errors:'Errors',status:'Status',settings:side?'Settings':'App Settings',debug:'Debug'};
+  var t=DASH.tab,sub=DASH.sub,adm=$('#adm'),brq=$('#brq'),mo=$('#dmore'),gate=$('#dgate'),seg=$('#dseg'),bz=$('#biz'),side=dSideOn();
+  var titles={dash:'Dashboard',users:'Users',inbox:'Inbox',more:'Settings'},subT={help:'Help',reports:'Reports',beta:'Beta Requests',errors:'Errors',status:'Status',settings:side?'Settings':'App Settings',debug:'Debug',biz:'Business'};
   var back=!!sub&&!side;$('#dtitle').textContent=t==='inbox'&&side?subT[DASH.ib]:sub?subT[sub]:titles[t]||'Dashboard';$('#dback').hidden=!back;$('#vDash').classList.toggle('dsub',back);
-  [adm,brq,mo,gate,seg].forEach(function(x){if(x)x.hidden=true});
+  [adm,brq,mo,gate,seg,bz].forEach(function(x){if(x)x.hidden=true});
   if(!AUTH_USER||!BETA.admin){gate.hidden=false;gate.innerHTML='<div class="dempty"><b></b><p></p></div>';gate.querySelector('b').textContent=AUTH_USER?(BETA.st?'This account isn’t the admin':'Checking…'):'Sign in as the admin';
     gate.querySelector('p').textContent='The dashboard is for dev@hellodemo.app. Your songs are under Songs.';dashTabsPaint();return}
   if(t==='more'&&!sub){mo.hidden=false;mo.innerHTML='';DMORE.forEach(function(gr){var box=document.createElement('div');box.className='dgroup';
@@ -18703,6 +18816,7 @@ function dashRender(){if(!DEV_BUILD||!$('#vDash'))return;dashBuild();
   if(t==='inbox'){var ib=DASH.ib||'help',cn=dInboxN();
     if(!side){seg.hidden=false;seg.innerHTML='';[['help','Help'],['reports','Reports'],['beta','Beta']].forEach(function(x){var b=document.createElement('button');b.className=ib===x[0]?'on':'';b.textContent=x[1]+(cn[x[0]]?' '+cn[x[0]]:'');b.onclick=function(){haptic('light');dashGo('inbox',x[0])};seg.appendChild(b)})}
     if(ib==='beta'){brq.hidden=false;renderBetaRequests()}else{adm.hidden=false;ADM.tab=ib;renderAdmin()}dashTabsPaint();return}
+  if(sub==='biz'){bz.hidden=false;bizRender();dashTabsPaint();return}
   if(sub==='beta'){brq.hidden=false;renderBetaRequests();dashTabsPaint();return}
   adm.hidden=false;ADM.tab=sub||(t==='dash'?'overview':t);renderAdmin();dashTabsPaint()}
 function dashTabsPaint(){var nav=$('#dtabs');if(!nav)return;var v=document.querySelector('.view.on'),vid=v&&v.id;
