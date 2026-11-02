@@ -34,7 +34,7 @@ a{color:inherit;text-decoration:none}
   background:radial-gradient(60% 50% at 50% 38%,#fff 0%,rgba(255,255,255,0) 70%),radial-gradient(120% 90% at 50% 0%,#f7f7f8,#e9e9eb 70%,#e2e2e5)}
 .disc{width:min(300px,62vw);aspect-ratio:1;position:relative;filter:drop-shadow(0 30px 40px rgba(0,0,0,.22)) drop-shadow(0 6px 10px rgba(0,0,0,.18))}
 .disc svg{width:100%;height:100%;display:block;overflow:visible}
-.spin{transform-origin:100px 100px}
+.spin{transform-box:view-box;transform-origin:100px 100px}
 /* grab it and give it a spin, like a record */
 .disc{cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .disc.held{cursor:grabbing}
@@ -51,26 +51,56 @@ h1{margin:44px 0 0;font-size:clamp(44px,7vw,72px);line-height:1.04;font-weight:7
 .explore{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:13px;font-weight:600;color:var(--mute)}
 .explore svg{transition:transform .25s}.explore:hover{color:var(--ink)}.explore:hover svg{transform:translateY(3px)}
 
-/* ---- Explore: one idea per screen, centred, with the app itself ---- */
-.intro{text-align:center;padding:120px 24px 40px}
+/* ---- Explore: the highlights to scroll through, then tiles that each show one thing working ---- */
+.intro{text-align:center;padding:120px 24px 36px}
 .intro h2{margin:0;font-size:clamp(36px,5.6vw,56px);line-height:1.07;font-weight:700;letter-spacing:-.03em}
 .intro p{max-width:600px;margin:16px auto 0;font-size:clamp(19px,2.2vw,21px);color:var(--mute)}
-.feat{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:64px;max-width:1040px;margin:0 auto;padding:72px 24px}
-.feat.flip .copy{order:2}
-.feat .copy h3{margin:0;font-size:clamp(30px,4vw,44px);line-height:1.1;font-weight:700;letter-spacing:-.025em}
-.feat .copy p{margin:16px 0 0;font-size:19px;color:var(--mute);max-width:440px}
-.feat .copy ul{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:10px}
-.feat .copy li{font-size:16px;padding-left:22px;position:relative}
-.feat .copy li::before{content:'';position:absolute;left:0;top:7px;width:9px;height:9px;border-radius:50%;background:var(--ink)}
-.phone{justify-self:center;width:min(320px,78vw);aspect-ratio:1058/2244;border-radius:48px;padding:10px;background:#1d1d1f;box-shadow:0 0 0 1.5px #3a3a3c inset,0 40px 80px -20px rgba(0,0,0,.28),0 20px 30px -20px rgba(0,0,0,.25)}
-.phone img{display:block;width:100%;height:100%;object-fit:cover;border-radius:38px}
-.soft{background:var(--soft)}
-
-.grid{max-width:1040px;margin:0 auto;padding:96px 24px}
-.grid h3{text-align:center;margin:0 0 40px;font-size:clamp(30px,4vw,44px);font-weight:700;letter-spacing:-.025em}
-.cells{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.cell{background:#fff;border-radius:22px;padding:26px 24px}
-.soft .cell{background:#fff}.cell b{display:block;font-size:19px;letter-spacing:-.015em}.cell span{display:block;margin-top:6px;color:var(--mute);font-size:16px}
+.hl{position:relative;padding:20px 0 30px}
+.track{display:flex;gap:28px;overflow-x:auto;scroll-snap-type:x mandatory;padding:20px max(24px,calc((100% - 1040px)/2)) 30px;scrollbar-width:none;scroll-padding:0 max(24px,calc((100% - 1040px)/2))}
+.track::-webkit-scrollbar{display:none}
+.track figure{margin:0;flex:none;width:280px;scroll-snap-align:start}
+.phone{width:100%;aspect-ratio:1058/2244;border-radius:44px;padding:9px;background:#1d1d1f;box-shadow:0 0 0 1.5px #3a3a3c inset,0 30px 60px -24px rgba(0,0,0,.35)}
+.phone img{display:block;width:100%;height:100%;object-fit:cover;border-radius:35px}
+figcaption{margin-top:22px;font-size:16px;line-height:1.4;color:var(--mute);padding-right:12px}figcaption b{color:var(--ink);font-weight:600}
+.hlnav{display:flex;justify-content:flex-end;gap:12px;max-width:1040px;margin:0 auto;padding:0 24px}
+.hlnav button{width:40px;height:40px;border-radius:50%;border:0;background:#e8e8ed;color:var(--ink);font-size:22px;line-height:1;cursor:pointer;transition:background .2s}
+.hlnav button:hover{background:#dcdce1}
+.bento{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1040px;margin:0 auto;padding:40px 24px 110px}
+.tile{position:relative;overflow:hidden;border-radius:28px;background:var(--soft);padding:30px 30px 32px;min-height:300px}
+.tile.big{grid-column:span 2;grid-row:span 2}.tile.wide{grid-column:span 2}
+.tile.dark{background:#000;color:#f5f5f7}
+.eyebrow{display:block;font-size:14px;font-weight:600;color:var(--mute);margin-bottom:8px}.dark .eyebrow{color:#86868b}
+.tile h3{margin:0;font-size:clamp(24px,2.6vw,30px);line-height:1.12;font-weight:700;letter-spacing:-.025em}
+.tile p{margin:10px 0 0;color:var(--mute);font-size:16px}
+/* lyric sync: lines light up in turn while the bar fills (the page's one moving moment besides the button) */
+.sync h3{max-width:430px}
+.sync .ly{margin-top:40px;margin-bottom:30px}
+.sync .ly p{margin:0 0 10px;font-size:clamp(24px,3vw,34px);font-weight:700;line-height:1.2;letter-spacing:-.02em;color:#3a3a3d;transition:color .5s}
+.sync .ly p.on{color:#fff}.sync .ly p.past{color:#6e6e73}
+.sync .bar{position:absolute;left:30px;right:30px;bottom:30px;height:4px;border-radius:2px;background:#2c2c2e;overflow:hidden}
+.sync .bar i{display:block;height:100%;width:0;background:#fff;border-radius:2px;transition:width 2.4s linear}
+.rhyme .lyr{margin-top:20px;font-size:17px;line-height:1.55;color:var(--ink)}
+mark{border-radius:4px;padding:0 2px;color:inherit}.m1{background:#ffd9a8}.m2{background:#c8dcff}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px}.chips span{font-size:14px;font-weight:600;padding:6px 12px;border-radius:99px;background:#fff}.chips .on{background:var(--ink);color:#fff}
+.free{display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(155deg,#ffd3be,#e3ccff 55%,#bfddff)}
+.free h3{font-size:clamp(34px,4vw,44px)}.free h3 span{display:block;font-size:clamp(64px,7vw,88px);letter-spacing:-.05em;line-height:.95}.free p{color:#4b3f5c}
+.link{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center}
+.chat{display:flex;flex-direction:column;gap:8px}
+.bub{align-self:flex-end;max-width:85%;background:#0a84ff;color:#fff;font-size:15px;padding:8px 13px;border-radius:18px}.bub.in{align-self:flex-start;background:#e5e5ea;color:var(--ink)}
+.og{align-self:flex-end;width:85%;border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 0 0 .5px var(--line)}
+.og img{display:block;width:100%;aspect-ratio:1200/630;object-fit:cover}.og div{padding:9px 13px}.og b{display:block;font-size:14px}.og span{font-size:12.5px;color:var(--mute)}
+.widget{background:linear-gradient(160deg,#ff9a76,#7b6cff 55%,#2bb3a3)}.widget .eyebrow{color:rgba(255,255,255,.8)}.widget h3{color:#fff}
+.wd{margin-top:22px;display:flex;gap:12px;padding:12px;border-radius:22px;background:rgba(255,255,255,.2);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:inset 0 1px 0 rgba(255,255,255,.5);color:#fff}
+.wcov{flex:none;width:84px;height:84px;border-radius:12px;background:url(img/cover.jpg) center/cover}
+.wtx{min-width:0;display:flex;flex-direction:column}.wtx small{font-size:11px;font-weight:600;opacity:.8}.wtx span{font-size:12px;opacity:.65;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wtx b{font-size:14.5px;line-height:1.2}.wtx i{font-style:normal;margin-top:auto;align-self:flex-start;background:#fff;color:#1d1d1f;font-size:12px;font-weight:600;padding:4px 12px;border-radius:99px}
+.perform{display:flex;flex-direction:column;justify-content:space-between}
+.huge{margin:0!important;font-size:clamp(34px,4vw,46px)!important;font-weight:800;line-height:1.02;letter-spacing:-.035em;color:#fff!important}
+.everywhere h3{font-size:clamp(26px,3vw,34px)}
+@media (max-width:860px){
+  .bento{grid-template-columns:1fr}.tile.big,.tile.wide{grid-column:auto;grid-row:auto}
+  .link{grid-template-columns:1fr}.track figure{width:240px}.tile{min-height:0}
+}
 
 /* ---- the close: the button again, small, and the ways in ---- */
 .end{text-align:center;padding:120px 24px 110px;background:radial-gradient(120% 90% at 50% 100%,#f7f7f8,#e9e9eb 70%,#e2e2e5)}
@@ -80,13 +110,7 @@ h1{margin:44px 0 0;font-size:clamp(44px,7vw,72px);line-height:1.04;font-weight:7
 footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;max-width:1040px;margin:0 auto;padding:22px 24px 36px;font-size:12.5px;color:var(--mute);border-top:.5px solid var(--line)}
 footer nav{display:flex;gap:20px}footer a:hover{color:var(--ink)}
 
-@media (max-width:820px){
-  .nav nav a:not(.dl):not(.si){display:none}
-  .feat,.feat.flip{grid-template-columns:1fr;gap:40px;text-align:center;padding:64px 24px}
-  .feat.flip .copy{order:0}.feat .copy p{margin-left:auto;margin-right:auto}
-  .feat .copy ul{justify-items:center}.feat .copy li{padding-left:0}.feat .copy li::before{display:none}
-  .cells{grid-template-columns:1fr}
-}
+@media (max-width:820px){.nav nav a:not(.dl):not(.si){display:none}}
 </style>
 </head>
 <body>
@@ -138,62 +162,78 @@ footer nav{display:flex;gap:20px}footer a:hover{color:var(--ink)}
       <p>Your lyrics, your ideas and your demos in one place, on your iPhone and your Mac.</p>
     </div>
 
-    <div class="feat">
-      <div class="copy">
-        <h3>Catch it before it’s gone.</h3>
-        <p>A line in the car, a melody in the shower. Jot it, or hum it into a voice memo, and it’s waiting in Ideas when you sit down to write.</p>
-        <ul><li>Record an idea from your Home Screen</li><li>Turn any idea into a song</li></ul>
+    <!-- the highlights: the app itself, side by side; scroll sideways -->
+    <div class="hl" aria-label="Highlights">
+      <div class="track">
+        <figure><div class="phone"><img src="img/ideas.jpg" alt="Ideas: jotted lines and voice memos" loading="lazy"></div><figcaption><b>Catch it before it’s gone.</b> Jot a line or hum a melody. It’s waiting in Ideas.</figcaption></figure>
+        <figure><div class="phone"><img src="img/rhymes.jpg" alt="Rhymes for the word ghost under the lyrics" loading="lazy"></div><figcaption><b>Find the word that fits.</b> Rhymes, phrases and synonyms, right where you write.</figcaption></figure>
+        <figure><div class="phone"><img src="img/lines.jpg" alt="Suggested next lines for a verse" loading="lazy"></div><figcaption><b>Stuck? Keep going.</b> Next lines that match your verse, in your voice.</figcaption></figure>
+        <figure><div class="phone"><img src="img/together.jpg" alt="A song's details with a co-writer invited" loading="lazy"></div><figcaption><b>Write it together.</b> Invite a co-writer and see each other’s edits live.</figcaption></figure>
+        <figure><div class="phone"><img src="img/share.jpg" alt="Sharing a song as a link" loading="lazy"></div><figcaption><b>Send it like it’s out.</b> A link anyone can open, no app needed.</figcaption></figure>
+        <figure><div class="phone"><img src="img/songs.jpg" alt="The song list" loading="lazy"></div><figcaption><b>Every song, one place.</b> Lyrics, demos and ideas, all in one library.</figcaption></figure>
       </div>
-      <div class="phone"><img src="img/ideas.jpg" alt="Ideas in *[demo]: a list of jotted lines and voice memos" loading="lazy"></div>
+      <div class="hlnav"><button type="button" data-d="-1" aria-label="Previous">‹</button><button type="button" data-d="1" aria-label="Next">›</button></div>
     </div>
 
-    <div class="soft"><div class="feat flip">
-      <div class="copy">
-        <h3>Find the word that fits.</h3>
-        <p>Tap any word for rhymes, near rhymes, phrases and synonyms, right where you’re writing. Every rhyme in the song lights up, so you can see the shape of it.</p>
-        <ul><li>Syllables counted as you type</li><li>Rhymes that match your section</li></ul>
+    <!-- the closer look: tiles of different sizes, each showing one thing working -->
+    <div class="bento">
+      <div class="tile dark big sync">
+        <span class="eyebrow">Lyric sync</span>
+        <h3>Your demo plays with the words lit up in time.</h3>
+        <div class="ly" aria-hidden="true">
+          <p>I left the porch light on for you</p>
+          <p>The radio was playing something blue</p>
+          <p>I kept your jacket on the chair</p>
+          <p>Like you were only out somewhere</p>
+        </div>
+        <div class="bar" aria-hidden="true"><i></i></div>
       </div>
-      <div class="phone"><img src="img/rhymes.jpg" alt="Rhymes for the word ghost, shown under the lyrics" loading="lazy"></div>
-    </div></div>
 
-    <div class="feat">
-      <div class="copy">
-        <h3>Stuck? Keep going.</h3>
-        <p>Ask for the next line and get a handful that fit your verse’s images, voice and length. Keep the one that sounds like you, or let it spark your own.</p>
-        <ul><li>Lines in your own voice</li><li>Honest notes on a draft</li></ul>
+      <div class="tile rhyme">
+        <span class="eyebrow">Rhymes</span>
+        <h3>Every rhyme, coloured.</h3>
+        <p class="lyr">so I’d rather sleep <mark class="m1">alone</mark><br>than sleep beside a <mark class="m2">ghost</mark><br>I’d rather hear the <mark class="m1">phone</mark><br>than the voice I miss the <mark class="m2">most</mark></p>
+        <div class="chips"><span class="on">ghost</span><span>coast</span><span>toast</span><span>almost</span><span>host</span></div>
       </div>
-      <div class="phone"><img src="img/lines.jpg" alt="Suggested next lines for a verse" loading="lazy"></div>
+
+      <div class="tile free">
+        <h3><span>Free</span> to write.</h3>
+        <p>Writing, rhymes and ideas cost nothing, for as long as you like. Pro adds co-writing, demos and more.</p>
+      </div>
+
+      <div class="tile wide link">
+        <div>
+          <span class="eyebrow">Share links</span>
+          <h3>Sends like it’s already out.</h3>
+          <p>A proper preview in Messages, WhatsApp and Instagram, coloured from your artwork.</p>
+        </div>
+        <div class="chat" aria-hidden="true">
+          <div class="bub">heard back from the mix 👀</div>
+          <div class="og"><img src="img/share-card.jpg" alt=""><div><b>Kitchen Light – Jordan Lee</b><span>listen.hellodemo.app</span></div></div>
+          <div class="bub in">the second verse!!</div>
+        </div>
+      </div>
+
+      <div class="tile widget">
+        <span class="eyebrow">Widgets</span>
+        <h3>Pick up where you left off.</h3>
+        <div class="wd" aria-hidden="true">
+          <div class="wcov"></div>
+          <div class="wtx"><small>Kitchen Light · 2h ago</small><span>You left the kitchen light on</span><b>I watched it burn till dawn</b><i>Continue</i></div>
+        </div>
+      </div>
+
+      <div class="tile dark perform">
+        <span class="eyebrow">Perform mode</span>
+        <p class="huge">Big lyrics<br>for the stage.</p>
+      </div>
+
+      <div class="tile wide everywhere">
+        <span class="eyebrow">Everywhere</span>
+        <h3>iPhone. Mac. Browser.</h3>
+        <p>The same songs on all of them, synced in about a second, and they work offline.</p>
+      </div>
     </div>
-
-    <div class="soft"><div class="feat flip">
-      <div class="copy">
-        <h3>Write it together.</h3>
-        <p>Invite a co-writer to a song and see each other’s edits as they happen. Credits and splits stay with the song.</p>
-        <ul><li>Live edits on every device</li><li>Credits, splits and release details</li></ul>
-      </div>
-      <div class="phone"><img src="img/together.jpg" alt="A song's details, with a co-writer invited" loading="lazy"></div>
-    </div></div>
-
-    <div class="feat">
-      <div class="copy">
-        <h3>Send it like it’s already out.</h3>
-        <p>Share a link anyone can open, no app needed. They hear your demo with the lyrics lighting up in time, on a page coloured from your artwork.</p>
-        <ul><li>Update the link as the song changes</li><li>A lyric card for socials</li></ul>
-      </div>
-      <div class="phone"><img src="img/share.jpg" alt="Sharing a song as a link" loading="lazy"></div>
-    </div>
-
-    <div class="soft"><div class="grid">
-      <h3>Everywhere you write.</h3>
-      <div class="cells">
-        <div class="cell"><b>iPhone and Mac</b><span>The same songs on both, synced in about a second.</span></div>
-        <div class="cell"><b>Demos with your lyrics</b><span>Voice memos, demos and mixes play right inside the song.</span></div>
-        <div class="cell"><b>Perform mode</b><span>Big, scrolling lyrics for the stage or the booth.</span></div>
-        <div class="cell"><b>Widgets</b><span>Record an idea or pick up a song from your Home Screen.</span></div>
-        <div class="cell"><b>Works offline</b><span>Write anywhere. It syncs when you’re back.</span></div>
-        <div class="cell"><b>Yours to keep</b><span>Export every song whenever you like.</span></div>
-      </div>
-    </div></div>
   </section>
 
   <section class="end">
@@ -225,7 +265,7 @@ var src=document.querySelector('.hero .disc svg'),end=document.querySelector('.e
   document.querySelectorAll('.disc').forEach(function(d){var g=d.querySelector('.spin');if(!g)return;
     var a=0,v=BASE,held=false,last=0,pa=0,pt=0,raf=0;
     function ang(e){var r=d.getBoundingClientRect();return Math.atan2(e.clientY-(r.top+r.height/2),e.clientX-(r.left+r.width/2))*180/Math.PI}
-    function paint(){g.setAttribute('transform','rotate('+a.toFixed(2)+' 100 100)')}
+    function paint(){g.style.transform='rotate('+(a%360).toFixed(2)+'deg)'}
     function tick(t){var dt=last?Math.min(.05,(t-last)/1000):0;last=t;
       if(!held){v+=(BASE-v)*(1-Math.exp(-dt*0.9));a+=v*dt;paint()}
       raf=(!held&&Math.abs(v)<.01&&!BASE)?0:requestAnimationFrame(tick)}
@@ -236,6 +276,13 @@ var src=document.querySelector('.hero .disc svg'),end=document.querySelector('.e
     function up(){if(!held)return;held=false;d.classList.remove('held');if(performance.now()-pt>90)v=0;v=Math.max(-2400,Math.min(2400,v));go()}
     d.addEventListener('pointerup',up);d.addEventListener('pointercancel',up);
     go()})})();
+/* the highlights: arrows step one phone along */
+var tr=document.querySelector('.track');document.querySelectorAll('.hlnav button').forEach(function(b){b.onclick=function(){tr.scrollBy({left:+b.dataset.d*308,behavior:'smooth'})}});
+/* lyric sync tile: each line lights up in turn while the bar fills, only while it's on screen */
+(function(){var t=document.querySelector('.sync');if(!t)return;var L=[].slice.call(t.querySelectorAll('.ly p')),bar=t.querySelector('.bar i'),i=-1,timer=0;
+  function step(){i=(i+1)%L.length;L.forEach(function(p,k){p.classList.toggle('on',k===i);p.classList.toggle('past',k<i)});bar.style.transition=i?'width 2.4s linear':'none';bar.style.width=((i+1)/L.length*100)+'%'}
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){i=0;L[1].classList.add('on');L[0].classList.add('past');bar.style.width='50%';return}
+  new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting&&!timer){step();timer=setInterval(step,2400)}else if(!e.isIntersecting&&timer){clearInterval(timer);timer=0}})},{threshold:.3}).observe(t)})();
 /* the bar frosts once the page scrolls */
 var nav=document.getElementById('nav');function f(){nav.classList.toggle('solid',scrollY>20)}addEventListener('scroll',f,{passive:true});f();
 </script>
