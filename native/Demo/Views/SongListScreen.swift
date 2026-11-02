@@ -17,6 +17,9 @@ struct SongListScreen: View {
     @FocusState private var renameFocus: Bool
     @State private var importing = false
     @State private var exportURL: URL?
+    // albums: a new one (holding these songs when made from a song's menu)
+    @State private var newAlbumFor: NewAlbum?
+    struct NewAlbum: Identifiable { let id = UUID(); var songs: [String] }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -25,6 +28,12 @@ struct SongListScreen: View {
                     IdeasRow()
                         .listRowSeparator(.hidden)
                         .listRowInsets(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 20))
+                    if !library.liveAlbums.isEmpty {
+                        AlbumShelf { newAlbum([]) }
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets())
+                            .moveDisabled(true)
+                    }
                 }
                 // every group's title and songs in one ForEach, so a song can be dragged (press, hold and
                 // move) to any group: where it lands decides its folder (spec §3.6)
@@ -61,6 +70,7 @@ struct SongListScreen: View {
                                         }
                                         Button { copyLyrics(s) } label: { Label("Copy Lyrics", systemImage: "doc.on.doc") }
                                         moveMenu(s)
+                                        if AddSongsSheet.canJoin(s, session) { albumMenu(s) }
                                     }
                                     Section {
                                         Button(role: .destructive) { confirmDelete = s } label: {
@@ -101,7 +111,14 @@ struct SongListScreen: View {
                 SearchDock(text: $query, prompt: "Search", icon: "ic-new", label: "New song") { newSong() }
             }
             .navigationDestination(for: String.self) { id in
-                if id == IdeasRow.route { IdeasScreen() } else { EditorScreen(songID: id) }
+                if id == IdeasRow.route { IdeasScreen() }
+                else if let a = AlbumRoute.id(id) { AlbumScreen(albumID: a) }
+                else { EditorScreen(songID: id) }
+            }
+            .sheet(item: $newAlbumFor) { n in
+                AlbumEditSheet(album: nil, adding: n.songs) { id in
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { path.append(AlbumRoute.prefix + id) }
+                }
             }
             .sheet(isPresented: Binding(get: { session.accountOpen }, set: { session.accountOpen = $0 })) { AccountScreen() }
             // a notification opened a song (or "" for the list)
@@ -139,6 +156,7 @@ struct SongListScreen: View {
             }
         }
         // the editor's sidebar swaps the open song for another (or for Ideas)
+        .environment(\.pushRoute) { id in path.append(id) }
         .environment(\.openRoute) { id in
             if path.isEmpty { path.append(id) } else { path[path.count - 1] = id }
         }
@@ -218,6 +236,8 @@ struct SongListScreen: View {
         HStack(spacing: 6) {
             Button("New Folder") { newFolder() }
             Text("·").foregroundStyle(.tertiary)
+            Button("New Album") { newAlbum([]) }
+            Text("·").foregroundStyle(.tertiary)
             Button("Import Songs") { Haptics.tap(); importing = true }
             Text("·").foregroundStyle(.tertiary)
             Button("Export All Songs") { exportAll() }
@@ -245,6 +265,31 @@ struct SongListScreen: View {
                 Button { moveSong(s.id, to: "") } label: { Label("Remove from Folder", systemImage: "folder.badge.minus") }
             }
         } label: { Label("Move to Folder", systemImage: "folder") }
+    }
+
+    /// Long-press › Add to Album: every album, a new one, or out of its album.
+    @ViewBuilder private func albumMenu(_ s: Song) -> some View {
+        Menu {
+            ForEach(library.liveAlbums.filter { $0.id != s.albumID }) { a in
+                Button(a.displayTitle) {
+                    Haptics.tap()
+                    withAnimation(.snappy) { library.setAlbum([s.id], to: a.id) }
+                    session.toast = "Added to “\(a.displayTitle)”"
+                }
+            }
+            Button { newAlbum([s.id]) } label: { Label("New Album…", systemImage: "plus.square.on.square") }
+            if let a = library.album(s.albumID) {
+                Button { Haptics.tap(); withAnimation(.snappy) { library.setAlbum([s.id], to: "") }; session.toast = "Removed from “\(a.displayTitle)”" } label: {
+                    Label("Remove from Album", systemImage: "minus.square")
+                }
+            }
+        } label: { Label("Add to Album", systemImage: "square.stack") }
+    }
+
+    private func newAlbum(_ songs: [String]) {
+        Haptics.tap()
+        guard canMakeAlbum(session, library) else { return }
+        newAlbumFor = NewAlbum(songs: songs)
     }
 
     private func moveSong(_ id: String, to f: String) {
@@ -293,7 +338,8 @@ struct SongListScreen: View {
         list.sort { $0.updated > $1.updated }
         let pinned = list.filter { library.isPinned($0.id) }.sorted { (library.pins[$0.id] ?? 0) > (library.pins[$1.id] ?? 0) }
         var byFolder: [String: [Song]] = [:]
-        for s in list where !library.isPinned(s.id) { byFolder[s.folder.isEmpty ? "Songs" : s.folder, default: []].append(s) }
+        // songs in an album live on its page (search still finds them)
+        for s in list where !library.isPinned(s.id) && (!q.isEmpty || library.album(s.albumID) == nil) { byFolder[s.folder.isEmpty ? "Songs" : s.folder, default: []].append(s) }
         let folders = byFolder.keys.sorted { (byFolder[$0]?.first?.updated ?? 0) > (byFolder[$1]?.first?.updated ?? 0) }
         var out: [SongGroup] = []
         if !pinned.isEmpty { out.append(SongGroup(name: "Pinned", songs: pinned, pinned: true)) }

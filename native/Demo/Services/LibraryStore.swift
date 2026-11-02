@@ -9,6 +9,8 @@ final class LibraryStore {
     private(set) var uid: String?
     var songs: [Song] = []
     var ideas: [Idea] = []
+    /// Albums, deleted ones included (as tombstones until every device has seen them); `liveAlbums` for showing.
+    var albums: [Album] = []
     /// Pinned songs, per device like the web (`songpad:pins`): id → ms pinned.
     var pins: [String: Double] = [:]
     private(set) var syncing = false
@@ -33,6 +35,7 @@ final class LibraryStore {
     @ObservationIgnored private var libChannel: RealtimeChannelV2?
     @ObservationIgnored private var libTask: Task<Void, Never>?
     @ObservationIgnored private var nudgeTask: Task<Void, Never>?
+    @ObservationIgnored private var albumTask: Task<Void, Never>?
     @ObservationIgnored private var running = false
     @ObservationIgnored private var again = false
 
@@ -40,6 +43,7 @@ final class LibraryStore {
     nonisolated struct BaseIDs: Codable { var songs: [String]; var ideas: [String] }
     private nonisolated struct Stored: Codable {
         var songs: [JSONValue]; var ideas: [JSONValue]; var tomb: Tombs; var base: BaseIDs?; var seenAt: String?
+        var albums: [JSONValue]?
     }
 
     static let tombTTL: Double = 90 * 86_400_000
@@ -54,10 +58,11 @@ final class LibraryStore {
         if let data = try? Data(contentsOf: fileURL(uid)), let st = try? JSONDecoder().decode(Stored.self, from: data) {
             songs = st.songs.compactMap { $0.object.map(Song.init(raw:)) }.filter { !$0.id.isEmpty }
             ideas = st.ideas.compactMap { $0.object.map(Idea.init(raw:)) }.filter { !$0.id.isEmpty }
+            albums = (st.albums ?? []).compactMap { $0.object.map(Album.init(raw:)) }.filter { !$0.id.isEmpty }
             tomb = st.tomb; base = st.base; seenAt = st.seenAt
         } else {
             // a fresh device starts empty *with no base*, so its first sync can't infer any deletes
-            songs = []; ideas = []; tomb = Tombs(); base = nil; seenAt = nil
+            songs = []; ideas = []; albums = []; tomb = Tombs(); base = nil; seenAt = nil
         }
         // every library starts with the "How *[demo] works" song (once; deleting it is for good)
         let seeded = Guide.seed(songs, uid: uid)
@@ -72,7 +77,8 @@ final class LibraryStore {
         pollTask?.cancel(); pushTask?.cancel(); saveTask?.cancel()
         libTask?.cancel(); nudgeTask?.cancel()
         if let ch = libChannel { libChannel = nil; Task { await Backend.client.removeChannel(ch) } }
-        uid = nil; songs = []; ideas = []; tomb = Tombs(); base = nil; seenAt = nil
+        albumTask?.cancel()
+        uid = nil; songs = []; ideas = []; albums = []; tomb = Tombs(); base = nil; seenAt = nil
     }
 
     private func fileURL(_ uid: String) -> URL {
@@ -144,7 +150,8 @@ final class LibraryStore {
 
     func flushSave() {
         guard let uid else { return }
-        let st = Stored(songs: songs.map { .object($0.raw) }, ideas: ideas.map { .object($0.raw) }, tomb: tomb, base: base, seenAt: seenAt)
+        let st = Stored(songs: songs.map { .object($0.raw) }, ideas: ideas.map { .object($0.raw) }, tomb: tomb, base: base, seenAt: seenAt,
+                        albums: albums.map { .object($0.raw) })
         let url = fileURL(uid)
         guard let data = try? JSONEncoder().encode(st) else { return }
         Task.detached(priority: .utility) { try? data.write(to: url, options: .atomic) }
@@ -164,6 +171,7 @@ final class LibraryStore {
         running = true; syncing = true
         Task {
             await attempt(tries: 0)
+            await syncAlbums()
             running = false; syncing = false
             if again { again = false; sync() }
         }
@@ -351,6 +359,88 @@ final class LibraryStore {
             deletedSongs = (del?["songs"]?.object ?? [:]).compactMapValues(\.number)
             deletedIdeas = (del?["ideas"]?.object ?? [:]).compactMapValues(\.number)
             deletedJSON = .object(["songs": .object(del?["songs"]?.object ?? [:]), "ideas": .object(del?["ideas"]?.object ?? [:])])
+        }
+    }
+
+    // MARK: albums (supabase/albums.sql): one row each, last writer wins on `updated`
+
+    var liveAlbums: [Album] { albums.filter { !$0.deleted } }
+    func album(_ id: String) -> Album? { id.isEmpty ? nil : albums.first { $0.id == id && !$0.deleted } }
+
+    /// An album's songs in order (only songs whose album still exists count).
+    func albumSongs(_ id: String) -> [Song] {
+        songs.filter { $0.albumID == id && !$0.isPlaceholder }.sorted { ($0.track, $0.updated) < ($1.track, $1.updated) }
+    }
+
+    /// Saves a changed album (the caller has bumped `updated`), then pushes it shortly.
+    func putAlbum(_ a: Album) {
+        if let i = albums.firstIndex(where: { $0.id == a.id }) { albums[i] = a } else { albums.insert(a, at: 0) }
+        flushSave()
+        albumTask?.cancel()
+        albumTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(400))
+            guard !Task.isCancelled, let self else { return }
+            await self.syncAlbums()
+            await self.tellOthers()
+        }
+    }
+
+    /// Deletes an album everywhere; its songs stay, out of the album.
+    func deleteAlbum(_ id: String) {
+        for var s in songs where s.albumID == id { s.albumID = ""; s.raw.removeValue(forKey: "track"); s.touch(); put(s) }
+        putAlbum(.tombstone(id))
+    }
+
+    /// Puts songs at the end of an album (or "" to take them out).
+    func setAlbum(_ ids: [String], to albumID: String) {
+        var next = (albumSongs( albumID).map(\.track).max() ?? 0) + 1
+        for id in ids {
+            guard var s = song(id), s.albumID != albumID else { continue }
+            s.albumID = albumID
+            if albumID.isEmpty { s.raw.removeValue(forKey: "track") } else { s.track = next; next += 1 }
+            s.touch(); put(s)
+        }
+    }
+
+    /// New track order: renumbers 1…n, touching only songs whose number changed.
+    func reorderAlbum(_ ids: [String]) {
+        for (i, id) in ids.enumerated() {
+            guard var s = song(id), s.track != Double(i + 1) else { continue }
+            s.track = Double(i + 1); s.touch(); put(s)
+        }
+    }
+
+    private nonisolated struct AlbumRow: Codable { let id: String; let data: JSONValue; let updated: Double }
+    private nonisolated struct AlbumPush: Encodable { let user_id: String; let id: String; let data: JSONValue; let updated: Double }
+
+    func syncAlbums() async {
+        guard let uid else { return }
+        let rows: [AlbumRow]
+        do { rows = try await Backend.client.from("albums").select("id, data, updated").eq("user_id", value: uid).execute().value }
+        catch { return }
+        guard uid == self.uid else { return }
+        var local = Dictionary(albums.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        var push: [AlbumPush] = []
+        var seen = Set<String>()
+        for r in rows {
+            seen.insert(r.id)
+            guard let o = r.data.object else { continue }
+            let remote = Album(raw: o)
+            if let l = local[r.id], l.updated > r.updated { push.append(AlbumPush(user_id: uid, id: l.id, data: .object(l.raw), updated: l.updated)) }
+            else if local[r.id]?.raw != remote.raw { local[r.id] = remote }
+        }
+        for a in albums where !seen.contains(a.id) { push.append(AlbumPush(user_id: uid, id: a.id, data: .object(a.raw), updated: a.updated)) }
+        let merged = local.values.sorted { $0.updated > $1.updated }
+        if merged != albums { albums = merged; flushSave() }
+        if !push.isEmpty {
+            _ = try? await Backend.client.from("albums").upsert(push, onConflict: "user_id,id").execute()
+        }
+    }
+
+    /// The same "changed" nudge a library save sends, so the other devices sync now.
+    private func tellOthers() async {
+        if let ch = libChannel, let msg = LiveSession.anyJSON(.object(["dev": .string(LiveSession.dev)])) {
+            await ch.broadcast(event: "changed", message: msg)
         }
     }
 

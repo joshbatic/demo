@@ -16,7 +16,7 @@ enum Pro {
         "lines": "Lines", "rate": "Rate", "perform": "Perform mode", "voice": "Writing voice",
         "listen": "Listening to the whole song", "melody": "Melody", "share": "Inviting co-writers", "muse": "Muse",
         "audio": "Adding music and files", "sync": "Lyric sync", "play": "Play with Lyrics", "release": "Release details",
-        "memos": "More voice memos", "ai": "More AI"
+        "memos": "More voice memos", "ai": "More AI", "albums": "More albums"
     ]
 
     /// upsellMsg(k)
@@ -24,6 +24,7 @@ enum Pro {
         switch k {
         case "memos": return "Free keeps \(freeMemos) voice memos on this device, up to a minute each. Pro syncs them everywhere, with no limit."
         case "ai": return "You’ve used today’s free AI. Pro has plenty more."
+        case "albums": return "Free has one album. Pro makes as many as you like."
         default: return (feat[k] ?? "That") + " is part of *[demo] Pro."
         }
     }
@@ -33,6 +34,7 @@ enum Pro {
         switch k {
         case "memos": return "Synced voice memos come with Pro."
         case "ai": return "That’s today’s free AI. Pro has more."
+        case "albums": return "More albums come with Pro."
         default:
             let f = feat[k] ?? "That"
             return f + (f.hasSuffix("details") ? " come" : " comes") + " with Pro."
