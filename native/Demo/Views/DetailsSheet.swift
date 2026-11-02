@@ -267,6 +267,16 @@ struct DetailsSheet: View {
         }
 
         Section {
+            // the first row: look the song up in Apple Music and fill the rest in
+            Button { Haptics.tap(); findRelease = true } label: {
+                HStack(spacing: 12) {
+                    TileIcon("magnifyingglass", Color(hex: 0xFA2D48))
+                    Text("Find Release").foregroundStyle(.primary)
+                    Spacer()
+                    Text("Apple Music").foregroundStyle(.secondary)
+                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                }
+            }
             HStack {
                 Text("ISRC"); Spacer()
                 TextField("CC-XXX-YY-NNNNN", text: releaseBinding("isrc", upper: true)).multilineTextAlignment(.trailing)
@@ -289,12 +299,7 @@ struct DetailsSheet: View {
                 s.setRelease("explicit", .bool(v)); s.touch(); library.put(s)
             }))
             .toggleStyle(.green)
-        } header: {
-            HStack {
-                Text("Release"); Spacer()
-                Button("Find Release") { Haptics.tap(); findRelease = true }.font(.subheadline.weight(.semibold)).textCase(nil)
-            }
-        } footer: {
+        } header: { Text("Release") } footer: {
             let notes = releaseNotes
             if !notes.isEmpty { Text(notes).foregroundStyle(.red) }
         }

@@ -20041,7 +20041,7 @@ var ACC_ICO={
   cam:'<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M9.2 4h5.6l1.5 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2.7z"/><circle cx="12" cy="12.5" r="3.6" fill="var(--tint)"/><circle cx="12" cy="12.5" r="2" fill="currentColor"/></svg>',
   note:'<svg viewBox="3.20 2.60 18.10 18.10" fill="currentColor"><circle cx="8.6" cy="17.6" r="3.1"/><path d="M10.4 17.6V4.6l8.6-2v4l-6.4 1.5v9.5z"/></svg>'
 };
-var ACC_SOLID={'Credits':'#FF9500','Start a Song':'#FF9500','Name & Username':'#007AFF','Notifications':'#FF3B30','Requests':'#FF9500','Waitlist Lock':'#FF9500','Import Songs':'#007AFF','Export All Songs':'#34C759','Storage':'#8E8E93','AI Features':'#AF52DE','Reset What Rate Learned':'#5856D6','Blocked':'#FF2D55','Privacy Policy':'#007AFF','Terms of Service':'#8E8E93','Contact Support':'#34C759','Switch Account':'#5856D6'};
+var ACC_SOLID={'Find Release':'#FA2D48','Credits':'#FF9500','Start a Song':'#FF9500','Name & Username':'#007AFF','Notifications':'#FF3B30','Requests':'#FF9500','Waitlist Lock':'#FF9500','Import Songs':'#007AFF','Export All Songs':'#34C759','Storage':'#8E8E93','AI Features':'#AF52DE','Reset What Rate Learned':'#5856D6','Blocked':'#FF2D55','Privacy Policy':'#007AFF','Terms of Service':'#8E8E93','Contact Support':'#34C759','Switch Account':'#5856D6'};
 function accCell(o){
   var b=document.createElement(o.onclick?'button':'div');b.className='cell'+(o.tile?'':' notile')+(o.cls?' '+o.cls:'');
   if(o.tile){var t=document.createElement('span');t.className='tile'+(o.tileCls?' '+o.tileCls:'')+(o.grad!=null?' gr':'');t.innerHTML=o.tile;
@@ -21201,7 +21201,9 @@ function renderRel(){var o=$('#rel-body');if(!o||!cur)return;var song=cur,keepTo
     var tot=Math.round(ws.reduce(function(s,c){return s+(parseFloat(c.split)||0)},0)*100)/100;
     if(Math.abs(tot-100)<.01)note.textContent='Writer splits total 100%.';else{note.className='relnote warn';note.textContent='Writer splits add up to '+tot+'%. They should total 100%.'}}
   paintSplit();
-  var rg=accSection(o,'Release',[['Find Release',function(){relFind(song,rg)}]]),rnote=document.createElement('div');
+  var rg=accSection(o,'Release'),rnote=document.createElement('div');
+  /* the first row: look the song up in Apple Music and fill the rest in */
+  rg.appendChild(accCell({tile:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg>',grad:0,label:'Find Release',value:'Apple Music',chev:true,onclick:function(){relFind(song,rg)}}));
   REL_FIELDS.forEach(function(f){var r=document.createElement('label');r.className='cell form notile';var l=document.createElement('span');l.className='ct fl';l.textContent=f[1];r.appendChild(l);
     var ip=document.createElement('input');ip.type=f[3];ip.placeholder=f[2];ip.value=R[f[0]]||'';ip.setAttribute('aria-label',f[1]);
     if(f[0]==='isrc'||f[0]==='iswc'){ip.autocapitalize='characters';ip.spellcheck=false;ip.autocomplete='off'}if(f[0]==='upc'){ip.inputMode='numeric';ip.autocomplete='off'}
