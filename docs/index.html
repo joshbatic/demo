@@ -77,6 +77,10 @@ h1{margin:44px 0 0;font-size:clamp(44px,7vw,72px);line-height:1.04;font-weight:7
 .tabs::-webkit-scrollbar{display:none}
 .tabs button{flex:none;border:0;background:none;font:600 14px var(--font);color:#424245;padding:8px 16px;border-radius:99px;cursor:pointer;transition:background .2s,color .2s}
 .tabs button[aria-selected=true]{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.tabs button{position:relative;overflow:hidden}
+.tabs button::after{content:'';position:absolute;left:14px;right:14px;bottom:4px;height:2px;border-radius:1px;background:var(--ink);opacity:.25;transform:scaleX(0);transform-origin:left}
+.tabs button.run::after{animation:fill 4.2s linear forwards}
+@keyframes fill{to{transform:scaleX(1)}}
 .bento{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1040px;margin:0 auto;padding:40px 24px 110px}
 .tile{position:relative;overflow:hidden;border-radius:28px;background:var(--soft);padding:30px 30px 32px;min-height:300px}
 .tile.big{grid-column:span 2;grid-row:span 2}.tile.wide{grid-column:span 2}
@@ -288,11 +292,17 @@ var src=document.querySelector('.hero .disc svg'),end=document.querySelector('.e
     function up(){if(!held)return;held=false;d.classList.remove('held');if(performance.now()-pt>90)v=0;v=Math.max(-2400,Math.min(2400,v));go()}
     d.addEventListener('pointerup',up);d.addEventListener('pointercancel',up);
     go()})})();
-/* the phone: each tab shows that part of the app (pictures preloaded so the swap is instant) */
-(function(){var img=document.getElementById('showimg'),cap=document.getElementById('showcap'),tabs=[].slice.call(document.querySelectorAll('.tabs button'));
-  tabs.forEach(function(t){new Image().src='img/'+t.dataset.img+'.jpg';t.onclick=function(){if(t.getAttribute('aria-selected')==='true')return;
-    tabs.forEach(function(x){x.setAttribute('aria-selected',x===t?'true':'false')});img.style.opacity=cap.style.opacity=0;
-    setTimeout(function(){img.src='img/'+t.dataset.img+'.jpg';img.alt=t.textContent+' in *[demo]';cap.textContent=t.dataset.cap;img.style.opacity=cap.style.opacity=1},200)}})})();
+/* the phone: plays through the tabs on its own while it's on screen (each tab fills as it plays); tapping one
+   jumps there and carries on from it. Stays put for people who've turned motion down. */
+(function(){var img=document.getElementById('showimg'),cap=document.getElementById('showcap'),tabs=[].slice.call(document.querySelectorAll('.tabs button')),
+    cur=0,timer=0,seen=false,calm=matchMedia('(prefers-reduced-motion: reduce)').matches,DWELL=4200;
+  function select(i){cur=i;tabs.forEach(function(x,k){x.setAttribute('aria-selected',k===i?'true':'false');x.classList.remove('run')});
+    img.style.opacity=cap.style.opacity=0;
+    setTimeout(function(){var t=tabs[i];img.src='img/'+t.dataset.img+'.jpg';img.alt=t.textContent+' in *[demo]';cap.textContent=t.dataset.cap;img.style.opacity=cap.style.opacity=1},200);
+    if(seen&&!calm){void tabs[i].offsetWidth;tabs[i].classList.add('run')}}
+  function play(){clearInterval(timer);if(calm||!seen)return;tabs[cur].classList.add('run');timer=setInterval(function(){select((cur+1)%tabs.length)},DWELL)}
+  tabs.forEach(function(t,i){new Image().src='img/'+t.dataset.img+'.jpg';t.onclick=function(){select(i);play()}});
+  new IntersectionObserver(function(es){es.forEach(function(e){seen=e.isIntersecting;if(seen)play();else{clearInterval(timer);tabs[cur].classList.remove('run')}})},{threshold:.5}).observe(document.querySelector('.show .phone'))})();
 /* lyric sync tile: each line lights up in turn while the bar fills, only while it's on screen */
 (function(){var t=document.querySelector('.sync');if(!t)return;var L=[].slice.call(t.querySelectorAll('.ly p')),bar=t.querySelector('.bar i'),i=-1,timer=0;
   function step(){i=(i+1)%L.length;L.forEach(function(p,k){p.classList.toggle('on',k===i);p.classList.toggle('past',k<i)});bar.style.transition=i?'width 2.4s linear':'none';bar.style.width=((i+1)/L.length*100)+'%'}
