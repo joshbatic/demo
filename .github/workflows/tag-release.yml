@@ -1,0 +1,21 @@
+# Tags each release: when main's web app has a version (APP_VERSION in www/index.html) that isn't tagged yet,
+# tag that commit vX.Y.Z. scripts/release.sh sets the version; this marks it, so every release has a tag.
+name: Tag release
+on:
+  push:
+    branches: [main]
+    paths: ["www/index.html"]
+  workflow_dispatch:
+permissions: { contents: write }
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - run: |
+          V=$(grep -o "^var APP_VERSION='[0-9.]*'" www/index.html | grep -o "[0-9][0-9.]*")
+          [ -n "$V" ] || { echo "No APP_VERSION."; exit 0; }
+          git rev-parse -q --verify "refs/tags/v$V" >/dev/null && { echo "v$V is already tagged."; exit 0; }
+          git config user.name "demo release"; git config user.email "release@hellodemo.app"
+          git tag -a "v$V" -m "*[demo] $V" && git push origin "v$V" && echo "Tagged v$V"

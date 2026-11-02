@@ -5,8 +5,8 @@
 #   scripts/release.sh 1.2.0
 #
 # It sets the version everywhere (web, Mac, iPhone), merges dev into main, copies the app to the website and
-# the Mac app, stamps the build, tags vX.Y.Z, pushes, starts the Mac download build, and brings dev back level
-# with main. Write what's new in RELEASE-NOTES-vX.Y.Z.md first (a draft is made from the commits if it's missing).
+# the Mac app, stamps the build and pushes; GitHub then tags it vX.Y.Z (.github/workflows/tag-release.yml) and
+# rebuilds the Mac download. Finally dev is brought level with main. Write what's new in RELEASE-NOTES-vX.Y.Z.md first (a draft is made from the commits if it's missing).
 #
 # Versions are one number for every platform, the same as the App Store's: 1.1.0 for features, 1.1.1 for fixes.
 set -euo pipefail
@@ -16,6 +16,7 @@ V="${1:-}"
 [[ "$V" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Usage: scripts/release.sh X.Y.Z" >&2; exit 1; }
 [ "$(git branch --show-current)" = dev ] || { echo "Run this on the dev branch." >&2; exit 1; }
 git diff --quiet && git diff --cached --quiet || { echo "Commit or stash your changes first." >&2; exit 1; }
+git fetch -q --tags origin 2>/dev/null || true
 git rev-parse -q --verify "refs/tags/v$V" >/dev/null && { echo "v$V is already released." >&2; exit 1; }
 git fetch -q origin
 git merge -q --ff-only origin/dev 2>/dev/null || true
@@ -45,12 +46,8 @@ cp www/index.html mac-app/app/index.html
 cp www/index.html web-artifact/songpad.html
 git add -A && git commit -q -m "Release $V: web app and Mac app" || true
 scripts/stamp-version.sh
-git tag -a "v$V" -m "*[demo] $V"
-git push -q origin main "v$V"
-
-# 4. the Mac download now, rather than waiting for Monday's rebuild
-gh api -X POST repos/:owner/:repo/actions/workflows/mac-download.yml/dispatches -f ref=main >/dev/null 2>&1 \
-  && echo "Started the Mac download build." || echo "Start the Mac download from Actions › Mac download › Run workflow."
+git push -q origin main
+# the "Tag release" workflow tags it vX.Y.Z, and the new version in mac-app/package.json starts the Mac download build
 
 # 5. dev carries on from the release
 git checkout -q dev && git merge -q --ff-only main && git push -q origin dev
