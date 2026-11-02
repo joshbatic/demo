@@ -216,7 +216,7 @@ struct AccountScreen: View {
             NavigationLink(value: "name") {
                 LabeledContent {
                     if let u = session.profile.username, !u.isEmpty { Text("@" + u) } else { Text("Not set") }
-                } label: { Label { Text("Name & Username") } icon: { TileIcon("person.fill", Theme.Tile.blue) } }
+                } label: { Label { Text("Name & Username") } icon: { GlassTile("person", .blue) } }
             }
             Button { notificationsTapped() } label: {
                 LabeledContent {
@@ -225,7 +225,7 @@ struct AccountScreen: View {
                     case .denied: Text("Off")
                     default: Text("Turn On").foregroundStyle(.blue)
                     }
-                } label: { Label { Text("Notifications").foregroundStyle(.primary) } icon: { TileIcon("bell.badge.fill", Theme.Tile.red) } }
+                } label: { Label { Text("Notifications").foregroundStyle(.primary) } icon: { GlassTile("bell", .red) } }
             }
             if notifOpen && [UNAuthorizationStatus.authorized, .provisional, .ephemeral].contains(push.status) {
                 prefToggle("cowrite", "Co-writing", "When someone accepts your invite or edits a song you share")
@@ -294,24 +294,24 @@ struct AccountScreen: View {
                     Label {
                         Text("Credits").foregroundStyle(.primary)
                     } icon: {
-                        TileIcon("music.note.list", Theme.Tile.orange)
+                        GlassTile("signature", .orange)
                     }
                 }
             }
             Button { Haptics.tap(); importing = true } label: {
-                Label { Text("Import Songs").foregroundStyle(.primary) } icon: { TileIcon("tray.and.arrow.down.fill", Theme.Tile.blue) }
+                Label { Text("Import Songs").foregroundStyle(.primary) } icon: { GlassTile("tray.and.arrow.down", .blue) }
             }
             Button {
                 Haptics.tap()
                 if let u = library.exportFile() { exportURL = u } else { session.toast = "No songs to export yet" }
             } label: {
-                Label { Text("Export All Songs").foregroundStyle(.primary) } icon: { TileIcon("tray.and.arrow.up.fill", Theme.Tile.green) }
+                Label { Text("Export All Songs").foregroundStyle(.primary) } icon: { GlassTile("tray.and.arrow.up", .green) }
             }
             LabeledContent {
                 if let st = storage {
                     Text(SongFiles.size(st.used) + " of " + SongFiles.size(st.limit)).foregroundStyle(st.used >= st.limit ? Color.red : .secondary)
                 } else { Text("—") }
-            } label: { Label { Text("Storage") } icon: { TileIcon("externaldrive.fill", Theme.Tile.gray) } }
+            } label: { Label { Text("Storage") } icon: { GlassTile("externaldrive", .gray) } }
         }
     }
 
@@ -324,17 +324,17 @@ struct AccountScreen: View {
                 if on { AIService.shared.consent = "yes"; session.toast = "AI features are on" }
                 else { AIService.shared.consent = "no"; session.toast = "AI features are off" }
             })) {
-                Label { Text("AI Features") } icon: { TileIcon("sparkles", Theme.Tile.purple) }
+                Label { Text("AI Features") } icon: { GlassTile("sparkles", .purple) }
             }
             .toggleStyle(.green)
             Button { confirmReset = true } label: {
-                Label { Text("Reset What Rate Learned").foregroundStyle(.primary) } icon: { TileIcon("arrow.counterclockwise", Theme.Tile.indigo) }
+                Label { Text("Reset What Rate Learned").foregroundStyle(.primary) } icon: { GlassTile("arrow.counterclockwise", .indigo) }
             }
             if !blocked.isEmpty {
                 Button { withAnimation(.snappy) { blockedOpen.toggle() } } label: {
                     LabeledContent {
                         Text("\(blocked.count)")
-                    } label: { Label { Text("Blocked").foregroundStyle(.primary) } icon: { TileIcon("nosign", Theme.Tile.pink) } }
+                    } label: { Label { Text("Blocked").foregroundStyle(.primary) } icon: { GlassTile("nosign", .pink) } }
                 }
                 if blockedOpen {
                     ForEach(blocked) { b in
@@ -359,16 +359,16 @@ struct AccountScreen: View {
     private var supportSection: some View {
         Section("About & support") {
             Button { openURL(URL(string: "https://hellodemo.app/privacy.html")!) } label: {
-                Label { Text("Privacy Policy").foregroundStyle(.primary) } icon: { TileIcon("lock.fill", Theme.Tile.blue) }
+                Label { Text("Privacy Policy").foregroundStyle(.primary) } icon: { GlassTile("shield", .blue) }
             }
             Button { openURL(URL(string: "https://hellodemo.app/terms.html")!) } label: {
-                Label { Text("Terms of Service").foregroundStyle(.primary) } icon: { TileIcon("doc.text.fill", Theme.Tile.gray) }
+                Label { Text("Terms of Service").foregroundStyle(.primary) } icon: { GlassTile("doc.text", .gray) }
             }
             NavigationLink(value: "support") {
                 LabeledContent {
                     let n = tickets.reduce(0) { $0 + $1.replies.count }
                     if n > 0 { Text(n == 1 ? "1 reply" : "\(n) replies") }
-                } label: { Label { Text("Contact Support") } icon: { TileIcon("questionmark.bubble.fill", Theme.Tile.green) } }
+                } label: { Label { Text("Contact Support") } icon: { GlassTile("questionmark.bubble", .green) } }
             }
         }
     }
@@ -382,7 +382,7 @@ struct AccountScreen: View {
                 dismiss()
                 Task { await session.signOut() }
             } label: {
-                Label { Text("Switch Account").foregroundStyle(.primary) } icon: { TileIcon("person.2.fill", Theme.Tile.indigo) }
+                Label { Text("Switch Account").foregroundStyle(.primary) } icon: { GlassTile("person.2", .indigo) }
             }
             Button("Sign Out", role: .destructive) { confirmSignOut = true }
             Button("Delete Account", role: .destructive) { Haptics.warning(); confirmDelete = true }

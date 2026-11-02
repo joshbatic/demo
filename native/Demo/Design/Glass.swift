@@ -114,6 +114,36 @@ struct TileIcon: View {
     }
 }
 
+/// The account page's tile: a small frosted-glass square with the symbol drawn in outline, in its own colour.
+/// Every row gets the same tile, so the page reads as one set while the colours keep it lively.
+struct GlassTile: View {
+    let name: String
+    let color: Color
+    var size: CGFloat = 30
+    @Environment(\.colorScheme) private var scheme
+    init(_ name: String, _ color: Color, size: CGFloat = 30) { self.name = name; self.color = color; self.size = size }
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: size * 0.235, style: .continuous)
+        let dark = scheme == .dark
+        Image(systemName: name)
+            .resizable()
+            .scaledToFit()
+            .fontWeight(.medium)
+            .symbolRenderingMode(.monochrome)
+            .foregroundStyle(color)
+            .frame(width: size * 0.6, height: size * 0.6)
+            .frame(width: size, height: size)
+            .background {
+                shape.fill(LinearGradient(colors: dark ? [.white.opacity(0.16), .white.opacity(0.08)] : [.white, Color(hex: 0xF3F3F6)],
+                                          startPoint: .top, endPoint: .bottom))
+                    .overlay(shape.strokeBorder(dark ? Color.white.opacity(0.12) : Color.black.opacity(0.12), lineWidth: 0.5))
+                    .shadow(color: .black.opacity(dark ? 0 : 0.08), radius: 1, y: 1)
+            }
+            .accessibilityHidden(true)
+    }
+}
+
 /// The tile: the colour lit from the top left and settling a touch deeper at the bottom, a crisp bright line
 /// along the top edge (glass catching the light) and a hairline edge. No blur, so it stays sharp.
 struct TileBackground: View {
