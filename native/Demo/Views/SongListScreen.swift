@@ -108,7 +108,10 @@ struct SongListScreen: View {
                 ListHeader(title: "*[demo]") { AccountButton { session.accountFocus = nil; session.accountOpen = true } }
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                SearchDock(text: $query, prompt: "Search", icon: "ic-new", label: "New song") { newSong() }
+                SearchDock(text: $query, prompt: "Search", icon: "ic-new", label: "New song",
+                           menu: [.init(title: "New Song", symbol: "square.and.pencil") { newSong() },
+                                  .init(title: "New Folder", symbol: "folder.badge.plus") { newFolder() },
+                                  .init(title: "New Album", symbol: "square.stack") { newAlbum([]) }]) { newSong() }
             }
             .navigationDestination(for: String.self) { id in
                 if id == IdeasRow.route { IdeasScreen() }
@@ -542,8 +545,18 @@ struct SearchDock: View {
     let prompt: String
     let icon: String
     let label: String
+    /// press and hold the round button for these (the songs list: New Song, New Folder, New Album); a tap is `action`
+    var menu: [DockItem] = []
     let action: () -> Void
     @FocusState private var focused: Bool
+
+    struct DockItem: Identifiable {
+        let id = UUID()
+        let title: String
+        let symbol: String
+        let run: () -> Void
+        init(title: String, symbol: String, run: @escaping () -> Void) { self.title = title; self.symbol = symbol; self.run = run }
+    }
 
     var body: some View {
         GlassGroup(spacing: 10) {
@@ -580,11 +593,28 @@ struct SearchDock: View {
                 }
                 .buttonStyle(.plain)
                 .glassCircle()
+                .modifier(DockMenu(items: menu))
                 .accessibilityLabel(label)
             }
         }
         .padding(.horizontal, 14)
         .padding(.bottom, 8)
+    }
+}
+
+/// The dock button's press-and-hold menu, only when it has items (otherwise holding it does nothing).
+private struct DockMenu: ViewModifier {
+    let items: [SearchDock.DockItem]
+    func body(content: Content) -> some View {
+        if items.isEmpty {
+            content
+        } else {
+            content.contextMenu {
+                ForEach(items) { it in
+                    Button { it.run() } label: { Label(it.title, systemImage: it.symbol) }
+                }
+            }
+        }
     }
 }
 
