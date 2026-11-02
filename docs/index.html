@@ -69,16 +69,14 @@ h1{margin:44px 0 0;font-size:clamp(44px,7vw,72px);line-height:1.04;font-weight:7
 .intro{text-align:center;padding:120px 24px 36px}
 .intro h2{margin:0;font-size:clamp(36px,5.6vw,56px);line-height:1.07;font-weight:700;letter-spacing:-.03em}
 .intro p{max-width:600px;margin:16px auto 0;font-size:clamp(19px,2.2vw,21px);color:var(--mute)}
-.hl{position:relative;padding:20px 0 30px}
-.track{display:flex;gap:28px;overflow-x:auto;scroll-snap-type:x mandatory;padding:20px max(24px,calc((100% - 1040px)/2)) 30px;scrollbar-width:none;scroll-padding:0 max(24px,calc((100% - 1040px)/2))}
-.track::-webkit-scrollbar{display:none}
-.track figure{margin:0;flex:none;width:280px;scroll-snap-align:start}
-.phone{width:100%;aspect-ratio:1058/2244;border-radius:44px;padding:9px;background:#1d1d1f;box-shadow:0 0 0 1.5px #3a3a3c inset,0 30px 60px -24px rgba(0,0,0,.35)}
-.phone img{display:block;width:100%;height:100%;object-fit:cover;border-radius:35px}
-figcaption{margin-top:22px;font-size:16px;line-height:1.4;color:var(--mute);padding-right:12px}figcaption b{color:var(--ink);font-weight:600}
-.hlnav{display:flex;justify-content:flex-end;gap:12px;max-width:1040px;margin:0 auto;padding:0 24px}
-.hlnav button{width:40px;height:40px;border-radius:50%;border:0;background:#e8e8ed;color:var(--ink);font-size:22px;line-height:1;cursor:pointer;transition:background .2s}
-.hlnav button:hover{background:#dcdce1}
+.show{display:flex;flex-direction:column;align-items:center;padding:24px 24px 40px}
+.show .phone{width:min(300px,72vw);aspect-ratio:1058/2244;border-radius:46px;padding:9px;background:#1d1d1f;box-shadow:0 0 0 1.5px #3a3a3c inset,0 40px 80px -30px rgba(0,0,0,.35)}
+.show .phone img{display:block;width:100%;height:100%;object-fit:cover;border-radius:37px;transition:opacity .25s}
+.show .cap{margin:28px 0 0;min-height:1.5em;font-size:19px;color:var(--mute);text-align:center;transition:opacity .25s}
+.tabs{display:flex;gap:4px;margin-top:18px;padding:4px;border-radius:99px;background:#e8e8ed;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;border:0;background:none;font:600 14px var(--font);color:#424245;padding:8px 16px;border-radius:99px;cursor:pointer;transition:background .2s,color .2s}
+.tabs button[aria-selected=true]{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .bento{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1040px;margin:0 auto;padding:40px 24px 110px}
 .tile{position:relative;overflow:hidden;border-radius:28px;background:var(--soft);padding:30px 30px 32px;min-height:300px}
 .tile.big{grid-column:span 2;grid-row:span 2}.tile.wide{grid-column:span 2}
@@ -113,7 +111,7 @@ mark{border-radius:4px;padding:0 2px;color:inherit}.m1{background:#ffd9a8}.m2{ba
 .everywhere h3{font-size:clamp(26px,3vw,34px)}
 @media (max-width:860px){
   .bento{grid-template-columns:1fr}.tile.big,.tile.wide{grid-column:auto;grid-row:auto}
-  .link{grid-template-columns:1fr}.track figure{width:240px}.tile{min-height:0}
+  .link{grid-template-columns:1fr}.tile{min-height:0}
 }
 
 /* ---- the close: the button again, small, and the ways in ---- */
@@ -176,17 +174,17 @@ footer nav{display:flex;gap:20px}footer a:hover{color:var(--ink)}
       <p>Your lyrics, your ideas and your demos in one place, on your iPhone and your Mac.</p>
     </div>
 
-    <!-- the highlights: the app itself, side by side; scroll sideways -->
-    <div class="hl" aria-label="Highlights">
-      <div class="track">
-        <figure><div class="phone"><img src="img/ideas.jpg" alt="Ideas: jotted lines and voice memos" loading="lazy"></div><figcaption><b>Catch it before it’s gone.</b> Jot a line or hum a melody. It’s waiting in Ideas.</figcaption></figure>
-        <figure><div class="phone"><img src="img/rhymes.jpg" alt="Rhymes for the word ghost under the lyrics" loading="lazy"></div><figcaption><b>Find the word that fits.</b> Rhymes, phrases and synonyms, right where you write.</figcaption></figure>
-        <figure><div class="phone"><img src="img/lines.jpg" alt="Suggested next lines for a verse" loading="lazy"></div><figcaption><b>Stuck? Keep going.</b> Next lines that match your verse, in your voice.</figcaption></figure>
-        <figure><div class="phone"><img src="img/together.jpg" alt="A song's details with a co-writer invited" loading="lazy"></div><figcaption><b>Write it together.</b> Invite a co-writer and see each other’s edits live.</figcaption></figure>
-        <figure><div class="phone"><img src="img/share.jpg" alt="Sharing a song as a link" loading="lazy"></div><figcaption><b>Send it like it’s out.</b> A link anyone can open, no app needed.</figcaption></figure>
-        <figure><div class="phone"><img src="img/songs.jpg" alt="The song list" loading="lazy"></div><figcaption><b>Every song, one place.</b> Lyrics, demos and ideas, all in one library.</figcaption></figure>
+    <!-- the app itself: one phone, and a row of tabs that swaps what it shows -->
+    <div class="show">
+      <div class="phone"><img src="img/ideas.jpg" alt="Ideas in *[demo]" id="showimg"></div>
+      <p class="cap" id="showcap">Jot a line or hum a melody. It’s waiting in Ideas.</p>
+      <div class="tabs" role="tablist" aria-label="See the app">
+        <button role="tab" aria-selected="true" data-img="ideas" data-cap="Jot a line or hum a melody. It’s waiting in Ideas.">Ideas</button>
+        <button role="tab" aria-selected="false" data-img="rhymes" data-cap="Rhymes, phrases and synonyms, right where you write.">Rhymes</button>
+        <button role="tab" aria-selected="false" data-img="lines" data-cap="Stuck? Next lines that match your verse, in your voice.">Lines</button>
+        <button role="tab" aria-selected="false" data-img="together" data-cap="Invite a co-writer and see each other’s edits live.">Together</button>
+        <button role="tab" aria-selected="false" data-img="share" data-cap="A link anyone can open, no app needed.">Share</button>
       </div>
-      <div class="hlnav"><button type="button" data-d="-1" aria-label="Previous">‹</button><button type="button" data-d="1" aria-label="Next">›</button></div>
     </div>
 
     <!-- the closer look: tiles of different sizes, each showing one thing working -->
@@ -290,8 +288,11 @@ var src=document.querySelector('.hero .disc svg'),end=document.querySelector('.e
     function up(){if(!held)return;held=false;d.classList.remove('held');if(performance.now()-pt>90)v=0;v=Math.max(-2400,Math.min(2400,v));go()}
     d.addEventListener('pointerup',up);d.addEventListener('pointercancel',up);
     go()})})();
-/* the highlights: arrows step one phone along */
-var tr=document.querySelector('.track');document.querySelectorAll('.hlnav button').forEach(function(b){b.onclick=function(){tr.scrollBy({left:+b.dataset.d*308,behavior:'smooth'})}});
+/* the phone: each tab shows that part of the app (pictures preloaded so the swap is instant) */
+(function(){var img=document.getElementById('showimg'),cap=document.getElementById('showcap'),tabs=[].slice.call(document.querySelectorAll('.tabs button'));
+  tabs.forEach(function(t){new Image().src='img/'+t.dataset.img+'.jpg';t.onclick=function(){if(t.getAttribute('aria-selected')==='true')return;
+    tabs.forEach(function(x){x.setAttribute('aria-selected',x===t?'true':'false')});img.style.opacity=cap.style.opacity=0;
+    setTimeout(function(){img.src='img/'+t.dataset.img+'.jpg';img.alt=t.textContent+' in *[demo]';cap.textContent=t.dataset.cap;img.style.opacity=cap.style.opacity=1},200)}})})();
 /* lyric sync tile: each line lights up in turn while the bar fills, only while it's on screen */
 (function(){var t=document.querySelector('.sync');if(!t)return;var L=[].slice.call(t.querySelectorAll('.ly p')),bar=t.querySelector('.bar i'),i=-1,timer=0;
   function step(){i=(i+1)%L.length;L.forEach(function(p,k){p.classList.toggle('on',k===i);p.classList.toggle('past',k<i)});bar.style.transition=i?'width 2.4s linear':'none';bar.style.width=((i+1)/L.length*100)+'%'}
