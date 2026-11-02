@@ -283,12 +283,12 @@ struct AlbumScreen: View {
                     Button { Haptics.tap(); reading = true } label: {
                         Label("Read Lyrics", systemImage: "book.fill")
                             .font(.system(size: 17, weight: .semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(look.ink)
                             .frame(width: 176, height: 52)
-                            .background(look.ink, in: Capsule())
                             .contentShape(Capsule())
                     }
                     .buttonStyle(PressScale())
+                    .glassCapsule(interactive: true)
                     .disabled(tracks.isEmpty).opacity(tracks.isEmpty ? 0.55 : 1)
                     round("square.and.pencil", "New Song") { newSong(a) }
                 }
