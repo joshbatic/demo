@@ -34,7 +34,7 @@ var PRE=null;/*PRELOAD*/
 /*SHARE-RENDER:BEGIN  everything between these markers is also copied into the share-link viewer
   (docs/s/index.html) by scripts/build-share-viewer.py, so a shared link looks exactly like a shared file.
   Keep it self-contained: plain functions, no app state. */
-var SH_FONT="-apple-system,'SF Pro Display',system-ui,'Helvetica Neue',Arial,sans-serif";
+var SH_FONT="-apple-system,'SF Pro Display',system-ui,'Helvetica Neue',Arial,sans-serif",SH_LISTEN='https://listen.hellodemo.app/';
 function shEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function shBgCss(b){var m=/^hsla?\((\d{1,3}),(\d{1,3})%,(\d{1,3})%/.exec(String(b.glow)),g0=m?'hsla('+m[1]+','+m[2]+'%,'+m[3]+'%,0)':'transparent';return'radial-gradient(90% 60% at 88% 4%,'+b.glow+','+g0+' 72%),linear-gradient(155deg,'+b.top+','+b.bot+')'}
 /* the waveform, drawn the same way as the in-note player: rounded bars from the saved peaks, played part
@@ -108,12 +108,38 @@ function shRender(d,o){o=o||{};var A=d.audio&&d.audio.src?d.audio:null,blocks=d.
   'p{font-size:clamp(25px,5.6vw,33px);line-height:1.22;font-weight:700;letter-spacing:-.012em;margin:0 0 12px;color:hsla(var(--k),.95);transition:color .35s,transform .35s;transform-origin:left center}.g{height:26px}.none{opacity:.5}'+
   (synced?'.sync p{color:hsla(var(--k),.34);cursor:pointer}.sync p.on{color:hsl(var(--k));transform:scale(1.025)}.sync p.past{color:hsla(var(--k),.5)}@media (hover:hover){.sync p:hover{color:hsla(var(--k),.7)}}':'')+
   'footer{margin-top:72px;color:hsla(var(--k),.4);font-size:14px;font-weight:600}footer .rp{margin-left:16px;font-weight:500}footer a{color:inherit;text-decoration:none;border-radius:6px;transition:color .15s}footer a:hover,footer a:focus-visible{color:hsla(var(--k),.7)}footer a:focus-visible{outline:2px solid hsla(var(--k),.4);outline-offset:3px}'+
+  '.alb{display:inline-flex;align-items:center;gap:7px;margin:0 0 14px 4px;font-size:15px;font-weight:600;color:hsla(var(--k),.7);text-decoration:none}.alb:hover{color:hsl(var(--k))}'+
   '@media (prefers-reduced-motion:reduce){p{transition:none}}</style></head><body><main'+(synced?' class="sync"':'')+'>'+
+  (d.alb&&d.alb.id?'<a class="alb" href="'+SH_LISTEN+q(d.alb.id)+'"><svg width="9" height="15" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'+shEsc(d.alb.title||'Album')+'</a>':'')+
   '<div id="np"><div class="top"><img class="art" alt="" src="'+q(d.art||'')+'"><div class="meta"><b>'+shEsc(title)+'</b>'+(sub?'<span>'+shEsc(sub)+'</span>':'')+'</div>'+(A?'<button class="pp" id="pp" aria-label="Play"></button>':'')+'</div>'+
   (A?'<canvas id="wv" tabindex="0" role="slider" aria-label="Position in the song" data-d="'+(+A.dur||0)+'" data-p="'+q(JSON.stringify((A.peaks||[]).map(Number).filter(isFinite)))+'"></canvas><div class="bot"><span id="at">0:00</span><div class="sk"><button id="bk" aria-label="Back 15 seconds">'+(o.skB||'−15')+'</button><button id="fw" aria-label="Forward 15 seconds">'+(o.skF||'+15')+'</button></div><span id="du"></span></div>':'')+'</div>'+
   '<div id="ly">'+body+'</div><footer><a href="https://hellodemo.app/" target="_blank" rel="noopener">Written in *[demo]</a><a class="rp" href="mailto:help@hellodemo.app?subject=Report%20a%20shared%20song" onclick="this.href=this.href.split(\'&\')[0]+\'&body=\'+encodeURIComponent(\'Link: \'+location.href+\'\\n\\nWhat\\u2019s wrong:\\n\')">Report</a></footer></main>'+
   (A?'<audio id="au" preload="auto" src="'+q(A.src)+'" data-title="'+q(title)+'" data-artist="'+q(d.artist||'')+'"></audio><script>'+shWaveDraw.toString()+'('+shPlayerJS.toString()+')()<\/script>':'')+
   '</body></html>'}
+/* a shared album, laid out like the album page in the app on the share page's colours; each song opens its own link:
+   d = {type:'album', title, artist, kind, year, art, bg:{top,bot,glow,k}, tracks:[{title, line, link}]} */
+function shAlbumRender(d){var q=shEsc,t=d.tracks||[],title=d.title||'Untitled Album';
+  var meta=[d.kind||'Album',d.year,t.length+(t.length===1?' song':' songs')].filter(Boolean).join(' · ');
+  var rows=t.map(function(x,i){var inner='<span class="n">'+(i+1)+'</span><span class="tx"><b>'+shEsc(x.title||'Untitled')+'</b>'+(x.line?'<span>'+shEsc(x.line)+'</span>':'')+'</span>'+
+      (x.link?'<svg class="ch" width="8" height="14" viewBox="0 0 8 14" aria-hidden="true"><path d="M1.5 1.5L6.5 7l-5 5.5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>':'');
+    return x.link?'<a class="tr" href="'+SH_LISTEN+q(x.link)+'">'+inner+'</a>':'<div class="tr">'+inner+'</div>'}).join('');
+  return'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'+
+  '<title>'+shEsc(title)+(d.artist?' – '+shEsc(d.artist):'')+'</title><meta name="theme-color" content="'+q(d.bg.top)+'">'+
+  '<style>*{box-sizing:border-box}html{background:'+d.bg.top+'}:root{--k:'+d.bg.k+'}body{margin:0;min-height:100vh;color:hsl(var(--k));font:17px/1.35 '+SH_FONT+';-webkit-font-smoothing:antialiased;background:'+shBgCss(d.bg)+';background-color:'+d.bg.top+';background-attachment:fixed}'+
+  'main{max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 40px) 20px 80px}'+
+  '.hd{text-align:center}.art{display:block;width:min(264px,70vw);aspect-ratio:1;object-fit:cover;border-radius:10px;margin:0 auto 26px;box-shadow:0 18px 40px hsla(var(--k),.22),0 3px 10px hsla(var(--k),.1)}'+
+  'h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.4px;line-height:1.2}.by{font-size:21px;margin-top:2px;opacity:.9}.meta{margin-top:7px;font-size:13px;font-weight:600;color:hsla(var(--k),.6)}'+
+  '.tl{margin-top:30px;border-top:.5px solid hsla(var(--k),.14)}'+
+  '.tr{display:flex;align-items:center;gap:14px;min-height:64px;padding:10px 6px 10px 0;color:inherit;text-decoration:none;position:relative;border-radius:10px;transition:background-color .15s}'+
+  '.tr+.tr::before{content:"";position:absolute;top:0;left:36px;right:0;border-top:.5px solid hsla(var(--k),.14)}'+
+  'a.tr:hover,a.tr:focus-visible{background:hsla(var(--k),.06);outline:0}a.tr:active{background:hsla(var(--k),.1)}'+
+  '.n{flex:none;width:22px;text-align:center;font-size:16px;color:hsla(var(--k),.5);font-variant-numeric:tabular-nums}'+
+  '.tx{flex:1;min-width:0}.tx b{display:block;font-size:17px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tx span{display:block;font-size:14px;color:hsla(var(--k),.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}'+
+  '.ch{flex:none;color:hsla(var(--k),.35)}'+
+  'footer{margin-top:56px;color:hsla(var(--k),.4);font-size:14px;font-weight:600}footer .rp{margin-left:16px;font-weight:500}footer a{color:inherit;text-decoration:none}footer a:hover{color:hsla(var(--k),.7)}'+
+  '</style></head><body><main><div class="hd">'+(d.art?'<img class="art" alt="" src="'+q(d.art)+'">':'')+'<h1>'+shEsc(title)+'</h1>'+(d.artist?'<div class="by">'+shEsc(d.artist)+'</div>':'')+'<div class="meta">'+shEsc(meta)+'</div></div>'+
+  '<div class="tl">'+(rows||'<p style="opacity:.5">No songs yet</p>')+'</div>'+
+  '<footer><a href="https://hellodemo.app/" target="_blank" rel="noopener">Written in *[demo]</a><a class="rp" href="mailto:help@hellodemo.app?subject=Report%20a%20shared%20album" onclick="this.href=this.href.split(\'&\')[0]+\'&body=\'+encodeURIComponent(\'Link: \'+location.href+\'\\n\\nWhat\\u2019s wrong:\\n\')">Report</a></footer></main></body></html>'}
 /*SHARE-RENDER:END*/
 (function(){
   function msg(t,s){var m=document.getElementById('m');m.innerHTML='<b></b><p></p><a href="https://hellodemo.app/">What’s *[demo]?</a>';m.firstChild.textContent=t;m.children[1].textContent=s||''}
@@ -125,13 +151,17 @@ function shRender(d,o){o=o||{};var A=d.audio&&d.audio.src?d.audio:null,blocks=d.
   function clean(d){var b=d.bg||{},a=d.audio,out={title:str(d.title),artist:str(d.artist),key:str(d.key,12),bpm:/^\d{1,3}$/.test(String(d.bpm))?String(d.bpm):'',
       bg:{top:col(b.top,'hsl(20,80%,86%)'),bot:col(b.bot,'hsl(280,60%,80%)'),glow:col(b.glow,'hsl(210,70%,88%)'),k:typeof b.k==='string'&&/^\d{1,3},\d{1,3}%,\d{1,3}%$/.test(b.k)?b.k:'260,30%,15%'},
       art:url(d.art),audio:null,blocks:[]};
+    /* a song opened from a shared album links back to it */
+    if(d.alb&&typeof d.alb==='object'&&/^[A-Za-z0-9]{10}$/.test(d.alb.id))out.alb={id:d.alb.id,title:str(d.alb.title,160)};
     (Array.isArray(d.blocks)?d.blocks.slice(0,3000):[]).forEach(function(x){if(!x||typeof x!=='object')return;if(x.gap)out.blocks.push({gap:true});else if(x.sec!=null)out.blocks.push({sec:str(x.sec,120)});else if(x.line!=null)out.blocks.push({line:str(x.line,500),t:typeof x.t==='number'&&isFinite(x.t)?x.t:null})});
     if(a&&url(a.src))out.audio={src:url(a.src),name:str(a.name,160),dur:+a.dur||0,peaks:(Array.isArray(a.peaks)?a.peaks.slice(0,2000):[]).map(Number).filter(isFinite)};
     return out}
+  function cleanAlbum(d){var b=clean(d);return{type:'album',title:b.title,artist:b.artist,kind:/^(Album|EP|Single)$/.test(d.kind)?d.kind:'Album',year:/^\d{4}$/.test(String(d.year))?String(d.year):'',art:b.art,bg:b.bg,
+    tracks:(Array.isArray(d.tracks)?d.tracks.slice(0,200):[]).filter(function(x){return x&&typeof x==='object'}).map(function(x){return{title:str(x.title,160),line:str(x.line,300),link:/^[A-Za-z0-9]{10}$/.test(x.link)?x.link:''}})}}
   function show(d){if(!d||typeof d!=='object')return msg('This song isn’t shared any more','Ask whoever sent it for a new link.');
     /* let the writer know it's being listened to (once a day per link, if they want that: supabase/notify.sql) */
     try{fetch(SB_URL+'/rest/v1/rpc/share_seen',{method:'POST',keepalive:true,headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({sid:id})}).catch(function(){})}catch(e){}
-    var html=shRender(clean(d),{skB:SKB,skF:SKF});
+    var html=d.type==='album'?shAlbumRender(cleanAlbum(d)):shRender(clean(d),{skB:SKB,skF:SKF});
     /* replace the whole loading page. While the page is still loading, document.open() is ignored and the song
        would be added underneath the loading dots, so wait for the page to finish loading first */
     var swap=function(){document.open();document.write(html);document.close()};

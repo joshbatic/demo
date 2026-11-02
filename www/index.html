@@ -1503,7 +1503,7 @@ body.desktop #albread .arx{top:12px}
 
 <div class="view" id="vAlbum">
   <div class="scroll" id="ascroll"><div class="awash" aria-hidden="true"></div><div id="amount"></div></div>
-  <div class="albbar"><button class="gl ib" id="aback" aria-label="Back"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="gl agrp"><button class="ib" id="ashare" aria-label="Copy tracklist" title="Copy tracklist"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v11.5M8 7.2l4-3.9 4 3.9"/><path d="M8.5 10.5H7a2 2 0 0 0-2 2V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6.5a2 2 0 0 0-2-2h-1.5"/></svg></button><button class="ib" id="amore" aria-label="Album options" title="Album options"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg></button></div></div>
+  <div class="albbar"><button class="gl ib" id="aback" aria-label="Back"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="gl agrp"><button class="ib" id="ashare" aria-label="Share" title="Share"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v11.5M8 7.2l4-3.9 4 3.9"/><path d="M8.5 10.5H7a2 2 0 0 0-2 2V19a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6.5a2 2 0 0 0-2-2h-1.5"/></svg></button><button class="ib" id="amore" aria-label="Album options" title="Album options"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg></button></div></div>
 </div>
 
 <div class="view" id="vEdit">
@@ -20936,7 +20936,7 @@ function shAudioBlob(a){return sfBlob(a).then(function(b){
 /*SHARE-RENDER:BEGIN  everything between these markers is also copied into the share-link viewer
   (docs/s/index.html) by scripts/build-share-viewer.py, so a shared link looks exactly like a shared file.
   Keep it self-contained: plain functions, no app state. */
-var SH_FONT="-apple-system,'SF Pro Display',system-ui,'Helvetica Neue',Arial,sans-serif";
+var SH_FONT="-apple-system,'SF Pro Display',system-ui,'Helvetica Neue',Arial,sans-serif",SH_LISTEN='https://listen.hellodemo.app/';
 function shEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function shBgCss(b){var m=/^hsla?\((\d{1,3}),(\d{1,3})%,(\d{1,3})%/.exec(String(b.glow)),g0=m?'hsla('+m[1]+','+m[2]+'%,'+m[3]+'%,0)':'transparent';return'radial-gradient(90% 60% at 88% 4%,'+b.glow+','+g0+' 72%),linear-gradient(155deg,'+b.top+','+b.bot+')'}
 /* the waveform, drawn the same way as the in-note player: rounded bars from the saved peaks, played part
@@ -21010,12 +21010,38 @@ function shRender(d,o){o=o||{};var A=d.audio&&d.audio.src?d.audio:null,blocks=d.
   'p{font-size:clamp(25px,5.6vw,33px);line-height:1.22;font-weight:700;letter-spacing:-.012em;margin:0 0 12px;color:hsla(var(--k),.95);transition:color .35s,transform .35s;transform-origin:left center}.g{height:26px}.none{opacity:.5}'+
   (synced?'.sync p{color:hsla(var(--k),.34);cursor:pointer}.sync p.on{color:hsl(var(--k));transform:scale(1.025)}.sync p.past{color:hsla(var(--k),.5)}@media (hover:hover){.sync p:hover{color:hsla(var(--k),.7)}}':'')+
   'footer{margin-top:72px;color:hsla(var(--k),.4);font-size:14px;font-weight:600}footer .rp{margin-left:16px;font-weight:500}footer a{color:inherit;text-decoration:none;border-radius:6px;transition:color .15s}footer a:hover,footer a:focus-visible{color:hsla(var(--k),.7)}footer a:focus-visible{outline:2px solid hsla(var(--k),.4);outline-offset:3px}'+
+  '.alb{display:inline-flex;align-items:center;gap:7px;margin:0 0 14px 4px;font-size:15px;font-weight:600;color:hsla(var(--k),.7);text-decoration:none}.alb:hover{color:hsl(var(--k))}'+
   '@media (prefers-reduced-motion:reduce){p{transition:none}}</style></head><body><main'+(synced?' class="sync"':'')+'>'+
+  (d.alb&&d.alb.id?'<a class="alb" href="'+SH_LISTEN+q(d.alb.id)+'"><svg width="9" height="15" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'+shEsc(d.alb.title||'Album')+'</a>':'')+
   '<div id="np"><div class="top"><img class="art" alt="" src="'+q(d.art||'')+'"><div class="meta"><b>'+shEsc(title)+'</b>'+(sub?'<span>'+shEsc(sub)+'</span>':'')+'</div>'+(A?'<button class="pp" id="pp" aria-label="Play"></button>':'')+'</div>'+
   (A?'<canvas id="wv" tabindex="0" role="slider" aria-label="Position in the song" data-d="'+(+A.dur||0)+'" data-p="'+q(JSON.stringify((A.peaks||[]).map(Number).filter(isFinite)))+'"></canvas><div class="bot"><span id="at">0:00</span><div class="sk"><button id="bk" aria-label="Back 15 seconds">'+(o.skB||'−15')+'</button><button id="fw" aria-label="Forward 15 seconds">'+(o.skF||'+15')+'</button></div><span id="du"></span></div>':'')+'</div>'+
   '<div id="ly">'+body+'</div><footer><a href="https://hellodemo.app/" target="_blank" rel="noopener">Written in *[demo]</a><a class="rp" href="mailto:help@hellodemo.app?subject=Report%20a%20shared%20song" onclick="this.href=this.href.split(\'&\')[0]+\'&body=\'+encodeURIComponent(\'Link: \'+location.href+\'\\n\\nWhat\\u2019s wrong:\\n\')">Report</a></footer></main>'+
   (A?'<audio id="au" preload="auto" src="'+q(A.src)+'" data-title="'+q(title)+'" data-artist="'+q(d.artist||'')+'"></audio><script>'+shWaveDraw.toString()+'('+shPlayerJS.toString()+')()<\/script>':'')+
   '</body></html>'}
+/* a shared album, laid out like the album page in the app on the share page's colours; each song opens its own link:
+   d = {type:'album', title, artist, kind, year, art, bg:{top,bot,glow,k}, tracks:[{title, line, link}]} */
+function shAlbumRender(d){var q=shEsc,t=d.tracks||[],title=d.title||'Untitled Album';
+  var meta=[d.kind||'Album',d.year,t.length+(t.length===1?' song':' songs')].filter(Boolean).join(' · ');
+  var rows=t.map(function(x,i){var inner='<span class="n">'+(i+1)+'</span><span class="tx"><b>'+shEsc(x.title||'Untitled')+'</b>'+(x.line?'<span>'+shEsc(x.line)+'</span>':'')+'</span>'+
+      (x.link?'<svg class="ch" width="8" height="14" viewBox="0 0 8 14" aria-hidden="true"><path d="M1.5 1.5L6.5 7l-5 5.5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>':'');
+    return x.link?'<a class="tr" href="'+SH_LISTEN+q(x.link)+'">'+inner+'</a>':'<div class="tr">'+inner+'</div>'}).join('');
+  return'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'+
+  '<title>'+shEsc(title)+(d.artist?' – '+shEsc(d.artist):'')+'</title><meta name="theme-color" content="'+q(d.bg.top)+'">'+
+  '<style>*{box-sizing:border-box}html{background:'+d.bg.top+'}:root{--k:'+d.bg.k+'}body{margin:0;min-height:100vh;color:hsl(var(--k));font:17px/1.35 '+SH_FONT+';-webkit-font-smoothing:antialiased;background:'+shBgCss(d.bg)+';background-color:'+d.bg.top+';background-attachment:fixed}'+
+  'main{max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 40px) 20px 80px}'+
+  '.hd{text-align:center}.art{display:block;width:min(264px,70vw);aspect-ratio:1;object-fit:cover;border-radius:10px;margin:0 auto 26px;box-shadow:0 18px 40px hsla(var(--k),.22),0 3px 10px hsla(var(--k),.1)}'+
+  'h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.4px;line-height:1.2}.by{font-size:21px;margin-top:2px;opacity:.9}.meta{margin-top:7px;font-size:13px;font-weight:600;color:hsla(var(--k),.6)}'+
+  '.tl{margin-top:30px;border-top:.5px solid hsla(var(--k),.14)}'+
+  '.tr{display:flex;align-items:center;gap:14px;min-height:64px;padding:10px 6px 10px 0;color:inherit;text-decoration:none;position:relative;border-radius:10px;transition:background-color .15s}'+
+  '.tr+.tr::before{content:"";position:absolute;top:0;left:36px;right:0;border-top:.5px solid hsla(var(--k),.14)}'+
+  'a.tr:hover,a.tr:focus-visible{background:hsla(var(--k),.06);outline:0}a.tr:active{background:hsla(var(--k),.1)}'+
+  '.n{flex:none;width:22px;text-align:center;font-size:16px;color:hsla(var(--k),.5);font-variant-numeric:tabular-nums}'+
+  '.tx{flex:1;min-width:0}.tx b{display:block;font-size:17px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tx span{display:block;font-size:14px;color:hsla(var(--k),.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}'+
+  '.ch{flex:none;color:hsla(var(--k),.35)}'+
+  'footer{margin-top:56px;color:hsla(var(--k),.4);font-size:14px;font-weight:600}footer .rp{margin-left:16px;font-weight:500}footer a{color:inherit;text-decoration:none}footer a:hover{color:hsla(var(--k),.7)}'+
+  '</style></head><body><main><div class="hd">'+(d.art?'<img class="art" alt="" src="'+q(d.art)+'">':'')+'<h1>'+shEsc(title)+'</h1>'+(d.artist?'<div class="by">'+shEsc(d.artist)+'</div>':'')+'<div class="meta">'+shEsc(meta)+'</div></div>'+
+  '<div class="tl">'+(rows||'<p style="opacity:.5">No songs yet</p>')+'</div>'+
+  '<footer><a href="https://hellodemo.app/" target="_blank" rel="noopener">Written in *[demo]</a><a class="rp" href="mailto:help@hellodemo.app?subject=Report%20a%20shared%20album" onclick="this.href=this.href.split(\'&\')[0]+\'&body=\'+encodeURIComponent(\'Link: \'+location.href+\'\\n\\nWhat\\u2019s wrong:\\n\')">Report</a></footer></main></body></html>'}
 /*SHARE-RENDER:END*/
 function shPage(song,bg,withAudio){var a=withAudio?audCur(song):null;
   return(a?shAudioBlob(a).then(blobUrl64):Promise.resolve(null)).then(function(au){
@@ -21111,7 +21137,7 @@ function shLinkMake(song,bg,withAudio,id,o2){var c=sbClient(),uid=AUTH_USER.id;i
   /* artwork, audio and the preview picture all at once rather than one after another */
   var art=shArtBlob(song).then(function(b){return up('art-'+v+(b.type==='image/png'?'.png':'.jpg'),b).catch(shStep('upload'))});
   var au=audio(),ogp=shOgImage(song,bg,a).then(function(b){return up('og-'+v+(b.type==='image/png'?'.png':'.jpg'),b).catch(shStep('upload'))});
-  return Promise.all([art,au,ogp]).then(function(r){var d=shSnap(song,bg,a,r[1],r[0]);d.og=r[2];
+  return Promise.all([art,au,ogp]).then(function(r){var d=shSnap(song,bg,a,r[1],r[0]);d.og=r[2];if(o2&&o2.alb)d.alb=o2.alb;
     return Promise.resolve().then(function(){return c.from('shares').upsert({id:id,owner:uid,song_id:song.id,data:d,updated_at:new Date().toISOString()}).then(function(res){if(res.error){res.error.step='save';throw res.error}
       if(!(o2&&o2.stale&&o2.stale()))st.list(uid+'/'+id).then(function(l){var old=((l&&l.data)||[]).map(function(f){return f.name}).filter(function(n){return keep.indexOf(n)<0});if(old.length)st.remove(old.map(function(n){return dir+n}))}).catch(function(){});
       if(o2&&o2.stale&&o2.stale())return id;shSet(song,{id:id,at:Date.now(),audio:!!r[1],by:uid,aid:r[1]&&a?a.id:null,aname:r[1]?aname:null});return id})})})}
@@ -21351,9 +21377,44 @@ function albNewSong(a){var nm=myName(),n=albSongs(a).reduce(function(m,s){return
   var s={pf:mkPF({}),id:uuid4(),title:'',lyrics:'',chords:'',key:'',bpm:'',capo:'',time:'',tuning:'',status:'Idea',folder:'',notes:'',artist:nm,_autoArtist:nm,album:a.id,track:n+1,updated:Date.now()};
   songs.push(s);save();albOpenSong(a,s)}
 /* Share: the tracklist as plain text */
-$('#ashare').onclick=function(){var a=albGet(ALB.id);if(!a)return;var l=albSongs(a);
-  var t=[a.title||'Untitled Album',[a.kind||'Album',a.year].filter(Boolean).join(' · ')].concat(albArtist(a)?[albArtist(a)]:[]).join('\n')+'\n\n'+(l.length?l.map(function(s,i){return(i+1)+'. '+(s.title||llines(s)[0]||'New Song')}).join('\n'):'No songs yet');
-  try{navigator.clipboard.writeText(t).then(function(){toast('Tracklist copied')},function(){toast('Copy blocked')})}catch(e){toast('Copy not available')}};
+/* Share: a link to the album that anyone can open (listen.hellodemo.app/<id>), with each song opening its own link.
+   Making or updating it makes or updates every song's link too, so each one says which album it's from and links back. */
+function albShareRec(a){var uid=AUTH_USER&&AUTH_USER.id;return a&&uid&&a.share&&a.share.id&&a.share.by===uid?a.share:null}
+function albTracklist(a){var l=albSongs(a);
+  return[a.title||'Untitled Album',[a.kind||'Album',a.year].filter(Boolean).join(' · ')].concat(albArtist(a)?[albArtist(a)]:[]).join('\n')+'\n\n'+(l.length?l.map(function(s,i){return(i+1)+'. '+(s.title||llines(s)[0]||'New Song')}).join('\n'):'No songs yet')}
+function albArtBlob(a){if(artOk(a.art))return fetch(a.art).then(function(r){return r.blob()});
+  var svg=albCover(a).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" ');
+  return shLoadImg('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)).then(function(im){var c=document.createElement('canvas');c.width=c.height=480;if(im)c.getContext('2d').drawImage(im,0,0,480,480);return new Promise(function(res){c.toBlob(res,'image/jpeg',.9)})})}
+function albLinkMake(a,id,step){var c=sbClient(),uid=AUTH_USER.id,dir=uid+'/'+id+'/',v=Date.now().toString(36),st=c.storage.from(SHARE_BUCKET),list=albSongs(a),links=[],chain=Promise.resolve();
+  var alb={id:id,title:a.title||'Untitled Album'};
+  /* one song at a time: each uploads its artwork (and its audio, on Pro) */
+  list.forEach(function(s,i){chain=chain.then(function(){step(i+1,list.length);return songPalette(s)}).then(function(p){return shLinkMake(s,shBg(p.length?p:[[220,.1,.3]],0),!!audCur(s),null,{alb:alb})}).then(function(sid){links[i]=sid})});
+  return chain.then(function(){return Promise.all([albPalette(a),albArtBlob(a)])}).then(function(r){var bg=shBg(r[0],0),nm='art-'+v+'.jpg';
+    return st.upload(dir+nm,r[1],{upsert:true,contentType:'image/jpeg',cacheControl:'31536000'}).then(function(u){if(u.error){u.error.step='upload';throw u.error}
+      var d={v:1,type:'album',title:a.title||'',artist:albArtist(a)||'',kind:a.kind||'Album',year:a.year||'',art:st.getPublicUrl(dir+nm).data.publicUrl,bg:{top:bg.top,bot:bg.bot,glow:bg.glow,k:bg.k},
+        tracks:list.map(function(s,i){var ls=llines(s);return{title:s.title||ls[0]||'New Song',line:(s.title?ls[0]:ls[1])||'',link:links[i]||''}})};
+      return c.from('shares').upsert({id:id,owner:uid,song_id:'album:'+a.id,data:d,updated_at:new Date().toISOString()}).then(function(res){if(res.error){res.error.step='save';throw res.error}
+        st.list(uid+'/'+id).then(function(l){var old=((l&&l.data)||[]).map(function(f){return f.name}).filter(function(n){return n!==nm});if(old.length)st.remove(old.map(function(n){return dir+n}))}).catch(function(){});
+        var x=albGet(a.id);if(x){x.share={id:id,at:Date.now(),by:uid};x.updated=Date.now();saveAlbums()}return id})})})}
+function albLinkStop(a){var c=sbClient(),r=albShareRec(a);if(!r)return Promise.resolve();var uid=AUTH_USER.id,st=c.storage.from(SHARE_BUCKET);
+  return c.from('shares').delete().eq('id',r.id).then(function(x){if(x.error)throw x.error;
+    return st.list(uid+'/'+r.id).then(function(l){var n=((l&&l.data)||[]).map(function(f){return uid+'/'+r.id+'/'+f.name});return n.length?st.remove(n):null}).catch(function(){})})
+  .then(function(){delete a.share;a.updated=Date.now();saveAlbums()})}
+function albLinkGo(a){if(ALB.linkBusy)return toast('Still making the link…');if(!sfCloud())return toast(DEV_MODE?'Share links need a signed-in account.':'Sign in to make share links.');
+  if(!albSongs(a).length)return toast('Add songs to the album first');
+  var r=albShareRec(a),had=!!r,id=r?r.id:shId(),copied=shCopyNow(SHARE_BASE+id);ALB.linkBusy=true;
+  albLinkMake(a,id,function(i,n){toast((had?'Updating':'Making')+' the link… song '+i+' of '+n)}).then(function(){ALB.linkBusy=false;haptic('success');
+      copied.then(function(ok){toast((had?'Link updated':'Link ready')+(ok?' and copied':'. Tap Share again to send it.'))})},
+    function(e){ALB.linkBusy=false;copied.then(function(ok){toast('Couldn’t make the link: '+shLinkErr(e)+(ok&&!had?' (the copied link won’t work)':''))})})}
+function albLinkSend(a){var r=albShareRec(a),u=r&&SHARE_BASE+r.id;if(!u)return;
+  if(navigator.share&&!window.desktop){navigator.share({title:a.title||'An album',url:u}).catch(function(){});return}
+  shCopyNow(u).then(function(ok){toast(ok?'Link copied':u)})}
+function albCopyTracklist(a){shCopyNow(albTracklist(a)).then(function(ok){toast(ok?'Tracklist copied':'Copy blocked')})}
+$('#ashare').onclick=function(){var a=albGet(ALB.id);if(!a)return;var r=albShareRec(a);
+  albMenu(this,r?[{t:'Share Link',fn:function(){albLinkSend(a)}},{t:'Update Link',fn:function(){albLinkGo(a)}},{t:'Copy Tracklist',sep:1,fn:function(){albCopyTracklist(a)}},
+      {t:'Stop Sharing',d:1,sep:1,fn:function(){var go=function(ok){if(!ok)return;albLinkStop(a).then(function(){toast('The album link no longer works. Each song’s own link still does.')},function(e){toast('Couldn’t stop sharing: '+shLinkErr(e))})};
+        var nd=natDestroy({title:'Stop the album link?',message:'Anyone with the link can no longer open it. Each song’s own link keeps working.',ok:'Stop Sharing'});if(nd)nd.then(go);else go(confirm('Stop the album link? Each song’s own link keeps working.'))}}]
+    :[{t:'Create Share Link',fn:function(){albLinkGo(a)}},{t:'Copy Tracklist',sep:1,fn:function(){albCopyTracklist(a)}}],a.title||'Album')};
 $('#amore').onclick=function(){var a=albGet(ALB.id);if(!a)return;albMenu(this,[{t:'Edit Album',fn:function(){albEdit(a)}},{t:'Add Songs',fn:function(){albAddSongs(a)}},{t:'Delete Album',d:1,sep:1,fn:function(){albDelete(a)}}],a.title||'Album')};
 /* Delete: a tombstone row, and its songs go back to the list */
 function albDelete(a){var nm=a.title||'this album',go=function(ok){if(!ok)return;var now=Date.now();

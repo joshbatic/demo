@@ -42,13 +42,17 @@ var PRE=null;/*PRELOAD*/
   function clean(d){var b=d.bg||{},a=d.audio,out={title:str(d.title),artist:str(d.artist),key:str(d.key,12),bpm:/^\d{1,3}$/.test(String(d.bpm))?String(d.bpm):'',
       bg:{top:col(b.top,'hsl(20,80%,86%)'),bot:col(b.bot,'hsl(280,60%,80%)'),glow:col(b.glow,'hsl(210,70%,88%)'),k:typeof b.k==='string'&&/^\d{1,3},\d{1,3}%,\d{1,3}%$/.test(b.k)?b.k:'260,30%,15%'},
       art:url(d.art),audio:null,blocks:[]};
+    /* a song opened from a shared album links back to it */
+    if(d.alb&&typeof d.alb==='object'&&/^[A-Za-z0-9]{10}$/.test(d.alb.id))out.alb={id:d.alb.id,title:str(d.alb.title,160)};
     (Array.isArray(d.blocks)?d.blocks.slice(0,3000):[]).forEach(function(x){if(!x||typeof x!=='object')return;if(x.gap)out.blocks.push({gap:true});else if(x.sec!=null)out.blocks.push({sec:str(x.sec,120)});else if(x.line!=null)out.blocks.push({line:str(x.line,500),t:typeof x.t==='number'&&isFinite(x.t)?x.t:null})});
     if(a&&url(a.src))out.audio={src:url(a.src),name:str(a.name,160),dur:+a.dur||0,peaks:(Array.isArray(a.peaks)?a.peaks.slice(0,2000):[]).map(Number).filter(isFinite)};
     return out}
+  function cleanAlbum(d){var b=clean(d);return{type:'album',title:b.title,artist:b.artist,kind:/^(Album|EP|Single)$/.test(d.kind)?d.kind:'Album',year:/^\d{4}$/.test(String(d.year))?String(d.year):'',art:b.art,bg:b.bg,
+    tracks:(Array.isArray(d.tracks)?d.tracks.slice(0,200):[]).filter(function(x){return x&&typeof x==='object'}).map(function(x){return{title:str(x.title,160),line:str(x.line,300),link:/^[A-Za-z0-9]{10}$/.test(x.link)?x.link:''}})}}
   function show(d){if(!d||typeof d!=='object')return msg('This song isn’t shared any more','Ask whoever sent it for a new link.');
     /* let the writer know it's being listened to (once a day per link, if they want that: supabase/notify.sql) */
     try{fetch(SB_URL+'/rest/v1/rpc/share_seen',{method:'POST',keepalive:true,headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({sid:id})}).catch(function(){})}catch(e){}
-    var html=shRender(clean(d),{skB:SKB,skF:SKF});
+    var html=d.type==='album'?shAlbumRender(cleanAlbum(d)):shRender(clean(d),{skB:SKB,skF:SKF});
     /* replace the whole loading page. While the page is still loading, document.open() is ignored and the song
        would be added underneath the loading dots, so wait for the page to finish loading first */
     var swap=function(){document.open();document.write(html);document.close()};

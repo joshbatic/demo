@@ -40,7 +40,9 @@ module.exports = async (req, res) => {
     const artist = txt(data.artist, 120);
     // no lyrics in the preview: they're for whoever opens the link
     const hasAudio = !!(data.audio && pub(data.audio.src));
-    const desc = (hasAudio ? 'Listen and read along' : 'Read the lyrics') + ' on *[demo]';
+    const album = data.type === 'album', n = Array.isArray(data.tracks) ? data.tracks.length : 0;
+    const desc = album ? (/^(Album|EP|Single)$/.test(data.kind) ? data.kind : 'Album') + ' · ' + n + (n === 1 ? ' song' : ' songs') + ' on *[demo]'
+      : (hasAudio ? 'Listen and read along' : 'Read the lyrics') + ' on *[demo]';
     const heading = title + (artist ? ' – ' + artist : '');
     // the song's own colour from the first frame: iOS 26 Safari tints the bar behind the Dynamic Island from
     // the page's background-color (not theme-color), and keeps what it saw while the page was loading
