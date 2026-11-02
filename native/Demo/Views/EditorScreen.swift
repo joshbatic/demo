@@ -47,17 +47,27 @@ struct EditorScreen: View {
                 // the lyrics run the full height of the screen and scroll under the glass bars,
                 // which float over them (the web's #sc under .bar and #rhy)
                 ZStack {
-                    RichTextEditor(bridge: bridge, rich: song.rich, lyrics: song.lyrics,
-                                   header: AnyView(header(song).environment(session).environment(library).tint(Theme.tint)),
-                                   insets: textInsets)
-                        .ignoresSafeArea(.container, edges: .vertical)
-                        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { editorFrame = $0 }
+                    if Guide.isView(song) {
+                        // the How *[demo] works guide: read with its pictures, no keyboard or rhyme bar
+                        GuideView(header: AnyView(header(song).environment(session).environment(library).tint(Theme.tint)),
+                                  topInset: textInsets.top)
+                            .ignoresSafeArea(.container, edges: .vertical)
+                            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { editorFrame = $0 }
+                    } else {
+                        RichTextEditor(bridge: bridge, rich: song.rich, lyrics: song.lyrics,
+                                       header: AnyView(header(song).environment(session).environment(library).tint(Theme.tint)),
+                                       insets: textInsets)
+                            .ignoresSafeArea(.container, edges: .vertical)
+                            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { editorFrame = $0 }
+                    }
 
                     VStack(spacing: 0) {
                         topBar
                             .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxY } action: { topBarBottom = $0 }
                         Spacer(minLength: 0)
-                        if sprintEnd != nil {
+                        if Guide.isView(song) {
+                            EmptyView()
+                        } else if sprintEnd != nil {
                             sprintPill.padding(.bottom, 10)
                         } else {
                             RhymeBar(bridge: bridge, context: context, results: results,
