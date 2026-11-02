@@ -18692,6 +18692,8 @@ var bizT={};function bizSave(sh){sh.updated_at=new Date().toISOString();try{loca
     .then(function(r){delete BIZ.saving[sh.id];if(r.error){toast('Couldn’t save: '+(r.error.message||'try again'));}else BIZ.saved=Date.now();bizFoot()},function(){delete BIZ.saving[sh.id];toast('Couldn’t save. Check your connection.');bizFoot()})},600)}
 function bizFoot(){var f=document.getElementById('bzfoot');if(!f)return;var sh=bizSheet();f.textContent=Object.keys(BIZ.saving).length?'Saving…':sh&&sh.updated_at?'Saved · edited '+admAgo(sh.updated_at):''}
 var BIZ_COL={Live:'green',Done:'green',Fixed:'green',Beta:'orange',Check:'orange','Needs setup':'red','To do':'red',Open:'red',High:'red',Medium:'orange',Low:'gray',Planned:'gray',Optional:'gray','Not used yet':'gray'};
+/* the second line of each row: the column with the most to say (a description rather than a date or a type) */
+function bizSubCol(sh,si,mi){if(sh._sub!=null)return sh._sub;var best=1,bl=-1;for(var j=1;j<sh.cols.length;j++){if(j===si||j===mi)continue;var t=0,n=0;sh.rows.forEach(function(r){if(r.c){t+=(r.c[j]||'').length;n++}});var a=n?t/n:0;if(a>bl){bl=a;best=j}}return best}
 function bizPill(v){var p=document.createElement('span');p.className='bzpill bz-'+(BIZ_COL[v]||'gray');p.textContent=v;return p}
 function bizMoney(sh){var i=sh.cols.findIndex(function(c){return c.k==='money'});if(i<0)return null;var t=0;sh.rows.forEach(function(r){if(r.c){var v=parseFloat(String(r.c[i]||'').replace(/[^0-9.\-]/g,''));if(!isNaN(v))t+=v}});return t}
 function bizCount(id,vals){var sh=(BIZ.sheets||[]).filter(function(x){return x.id===id})[0];if(!sh)return 0;var i=sh.cols.findIndex(function(c){return c.k==='status'});if(i<0)return 0;
@@ -18705,6 +18707,8 @@ function bizRender(){var o=document.getElementById('biz');if(!o||o.hidden)return
   /* the sheets, as a row of pills */
   var tabs=document.createElement('div');tabs.className='bztabs';BIZ.sheets.forEach(function(s){var b=document.createElement('button');b.textContent=s.name;b.className=s.id===sh.id?'on':'';
     b.onclick=function(){if(BIZ.cur===s.id)return;haptic('light');BIZ.cur=s.id;BIZ.open=null;BIZ.q='';bizRender();var d=document.getElementById('dscroll');if(d)d.scrollTop=0};tabs.appendChild(b)});o.appendChild(tabs);
+  /* keep the open sheet's pill in view */
+  var onb=tabs.querySelector('.on');if(onb){tabs.scrollLeft=BIZ.tabsX||0;var want=onb.offsetLeft-16,end=onb.offsetLeft+onb.offsetWidth+16-tabs.clientWidth;if(tabs.scrollLeft>want)tabs.scrollLeft=want;else if(tabs.scrollLeft<end)tabs.scrollLeft=end}tabs.onscroll=function(){BIZ.tabsX=tabs.scrollLeft};
   var hd=document.createElement('div');hd.className='bzhd';hd.innerHTML='<div><h2></h2><p class="bznote" tabindex="0" role="button" aria-label="Edit the note"></p></div>';
   hd.querySelector('h2').textContent=sh.title||sh.name;var np=hd.querySelector('.bznote');np.textContent=sh.note||'Add a note';if(!sh.note)np.classList.add('add');
   np.onclick=function(){var t=document.createElement('textarea');t.className='bznoteed';t.value=sh.note||'';t.rows=2;t.dataset.bk='note';np.replaceWith(t);t.focus();
@@ -18732,7 +18736,7 @@ function bizRender(){var o=document.getElementById('biz');if(!o||o.hidden)return
     idx.forEach(function(i){var r=sh.rows[i],open=BIZ.open===sh.id+':'+i;var row=document.createElement('div');row.className='bzrow'+(open?' open':'');
       var hb=document.createElement('button');hb.className='bzr';hb.innerHTML='<span class="bzt"><b></b><span></span></span><span class="bzv"></span>';
       hb.querySelector('b').textContent=r.c[0]||'Untitled';
-      var sub=[];for(var j=1;j<r.c.length;j++)if(j!==si&&j!==mi&&r.c[j]){sub.push(r.c[j]);break}
+      var sub=[],sj=bizSubCol(sh,si,mi);if(r.c[sj])sub.push(r.c[sj]);else for(var j=1;j<r.c.length;j++)if(j!==si&&j!==mi&&r.c[j]){sub.push(r.c[j]);break}
       hb.querySelector('.bzt span').textContent=sub.join(' · ');
       var v=hb.querySelector('.bzv');if(mi>=0&&r.c[mi]){var mv=document.createElement('span');mv.className='bzmoney';mv.textContent='A$'+r.c[mi];v.appendChild(mv)}if(si>=0&&r.c[si])v.appendChild(bizPill(r.c[si]));
       hb.onclick=function(){haptic('light');BIZ.open=open?null:sh.id+':'+i;bizRender()};row.appendChild(hb);
