@@ -23,6 +23,7 @@ struct DetailsSheet: View {
     @Environment(\.library) private var library
     @Environment(\.dismiss) private var dismiss
     @State private var confirmDelete = false
+    @State private var findRelease = false
     @State private var showInvite = false
     @State private var inviteClosed = 0
     @State private var chordSel: TextSelection?
@@ -54,6 +55,7 @@ struct DetailsSheet: View {
             .sheet(isPresented: $showInvite, onDismiss: { inviteClosed += 1 }) {
                 InviteSheet(songID: songID)
             }
+            .sheet(isPresented: $findRelease) { FindReleaseSheet(songID: songID) }
             .confirmDestroy("Delete “\(song?.displayTitle ?? "")”?", isPresented: $confirmDelete, message: "This can’t be undone.", action: "Delete Song") {
                 dismiss(); onDelete()
             }
@@ -277,12 +279,22 @@ struct DetailsSheet: View {
             releaseDate
             HStack { Text("Label"); Spacer(); TextField("Independent", text: releaseBinding("label")).multilineTextAlignment(.trailing) }
             HStack { Text("Genre"); Spacer(); TextField("e.g. Indie pop", text: releaseBinding("genre")).multilineTextAlignment(.trailing) }
+            HStack {
+                Text("ISWC"); Spacer()
+                TextField("T-123.456.789-0", text: releaseBinding("iswc", upper: true)).multilineTextAlignment(.trailing)
+                    .textInputAutocapitalization(.characters).autocorrectionDisabled()
+            }
             Toggle("Explicit", isOn: Binding(get: { song?.releaseExplicit ?? false }, set: { v in
                 guard var s = song else { return }
                 s.setRelease("explicit", .bool(v)); s.touch(); library.put(s)
             }))
             .toggleStyle(.green)
-        } header: { Text("Release") } footer: {
+        } header: {
+            HStack {
+                Text("Release"); Spacer()
+                Button("Find Release") { Haptics.tap(); findRelease = true }.font(.subheadline.weight(.semibold)).textCase(nil)
+            }
+        } footer: {
             let notes = releaseNotes
             if !notes.isEmpty { Text(notes).foregroundStyle(.red) }
         }
