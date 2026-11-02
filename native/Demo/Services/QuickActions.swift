@@ -66,7 +66,8 @@ enum QuickActions {
     }
 }
 
-/// What the widgets show, written to the app group they share with the app: titles and dates only, never lyrics.
+/// What the widgets show, written to the app group they share with the app: titles, dates, each song's last two
+/// lines and a small cover picture (the widgets can't draw covers or read the library themselves).
 /// The widget extension has its own copy of `Snapshot` (DemoWidget/WidgetData.swift); keep the two the same.
 @MainActor
 enum WidgetShare {
@@ -74,26 +75,74 @@ enum WidgetShare {
     static let key = "widget.snapshot"
 
     nonisolated struct Snapshot: Codable, Equatable {
-        struct Item: Codable, Equatable { var id: String; var title: String; var detail: String; var updated: Double }
+        struct Item: Codable, Equatable {
+            var id: String; var title: String; var detail: String; var updated: Double
+            /// the last lyric line, and the one before it
+            var line: String?; var prev: String?
+            /// the cover picture's file name in the shared folder (covers/)
+            var cover: String?
+        }
         var signedIn: Bool
         var songs: [Item]
         var idea: String?
         var ideaCount: Int
+        /// the latest song's colour for the widget background, as two hex colours (top, bottom)
+        var tint: [String]?
+    }
+
+    static var coverDir: URL? {
+        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group)?.appendingPathComponent("covers", isDirectory: true)
     }
 
     static func write(_ library: LibraryStore) {
         guard let d = UserDefaults(suiteName: group) else { return }
         let signedIn = AppSession.shared.userID != nil
-        let songs = signedIn ? QuickActions.recent(library, 4).map { s in
-            Snapshot.Item(id: s.id, title: s.displayTitle,
-                          detail: [s.status, s.key].filter { !$0.isEmpty }.joined(separator: " · "), updated: s.updated)
-        } : []
+        let recent = signedIn ? QuickActions.recent(library, 5) : []
+        let songs = recent.map { s -> Snapshot.Item in
+            let l = s.lyricLines
+            // the file name changes when the picture would (new artwork, or lines added to a drawn cover)
+            let art = library.coverArt(s)
+            let tag = art.map { "a\($0.utf8.count)" } ?? "g\(l.count)"
+            return Snapshot.Item(id: s.id, title: s.displayTitle,
+                                 detail: [s.status, s.key].filter { !$0.isEmpty }.joined(separator: " · "), updated: s.updated,
+                                 line: l.last, prev: l.count > 1 ? l[l.count - 2] : nil,
+                                 cover: "\(s.id.prefix(36))-\(tag).jpg")
+        }
         let ideas = signedIn ? library.ideas.sorted { $0.updated > $1.updated } : []
         let latest = ideas.first.map { $0.text.isEmpty ? ($0.hasMemo ? "Voice memo" : "") : $0.text }
-        let snap = Snapshot(signedIn: signedIn, songs: songs, idea: latest, ideaCount: ideas.count)
+        let snap = Snapshot(signedIn: signedIn, songs: songs, idea: latest, ideaCount: ideas.count, tint: recent.first.map(tint))
         guard let data = try? JSONEncoder().encode(snap), data != d.data(forKey: key) else { return }
+        writeCovers(recent, songs)
         d.set(data, forKey: key)
         WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    /// The latest song's main colour, deep enough for white words (iOS swaps it for glass in Clear mode).
+    private static func tint(_ s: Song) -> [String] {
+        let c = SharePalette.palette(s).first ?? HSL(h: 260, s: 0.3, l: 0.5)
+        let sat = c.s < 0.14 ? 0.06 : min(0.5, max(0.3, c.s * 0.7))
+        return [0.44, 0.27].map { l in
+            let (r, g, b) = SharePalette.rgb(HSL(h: c.h, s: sat, l: l))
+            return String(format: "%02X%02X%02X", Int(r * 255), Int(g * 255), Int(b * 255))
+        }
+    }
+
+    /// Small square covers (about 20 KB each) for the songs on show; older ones are removed.
+    private static func writeCovers(_ songs: [Song], _ items: [Snapshot.Item]) {
+        guard let dir = coverDir else { return }
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let keep = Set(items.compactMap(\.cover))
+        for (s, it) in zip(songs, items) {
+            guard let name = it.cover else { continue }
+            let url = dir.appendingPathComponent(name)
+            if FileManager.default.fileExists(atPath: url.path) { continue }
+            let r = ImageRenderer(content: CoverView(song: s, size: 120, square: true))
+            r.scale = 3
+            if let img = r.uiImage, let jpg = img.jpegData(compressionQuality: 0.8) { try? jpg.write(to: url, options: .atomic) }
+        }
+        for f in (try? FileManager.default.contentsOfDirectory(atPath: dir.path)) ?? [] where !keep.contains(f) {
+            try? FileManager.default.removeItem(at: dir.appendingPathComponent(f))
+        }
     }
 }
 

@@ -1,17 +1,97 @@
 import SwiftUI
 import WidgetKit
 
-// MARK: - Record Idea: tap to start recording in Ideas
+// The widgets are glass: white words and buttons over the latest song's colour, which iOS swaps for real
+// glass over the wallpaper when the Home Screen is set to Clear. White is always the main action.
+
+/// The background: the latest song's colour, deep at the foot (the app writes it; a soft purple until then).
+struct WidgetTint: View {
+    let snap: Snapshot
+    var body: some View {
+        let t = snap.tint ?? ["8A5A9E", "4E3260"]
+        LinearGradient(colors: [Color(hexString: t[0]), Color(hexString: t.count > 1 ? t[1] : t[0])], startPoint: .top, endPoint: .bottom)
+    }
+}
+
+/// The small label at the top of a widget: the asterisk, a name, and something on the right.
+struct WLabel: View {
+    let text: String
+    var trailing: String? = nil
+    var body: some View {
+        HStack(spacing: 5) {
+            Image(systemName: "asterisk").font(.system(size: 10, weight: .bold))
+            Text(text).lineLimit(1)
+            Spacer(minLength: 4)
+            if let trailing { Text(trailing).fontWeight(.medium) }
+        }
+        .font(.system(size: 12, weight: .semibold))
+        .foregroundStyle(.white.opacity(0.78))
+    }
+}
+
+/// A song's cover from the app, or a soft square while there isn't one yet.
+struct WCover: View {
+    let item: Snapshot.Item?
+    var size: CGFloat
+    var radius: CGFloat
+    var body: some View {
+        Group {
+            if let img = coverImage(item?.cover) {
+                Image(uiImage: img).resizable().widgetAccentedRenderingMode(.desaturated).scaledToFill()
+            } else {
+                LinearGradient(colors: [.white.opacity(0.5), .white.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing)
+            }
+        }
+        .frame(width: size, height: size)
+        .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+    }
+}
+
+/// A capsule button: white for the main action, glass for the rest.
+struct WPill: View {
+    let title: String?
+    let icon: String
+    var main = false
+    var height: CGFloat = 36
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon).font(.system(size: 13, weight: .semibold))
+            if let title { Text(title).font(.system(size: 13.5, weight: .semibold)).lineLimit(1) }
+        }
+        .foregroundStyle(main ? Color.black.opacity(0.85) : .white)
+        .frame(maxWidth: title == nil ? height : .infinity, minHeight: height, maxHeight: height)
+        .frame(width: title == nil ? height : nil)
+        .background(main ? Color.white : Color.white.opacity(0.2), in: Capsule())
+    }
+}
+
+/// The big round record button.
+struct WRecordDisc: View {
+    var size: CGFloat
+    var body: some View {
+        Image(systemName: "mic.fill")
+            .font(.system(size: size * 0.4, weight: .semibold))
+            .foregroundStyle(Color.black.opacity(0.85))
+            .frame(width: size, height: size)
+            .background(Color.white, in: Circle())
+            .shadow(color: .black.opacity(0.15), radius: 8, y: 3)
+            .widgetAccentable()
+    }
+}
+
+/// "Kitchen Light · 2h ago"
+func stamp(_ s: Snapshot.Item) -> String { s.title + " · " + ago(s.updated) }
+
+// MARK: - Record Idea: small is one big button, medium is three quick actions
 
 struct RecordWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "record", provider: SnapProvider()) { e in
             RecordView(snap: e.snap)
-                .widgetURL(Links.url("record"))
-                .containerBackground(for: .widget) { Color(.systemBackground) }
+                .containerBackground(for: .widget) { WidgetTint(snap: e.snap) }
         }
         .configurationDisplayName("Record Idea")
-        .description("One tap and you’re recording. Write it down before it’s gone.")
+        .description("One tap and you’re recording, or jot an idea or start a song.")
         .supportedFamilies([.systemSmall, .systemMedium, .accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }
@@ -28,6 +108,7 @@ struct RecordView: View {
                 Image(systemName: "mic.fill").font(.system(size: 20, weight: .semibold))
             }
             .widgetAccentable()
+            .widgetURL(Links.url("record"))
         case .accessoryRectangular:
             HStack(spacing: 8) {
                 Image(systemName: "mic.fill").font(.title3).widgetAccentable()
@@ -37,89 +118,59 @@ struct RecordView: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .widgetURL(Links.url("record"))
         case .accessoryInline:
-            Label("Record Idea", systemImage: "mic.fill")
+            Label("Record Idea", systemImage: "mic.fill").widgetURL(Links.url("record"))
         case .systemMedium:
-            medium
+            quick
         default:
-            VStack(alignment: .leading, spacing: 0) {
-                HStack {
-                    Mark(size: 30)
-                    Spacer()
-                    if snap.ideaCount > 0 {
-                        Text("\(snap.ideaCount)").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                    }
-                }
-                Spacer(minLength: 6)
-                if let idea = snap.idea, !idea.isEmpty {
-                    Text(idea).font(.footnote).foregroundStyle(.secondary).lineLimit(2)
-                    Spacer(minLength: 6)
-                }
-                HStack(spacing: 6) {
-                    Image(systemName: "mic.fill").font(.system(size: 13, weight: .bold))
-                    Text("Record Idea").font(.system(size: 15, weight: .semibold))
-                }
-                .foregroundStyle(Color(.systemBackground))
-                .frame(maxWidth: .infinity).padding(.vertical, 9)
-                .background(Color.primary, in: Capsule())
-            }
-        }
-    }
-}
-
-extension RecordView {
-    /// Medium: your latest idea on the left; Record and Write buttons on the right.
-    var medium: some View {
-        HStack(spacing: 14) {
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(spacing: 8) {
-                    Mark(size: 26)
-                    Text("Ideas").font(.system(size: 15, weight: .bold))
-                    if snap.ideaCount > 0 {
-                        Text("\(snap.ideaCount)").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                    }
-                }
-                Spacer(minLength: 8)
-                if let idea = snap.idea, !idea.isEmpty {
-                    Text("Latest").font(.caption2.weight(.semibold)).foregroundStyle(.secondary).textCase(.uppercase)
-                    Text(idea).font(.system(size: 15)).lineLimit(3).padding(.top, 2)
-                } else {
-                    Text("Write it down before it’s gone.").font(.system(size: 15)).foregroundStyle(.secondary).lineLimit(3)
-                }
+            VStack(spacing: 0) {
+                WLabel(text: "Ideas", trailing: snap.ideaCount > 0 ? "\(snap.ideaCount)" : nil)
                 Spacer(minLength: 0)
+                WRecordDisc(size: 68)
+                Spacer(minLength: 0)
+                Text("Record Idea").font(.system(size: 13.5, weight: .semibold)).foregroundStyle(.white)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .widgetURL(Links.url("record"))
+        }
+    }
+
+    /// Medium: Record (white), Write Idea and New Song, each a tile.
+    private var quick: some View {
+        VStack(spacing: 10) {
+            WLabel(text: "*[demo]", trailing: snap.ideaCount > 0 ? "\(snap.ideaCount) \(snap.ideaCount == 1 ? "idea" : "ideas")" : nil)
+            HStack(spacing: 10) {
+                tile("Record", "mic.fill", "record", main: true)
+                tile("Write Idea", "lightbulb", "new-idea")
+                tile("New Song", "square.and.pencil", "new-song")
+            }
+        }
+    }
+
+    private func tile(_ title: String, _ icon: String, _ action: String, main: Bool = false) -> some View {
+        Link(destination: Links.url(action)) {
             VStack(spacing: 8) {
-                Link(destination: Links.url("record")) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "mic.fill").font(.system(size: 22, weight: .semibold))
-                        Text("Record").font(.system(size: 13, weight: .semibold))
-                    }
-                    .foregroundStyle(Color(.systemBackground))
-                    .frame(width: 96).frame(maxHeight: .infinity)
-                    .background(Color.primary, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                }
-                Link(destination: Links.url("new-idea")) {
-                    Label("Write", systemImage: "pencil").font(.system(size: 13, weight: .semibold))
-                        .frame(width: 96, height: 36)
-                        .background(Color(.secondarySystemFill), in: Capsule())
-                }
+                Image(systemName: icon).font(.system(size: 21, weight: .semibold))
+                Text(title).font(.system(size: 12.5, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.85)
             }
+            .foregroundStyle(main ? Color.black.opacity(0.85) : .white)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(main ? Color.white : Color.white.opacity(0.16), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
     }
 }
 
-// MARK: - Recent Songs: your latest songs, tap one to open it
+// MARK: - Continue Writing: the song you were last in, and your other recent songs
 
 struct SongsWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "songs", provider: SnapProvider()) { e in
             SongsView(snap: e.snap)
-                .containerBackground(for: .widget) { Color(.systemBackground) }
+                .containerBackground(for: .widget) { WidgetTint(snap: e.snap) }
         }
-        .configurationDisplayName("Recent Songs")
-        .description("Jump back into what you were writing.")
-        .supportedFamilies([.systemMedium, .systemLarge])
+        .configurationDisplayName("Continue Writing")
+        .description("Pick up the song you were writing, right where you left off.")
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
 
@@ -128,61 +179,106 @@ struct SongsView: View {
     let snap: Snapshot
 
     var body: some View {
-        let n = family == .systemLarge ? 4 : 2
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 8) {
-                Mark(size: 24)
-                Text("*[demo]").font(.system(size: 15, weight: .bold))
-                Spacer()
-                Link(destination: Links.url("new-song")) {
-                    Image(systemName: "square.and.pencil").font(.system(size: 15, weight: .semibold))
-                        .frame(width: 30, height: 30).background(Color(.secondarySystemFill), in: Circle())
+        Group {
+            if !snap.signedIn || snap.songs.isEmpty {
+                VStack(spacing: 10) {
+                    WLabel(text: "Continue Writing")
+                    Spacer(minLength: 0)
+                    Text(snap.signedIn ? "Your songs show here." : "Open *[demo] to sign in.")
+                        .font(.system(size: 15, weight: .semibold)).foregroundStyle(.white).multilineTextAlignment(.center)
+                    Spacer(minLength: 0)
+                    if family != .systemSmall { Link(destination: Links.url("new-song")) { WPill(title: "New Song", icon: "square.and.pencil", main: true) } }
                 }
-                Link(destination: Links.url("record")) {
-                    Image(systemName: "mic.fill").font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Color(.systemBackground))
-                        .frame(width: 30, height: 30).background(Color.primary, in: Circle())
+                .widgetURL(Links.url("new-song"))
+            } else {
+                switch family {
+                case .systemSmall: small(snap.songs[0])
+                case .systemLarge: large
+                default: medium(snap.songs[0])
                 }
             }
-            .padding(.bottom, 8)
-            if !snap.signedIn || snap.songs.isEmpty {
+        }
+        .foregroundStyle(.white)
+    }
+
+    /// Small: the cover top left, then the song and the line you were on, along the bottom.
+    private func small(_ s: Snapshot.Item) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top) {
+                WCover(item: s, size: 40, radius: 9)
                 Spacer()
-                Text(snap.signedIn ? "Your songs show here." : "Open *[demo] to sign in.")
-                    .font(.subheadline).foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity)
-                Spacer()
-            } else {
-                ForEach(Array(snap.songs.prefix(n).enumerated()), id: \.element.id) { i, s in
-                    if i > 0 { Divider().padding(.leading, 2) }
-                    Link(destination: Links.url("song", s.id)) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(s.title).font(.system(size: 15, weight: .semibold)).lineLimit(1)
-                                if !s.detail.isEmpty { Text(s.detail).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
-                            }
-                            Spacer()
-                            Text(ago(s.updated)).font(.caption).foregroundStyle(.secondary)
-                        }
-                        .padding(.vertical, family == .systemLarge ? 9 : 6)
-                    }
+                Text(ago(s.updated)).font(.system(size: 11.5, weight: .semibold)).opacity(0.75)
+            }
+            Spacer(minLength: 4)
+            Text(s.title).font(.system(size: 12, weight: .semibold)).opacity(0.78).lineLimit(1)
+            Text(s.line ?? "No lyrics yet").font(.system(size: 17, weight: .bold)).lineLimit(3).minimumScaleFactor(0.85).padding(.top, 2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .widgetURL(Links.url("song", s.id))
+    }
+
+    /// Medium: the cover large on the left; the line before, the line you were on, then Continue and record.
+    private func medium(_ s: Snapshot.Item) -> some View {
+        HStack(spacing: 14) {
+            WCover(item: s, size: 130, radius: 14)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(stamp(s)).font(.system(size: 12, weight: .semibold)).opacity(0.78).lineLimit(1)
+                if let p = s.prev { Text(p).font(.system(size: 13.5)).opacity(0.6).lineLimit(1).padding(.top, 7) }
+                Text(s.line ?? "No lyrics yet").font(.system(size: 17, weight: .bold)).lineLimit(2).minimumScaleFactor(0.85)
+                    .padding(.top, s.prev == nil ? 7 : 0)
+                Spacer(minLength: 6)
+                HStack(spacing: 8) {
+                    Link(destination: Links.url("song", s.id)) { WPill(title: "Continue", icon: "square.and.pencil", main: true) }
+                    Link(destination: Links.url("record")) { WPill(title: nil, icon: "mic.fill") }
                 }
-                if family == .systemLarge, let idea = snap.idea, !idea.isEmpty {
-                    Spacer(minLength: 8)
-                    Link(destination: Links.url("new-idea")) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "lightbulb").foregroundStyle(.secondary)
-                            Text(idea).font(.footnote).foregroundStyle(.secondary).lineLimit(2)
-                            Spacer(minLength: 0)
-                        }
-                        .padding(10).background(Color(.secondarySystemFill), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .widgetURL(Links.url("song", s.id))
+    }
+
+    /// Large: where you left off at the top, four recent songs, then Record, Idea and Song.
+    private var large: some View {
+        let s = snap.songs[0]
+        return VStack(alignment: .leading, spacing: 0) {
+            Link(destination: Links.url("song", s.id)) {
+                HStack(spacing: 12) {
+                    WCover(item: s, size: 64, radius: 12)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Continue writing · " + ago(s.updated)).font(.system(size: 12, weight: .semibold)).opacity(0.78)
+                        Text(s.title).font(.system(size: 17, weight: .bold)).lineLimit(1)
+                        Text(s.line ?? "No lyrics yet").font(.system(size: 13.5)).opacity(0.8).lineLimit(1)
                     }
+                    Spacer(minLength: 0)
                 }
-                Spacer(minLength: 0)
+            }
+            Rectangle().fill(.white.opacity(0.28)).frame(height: 0.5).padding(.top, 12).padding(.bottom, 3)
+            ForEach(snap.songs.dropFirst().prefix(4)) { r in
+                Link(destination: Links.url("song", r.id)) {
+                    HStack(spacing: 11) {
+                        WCover(item: r, size: 38, radius: 8)
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text(r.title).font(.system(size: 14.5, weight: .semibold)).lineLimit(1)
+                            Text(r.line ?? r.detail).font(.system(size: 12.5)).opacity(0.72).lineLimit(1)
+                        }
+                        Spacer(minLength: 4)
+                        Text(ago(r.updated)).font(.system(size: 12)).opacity(0.7)
+                    }
+                    .padding(.vertical, 5)
+                }
+            }
+            Spacer(minLength: 8)
+            HStack(spacing: 8) {
+                Link(destination: Links.url("record")) { WPill(title: "Record", icon: "mic.fill", main: true) }
+                Link(destination: Links.url("new-idea")) { WPill(title: "Idea", icon: "lightbulb") }
+                Link(destination: Links.url("new-song")) { WPill(title: "Song", icon: "square.and.pencil") }
             }
         }
     }
 }
 
-#Preview(as: .systemMedium) { SongsWidget() } timeline: { SnapEntry(date: .now, snap: .sample) }
-#Preview(as: .systemMedium) { RecordWidget() } timeline: { SnapEntry(date: .now, snap: .sample) }
 #Preview(as: .systemSmall) { RecordWidget() } timeline: { SnapEntry(date: .now, snap: .sample) }
+#Preview(as: .systemMedium) { RecordWidget() } timeline: { SnapEntry(date: .now, snap: .sample) }
+#Preview(as: .systemSmall) { SongsWidget() } timeline: { SnapEntry(date: .now, snap: .sample) }
+#Preview(as: .systemMedium) { SongsWidget() } timeline: { SnapEntry(date: .now, snap: .sample) }
+#Preview(as: .systemLarge) { SongsWidget() } timeline: { SnapEntry(date: .now, snap: .sample) }
