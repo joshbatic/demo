@@ -21669,7 +21669,19 @@ function albRemove(s){var a=albGet(s.album);s.album='';delete s.track;s.updated=
 function albMove(a,s,d){var l=albSongs(a),i=l.indexOf(s),j=i+d;if(i<0||j<0||j>=l.length)return;l.splice(i,1);l.splice(j,0,s);
   l.forEach(function(x,k){if(x.track!==k+1){x.track=k+1;x.updated=Date.now()}});save();albRender()}
 /* ---- artwork: the picture, or the album's own pastel gradient with a record on it ---- */
-function albCover(a){return'<svg class="cvs" viewBox="0 0 40 40" aria-hidden="true">'+covGrad(a.id||'')+'<circle cx="20" cy="20" r="9.5" fill="none" stroke="#fff" stroke-width="1.4" opacity=".75"/><circle cx="20" cy="20" r="2.3" fill="#fff" opacity=".85"/></svg>'}
+/* an album without artwork: the app's record as a flat sheet of clear glass over the album's own pastel, the colours
+   seen through it turned the other way, faint grooves, a thin bright edge and the white asterisk on a frosted label.
+   Drawn at 200 and scaled into the 40-unit cover (AlbumArt on iPhone draws the same) */
+function albCover(a){var bg=covGrad(a.id||''),g='cg'+COV_N,k='ar'+COV_N,R=[46,56,66,76,86].map(function(r){return'<circle cx="100" cy="100" r="'+r+'"/>'}).join('');
+  return'<svg class="cvs" viewBox="0 0 40 40" aria-hidden="true">'+bg+
+  '<defs><linearGradient id="'+k+'e" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".35" stop-color="#fff" stop-opacity=".15"/><stop offset=".7" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#fff" stop-opacity=".7"/></linearGradient>'+
+  '<filter id="'+k+'d" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#3B2E5A" flood-opacity=".12"/></filter>'+
+  '<filter id="'+k+'s" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="1.5" stdDeviation="1.6" flood-color="#3B2E5A" flood-opacity=".18"/></filter></defs>'+
+  '<g transform="translate(6.8 6.8) scale(.132)"><circle cx="100" cy="100" r="99" fill="url(#'+g+'l)" transform="rotate(180 100 100)" filter="url(#'+k+'d)"/>'+
+  '<circle cx="100" cy="100" r="99" fill="#fff" fill-opacity=".16"/><g fill="none" stroke="#fff" stroke-opacity=".3" stroke-width=".7">'+R+'</g>'+
+  '<circle cx="100" cy="100" r="36" fill="#fff" fill-opacity=".3" stroke="#fff" stroke-opacity=".6" stroke-width=".9"/>'+
+  '<g stroke="#fff" stroke-width="12" stroke-linecap="round" filter="url(#'+k+'s)"><path d="M100 78v44"/><path d="M80.9 89l38.2 22"/><path d="M80.9 111l38.2-22"/></g>'+
+  '<circle cx="100" cy="100" r="98.5" fill="none" stroke="url(#'+k+'e)" stroke-width="1.4"/></g></svg>'}
 function albArt(el,a){if(artOk(a.art)){el.style.backgroundImage=artCss(a.art);el.innerHTML=''}else{el.style.backgroundImage='';el.innerHTML=albCover(a)}}
 /* ---- the song list: a row of album tiles under Ideas, ending with New Album ---- */
 function albSection(L){var list=albLive();if(!list.length)return;
