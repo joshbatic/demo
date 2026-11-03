@@ -37,6 +37,7 @@ nonisolated struct Song: Identifiable, Hashable {
     var key: String { get { str("key") } set { set("key", newValue) } }
     /// Sometimes a number in the data; always written back as a string.
     var bpm: String { get { str("bpm") } set { set("bpm", newValue) } }
+    var time: String { get { str("time") } set { set("time", newValue) } }
     var tuning: String { get { str("tuning") } set { set("tuning", newValue) } }
 
     /// The conflict clock: ms since 1970, bumped on every change the user can see.

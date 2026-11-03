@@ -5,11 +5,25 @@ import WidgetKit
 // glass over the wallpaper when the Home Screen is set to Clear. White is always the main action.
 
 /// The background: the latest song's colour, deep at the foot (the app writes it; a soft purple until then).
+/// A widget's background: tinted glass in the song's colour. A brighter colour at the top left fading to a deep
+/// one, a soft light catching the top corner, a gentle shade at the foot and a thin bright rim, so it reads as a
+/// pane of coloured glass rather than flat paint. On a Clear or Tinted Home Screen iOS swaps this for its own glass.
 struct WidgetTint: View {
     let snap: Snapshot
     var body: some View {
-        let t = snap.tint ?? ["8A5A9E", "4E3260"]
-        LinearGradient(colors: [Color(hexString: t[0]), Color(hexString: t.count > 1 ? t[1] : t[0])], startPoint: .top, endPoint: .bottom)
+        let t = snap.tint ?? ["9C7BD8", "3E2F7A"]
+        let a = Color(hexString: t[0]), b = Color(hexString: t.count > 1 ? t[1] : t[0])
+        GeometryReader { g in
+            let r = max(g.size.width, g.size.height)
+            ZStack {
+                LinearGradient(colors: [a, b], startPoint: .topLeading, endPoint: .bottomTrailing)
+                RadialGradient(colors: [.white.opacity(0.34), .white.opacity(0.08), .clear], center: .topLeading, startRadius: 0, endRadius: r * 0.95)
+                RadialGradient(colors: [a.opacity(0.55), .clear], center: UnitPoint(x: 0.95, y: 0.15), startRadius: 0, endRadius: r * 0.6)
+                LinearGradient(colors: [.clear, .black.opacity(0.18)], startPoint: .center, endPoint: .bottom)
+                ContainerRelativeShape()
+                    .strokeBorder(LinearGradient(colors: [.white.opacity(0.5), .white.opacity(0.08), .white.opacity(0.18)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+            }
+        }
     }
 }
 

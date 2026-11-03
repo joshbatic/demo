@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 
 /// Perform (spec §2.10): a full-screen teleprompter with the lyrics' own formatting, text size, speed and
-/// auto-scroll (28 pt a second × speed). Tapping the words plays or pauses. The screen stays awake.
+/// auto-scroll (at the song's tempo when it has one, else 28 pt a second; × speed). Tapping the words plays or pauses. The screen stays awake.
 struct PerformView: View {
     let songID: String
     @Environment(\.library) private var library
@@ -99,7 +99,7 @@ struct PerformView: View {
 
     private var speedLabel: String {
         let s = speed
-        return (s == s.rounded() ? String(Int(s)) : String(s)) + "×"
+        return (s == s.rounded() ? String(Int(s)) : String(s)) + "×" + (bpm.map { " · \(Int($0)) BPM" } ?? "")
     }
 
     private func ctl(_ icon: String, _ label: String, _ action: @escaping () -> Void) -> some View {
@@ -117,15 +117,36 @@ struct PerformView: View {
         playing.toggle()
     }
 
-    /// 28 pt a second × speed, about 60 times a second; stops at the end.
+    /// The song's tempo, when one is set (30–300 BPM).
+    private var bpm: Double? {
+        guard let v = Double((song?.bpm ?? "").replacingOccurrences(of: ",", with: ".").trimmingCharacters(in: .whitespaces)), (30...300).contains(v) else { return nil }
+        return v
+    }
+
+    /// Points a second at 1×. With a tempo the words roll at the song's pace: two bars a lyric line (beats per bar
+    /// from the time signature, 4 if there's none), spread over the whole page. Without one, 28 pt a second.
+    private var rate: CGFloat {
+        guard let bpm, let s = song else { return 28 }
+        let n = s.lyrics.split(separator: "\n").filter { l in
+            let t = l.trimmingCharacters(in: .whitespaces)
+            return !t.isEmpty && !(t.hasPrefix("[") && t.hasSuffix("]"))
+        }.count
+        guard n > 0, maxY > 0 else { return 28 }
+        let b = Int(s.time.split(separator: "/").first ?? "") ?? 4
+        let secs = Double(n) * 2 * Double((2...12).contains(b) ? b : 4) * 60 / bpm
+        return max(4, maxY / CGFloat(secs))
+    }
+
+    /// The rate × speed, about 60 times a second; stops at the end.
     private func roll() async {
         guard playing else { return }
+        let rate = self.rate
         var last = Date()
         while playing && !Task.isCancelled {
             try? await Task.sleep(for: .milliseconds(16))
             let now = Date(), dt = now.timeIntervalSince(last); last = now
             guard !dragging else { continue }
-            y = min(maxY, y + CGFloat(28 * speed * dt))
+            y = min(maxY, y + rate * CGFloat(speed * dt))
             pos.scrollTo(y: y)
             if y >= maxY { playing = false }
         }
