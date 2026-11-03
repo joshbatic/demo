@@ -95,6 +95,7 @@ html.devbuild #vDash #biz .bzg{margin:0 0 18px}
 .dk .dsp{position:absolute;right:14px;bottom:16px;width:84px;height:30px}
 .dcols{display:grid;grid-template-columns:1.1fr 1fr;gap:20px;align-items:start}
 .dlab{font-size:15px;font-weight:650;margin:0 4px 10px}
+.dli .dsp{width:72px;height:26px;flex:none;margin:0 6px}
 .dlist{overflow:hidden}
 .dli{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:9px 14px;background:none;color:var(--ink);text-align:left;position:relative;font:inherit}
 button.dli{cursor:pointer}button.dli:active{background:var(--fill)}
@@ -18628,8 +18629,10 @@ function admCard(){var b=document.createElement('div');b.className='song irow0 b
   b.innerHTML='<i class="th ath">'+ADM_ICO+'</i><div class="tx"><b>Admin</b><span></span><em></em></div>';b.querySelector('span').textContent=admSub();
   b.onclick=openAdmin;b.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openAdmin()}};return b}
 function admRpc(fn,args){var c=sbClient();if(!c)return Promise.reject(new Error('Not connected'));return c.rpc(fn,args||{}).then(function(r){if(r.error){if(/admin_|function .* does not exist|PGRST202/i.test(r.error.message||'')&&!/Admins only/.test(r.error.message)){ADM.miss=true}throw r.error}return r.data})}
+/* AI spend, estimated from the request counts (supabase/ai-cost.sql): US$ per request, shown in A$ */
+var AUD_PER_USD=1.54;function audC(usd){var a=(+usd||0)*AUD_PER_USD;return'A$'+(a<10?a.toFixed(2):Math.round(a).toLocaleString('en-AU'))}
 function admLoadOverview(force){if(!BETA.admin)return;if(!force&&ADM.ov&&Date.now()-ADM.t<30000)return;ADM.t=Date.now();
-  admLoadStatus();tkLoad();rpLoad();if(DEV_BUILD)admRpc('admin_trend').then(function(tr){ADM.trend=tr||[];renderAdmin()},function(){});admRpc('admin_overview').then(function(o){ADM.ov=o;ADM.miss=false;paintAdmSide();if(DEV_BUILD&&!$('#q').value)renderList();renderAdmin()},function(){renderAdmin()})}
+  admLoadStatus();tkLoad();rpLoad();if(DEV_BUILD)admRpc('admin_trend').then(function(tr){ADM.trend=tr||[];renderAdmin()},function(){});admRpc('admin_ai_cost').then(function(r){ADM.aic=r;renderAdmin()},function(){});admRpc('admin_overview').then(function(o){ADM.ov=o;ADM.miss=false;paintAdmSide();if(DEV_BUILD&&!$('#q').value)renderList();renderAdmin()},function(){renderAdmin()})}
 function admLoadUsers(){admRpc('admin_users',{p_q:ADM.q,p_limit:200}).then(function(u){ADM.users=u||[];renderAdmin()},function(e){ADM.users=[];renderAdmin();if(!ADM.miss)toast('Couldn’t load users: '+(e.message||e))})}
 function admLoadErrors(){admRpc('admin_errors',{p_hours:ADM.hours}).then(function(r){ADM.errs=r||{groups:[],latest:[]};renderAdmin()},function(){ADM.errs={groups:[],latest:[]};renderAdmin()})}
 function openAdmin(){if(DEV_BUILD&&$('#vDash'))return dashGo('dash');if(!AUTH_USER){toast('Sign in as dev@hellodemo.app to use Admin');return}if(!BETA.admin){toast('Admin is only for the admin account (dev@hellodemo.app)');return}
@@ -18765,7 +18768,7 @@ function bizExport(){var go=function(){var X=window.XLSX,wb=X.utils.book_new();(
     a.href=URL.createObjectURL(blob);a.download='*[demo] business '+new Date().toISOString().slice(0,10)+'.xlsx';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},4000);toast('Exported the sheet')};
   if(window.XLSX)return go();var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=go;s.onerror=function(){toast('Couldn’t load the exporter. Check your connection.')};document.head.appendChild(s)}
 /* the overview's numbers get an icon each */
-var STAT_ICO={'Accounts':['person','blue'],'New today':['plus','green'],'Signed in today':['clock','teal'],'Waiting for beta':['hourglass','orange'],'Storage used':['disk','gray'],'AI units today':['spark','purple'],'Errors today':['warn','red'],'Help desk':['bubble','pink'],'Reports':['flag','red'],'Services':['pulse','green'],'Songs':['note','indigo']};
+var STAT_ICO={'Accounts':['person','blue'],'New today':['plus','green'],'Signed in today':['clock','teal'],'Waiting for beta':['hourglass','orange'],'Storage used':['disk','gray'],'AI units today':['spark','purple'],'AI cost this month':['spark','purple'],'Errors today':['warn','red'],'Help desk':['bubble','pink'],'Reports':['flag','red'],'Services':['pulse','green'],'Songs':['note','indigo']};
 DI.tray='<path d="M3.5 13.5l2.8-8h11.4l2.8 8V19H3.5z"/><path d="M3.5 13.5h5l1.2 2.2h4.6l1.2-2.2h5"/>';
 DI.mail='<rect x="3.5" y="5.5" width="17" height="13" rx="2.2"/><path d="M4.2 7.2L12 13l7.8-5.8"/>';
 DI.refresh='<path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3M19.5 4.5v4.6h-4.6"/>';
@@ -18854,11 +18857,14 @@ function dashOverview(o){var ov=ADM.ov||{},tr=ADM.trend||[],n=function(x){return
   row(nd,'pulse','green','Services',sd.n?sd.n+' checked '+admAgo(ADM.st&&ADM.st.checked_at):'Not checked yet',sd.down?sd.down+' down':sd.slow?sd.slow+' slow':sd.n?'All up':'',sd.down?'bad':sd.n?'ok':'',function(){dashGo('more','status')});
   var td=sect('Today'),plan=1073741824,sb=ov.storage_bytes||0;
   row(td,'','','New accounts','',n(ov.new_today)+' · '+n(ov.new_7d)+' this week');
-  if(ov.ai_units_today!=null)row(td,'','','AI requests','',n(ov.ai_units_today)+' units · '+n(ov.ai_users_today)+(ov.ai_users_today===1?' person':' people'));
+  var aic=ADM.aic;
+  if(ov.ai_units_today!=null)row(td,'','','AI requests','',n(ov.ai_units_today)+' units · '+n(ov.ai_users_today)+(ov.ai_users_today===1?' person':' people')+(aic?' · ≈'+audC(aic.today_usd):''));
+  if(aic){var mr=row(td,'','','AI cost this month',(aic.free_users_month?audC(aic.month_free_usd)+' from '+n(aic.free_users_month)+(aic.free_users_month===1?' free account':' free accounts'):'None from free accounts')+(aic.last_month_usd?' · last month '+audC(aic.last_month_usd):''),'≈'+audC(aic.month_usd));
+    var sp=dSpark((aic.days||[]).map(function(d){return d.usd}),'#AF52DE');if(sp)mr.querySelector('.dr').insertAdjacentHTML('beforebegin',sp)}
   if(ov.sync_today!=null)row(td,'','','Lyric syncs','',n(ov.sync_today));
   var st=row(td,'','','Storage','',(sfSize(sb)||'0 KB')+' of 1 GB',sb>plan*.8?'bad':'');var bar=document.createElement('i');bar.className='dbar'+(sb>plan*.8?' bad':'');bar.innerHTML='<i></i>';bar.firstChild.style.width=Math.max(2,Math.min(100,sb/plan*100))+'%';st.insertBefore(bar,st.querySelector('.dr'));
   if(ov.songs!=null){row(td,'','','Songs','',n(ov.songs)+' · '+n(ov.shared_songs)+' co-written');row(td,'','','Ideas and share links','',n(ov.ideas)+' · '+n(ov.share_links))}
-  var nt=document.createElement('div');nt.className='anote';nt.textContent='Updated '+admAgo(ov.at)+'. Days reset at midnight Adelaide time; AI counts at midnight UTC.';o.appendChild(nt)}
+  var nt=document.createElement('div');nt.className='anote';nt.textContent='Updated '+admAgo(ov.at)+'. Days reset at midnight Adelaide time; AI counts at midnight UTC. AI cost is an estimate: about US$0.001 a quick request, US$0.035 a Rate or voice profile and US$0.006 a minute of lyric sync, at A$'+AUD_PER_USD+' to the US dollar.';o.appendChild(nt)}
 function admTab(t){ADM.tab=t;var ao=$('#adm');if(ao)ao.scrollTop=0;renderAdmin();if(t==='status')admLoadStatus();if(t==='overview')admLoadOverview(true);if(t==='users'){if(UD.id)admLoadUser();else admLoadUsers()}if(t==='errors')admLoadErrors();if(t==='help')tkLoad();if(t==='reports')rpLoad();if(t==='debug')dbgPrep();if(t==='settings'){cfgLoad();admLoadBuilds()}}
 function admStat(g,num,label,extra,warn,bar){var d=document.createElement('div');d.className='astat'+(warn?' warn':'');var si=STAT_ICO[label];d.innerHTML=(si?dTile(si[0],DCOL[si[1]]):'')+'<b></b><span></span>';d.querySelector('b').textContent=num;d.querySelector('span').textContent=label;
   if(bar!=null){var br=document.createElement('div');br.className='abar';br.innerHTML='<i></i>';br.firstChild.style.width=Math.max(2,Math.min(100,bar))+'%';d.appendChild(br)}
@@ -18894,6 +18900,7 @@ function admRender(o){
     if(ov.beta_pending!=null)admStat(g,ov.beta_pending,'Waiting for beta',(ov.beta_approved||0)+' approved · lock '+(ov.gate?'on':'off'));
     var plan=1073741824;admStat(g,sfSize(ov.storage_bytes||0)||'0 KB','Storage used','of 1 GB on the free plan'+(ov.storage_mb!=null?' · '+ov.storage_mb+' MB each':''),(ov.storage_bytes||0)>plan*.8,(ov.storage_bytes||0)/plan*100);
     if(ov.ai_units_today!=null)admStat(g,ov.ai_units_today,'AI units today',(ov.ai_users_today||0)+' people · '+(ov.sync_today||0)+' syncs');
+    if(ADM.aic)admStat(g,'≈'+audC(ADM.aic.month_usd),'AI cost this month',(ADM.aic.month_free_usd?audC(ADM.aic.month_free_usd)+' from free accounts':'Nothing from free accounts')+' · today ≈'+audC(ADM.aic.today_usd));
     if(ov.errors_24h!=null)admStat(g,ov.errors_24h,'Errors today',(ov.error_users_24h||0)+' people affected',ov.errors_24h>0);
     if(TKT.data&&TKT.data.counts&&!TKT.data.err){var tc=TKT.data.counts;admStat(g,tc.open||0,'Help desk',(tc.open?'waiting for a reply · ':'')+(tc.replied||0)+' answered',tc.open>0);g.lastChild.style.cursor='pointer';g.lastChild.onclick=function(){admTab('help')}}
     if(RPT.data&&RPT.data.counts&&!RPT.data.err){var rc=RPT.data.counts;admStat(g,rc.open||0,'Reports',rc.open?'to review within 24 hours':'nothing to review',rc.open>0);g.lastChild.style.cursor='pointer';g.lastChild.onclick=function(){if(DEV_BUILD&&$('#vDash'))dashGo('more','reports');else admTab('reports')}}
