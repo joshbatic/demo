@@ -40,7 +40,8 @@ git add -A && git commit -q -m "Version $V"
 
 # 3. onto main, and out to the website and the Mac app
 git checkout -q main && git merge -q origin/main --ff-only 2>/dev/null || true
-git merge -q --no-ff dev -m "Release $V"
+# -X theirs: the copies on main (docs/app, mac-app/app, web-artifact) get build-number edits from beta.yml; dev's win, and are overwritten just below anyway
+git merge -q --no-ff -X theirs dev -m "Release $V"
 cp www/index.html docs/app/index.html
 cp www/index.html mac-app/app/index.html
 cp www/index.html web-artifact/songpad.html
