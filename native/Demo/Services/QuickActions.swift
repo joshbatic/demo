@@ -120,9 +120,9 @@ enum WidgetShare {
     /// The latest song's main colour, deep enough for white words (iOS swaps it for glass in Clear mode).
     private static func tint(_ s: Song) -> [String] {
         let c = SharePalette.palette(s).first ?? HSL(h: 260, s: 0.3, l: 0.5)
-        // clear, saturated glass colours (greys stay grey): light at the top, deep at the foot
-        let sat = c.s < 0.14 ? 0.08 : min(0.68, max(0.45, c.s * 0.9))
-        return [(0.6, 0.0), (0.3, 18.0)].map { l, turn in
+        // soft glass colours (greys stay grey): light at the top, a gentler deep at the foot
+        let sat = c.s < 0.14 ? 0.06 : min(0.42, max(0.28, c.s * 0.6))
+        return [(0.6, 0.0), (0.4, 14.0)].map { l, turn in
             let (r, g, b) = SharePalette.rgb(HSL(h: (c.h + turn).truncatingRemainder(dividingBy: 360), s: sat, l: l))
             return String(format: "%02X%02X%02X", Int(r * 255), Int(g * 255), Int(b * 255))
         }

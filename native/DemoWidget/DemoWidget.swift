@@ -11,15 +11,15 @@ import WidgetKit
 struct WidgetTint: View {
     let snap: Snapshot
     var body: some View {
-        let t = snap.tint ?? ["9C7BD8", "3E2F7A"]
+        let t = snap.tint ?? ["9F8CC4", "5E4E8A"]
         let a = Color(hexString: t[0]), b = Color(hexString: t.count > 1 ? t[1] : t[0])
         GeometryReader { g in
             let r = max(g.size.width, g.size.height)
             ZStack {
                 LinearGradient(colors: [a, b], startPoint: .topLeading, endPoint: .bottomTrailing)
-                RadialGradient(colors: [.white.opacity(0.34), .white.opacity(0.08), .clear], center: .topLeading, startRadius: 0, endRadius: r * 0.95)
-                RadialGradient(colors: [a.opacity(0.55), .clear], center: UnitPoint(x: 0.95, y: 0.15), startRadius: 0, endRadius: r * 0.6)
-                LinearGradient(colors: [.clear, .black.opacity(0.18)], startPoint: .center, endPoint: .bottom)
+                RadialGradient(colors: [.white.opacity(0.26), .white.opacity(0.06), .clear], center: .topLeading, startRadius: 0, endRadius: r * 0.95)
+                RadialGradient(colors: [a.opacity(0.35), .clear], center: UnitPoint(x: 0.95, y: 0.15), startRadius: 0, endRadius: r * 0.6)
+                LinearGradient(colors: [.clear, .black.opacity(0.1)], startPoint: .center, endPoint: .bottom)
                 ContainerRelativeShape()
                     .strokeBorder(LinearGradient(colors: [.white.opacity(0.5), .white.opacity(0.08), .white.opacity(0.18)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
             }
