@@ -9,6 +9,7 @@ struct SongListScreen: View {
     @Environment(\.library) private var library
     @State private var path: [String] = []
     @State private var query = ""
+    @State private var headerSmall = false
     @State private var confirmDelete: Song?
     // folders and backups (spec §3.6–3.7)
     @State private var renaming: String?
@@ -100,12 +101,17 @@ struct SongListScreen: View {
             }
             .listStyle(.plain)
             .scrollDismissesKeyboard(.interactively)
+            // how far the list has scrolled from the top (the same whatever the header's height), with a gap between
+            // the two switch points so it doesn't flicker
+            .onScrollGeometryChange(for: CGFloat.self) { $0.contentOffset.y + $0.contentInsets.top } action: { _, y in
+                if !headerSmall && y > 44 { headerSmall = true } else if headerSmall && y < 12 { headerSmall = false }
+            }
             .refreshable { library.sync() }
             // like the web app: a big title that stays put with the songs scrolling under it,
             // and the search bar with the New Song button floating at the bottom
             .toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .top, spacing: 0) {
-                ListHeader(title: "*[demo]") { AccountButton { session.accountFocus = nil; session.accountOpen = true } }
+                ListHeader(title: "*[demo]", compact: "*[d]", collapsed: headerSmall) { AccountButton { session.accountFocus = nil; session.accountOpen = true } }
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 SearchDock(text: $query, prompt: "Search", icon: "ic-new", label: "New song",
@@ -520,17 +526,34 @@ struct Avatar: View {
 /// beneath it like the web app's header.
 struct ListHeader<Trailing: View>: View {
     let title: String
+    /// scrolled down: the title shrinks to `compact` (the songs list's "*[d]") and the bar gets shorter, like iOS's
+    /// large titles, so more songs fit; back at the top it grows back
+    var compact: String? = nil
+    var collapsed = false
     @ViewBuilder var trailing: Trailing
     var body: some View {
         HStack(alignment: .center) {
-            Text(title).font(.system(size: 34, weight: .bold)).tracking(-0.6).lineLimit(1)
+            ZStack(alignment: .leading) {
+                Text(title).font(.system(size: 34, weight: .bold)).tracking(-0.6).lineLimit(1)
+                    .opacity(collapsed ? 0 : 1)
+                    .scaleEffect(collapsed ? 0.62 : 1, anchor: .leading)
+                if let compact {
+                    Text(compact).font(.system(size: 22, weight: .bold)).tracking(-0.3).lineLimit(1)
+                        .opacity(collapsed ? 1 : 0)
+                        .scaleEffect(collapsed ? 1 : 1.5, anchor: .leading)
+                        .accessibilityHidden(!collapsed)
+                }
+            }
+            .frame(height: collapsed ? 30 : 41, alignment: .leading)
             Spacer(minLength: 12)
             trailing
+                .scaleEffect(collapsed ? 0.86 : 1)
         }
         .padding(.horizontal, 20)
-        // the web's .lhead: 28pt below the status bar
-        .padding(.top, 28)
-        .padding(.bottom, 14)
+        // the web's .lhead: 28pt below the status bar (8 once collapsed)
+        .padding(.top, collapsed ? 6 : 28)
+        .padding(.bottom, collapsed ? 6 : 14)
+        .animation(.snappy(duration: 0.28), value: collapsed)
         // the web's .fadeT.lhf: frosted glass solid behind the whole title row, fading out below it
         .background(alignment: .top) {
             EdgeFade(edge: .top, solidTo: 0.62, material: .thinMaterial)
