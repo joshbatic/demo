@@ -1,5 +1,7 @@
-# Builds the Mac app download (demo-mac.dmg) on a Mac whenever the Mac app changes on main, and replaces the
-# file on the latest GitHub release, which is what hellodemo.app/mac.html's "Download for Mac" button links to.
+# Builds the Mac app download on a Mac whenever the Mac app changes on main, and puts it on the latest GitHub release
+# as demo-mac-<version>.dmg (e.g. demo-mac-1.1.0.dmg, the version from mac-app/package.json), which is what
+# hellodemo.app/mac.html's "Download for Mac" button links to (scripts/release.sh updates that link). Older versioned
+# files are removed from the release, and a copy named demo-mac.dmg stays too, so older links keep working.
 #
 # Signed "ad hoc" until these repository secrets exist (Settings › Secrets and variables › Actions); then it's
 # signed with your Developer ID and notarised, so it opens with no warning:
@@ -65,6 +67,9 @@ jobs:
         run: |
           cd mac-app
           bash scripts/build-download.sh
+          VER=$(node -p "require('./package.json').version")
+          echo "VER=$VER" >> "$GITHUB_ENV"
+          cp dist/demo-*-mac.dmg "$RUNNER_TEMP/demo-mac-$VER.dmg"
           cp dist/demo-*-mac.dmg "$RUNNER_TEMP/demo-mac.dmg"
       # The public download lives on joshbatic/demo-releases (a public repo with only release files), so this repo
       # can be private. RELEASES_TOKEN: a fine-grained token with Contents read/write on demo-releases only.
@@ -74,12 +79,15 @@ jobs:
           if [ -z "$GH_TOKEN" ]; then echo "No RELEASES_TOKEN yet: skipping demo-releases."; exit 0; fi
           R=joshbatic/demo-releases
           TAG=$(gh api "repos/$R/releases/latest" -q .tag_name 2>/dev/null || true)
-          if [ -z "$TAG" ]; then TAG=mac; gh release create "$TAG" --repo "$R" --title "*[demo] for Mac" --notes "The latest *[demo] for Mac. Download demo-mac.dmg."; fi
-          gh release upload "$TAG" "$RUNNER_TEMP/demo-mac.dmg" --clobber --repo "$R"
-          echo "Uploaded demo-mac.dmg to $R $TAG"
+          if [ -z "$TAG" ]; then TAG=mac; gh release create "$TAG" --repo "$R" --title "*[demo] for Mac" --notes "The latest *[demo] for Mac."; fi
+          for old in $(gh release view "$TAG" --repo "$R" --json assets -q '.assets[].name' | grep -E '^demo-mac-[0-9.]+\.dmg$' | grep -v "^demo-mac-$VER.dmg$" || true); do gh release delete-asset "$TAG" "$old" --repo "$R" -y; done
+          gh release upload "$TAG" "$RUNNER_TEMP/demo-mac-$VER.dmg" "$RUNNER_TEMP/demo-mac.dmg" --clobber --repo "$R"
+          gh release edit "$TAG" --repo "$R" --title "*[demo] for Mac $VER" --notes "*[demo] for Mac $VER. Download demo-mac-$VER.dmg." || true
+          echo "Uploaded demo-mac-$VER.dmg to $R $TAG"
       - name: Also replace it on this repo's latest release (while it's public)
         env: { GH_TOKEN: "${{ github.token }}" }
         run: |
           TAG=$(gh api "repos/${{ github.repository }}/releases/latest" -q .tag_name 2>/dev/null || true)
           if [ -z "$TAG" ]; then exit 0; fi
-          gh release upload "$TAG" "$RUNNER_TEMP/demo-mac.dmg" --clobber --repo "${{ github.repository }}"
+          for old in $(gh release view "$TAG" --repo "${{ github.repository }}" --json assets -q '.assets[].name' | grep -E '^demo-mac-[0-9.]+\.dmg$' | grep -v "^demo-mac-$VER.dmg$" || true); do gh release delete-asset "$TAG" "$old" --repo "${{ github.repository }}" -y; done
+          gh release upload "$TAG" "$RUNNER_TEMP/demo-mac-$VER.dmg" "$RUNNER_TEMP/demo-mac.dmg" --clobber --repo "${{ github.repository }}"
