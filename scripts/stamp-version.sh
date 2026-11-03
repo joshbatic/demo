@@ -35,6 +35,14 @@ if [ -f "$native" ] && grep -q "^    static let appSeq = [0-9]*$" "$native"; the
   files+=("$native")
 fi
 
+# the iPhone app's build number (CFBundleVersion, in the app and its widgets) is the same number, so App Store
+# builds always go up and every app shows the same build in Account › Version
+pbx=native/xcode/project.pbxproj
+if [ -f "$pbx" ]; then
+  sed -i.bak "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = $seq;/g" "$pbx" && rm -f "$pbx.bak"
+  files+=("$pbx")
+fi
+
 # the share-link viewer carries a copy of the page renderer; rebuild it so it never drifts from the app
 if command -v python3 >/dev/null; then python3 scripts/build-share-viewer.py >/dev/null && files+=(docs/s/index.html share/api/_viewer.js); fi
 
