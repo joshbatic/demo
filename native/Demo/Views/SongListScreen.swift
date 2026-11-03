@@ -47,13 +47,16 @@ struct SongListScreen: View {
                                 NavigationLink(value: s.id) { EmptyView() }.opacity(0)
                                 SongRow(song: s, showFolder: g.pinned)
                             }
-                            .overlay(alignment: .top) {
-                                if i > 0 { Rectangle().fill(Color(uiColor: .separator)).frame(height: 0.5).padding(.leading, 66).padding(.trailing, -24) }
-                            }
-                            .listRowSeparator(.hidden)
+                            // the list's own hairline (it slides with a swipe and fades with a delete), from the text
+                            // to the edge; none above the first song (the title's row hides it) or below the last
+                            .alignmentGuide(.listRowSeparatorLeading) { _ in 66 }
+                            .listRowSeparator(i == 0 ? .hidden : .visible, edges: .top)
+                            .listRowSeparator(i == g.songs.count - 1 ? .hidden : .visible, edges: .bottom)
                             .listRowInsets(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 24))
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    Button(role: .destructive) { confirmDelete = s } label: {
+                                    // not role: .destructive, which removes the row straight away and puts it back while
+                                    // the confirmation is up; this just closes the swipe, and the row goes once confirmed
+                                    Button { confirmDelete = s } label: {
                                         Label(isMine(s) ? "Delete" : "Leave", systemImage: isMine(s) ? "trash" : "rectangle.portrait.and.arrow.right")
                                     }
                                     .tint(.red)   // the app's tint is white in dark mode; keep delete red
