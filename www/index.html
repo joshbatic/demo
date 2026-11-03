@@ -161,7 +161,7 @@ button.dli{cursor:pointer}button.dli:active{background:var(--fill)}
 #dside .dsi.on{background:var(--dsel);box-shadow:0 1px 2px rgba(0,0,0,.08);font-weight:600;opacity:1}#dside .dsi.on svg{color:#007AFF}
 #dside .dsl{flex:1;min-width:0}
 #dside .dsn{font-style:normal;font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
-#dside .dsn.r{color:#fff;background:#FF3B30;border-radius:10px;min-width:20px;padding:1px 6px;text-align:center;font-weight:600}
+#dside .dsn.dred{color:#fff;background:#FF3B30;border-radius:10px;min-width:20px;height:20px;line-height:20px;padding:0 6px;text-align:center;font-weight:600}
 #adm .aset.iset{justify-content:flex-start}#adm .aset.iset>div{flex:1;min-width:0}#adm .aset.iset+.aset::before,#adm .aset+.aset.iset::before{left:58px}
 #adm .aset.wrapset{flex-wrap:wrap}#adm .aset.wrapset .ain{flex-basis:100%;margin:8px 0 0 42px;width:calc(100% - 42px);text-align:left}
 #adm .bhead{padding:2px 0 10px}#adm .bhead::before{display:none}
@@ -19011,7 +19011,7 @@ function dashTabsPaint(){var nav=$('#dtabs');if(!nav)return;var v=document.query
   var sact=vid==='vList'?'songs':DASH.tab==='inbox'?DASH.ib:DASH.tab==='more'&&DASH.sub?DASH.sub:DASH.tab;
   var ov=ADM.ov||{},num={users:ov.users,help:cn.help,reports:cn.reports,beta:cn.beta,errors:ov.errors_24h},red={help:1,reports:1};
   sd.querySelectorAll('.dsi').forEach(function(b){var k=b.dataset.k,on=k===sact;b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
-    var n=b.querySelector('.dsn'),x=num[k];n.textContent=x?String(x):'';n.className='dsn'+(x&&red[k]?' r':'')})}
+    var n=b.querySelector('.dsn'),x=num[k];n.textContent=x?String(x):'';n.className='dsn'+(x&&red[k]?' dred':'')})}
 /* the dashboard's front page: four numbers, what needs you, and today */
 function dSpark(vals,col){vals=(vals||[]).map(function(v){return+v||0});if(vals.length<3)return'';var mx=Math.max.apply(0,vals),mn=Math.min.apply(0,vals),r=mx-mn||1;
   return'<svg class="dsp" viewBox="0 0 84 30" aria-hidden="true"><path d="M'+vals.map(function(v,i){return(i*84/(vals.length-1)).toFixed(1)+' '+(27-(v-mn)/r*24).toFixed(1)}).join(' L')+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'}
