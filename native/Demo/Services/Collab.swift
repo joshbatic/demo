@@ -372,8 +372,9 @@ final class Collab {
                 do { try await insert() } catch { return "Couldn’t send the invite: only the song’s owner can invite people." }
             } else { return "Couldn’t send the invite: " + describe(error) }
         }
+        // the notifications go out in the background; the invite itself is done
         Task { await Self.ping(invitee, event: "invite") }
-        _ = try? await Backend.function("push", body: ["action": "invite", "song_id": .string(s.id), "invitee": .string(invitee)])
+        Task { _ = try? await Backend.function("push", body: ["action": "invite", "song_id": .string(s.id), "invitee": .string(invitee)]) }
         return nil
     }
 
