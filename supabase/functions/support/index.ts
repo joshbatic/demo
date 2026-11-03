@@ -25,9 +25,46 @@ const str = (v: unknown, n: number) => (typeof v === "string" ? v.trim().slice(0
 const TOPICS: Record<string, string> = { bug: "Something's not working", account: "Account or sign-in", billing: "Subscription or billing", idea: "Idea or request", other: "Something else" };
 
 const page = (body: string) => `<div style="font-family:-apple-system,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5;color:#1a1820;max-width:560px">${body}<p style="color:#888;font-size:13px;margin-top:28px">*[demo] · hellodemo.app</p></div>`;
-const toText = (html: string) => html.replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n\n").replace(/<[^>]+>/g, "")
-  .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\n{3,}/g, "\n\n").trim();
+const toText = (html: string) => html.replace(/<head[\s\S]*?<\/head>/i, "").replace(/<div style="display:none[^>]*>[\s\S]*?<\/div>/i, "").replace(/<\/(td|tr|div|table)>/gi, "\n").replace(/[ \t]+/g, " ").replace(/\n[ \t]+/g, "\n").replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n\n").replace(/<[^>]+>/g, "")
+  .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\n[ \t]+\n/g, "\n\n").replace(/\n{3,}/g, "\n\n").trim();
 const paras = (t: string) => t.split(/\n{2,}/).map((p) => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`).join("");
+
+// ---------- the emails people get from support: a clean letter, styled like the app ----------
+// Tables and inline styles so they hold up in Gmail, Outlook and Apple Mail; Apple Mail also gets a dark version.
+const ICON = "https://hellodemo.app/icon-192.png";
+const FONT = "-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Helvetica,Arial,sans-serif";
+const nb = (t: string) => t.replace(/\*\[demo\]/g, '<span style="white-space:nowrap">*[demo]</span>');
+const letterParas = (t: string) => t.split(/\n{2,}/).map((x) =>
+  `<p class="body" style="margin:0 0 16px;font:400 16px/1.55 ${FONT};color:#1C1C1E">${esc(x).replace(/\n/g, "<br>")}</p>`).join("");
+function letter(o: { name?: string; text: string; quote?: string; ticket?: number | null; preheader?: string }) {
+  const first = (o.name || "").trim().split(/\s+/)[0];
+  const quote = o.quote ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="tile" style="background:#F2F2F7;border-radius:14px;margin:8px 0 6px"><tr><td style="padding:14px 16px">
+     <div class="mute" style="font:600 12.5px/1 ${FONT};color:#8E8E93;margin-bottom:8px">You wrote</div>
+     <div class="body" style="font:400 14.5px/1.5 ${FONT};color:#3A3A3C">${esc(o.quote).replace(/\n/g, "<br>")}</div></td></tr></table>` : "";
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark"><title>*[demo] Support</title>
+<style>body{margin:0;padding:0;-webkit-text-size-adjust:100%}a{color:inherit}@media (max-width:520px){.pad{padding-left:22px!important;padding-right:22px!important}}
+@media (prefers-color-scheme:dark){.bg{background:#000000!important}.card{background:#1C1C1E!important}.ink{color:#FFFFFF!important}.body{color:#EBEBF5!important}.mute{color:#8E8E93!important}.tile{background:#2C2C2E!important}.rule{border-color:#38383A!important}}</style></head>
+<body class="bg" style="margin:0;padding:0;background:#F2F2F7">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">${esc((o.preheader || o.text).slice(0, 140))}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#F2F2F7"><tr><td align="center" style="padding:28px 12px 36px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px"><tr><td class="card" style="background:#FFFFFF;border-radius:24px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr><td class="pad" style="padding:26px 30px 0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+  <td width="46"><img src="${ICON}" width="36" height="36" alt="" style="display:block;border:0;border-radius:9px"></td>
+  <td class="ink" style="font:700 15.5px/1.25 ${FONT};color:#000000">${nb("*[demo] Support")}<br><span class="mute" style="font-weight:400;font-size:13.5px;color:#8E8E93">help@hellodemo.app</span></td>
+  ${o.ticket ? `<td align="right" class="mute" style="font:500 13px ${FONT};color:#8E8E93">#${o.ticket}</td>` : ""}
+</tr></table><div class="rule" style="border-top:.5px solid #E5E5EA;margin-top:20px;font-size:0;line-height:0">&nbsp;</div></td></tr>
+<tr><td class="pad" style="padding:22px 30px 28px">
+${first ? `<p class="body" style="margin:0 0 16px;font:400 16px/1.55 ${FONT};color:#1C1C1E">Hi ${esc(first)},</p>` : ""}
+${letterParas(o.text)}
+<p class="body" style="margin:4px 0 ${quote ? "20px" : "0"};font:400 16px/1.55 ${FONT};color:#1C1C1E">${nb("The *[demo] team")}</p>
+${quote}
+</td></tr></table></td></tr>
+<tr><td class="mute" style="padding:18px 18px 0;text-align:center;font:400 12.5px/1.5 ${FONT};color:#8E8E93">Just reply to this email to keep the conversation going.<br>
+<a href="https://hellodemo.app" style="color:#8E8E93;text-decoration:none">hellodemo.app</a> &nbsp;·&nbsp; <a href="https://hellodemo.app/privacy.html" style="color:#8E8E93;text-decoration:none">Privacy</a></td></tr>
+</table></td></tr></table></body></html>`;
+}
 
 async function send(to: string, subject: string, html: string) {
   const key = env("RESEND_API_KEY"), from = env("SUPPORT_FROM") || "*[demo] <help@hellodemo.app>";
@@ -117,10 +154,8 @@ Deno.serve(async (req) => {
     if (!id || text.length < 2) return json({ error: "Write a reply first." }, 400);
     const { data: t } = await db.from("support_tickets").select("*").eq("id", id).single();
     if (!t) return json({ error: "No such ticket." }, 404);
-    const emailed = await send(t.email, `Re: your *[demo] message (#${t.id})`, page(
-      `${t.name ? `<p>Hi ${esc(String(t.name).split(/\s+/)[0])},</p>` : ""}${paras(text)}
-       <div style="margin-top:24px;padding:12px 14px;border-left:3px solid #ddd;color:#666;font-size:14px">${paras(t.message)}</div>
-       <p style="color:#888;font-size:13px">Reply to this email to keep the conversation going.</p>`));
+    const emailed = await send(t.email, `Re: your *[demo] message (#${t.id})`,
+      letter({ name: t.name ? String(t.name) : "", text, quote: String(t.message || "").startsWith("(You wrote to them)") ? "" : String(t.message || ""), ticket: t.id }));
     const replies = [...(Array.isArray(t.replies) ? t.replies : []), { at: new Date().toISOString(), by: "admin", text, emailed }];
     const { error } = await db.from("support_tickets").update({ replies, status: "replied", updated_at: new Date().toISOString() }).eq("id", id);
     if (error) return json({ error: "Couldn't save the reply: " + error.message }, 500);
@@ -136,8 +171,7 @@ Deno.serve(async (req) => {
     if (!to) return json({ error: "That account has no email address." }, 404);
     const meta = (u.user.user_metadata || {}) as Record<string, string>;
     const name = meta.full_name || meta.name || "";
-    const emailed = await send(to, subject, page(`${name ? `<p>Hi ${esc(name.split(/\s+/)[0])},</p>` : ""}${paras(text)}
-      <p style="color:#888;font-size:13px">Reply to this email to answer.</p>`));
+    const emailed = await send(to, subject, letter({ name, text }));
     const { data: t } = await db.from("support_tickets").insert({
       user_id: user, email: to, name, topic: "other", message: `(You wrote to them) ${subject}`, status: "replied",
       replies: [{ at: new Date().toISOString(), by: "admin", text, emailed }],

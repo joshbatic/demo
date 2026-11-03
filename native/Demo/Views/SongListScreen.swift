@@ -9,6 +9,7 @@ struct SongListScreen: View {
     @Environment(\.library) private var library
     @State private var path: [String] = []
     @State private var query = ""
+    @State private var headerSmall = false
     @State private var confirmDelete: Song?
     // folders and backups (spec §3.6–3.7)
     @State private var renaming: String?
@@ -46,15 +47,19 @@ struct SongListScreen: View {
                                 NavigationLink(value: s.id) { EmptyView() }.opacity(0)
                                 SongRow(song: s, showFolder: g.pinned)
                             }
-                            .overlay(alignment: .top) {
-                                if i > 0 { Rectangle().fill(Color(uiColor: .separator)).frame(height: 0.5).padding(.leading, 66).padding(.trailing, -24) }
-                            }
-                            .listRowSeparator(.hidden)
+                            // the list's own hairline (it slides with a swipe and fades with a delete), from the text
+                            // to the edge; none above the first song (the title's row hides it) or below the last
+                            .alignmentGuide(.listRowSeparatorLeading) { _ in 66 }
+                            .listRowSeparator(i == 0 ? .hidden : .visible, edges: .top)
+                            .listRowSeparator(i == g.songs.count - 1 ? .hidden : .visible, edges: .bottom)
                             .listRowInsets(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 24))
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    Button(role: .destructive) { confirmDelete = s } label: {
+                                    // not role: .destructive, which removes the row straight away and puts it back while
+                                    // the confirmation is up; this just closes the swipe, and the row goes once confirmed
+                                    Button { confirmDelete = s } label: {
                                         Label(isMine(s) ? "Delete" : "Leave", systemImage: isMine(s) ? "trash" : "rectangle.portrait.and.arrow.right")
                                     }
+                                    .tint(.red)   // the app's tint is white in dark mode; keep delete red
                                 }
                                 .swipeActions(edge: .leading) {
                                     Button { togglePin(s) } label: {
@@ -100,15 +105,23 @@ struct SongListScreen: View {
             }
             .listStyle(.plain)
             .scrollDismissesKeyboard(.interactively)
+            // how far the list has scrolled from the top (the same whatever the header's height), with a gap between
+            // the two switch points so it doesn't flicker
+            .onScrollGeometryChange(for: CGFloat.self) { $0.contentOffset.y + $0.contentInsets.top } action: { _, y in
+                if !headerSmall && y > 44 { headerSmall = true } else if headerSmall && y < 12 { headerSmall = false }
+            }
             .refreshable { library.sync() }
             // like the web app: a big title that stays put with the songs scrolling under it,
             // and the search bar with the New Song button floating at the bottom
             .toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .top, spacing: 0) {
-                ListHeader(title: "*[demo]") { AccountButton { session.accountFocus = nil; session.accountOpen = true } }
+                ListHeader(title: "*[demo]", compact: "*[d]", collapsed: headerSmall) { AccountButton { session.accountFocus = nil; session.accountOpen = true } }
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                SearchDock(text: $query, prompt: "Search", icon: "ic-new", label: "New song") { newSong() }
+                SearchDock(text: $query, prompt: "Search", icon: "ic-new", label: "New song",
+                           menu: [.init(title: "New Song", symbol: "square.and.pencil") { newSong() },
+                                  .init(title: "New Folder", symbol: "folder.badge.plus") { newFolder() },
+                                  .init(title: "New Album", symbol: "square.stack") { newAlbum([]) }]) { newSong() }
             }
             .navigationDestination(for: String.self) { id in
                 if id == IdeasRow.route { IdeasScreen() }
@@ -279,7 +292,7 @@ struct SongListScreen: View {
             }
             Button { newAlbum([s.id]) } label: { Label("New Album…", systemImage: "plus.square.on.square") }
             if let a = library.album(s.albumID) {
-                Button { Haptics.tap(); withAnimation(.snappy) { library.setAlbum([s.id], to: "") }; session.toast = "Removed from “\(a.displayTitle)”" } label: {
+                Button { Haptics.tap(); withAnimation(.snappy) { library.setAlbum([s.id], to: "") } } label: {
                     Label("Remove from Album", systemImage: "minus.square")
                 }
             }
@@ -296,7 +309,6 @@ struct SongListScreen: View {
         guard let s = library.song(id), s.folder != f else { return }
         Haptics.tap()
         withAnimation(.snappy) { library.move(id, to: f) }
-        session.toast = f.isEmpty ? "Moved out of folders" : "Moved to “\(f)”"
     }
 
     private func newFolder() {
@@ -317,7 +329,6 @@ struct SongListScreen: View {
         let nv = renameText
         guard let n = withAnimation(.snappy, { library.renameFolder(old, to: nv) }) else { return }
         let name = nv.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression).trimmingCharacters(in: .whitespaces)
-        session.toast = "Renamed to “\(name)”" + (n > 1 ? " (\(n) songs)" : "")
     }
 
     private func exportAll() {
@@ -357,7 +368,6 @@ struct SongListScreen: View {
     private func togglePin(_ s: Song) {
         Haptics.selection()
         withAnimation(.snappy) { library.setPin(s.id, !library.isPinned(s.id)) }
-        session.toast = library.isPinned(s.id) ? "Pinned “\(s.displayTitle)”" : "Unpinned"
     }
 
     private func copyLyrics(_ s: Song) {
@@ -517,17 +527,34 @@ struct Avatar: View {
 /// beneath it like the web app's header.
 struct ListHeader<Trailing: View>: View {
     let title: String
+    /// scrolled down: the title shrinks to `compact` (the songs list's "*[d]") and the bar gets shorter, like iOS's
+    /// large titles, so more songs fit; back at the top it grows back
+    var compact: String? = nil
+    var collapsed = false
     @ViewBuilder var trailing: Trailing
     var body: some View {
         HStack(alignment: .center) {
-            Text(title).font(.system(size: 34, weight: .bold)).tracking(-0.6).lineLimit(1)
+            ZStack(alignment: .leading) {
+                Text(title).font(.system(size: 34, weight: .bold)).tracking(-0.6).lineLimit(1)
+                    .opacity(collapsed ? 0 : 1)
+                    .scaleEffect(collapsed ? 0.62 : 1, anchor: .leading)
+                if let compact {
+                    Text(compact).font(.system(size: 22, weight: .bold)).tracking(-0.3).lineLimit(1)
+                        .opacity(collapsed ? 1 : 0)
+                        .scaleEffect(collapsed ? 1 : 1.5, anchor: .leading)
+                        .accessibilityHidden(!collapsed)
+                }
+            }
+            .frame(height: collapsed ? 30 : 41, alignment: .leading)
             Spacer(minLength: 12)
             trailing
+                .scaleEffect(collapsed ? 0.86 : 1)
         }
         .padding(.horizontal, 20)
-        // the web's .lhead: 28pt below the status bar
-        .padding(.top, 28)
-        .padding(.bottom, 14)
+        // the web's .lhead: 28pt below the status bar (8 once collapsed)
+        .padding(.top, collapsed ? 6 : 28)
+        .padding(.bottom, collapsed ? 6 : 14)
+        .animation(.snappy(duration: 0.28), value: collapsed)
         // the web's .fadeT.lhf: frosted glass solid behind the whole title row, fading out below it
         .background(alignment: .top) {
             EdgeFade(edge: .top, solidTo: 0.62, material: .thinMaterial)
@@ -542,8 +569,24 @@ struct SearchDock: View {
     let prompt: String
     let icon: String
     let label: String
+    /// press and hold the round button for these (the songs list: New Song, New Folder, New Album); a tap is `action`
+    var menu: [DockItem] = []
     let action: () -> Void
     @FocusState private var focused: Bool
+
+    private var dockIcon: some View {
+        Icon(icon, 24).foregroundStyle(.primary)
+            .frame(width: 52, height: 52)
+            .contentShape(Circle())
+    }
+
+    struct DockItem: Identifiable {
+        let id = UUID()
+        let title: String
+        let symbol: String
+        let run: () -> Void
+        init(title: String, symbol: String, run: @escaping () -> Void) { self.title = title; self.symbol = symbol; self.run = run }
+    }
 
     var body: some View {
         GlassGroup(spacing: 10) {
@@ -570,17 +613,30 @@ struct SearchDock: View {
                 .onTapGesture { focused = true }
                 .glassCapsule(interactive: true)
 
-                Button {
-                    Haptics.tap()
-                    action()
-                } label: {
-                    Icon(icon, 24).foregroundStyle(.primary)
-                        .frame(width: 52, height: 52)
-                        .contentShape(Circle())
+                if menu.isEmpty {
+                    Button {
+                        Haptics.tap()
+                        action()
+                    } label: { dockIcon }
+                    .buttonStyle(.plain)
+                    .glassCircle()
+                    .accessibilityLabel(label)
+                } else {
+                    // Apple's own tap-or-hold button: a tap runs `action`, pressing and holding opens the menu
+                    Menu {
+                        ForEach(menu) { it in
+                            Button { it.run() } label: { Label(it.title, systemImage: it.symbol) }
+                        }
+                    } label: { dockIcon } primaryAction: {
+                        Haptics.tap()
+                        action()
+                    }
+                    .menuIndicator(.hidden)
+                    .buttonStyle(.plain)
+                    .glassCircle()
+                    .accessibilityLabel(label)
+                    .accessibilityHint("Press and hold for more")
                 }
-                .buttonStyle(.plain)
-                .glassCircle()
-                .accessibilityLabel(label)
             }
         }
         .padding(.horizontal, 14)

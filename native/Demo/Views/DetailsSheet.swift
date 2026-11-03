@@ -23,6 +23,7 @@ struct DetailsSheet: View {
     @Environment(\.library) private var library
     @Environment(\.dismiss) private var dismiss
     @State private var confirmDelete = false
+    @State private var findRelease = false
     @State private var showInvite = false
     @State private var inviteClosed = 0
     @State private var chordSel: TextSelection?
@@ -44,6 +45,8 @@ struct DetailsSheet: View {
             }
             // the tabs sit just under the title bar, full width, at the large iOS size
             .contentMargins(.top, 4, for: .scrollContent)
+            // a song with audio but no key or tempo yet: listen for them
+            .task { TempoKeyFill.check(songID: songID, library: library, session: session) }
             .topBar {
                 SegTabs(items: DetailsTab.allCases.map { ($0, $0.title) }, selection: tab) { pick($0) }
                     .padding(.horizontal, 20).padding(.top, 2).padding(.bottom, 10)
@@ -54,6 +57,7 @@ struct DetailsSheet: View {
             .sheet(isPresented: $showInvite, onDismiss: { inviteClosed += 1 }) {
                 InviteSheet(songID: songID)
             }
+            .sheet(isPresented: $findRelease) { FindReleaseSheet(songID: songID) }
             .confirmDestroy("Delete “\(song?.displayTitle ?? "")”?", isPresented: $confirmDelete, message: "This can’t be undone.", action: "Delete Song") {
                 dismiss(); onDelete()
             }
@@ -265,6 +269,16 @@ struct DetailsSheet: View {
         }
 
         Section {
+            // the first row: look the song up in Apple Music and fill the rest in
+            Button { Haptics.tap(); findRelease = true } label: {
+                HStack(spacing: 12) {
+                    TileIcon("magnifyingglass", Color(hex: 0xFA2D48))
+                    Text("Find Release").foregroundStyle(.primary)
+                    Spacer()
+                    Text("Apple Music").foregroundStyle(.secondary)
+                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                }
+            }
             HStack {
                 Text("ISRC"); Spacer()
                 TextField("CC-XXX-YY-NNNNN", text: releaseBinding("isrc", upper: true)).multilineTextAlignment(.trailing)
@@ -277,6 +291,11 @@ struct DetailsSheet: View {
             releaseDate
             HStack { Text("Label"); Spacer(); TextField("Independent", text: releaseBinding("label")).multilineTextAlignment(.trailing) }
             HStack { Text("Genre"); Spacer(); TextField("e.g. Indie pop", text: releaseBinding("genre")).multilineTextAlignment(.trailing) }
+            HStack {
+                Text("ISWC"); Spacer()
+                TextField("T-123.456.789-0", text: releaseBinding("iswc", upper: true)).multilineTextAlignment(.trailing)
+                    .textInputAutocapitalization(.characters).autocorrectionDisabled()
+            }
             Toggle("Explicit", isOn: Binding(get: { song?.releaseExplicit ?? false }, set: { v in
                 guard var s = song else { return }
                 s.setRelease("explicit", .bool(v)); s.touch(); library.put(s)
@@ -293,7 +312,7 @@ struct DetailsSheet: View {
         let f = Self.dayFormat
         if let d = f.date(from: raw) {
             DatePicker("Release date", selection: Binding(get: { d }, set: { setReleaseDate(f.string(from: $0)) }), displayedComponents: .date)
-                .swipeActions { Button("Clear", role: .destructive) { setReleaseDate("") } }
+                .swipeActions { Button("Clear", role: .destructive) { setReleaseDate("") }.tint(.red) }
         } else {
             HStack {
                 Text("Release date"); Spacer()

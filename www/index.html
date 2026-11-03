@@ -57,6 +57,67 @@ html.devbuild #vDash .dgroup,html.devbuild #vDash .abox,html.devbuild #vDash .as
 html.devbuild #vDash .dgroup{margin:0 16px 22px}
 html.devbuild #vDash .alab{font-size:15px;font-weight:650;color:var(--ink);margin:22px 4px 10px}
 html.devbuild #vDash .anote{padding:12px 4px 0}
+/* Dashboard › Business (bizRender) */
+#biz{padding:4px 16px 12px}#biz[hidden]{display:none}
+.bztabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:2px -16px 14px;padding:0 16px}.bztabs::-webkit-scrollbar{display:none}
+.bztabs button{flex:none;padding:7px 14px;border-radius:999px;background:var(--fill);font-size:14px;font-weight:600;color:var(--ink)}
+.bztabs button.on{background:var(--ink);color:var(--bg)}
+.bzhd h2{font-size:24px;font-weight:700;letter-spacing:-.01em;margin:0}
+.bznote{margin:3px 0 0;color:var(--mute);font-size:14.5px;line-height:1.4;cursor:text}.bznote.add{opacity:.6}
+.bznoteed{display:block;width:100%;box-sizing:border-box;margin-top:4px;font:inherit;font-size:14.5px;border-radius:10px;padding:8px 10px;background:var(--dcard,var(--row));border:0;box-shadow:0 0 0 .5px var(--ring);color:var(--ink);resize:vertical}
+.bzact{display:flex;gap:8px;margin:12px 0 16px}.bzact input{flex:1;min-width:0;border:0;border-radius:10px;padding:8px 12px;background:var(--fill);font-size:15px;color:var(--ink);outline:0}
+.bzbtn{padding:8px 14px;border-radius:10px;background:var(--fill);font-size:14.5px;font-weight:600;color:var(--ink)}.bzbtn.strong{background:var(--ink);color:var(--bg)}.bzbtn.red{color:var(--red)}
+html.devbuild #vDash #biz .bzg{margin:0 0 18px}
+.bzrow+.bzrow{border-top:.5px solid var(--sep)}
+.bzr{display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;background:none;text-align:left;color:var(--ink)}.bzr:active{background:var(--fill)}
+.bzt{flex:1;min-width:0}.bzt b{display:block;font-weight:500;font-size:16px;line-height:1.3}.bzt span{display:block;color:var(--mute);font-size:13.5px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bzrow.open .bzt span{white-space:normal}
+.bzv{display:flex;gap:6px;align-items:center;flex:none}
+.bzpill{font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.bz-green{background:rgba(52,199,89,.16);color:#248A3D}.bz-orange{background:rgba(255,149,0,.16);color:#C93400}.bz-red{background:rgba(255,59,48,.14);color:#D70015}.bz-gray{background:rgba(118,118,128,.14);color:var(--mute)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .bz-green{color:#30D158}:root:not([data-theme="light"]) .bz-orange{color:#FF9F0A}:root:not([data-theme="light"]) .bz-red{color:#FF6961}}
+:root[data-theme="dark"] .bz-green{color:#30D158}:root[data-theme="dark"] .bz-orange{color:#FF9F0A}:root[data-theme="dark"] .bz-red{color:#FF6961}
+.bzmoney{font-variant-numeric:tabular-nums;color:var(--mute);font-size:14px}
+.bzed{padding:2px 14px 12px;display:grid;gap:8px}
+.bzf{display:block}.bzf>span{display:block;font-size:12px;font-weight:600;color:var(--mute);margin:0 2px 3px}
+.bzf textarea,.bzf select{display:block;width:100%;box-sizing:border-box;border:0;border-radius:9px;padding:8px 10px;background:var(--fill);font:inherit;font-size:15px;line-height:1.35;color:var(--ink);resize:none;overflow:hidden;outline:0}
+.bzbar{display:flex;justify-content:space-between;margin-top:4px}
+.bzadd{display:block;width:100%;padding:11px 14px;text-align:left;color:#007AFF;font-size:15px;font-weight:500;background:none;border-top:.5px solid var(--sep)}.bzadd span{font-weight:600}
+.bzsec{cursor:text}.bzsecin{display:block;font-size:15px;font-weight:650;margin:0 0 10px;border:0;background:var(--fill);border-radius:8px;padding:4px 8px;color:var(--ink);outline:0}
+.bznew{margin:2px 0 8px}
+/* Business home: tasks, board, info center */
+.bzsub{color:var(--mute);font-size:14.5px;margin:-2px 2px 14px}
+.bzseg{display:flex;gap:2px;padding:2px;border-radius:10px;background:var(--fill);margin:0 0 14px}.bzseg button{flex:1;padding:7px 4px;border-radius:8px;font-size:14px;font-weight:600;color:var(--ink);background:none}
+.bzseg button.on{background:var(--dcard,var(--bg));box-shadow:0 1px 3px rgba(0,0,0,.12)}.bzseg.small{margin:12px 0}.bzseg.small button{font-size:13.5px;padding:6px 4px}
+.bzaddbox{display:flex;align-items:center;gap:10px;background:var(--dcard,var(--row));border-radius:12px;padding:10px 14px;box-shadow:0 1px 2px rgba(0,0,0,.05),0 0 0 .5px var(--ring);margin:0 0 18px;cursor:text}
+.bzaddbox>i{width:20px;height:20px;border-radius:10px;background:#007AFF;color:#fff;display:grid;place-items:center;font-style:normal;font-weight:700;flex:none;font-size:15px;line-height:1}
+.bzaddbox input{flex:1;min-width:0;border:0;background:none;font-size:15.5px;color:var(--ink);outline:0;padding:2px 0}
+.bzhint{font-size:12px;color:var(--mute);white-space:nowrap}@media (max-width:899px){.bzhint{display:none}}
+.dkpis.bzkp{grid-template-columns:repeat(5,1fr)}@media (max-width:899px){.dkpis.bzkp{grid-template-columns:1fr 1fr}}
+.bzboard{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 24px;align-items:start}
+@media (max-width:899px){.bzboard{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -16px 24px;padding:0 16px;scrollbar-width:none}.bzboard::-webkit-scrollbar{display:none}.bzcol{flex:0 0 82%;scroll-snap-align:center}}
+.bzcol{background:var(--fill);border-radius:14px;padding:10px;min-height:120px;transition:background .15s}.bzcol.over{background:rgba(0,122,255,.12)}
+.bzcol h4{margin:2px 4px 9px;font-size:13.5px;font-weight:650;color:var(--ink);display:flex;justify-content:space-between}.bzcol h4 em{font-style:normal;color:var(--mute);font-weight:500}
+.bzcard{display:block;width:100%;text-align:left;background:var(--dcard,var(--row));border-radius:11px;padding:10px 12px;margin:0 0 8px;box-shadow:0 1px 2px rgba(0,0,0,.08);color:var(--ink);cursor:pointer}
+.bzcard b{display:block;font-weight:500;font-size:14.5px;line-height:1.35}.bzcard.done b{color:var(--mute);text-decoration:line-through}.bzcard.drag{opacity:.4}
+.bzm{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px;font-size:12px;color:var(--mute)}.bzm:empty{display:none}
+.bztag{font-size:11px;font-weight:650;border-radius:6px;padding:1px 7px;color:var(--tc);background:color-mix(in srgb,var(--tc) 14%,transparent)}
+.bzdue.red{color:var(--red);font-weight:650}.bzdue.soon{color:#FF9500;font-weight:600}.bznoteic{opacity:.8}
+.bzmore{display:block;width:100%;padding:7px 8px;text-align:left;font-size:14px;color:#007AFF;background:none;border-radius:9px}.bzmore:hover{background:rgba(0,122,255,.08)}
+.bztr{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;position:relative}.bztr+.bztr::before{content:'';position:absolute;top:0;left:48px;right:0;border-top:.5px solid var(--sep)}
+.bzcb{width:22px;height:22px;border-radius:11px;border:1.6px solid var(--mute);flex:none;margin-top:1px;background:none;opacity:.7}.bzcb.y{background:#34C759;border-color:#34C759;opacity:1;position:relative}.bzcb.y::after{content:'';position:absolute;left:6px;top:3px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.bztb{flex:1;min-width:0;text-align:left;background:none;color:var(--ink);padding:0}.bztb b{display:block;font-weight:400;font-size:16px;line-height:1.35}.bztr.done .bztb b{color:var(--mute);text-decoration:line-through}.bztb .bzm{margin-top:4px}
+.bztiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}@media (max-width:899px){.bztiles{grid-template-columns:1fr}}@media (min-width:1300px){.bztiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.bztile{display:flex;align-items:center;gap:12px;padding:12px 14px;text-align:left;color:var(--ink);min-width:0}.bztile>span{min-width:0}.bztile b{display:block;font-size:15px;font-weight:600}.bztile b+span{display:block;font-size:12.5px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bzback{display:inline-flex;align-items:center;gap:4px;color:#007AFF;font-size:15.5px;background:none;padding:2px 0;margin:0 0 10px}
+.bzmodbg{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .18s}.bzmodbg.on{opacity:1}
+.bzmod{width:min(460px,calc(100% - 24px));max-height:calc(100% - 40px);overflow:auto;background:var(--dcard,var(--bg));border-radius:20px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);transform:translateY(12px) scale(.98);transition:transform .22s cubic-bezier(.3,1.2,.5,1)}.bzmodbg.on .bzmod{transform:none}
+@media (max-width:640px){.bzmodbg{align-items:flex-end}.bzmod{width:100%;border-radius:22px 22px 0 0;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}}
+.bzmt{display:block;width:100%;border:0;background:none;font:inherit;font-size:20px;font-weight:650;color:var(--ink);resize:none;outline:0;padding:0;overflow:hidden}
+.bzmn{display:block;width:100%;box-sizing:border-box;border:0;border-radius:10px;background:var(--fill);font:inherit;font-size:15px;color:var(--ink);resize:none;outline:0;padding:9px 11px;min-height:70px;margin:12px 0}
+.bzareas{display:flex;flex-wrap:wrap;gap:6px}.bzareas button{font-size:13px;font-weight:600;padding:5px 11px;border-radius:999px;background:var(--fill);color:var(--ink)}.bzareas button.on{background:var(--tc);color:#fff}
+.bzduer{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:12px;font-size:14px}.bzduer>span{color:var(--mute);margin-right:4px}
+.bzduer input{border:0;border-radius:8px;background:var(--fill);padding:5px 8px;font:inherit;font-size:14px;color:var(--ink)}.bzduer button{font-size:13px;padding:5px 9px;border-radius:8px;background:var(--fill);color:var(--ink)}
 #dseg{display:flex;gap:4px;padding:3px;margin:2px 16px 14px;border-radius:12px;background:var(--fill)}#dseg[hidden]{display:none}#dseg button{flex:1;padding:8px 4px;border-radius:9px;font-size:14px;font-weight:600;color:var(--ink);background:none}#dseg button.on{background:var(--segon);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .dkpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:2px 0 24px}
 .dk{position:relative;padding:14px 16px 13px;min-width:0}
@@ -67,6 +128,7 @@ html.devbuild #vDash .anote{padding:12px 4px 0}
 .dk .dsp{position:absolute;right:14px;bottom:16px;width:84px;height:30px}
 .dcols{display:grid;grid-template-columns:1.1fr 1fr;gap:20px;align-items:start}
 .dlab{font-size:15px;font-weight:650;margin:0 4px 10px}
+.dli .dsp{width:72px;height:26px;flex:none;margin:0 6px}
 .dlist{overflow:hidden}
 .dli{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:9px 14px;background:none;color:var(--ink);text-align:left;position:relative;font:inherit}
 button.dli{cursor:pointer}button.dli:active{background:var(--fill)}
@@ -99,7 +161,7 @@ button.dli{cursor:pointer}button.dli:active{background:var(--fill)}
 #dside .dsi.on{background:var(--dsel);box-shadow:0 1px 2px rgba(0,0,0,.08);font-weight:600;opacity:1}#dside .dsi.on svg{color:#007AFF}
 #dside .dsl{flex:1;min-width:0}
 #dside .dsn{font-style:normal;font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
-#dside .dsn.r{color:#fff;background:#FF3B30;border-radius:10px;min-width:20px;padding:1px 6px;text-align:center;font-weight:600}
+#dside .dsn.dred{color:#fff;background:#FF3B30;border-radius:10px;min-width:20px;height:20px;line-height:20px;padding:0 6px;text-align:center;font-weight:600}
 #adm .aset.iset{justify-content:flex-start}#adm .aset.iset>div{flex:1;min-width:0}#adm .aset.iset+.aset::before,#adm .aset+.aset.iset::before{left:58px}
 #adm .aset.wrapset{flex-wrap:wrap}#adm .aset.wrapset .ain{flex-basis:100%;margin:8px 0 0 42px;width:calc(100% - 42px);text-align:left}
 #adm .bhead{padding:2px 0 10px}#adm .bhead::before{display:none}
@@ -489,6 +551,16 @@ body.ios #dictSheet{top:16%;padding-top:0}
 .savestate .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
 .savestate.saving .dot{animation:sspulse 1s ease-in-out infinite}
 @keyframes sspulse{0%,100%{opacity:.35}50%{opacity:1}}
+/* the How *[demo] works guide, read with its pictures (guideView) */
+#gview{font-size:19px;line-height:1.55;letter-spacing:-.1px;min-height:58vh;-webkit-user-select:text;user-select:text}
+#gview .gvh{font-weight:700;color:#8E8E96;margin-top:1.1em}#gview .gvh:first-child{margin-top:0}
+#gview .gvp{margin:0 0 .35em}
+#gview .gvf{margin:.55em 0 .8em;padding:14px 14px 10px;border-radius:20px;background:linear-gradient(160deg,#F4EEFF,#FFEFF4 55%,#FFF6E8)}
+#gview .gvf figcaption{font-size:13px;line-height:1.35;color:rgba(60,60,67,.62);margin:6px 2px 0}
+#gview .gvq{margin:.7em 0 0}#gview .gvq b{font-weight:650}#gview .gvq p{margin:0;color:var(--mute)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #gview .gvf{background:linear-gradient(160deg,rgba(150,120,255,.2),rgba(255,120,160,.14) 55%,rgba(255,190,120,.12))}:root:not([data-theme="light"]) #gview .gvf figcaption{color:rgba(235,235,245,.6)}}
+:root[data-theme="dark"] #gview .gvf{background:linear-gradient(160deg,rgba(150,120,255,.2),rgba(255,120,160,.14) 55%,rgba(255,190,120,.12))}:root[data-theme="dark"] #gview .gvf figcaption{color:rgba(235,235,245,.6)}
+.guidev #gut,.guidev #pres,.guidev #rhy{display:none!important}
 #lyr{min-height:58vh;outline:0;white-space:pre-wrap;overflow-wrap:break-word;font-size:19px;line-height:1.55;letter-spacing:-.1px;caret-color:var(--tint)}
 #lyr:empty::before{content:attr(data-ph);color:rgba(120,120,128,.55);pointer-events:none}
 #fmt{display:none;gap:6px;overflow-x:auto;margin-bottom:10px;position:relative;z-index:1;scrollbar-width:none;align-items:center}
@@ -984,13 +1056,17 @@ button.cell:active,button.row:active,.drow:active,.accplan:active,.accme:active,
 /* iOS 26 Settings tiles: the colour faintly lit from above, a hairline edge, a crisp white glyph (no blur) */
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.gr{color:#fff;border-radius:7px;background-image:none!important;box-shadow:none}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.gr svg{width:18px;height:18px;display:block}
+#acc .tile.gt{color:var(--ic);background:linear-gradient(#fff,#F3F3F6);box-shadow:inset 0 0 0 .5px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.08),inset 0 1px 0 #fff}
+#acc .tile.gt svg{width:18px;height:18px;display:block}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #acc .tile.gt{color:var(--icd);background:linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.08));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.12),inset 0 1px 0 rgba(255,255,255,.14)}}
+:root[data-theme="dark"] #acc .tile.gt{color:var(--icd);background:linear-gradient(rgba(255,255,255,.16),rgba(255,255,255,.08));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.12),inset 0 1px 0 rgba(255,255,255,.14)}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile svg{width:17px;height:17px}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-spotify{background:#000;color:#1ED760;box-shadow:inset 0 0 0 .5px rgba(255,255,255,.2)}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-spotify svg{width:20px;height:20px}
-:is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-instagram{background:linear-gradient(45deg,#FFD600 0,#FF7A00 25%,#FF0069 50%,#D300C5 72%,#7638FA 100%);color:#fff}
-:is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-instagram svg{width:18px;height:18px}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-instagram{background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285AEB 90%);color:#fff}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-instagram svg{width:20px;height:20px}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-tiktok{background:#000;color:#fff;box-shadow:inset 0 0 0 .5px rgba(255,255,255,.2)}:is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-tiktok svg{filter:drop-shadow(-.8px -.8px 0 #25F4EE) drop-shadow(.8px .8px 0 #FE2C55)}
-:is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-apple_music{background:linear-gradient(180deg,#FF5C7A,#FA233B);color:#fff}
+:is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-apple_music{background:linear-gradient(180deg,#FB5C74,#FA233B);color:#fff}:is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .tile.soc-apple_music svg{width:16px;height:16px}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .cell.form{cursor:text}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .cell.form .fl{flex:none;width:96px;padding:13px 0}
 :is(#acc,#p-aud,#p-rel,#sheet4,#sheet7) .cell.form input{flex:1;min-width:0;border:0;background:none;outline:0;font-size:16.5px;color:var(--ink);padding:14px 0;border-radius:0}
@@ -1069,6 +1145,12 @@ button.cell:active,button.row:active,.drow:active,.accplan:active,.accme:active,
 .shspin{width:18px;height:18px;border-radius:50%;border:2px solid var(--sep);border-top-color:var(--ink);flex:none;animation:shspin .8s linear infinite}@keyframes shspin{to{transform:rotate(360deg)}}
 .shacts{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px}.shacts .go2{flex:1 1 auto;height:44px;font-size:15.5px;min-width:120px}
 .relnote{padding:8px 20px 0;font-size:13px;color:var(--mute);line-height:1.4}
+.relfind{margin:0 16px 12px}.rfq{display:flex;gap:8px;align-items:center}
+.rfq input{flex:1;min-width:0;height:38px;border:0;border-radius:12px;background:var(--fill);padding:0 12px;font-size:16px;outline:0;color:var(--ink)}
+.rfres{margin-top:6px}.rfres .relnote{padding:8px 4px 0}
+.rfrow{display:flex;gap:11px;align-items:center;width:100%;text-align:left;padding:7px 6px;border-radius:12px}.rfrow:hover{background:var(--fill)}
+.rfrow img{flex:none;width:44px;height:44px;border-radius:8px;background:var(--fill);object-fit:cover}.rfrow span{min-width:0}
+.rfrow b{display:block;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rfrow em{display:block;font-style:normal;font-size:13px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .relnote.warn{color:var(--red)}
 #p-rel .cell.form .fl{width:112px}
 #p-rel .cell.form input[type=date]{min-height:22px;-webkit-appearance:none;appearance:none;text-align:left}
@@ -1389,11 +1471,11 @@ body.nglass .ngsw{opacity:0!important}
 :is(#vAlbum,#albread) .gl{background:rgba(255,255,255,.42);box-shadow:inset 0 1px 0 rgba(255,255,255,.85),inset 0 0 0 .5px rgba(255,255,255,.5),0 4px 14px hsla(var(--ak,240,8%,15%),.1)}
 .around{flex:none;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;color:var(--ink);transition:transform .2s cubic-bezier(.34,1.4,.5,1)}
 .around:active{transform:scale(.93)}
-.aplay{flex:none;width:176px;height:52px;border-radius:99px;display:flex;align-items:center;justify-content:center;gap:9px;background:var(--ink);color:#fff;font-size:17px;font-weight:600;letter-spacing:-.2px;transition:transform .2s cubic-bezier(.34,1.4,.5,1),opacity .15s}
+.aplay{flex:none;width:176px;height:52px;border-radius:99px;display:flex;align-items:center;justify-content:center;gap:9px;color:var(--ink);font-size:17px;font-weight:600;letter-spacing:-.2px;transition:transform .2s cubic-bezier(.34,1.4,.5,1),opacity .15s}
 .aplay:active{transform:scale(.96)}.aplay[disabled]{opacity:.55}
 .atag{flex:none;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:99px;margin-left:6px;background:rgba(0,0,0,.07);color:#5e5e63}
 .atag.t-finished{background:rgba(52,199,89,.2);color:#1f7a36}.atag.t-demo{background:rgba(0,122,255,.15);color:#0a5ac4}.atag.t-draft{background:rgba(255,149,0,.2);color:#a35500}
-#vAlbum,#albread{--aw:var(--awl);--ac:#fff}
+#vAlbum,#albread{--aw:var(--awl);--ac:var(--ink)}
 #ascroll{padding:calc(env(safe-area-inset-top,0px) + 66px) 0 calc(70px + env(safe-area-inset-bottom,0px))}
 .awash{display:none;position:absolute;left:0;right:0;top:0;height:960px;background:var(--aw,transparent);pointer-events:none;transition:background .3s}
 #amount{position:relative;max-width:640px;margin:0 auto;padding:0 20px}
@@ -1491,7 +1573,7 @@ body.desktop #albread .arx{top:12px}
   <div class="abs fadeT lhf"></div>
   <div class="lhead"><h1>*[demo]</h1><button class="gl acct" id="acctb" aria-label="Account"><i class="protag" id="acctplan" hidden>Beta</i><img id="acctav" class="acctav" alt="" hidden><svg id="acctsvg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.9-3.6 3.7-5.6 7-5.6s6.1 2 7 5.6"/></svg><i class="invdot" id="invdot1" hidden></i></button></div>
   <div class="dock"><div class="gl sbox"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="Search"></div>
-  <button class="gl cbtn" id="new" aria-label="New song"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6"/><path d="M18.5 3.5l2 2L11 15l-3 1 1-3z"/></svg></button></div>
+  <button class="gl cbtn" id="new" aria-label="New song" title="New song (hold for more)" style="-webkit-touch-callout:none;-webkit-user-select:none;user-select:none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6"/><path d="M18.5 3.5l2 2L11 15l-3 1 1-3z"/></svg></button></div>
 </div>
 
 <div class="view" id="vIdeas">
@@ -1508,7 +1590,7 @@ body.desktop #albread .arx{top:12px}
 </div>
 
 <div class="view" id="vEdit">
-  <div id="sc"><div id="gut" aria-hidden="true"></div><div id="pres" aria-hidden="true"></div><div class="hd"><span class="covwrap"><button class="cov" id="cov" aria-label="Cover art"></button></span><div><input id="title" placeholder="Untitled" aria-label="Title" autocorrect="on"><div id="artist"></div><div id="sub"></div><div id="savestate" class="savestate" hidden></div><div id="here" hidden></div></div></div><div id="np" hidden role="group" aria-label="Song audio"><div class="np-top"><button class="np-pp" id="np-pp" aria-label="Play"></button><div class="np-meta"><b id="np-name"></b><span id="np-sub"></span></div><span id="np-t"></span><button class="np-full" id="np-full" aria-label="Play with lyrics" title="Play with lyrics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button></div><div class="np-more"><div class="np-in"><canvas class="np-wave" id="np-wave" tabindex="0" role="slider" aria-label="Position in the song" aria-valuemin="0"></canvas><div class="np-bot"><span id="np-at">0:00</span><div class="np-skip"><button id="np-back" aria-label="Back 15 seconds"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 11.5A9.5 9.5 0 1 1 4.5 15"/><path d="M4.6 6.2v5.4H10"/><text x="14.6" y="17.8" text-anchor="middle" font-size="7.4" font-weight="700" fill="currentColor" stroke="none" font-family="-apple-system,system-ui,sans-serif">15</text></svg></button><button id="np-fwd" aria-label="Forward 15 seconds"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.8 11.5A9.5 9.5 0 1 0 23.5 15"/><path d="M23.4 6.2v5.4H18"/><text x="13.4" y="17.8" text-anchor="middle" font-size="7.4" font-weight="700" fill="currentColor" stroke="none" font-family="-apple-system,system-ui,sans-serif">15</text></svg></button></div><span id="np-left">-0:00</span></div></div></div><i class="np-prog" aria-hidden="true"></i></div><div id="lyr" contenteditable="true" role="textbox" aria-label="Lyrics" aria-multiline="true" spellcheck="false" autocapitalize="sentences" autocorrect="on" data-ph="Start with a line…"></div></div>
+  <div id="sc"><div id="gut" aria-hidden="true"></div><div id="pres" aria-hidden="true"></div><div class="hd"><span class="covwrap"><button class="cov" id="cov" aria-label="Cover art"></button></span><div><input id="title" placeholder="Untitled" aria-label="Title" autocorrect="on"><div id="artist"></div><div id="sub"></div><div id="savestate" class="savestate" hidden></div><div id="here" hidden></div></div></div><div id="np" hidden role="group" aria-label="Song audio"><div class="np-top"><button class="np-pp" id="np-pp" aria-label="Play"></button><div class="np-meta"><b id="np-name"></b><span id="np-sub"></span></div><span id="np-t"></span><button class="np-full" id="np-full" aria-label="Play with lyrics" title="Play with lyrics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button></div><div class="np-more"><div class="np-in"><canvas class="np-wave" id="np-wave" tabindex="0" role="slider" aria-label="Position in the song" aria-valuemin="0"></canvas><div class="np-bot"><span id="np-at">0:00</span><div class="np-skip"><button id="np-back" aria-label="Back 15 seconds"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 11.5A9.5 9.5 0 1 1 4.5 15"/><path d="M4.6 6.2v5.4H10"/><text x="14.6" y="17.8" text-anchor="middle" font-size="7.4" font-weight="700" fill="currentColor" stroke="none" font-family="-apple-system,system-ui,sans-serif">15</text></svg></button><button id="np-fwd" aria-label="Forward 15 seconds"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.8 11.5A9.5 9.5 0 1 0 23.5 15"/><path d="M23.4 6.2v5.4H18"/><text x="13.4" y="17.8" text-anchor="middle" font-size="7.4" font-weight="700" fill="currentColor" stroke="none" font-family="-apple-system,system-ui,sans-serif">15</text></svg></button></div><span id="np-left">-0:00</span></div></div></div><i class="np-prog" aria-hidden="true"></i></div><div id="lyr" contenteditable="true" role="textbox" aria-label="Lyrics" aria-multiline="true" spellcheck="false" autocapitalize="sentences" autocorrect="on" data-ph="Start with a line…"></div><div id="gview" hidden></div></div>
   <div class="abs fadeT"></div>
   <div class="abs fadeB"></div>
   <div class="abs bar"><div class="bl gl grp2 lgrp"><button class="ib" id="back" aria-label="Songs"><svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="ib" id="sbt" aria-label="Show sidebar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3.5"/><path d="M9.5 4v16"/></svg></button></div><nav id="crumb" aria-label="Location"><button id="cr-app">*[d]</button><i>/</i><button id="cr-fold"></button><i>/</i><span id="cr-song"></span></nav><div class="bl"><div class="gl grp2"><button class="ib tgl" id="vmap" aria-label="Rhyme map" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h9M4 12h6M4 17h9"/><circle cx="18" cy="7" r="2.2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2.2"/><circle cx="18" cy="17" r="2.2" fill="currentColor" stroke="none"/></svg></button><button class="ib tgl" id="vsyl" aria-label="Syllable counts" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 17V11M10 17V7M15 17v-4M20 17V9"/></svg></button><button class="ib" id="shareb" aria-label="Share" title="Share"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M8 10.5H6.5a1.5 1.5 0 0 0-1.5 1.5v7.5A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V12a1.5 1.5 0 0 0-1.5-1.5H16"/></svg></button><button class="ib tgl" id="rateb" style="display:none" aria-pressed="false" aria-label="Rate song" title="Rate song"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></button></div><button class="gl ib" id="det" aria-label="Details"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button></div></div>
@@ -15360,10 +15442,10 @@ OY-B-AH-L	foible92
 EH-M-ER-IH-JH-D	hemorrhaged93
 AH-S-IH-N	bussin52s`;
 /* git commit this build came from, shown at the bottom of Account. Written by scripts/stamp-version.sh — don't edit by hand. */
-var APP_COMMIT='cb7d3e7';
-var APP_SEQ=714;
+var APP_COMMIT='2b15ead';
+var APP_SEQ=770;
 /* the version people see, the same as the iPhone app's; Account shows it with the build number so every device can be compared */
-var APP_VERSION='1.1.0';
+var APP_VERSION='1.2.0';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
 function currentKey(){if(typeof DEV_MODE!=='undefined'&&DEV_MODE&&!AUTH_USER)return K_DEV;if(typeof AUTH_USER!=='undefined'&&AUTH_USER&&AUTH_USER.id)return K+':'+AUTH_USER.id;return K}
 function load(){ACTIVE_KEY=currentKey();try{songs=JSON.parse(localStorage.getItem(ACTIVE_KEY))||[]}catch(e){songs=[]}seedGuide();loadIdeas();loadAlbums()}
@@ -15373,68 +15455,28 @@ function load(){ACTIVE_KEY=currentKey();try{songs=JSON.parse(localStorage.getIte
    old stamp means anything newer arriving through sync wins - the writer's own edits to it, or a
    delete made on another device. Delete it and it stays deleted. To revise the text, bump GUIDE_V
    and GUIDE_AT: libraries where it's still untouched get the new version, edited ones keep theirs. */
-var GUIDE_V=4,GUIDE_ID='5f1d0c2e-6a8b-4c3d-9e7f-0a1b2c3d4e5f',GUIDE_AT=Date.UTC(2026,9,17,2);
+/*GUIDE-CONTENT (made by scripts/guide/build.js from scripts/guide/content.js; edit it there)*/
+var GUIDE_BLOCKS=[["h","Start here"],["p","Welcome to *[demo]. This song is a guide to everything in the app. Scroll through, and delete it from your songs whenever you like."],["p","Everything saves as you type, and syncs to every device you’re signed in on."],["h","Writing"],["p","Tap + to start a song. Give it a title, then write: every line is a lyric line."],["p","Put a section name on its own line in square brackets, like [Verse] or [Bridge]. Write your chorus once under [Chorus]. Next time, type [Chorus] and press Return, and it fills itself in."],["f","write","Select words to make them bold, colour them, or highlight them. Highlights mark a Hook, a line to Rework, or an Idea."],["h","Rhymes & words"],["p","The rhyme bar above the keyboard rhymes with the word you just wrote. Tap one to put it in."],["f","rhymes","Switch it to Perfect, Near, Phrases, Synonyms, Opposites, Define and more. Pull it up for the full Dictionary."],["p","Rhyme map colours the words that rhyme with each other. Syllable counts shows how long each line runs, so your verses sit evenly. Both are at the top of the song."],["f","map","Rhyme map and Syllable counts, both switched on."],["h","When you’re stuck"],["p","Muse deals out quick prompts and exercises when the page is blank."],["p","Lines writes rhyming next lines in your voice. Writing voice sets that voice: genre, mood and style. Listen to the whole song makes every suggestion fit what you’ve written so far."],["p","Rate gives an honest co-writer’s read: a score, what’s working, and notes you can act on."],["f","rate","Rate’s notes point at the lines they’re about."],["h","Ideas & voice memos"],["p","Ideas sits at the top of your songs. It’s a quick jot for stray lines, titles and concepts: type and press Return."],["p","Record a voice memo the moment a melody turns up. When an idea grows, start a song from it."],["f","ideas","Lines, ideas, concepts and memos, all in one place."],["h","Details & release"],["p","Open ••• › Details for chords, key, tempo, capo, tuning and a status: Idea, Draft, Demo or Finished."],["p","••• › Credits keeps the writers and their splits, plus the release details: ISRC, UPC, release date and label. Once a song is out, Find Release looks it up on Apple Music and fills them in for you."],["f","details","Details for the music. Credits for who wrote it and where it came out."],["h","Audio & lyric sync"],["p","In ••• › Audio, add each version of the song: voice memo, demo, mix, master. Tick the one that’s current. Stems, artwork and session files can live with the song too."],["p","Sync Lyrics listens to the current version and times every line for you. Export .lrc saves the timed lyrics for streaming services and distributors."],["f","sync","Play with Lyrics lights up each line in time. Tap a line to jump there."],["h","Albums"],["p","Gather songs into an album, EP or single with New Album, at the bottom of your songs. Its artwork goes on every song in it, and the album page shows how close each song is to finished."],["f","album","Read Lyrics shows the whole album’s words, one song after another."],["h","Sharing & co-writing"],["p","Share sends a song as a link anyone can open, with its audio, or as an image of the lyrics. Share an album and it gets a page of its own, with every song on it."],["f","share","A share page: the song, its audio and its words, on any phone or computer."],["p","Pick a username in Account so co-writers can find you, then invite them from ••• › Details › Collaborators. You can write in the same song at the same time, and see each other’s changes as they happen."],["h","Perform"],["p","••• › Perform turns the song into a scrolling teleprompter for the stage or the studio. Set the speed and the text size, and it rolls on by itself."],["f","perform","Big, clear lyrics that scroll at your pace."],["h","Organising"],["p","Make folders, and drag songs between them. Swipe a song left to pin it to the top, or to delete it."],["f","swipe","Swipe left on any song in the list."],["p","On iPhone, add the *[demo] widgets to your Home Screen: record a memo in one tap, or jump back into the song you were writing."],["h","Keeping it safe"],["p","Save a Version in ••• › Details › Versions before big changes, and restore it any time. *[demo] also keeps one by itself when you come back to a song after a while."],["p","Clean up tidies case, spacing and section tags, ready for streaming services. The original is saved in Versions first."],["p","Copy Lyrics from •••, or export every song from Account. On Mac, songs are also saved as files in Documents › [demo] Songs."],["h","Common questions"],["q","Where are my songs kept?","In your account, synced to iPhone, Mac and the web app at hellodemo.app/app. Each device keeps a copy too, so you can keep writing without a connection."],["q","Who can see my songs?","Only you, until you invite a co-writer or send a share link. You can stop a share link any time."],["q","How do I get my songs out?","Copy Lyrics from •••, export a song’s timed lyrics as .lrc, or export every song from Account."],["q","I changed something and want it back.","Open ••• › Details › Versions and restore an earlier version. Save one yourself before big changes."],["q","Do the AI features read my songs?","Only when you use them. Lines, Muse and Rate send what you’re working on to OpenAI. Turn AI Features off in Account and nothing is sent."],["q","What does Pro add?","Demos, mixes and stems with 5 GB of space, voice memos synced everywhere, lyric sync, co-writing, share links, Lines and Rate in your voice, and Perform mode."],["q","Where do I get help?","Account › Contact Support, or email help@hellodemo.app."]],
+  GUIDE_FIGS={"write":"<div class=\"gc\"><b class=\"gt\">[Chorus]</b><br><span class=\"hk\">Leave the kitchen light on</span><br>I’ll find my way <span class=\"rw\">home somehow</span><br><span class=\"gi\">Through the rain</span> and the radio<br><b class=\"gt\">[Verse 2]</b><br><span class=\"gm\">…</span></div>","rhymes":"<div class=\"gseg\"><span class=\"on\">Perfect</span><span>Near</span><span>Phrases</span><span>Synonyms</span></div><div class=\"gchips\"><span>night</span><span>light</span><span>tonight</span><span>bright</span><span>alright</span><span>sight</span><span>hold on tight</span></div>","map":"<div class=\"gc gmap\"><div><span>Leave the kitchen <u class=\"ra\">light</u> on</span><em>7</em></div><div><span>I’ll find my way <u class=\"rb\">home</u></span><em>6</em></div><div><span>On a <u class=\"ra\">night</u> like this</span><em>5</em></div><div><span>Til I’m <u class=\"rb\">alone</u></span><em>4</em></div></div>","rate":"<div class=\"gc\"><div class=\"grate\"><span class=\"gring\"><i></i>78</span><span><b>Strong hook, soft second verse</b><br><span class=\"gm\">The chorus lands. Verse 2 repeats its images.</span></span></div><div class=\"gnote\"><i style=\"background:#34C759\"></i><span><b>Working:</b> “Leave the kitchen light on”</span></div><div class=\"gnote\"><i style=\"background:#FF9500\"></i><span><b>Try:</b> a new image in line 6</span></div></div>","ideas":"<div class=\"gc glist\"><div><span class=\"gk\">Line</span>Leave the kitchen light on</div><div><span class=\"gk\">Idea</span>A song called “Radio Weather”</div><div><span class=\"gk\">Concept</span>Two people who only talk in cars</div><div class=\"gmemo\"><span class=\"gplay\"></span><span class=\"gw\"><i style=\"height:6px\"></i><i style=\"height:23px\"></i><i style=\"height:20px\"></i><i style=\"height:27px\"></i><i style=\"height:14px\"></i><i style=\"height:18px\"></i><i style=\"height:18px\"></i><i style=\"height:28px\"></i><i style=\"height:21px\"></i><i style=\"height:12px\"></i><i style=\"height:14px\"></i><i style=\"height:27px\"></i><i style=\"height:27px\"></i><i style=\"height:6px\"></i><i style=\"height:9px\"></i><i style=\"height:23px\"></i><i style=\"height:30px\"></i><i style=\"height:12px\"></i><i style=\"height:9px\"></i><i style=\"height:18px\"></i><i style=\"height:31px\"></i><i style=\"height:17px\"></i><i style=\"height:14px\"></i><i style=\"height:11px\"></i><i style=\"height:30px\"></i><i style=\"height:21px\"></i></span><span class=\"gm\">0:24</span></div></div>","details":"<div class=\"gc grows\"><div><span>Key</span><b>A minor</b></div><div><span>Tempo</span><b>92 BPM</b></div><div><span>Status</span><span class=\"gs gs-finished\">Finished</span></div></div><div class=\"gc grows\" style=\"margin-top:8px\"><div><span class=\"gfr\"><i></i>Find Release</span><b class=\"gm\">Apple Music ›</b></div><div><span>ISRC</span><b>AU-XYZ-26-00012</b></div></div>","sync":"<div class=\"gc\"><span class=\"gw\"><i style=\"height:6px\"></i><i style=\"height:23px\"></i><i style=\"height:20px\"></i><i style=\"height:27px\"></i><i style=\"height:14px\"></i><i style=\"height:18px\"></i><i style=\"height:18px\"></i><i style=\"height:28px\"></i><i style=\"height:21px\"></i><i style=\"height:12px\"></i><i style=\"height:14px\"></i><i style=\"height:27px\"></i><i style=\"height:27px\"></i><i style=\"height:6px\"></i><i style=\"height:9px\"></i><i style=\"height:23px\"></i><i style=\"height:30px\"></i><i style=\"height:12px\"></i><i style=\"height:9px\"></i><i style=\"height:18px\"></i><i style=\"height:31px\"></i><i style=\"height:17px\"></i><i style=\"height:14px\"></i><i style=\"height:11px\"></i><i style=\"height:30px\"></i><i style=\"height:21px\"></i><i style=\"height:19px;opacity:.3\"></i><i style=\"height:9px;opacity:.3\"></i><i style=\"height:26px;opacity:.3\"></i><i style=\"height:22px;opacity:.3\"></i><i style=\"height:22px;opacity:.3\"></i><i style=\"height:17px;opacity:.3\"></i><i style=\"height:20px;opacity:.3\"></i><i style=\"height:21px;opacity:.3\"></i><i style=\"height:23px;opacity:.3\"></i><i style=\"height:23px;opacity:.3\"></i><i style=\"height:13px;opacity:.3\"></i><i style=\"height:18px;opacity:.3\"></i><i style=\"height:23px;opacity:.3\"></i><i style=\"height:28px;opacity:.3\"></i><i style=\"height:7px;opacity:.3\"></i><i style=\"height:14px;opacity:.3\"></i><i style=\"height:20px;opacity:.3\"></i><i style=\"height:31px;opacity:.3\"></i></span><div class=\"glyr\"><div class=\"gm2\">Leave the kitchen light on</div><div class=\"glit\">I’ll find my way home somehow</div><div class=\"gm2\">Through the rain and the radio</div></div></div>","album":"<div class=\"galb\"><span class=\"gart\"></span><div><b>Late Night Sessions</b><br><span class=\"gm\">Album · 2026 · 2 of 4 finished</span></div></div><div class=\"gc gtr\"><div><em>1</em><span>Kitchen Light</span><span class=\"gs gs-finished\">Finished</span></div><div><em>2</em><span>Better in the Dark</span><span class=\"gs gs-demo\">Demo</span></div><div><em>3</em><span>Ninety Days</span><span class=\"gs gs-draft\">Draft</span></div></div>","share":"<div class=\"gsh\"><span class=\"gart sm\"></span><b>Kitchen Light</b><span class=\"gm\">Jordan Lee</span><span class=\"gbtn\">▶︎ Listen</span><div class=\"gshl\">Leave the kitchen light on<br>I’ll find my way home somehow</div></div>","perform":"<div class=\"gperf\"><div class=\"gm3\">Leave the kitchen light on</div><div class=\"gbig\">I’ll find my way<br>home somehow</div><div class=\"gm3\">Through the rain and the radio</div><div class=\"gpc\"><span>Slower</span><b>Speed 1.2×</b><span>Faster</span></div></div>","swipe":"<div class=\"gsw\"><div class=\"gsr\"><span class=\"gart xs\"></span><span><b>Kitchen Light</b><br><span class=\"gm\">Leave the kitchen light on</span></span></div><span class=\"gpin\">Pin</span><span class=\"gdel\">Delete</span></div>"},
+  GUIDE_CSS=".gf{font:14px/1.45 -apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif;color:#000;text-align:left;-webkit-user-select:none;user-select:none}\n.gf b{font-weight:600}.gf .gm{color:#8E8E93}.gf .gm2{color:rgba(0,0,0,.28)}.gf .gm3{color:rgba(255,255,255,.35);font-size:15px}\n.gf .gc{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.1),0 0 0 .5px rgba(0,0,0,.05);padding:10px 12px}\n.gf .gt{color:#8E8E96;font-weight:700}.gf .hk{background:rgba(255,204,0,.38);border-radius:3px}.gf .rw{background:rgba(255,69,58,.24);border-radius:3px}.gf .gi{background:rgba(10,132,255,.22);border-radius:3px}\n.gf .gseg{display:flex;background:rgba(118,118,128,.12);border-radius:9px;padding:2px;font-size:12px;margin-bottom:10px}.gf .gseg span{flex:1;text-align:center;padding:4px 0;border-radius:7px;color:#3C3C43}.gf .gseg .on{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.15);font-weight:600;color:#000}\n.gf .gchips{display:flex;gap:6px;flex-wrap:wrap}.gf .gchips span{background:#fff;border-radius:999px;padding:5px 11px;font-size:13px;box-shadow:0 0 0 .5px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06)}\n.gf .gmap div{display:flex;justify-content:space-between;gap:10px}.gf .gmap em{font-style:normal;color:#8E8E93;font-size:12px;font-variant-numeric:tabular-nums;padding-top:1px}.gf .gmap u{text-decoration:none;border-radius:3px;padding:0 2px;font-weight:600}.gf .ra{color:#2C8DBF;background:rgba(44,141,191,.14)}.gf .rb{color:#A35FCB;background:rgba(163,95,203,.14)}\n.gf .grate{display:flex;gap:12px;align-items:center;margin-bottom:8px}.gf .gring{width:54px;height:54px;position:relative;display:grid;place-items:center;font-size:19px;font-weight:700;flex:none}.gf .gring i{position:absolute;inset:0;border-radius:50%;background:conic-gradient(#34C759 0 78%,rgba(118,118,128,.16) 78% 100%);-webkit-mask:radial-gradient(circle,transparent 21px,#000 22px);mask:radial-gradient(circle,transparent 21px,#000 22px)}\n.gf .gnote{display:flex;gap:8px;align-items:baseline;font-size:13px;margin-top:4px}.gf .gnote i{width:8px;height:8px;border-radius:4px;flex:none}\n.gf .glist>div{display:flex;gap:8px;align-items:center;padding:6px 0;border-top:.5px solid rgba(60,60,67,.14)}.gf .glist>div:first-child{border-top:0;padding-top:0}.gf .gk{font-size:11px;font-weight:600;color:#3C3C43;background:rgba(118,118,128,.14);border-radius:5px;padding:1px 6px;flex:none}\n.gf .gw{display:flex;align-items:center;gap:2px;height:30px;flex:1}.gf .gw i{width:3px;border-radius:2px;background:#FF2D55;opacity:.9}\n.gf .gmemo{gap:10px}.gf .gplay{width:24px;height:24px;border-radius:12px;background:#FF2D55;flex:none;position:relative}.gf .gplay::after{content:'';position:absolute;left:9px;top:7px;border-left:8px solid #fff;border-top:5px solid transparent;border-bottom:5px solid transparent}\n.gf .grows>div{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:.5px solid rgba(60,60,67,.14)}.gf .grows>div:first-child{border-top:0;padding-top:0}.gf .grows>div:last-child{padding-bottom:0}.gf .grows span{color:#000}.gf .grows b{font-weight:400;color:#8E8E93}\n.gf .gfr{display:flex;align-items:center;gap:8px}.gf .gfr i{width:22px;height:22px;border-radius:6px;background:#FA2D48;display:inline-block;position:relative}.gf .gfr i::after{content:'';position:absolute;left:5px;top:5px;width:8px;height:8px;border:2px solid #fff;border-radius:50%}\n.gf .gs{font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px}.gf .gs-finished{background:rgba(52,199,89,.16);color:#248A3D}.gf .gs-demo{background:rgba(175,82,222,.14);color:#8944AB}.gf .gs-draft{background:rgba(255,149,0,.16);color:#C93400}.gf .gs-idea{background:rgba(118,118,128,.14);color:#3C3C43}\n.gf .glyr{margin-top:8px;font-size:15px}.gf .glit{font-weight:700;font-size:16px}\n.gf .galb{display:flex;gap:12px;align-items:center;margin-bottom:10px}.gf .gart{width:64px;height:64px;border-radius:10px;flex:none;background:radial-gradient(circle at 70% 30%,#FFD3A5,transparent 60%),linear-gradient(135deg,#7F7FD5,#E86ED0 60%,#FFB199);box-shadow:0 4px 12px rgba(0,0,0,.15)}.gf .gart.sm{width:120px;height:120px;border-radius:12px;margin:2px auto 10px;display:block}.gf .gart.xs{width:34px;height:34px;border-radius:7px;box-shadow:none}\n.gf .gtr>div{display:flex;gap:10px;align-items:center;padding:6px 0;border-top:.5px solid rgba(60,60,67,.14)}.gf .gtr>div:first-child{border-top:0;padding-top:0}.gf .gtr>div:last-child{padding-bottom:0}.gf .gtr em{font-style:normal;color:#8E8E93;width:12px}.gf .gtr span:not(.gs){flex:1}\n.gf .gsh{background:linear-gradient(180deg,#E9DDFB,#FBE3EC);border-radius:16px;padding:14px;text-align:center;display:flex;flex-direction:column;align-items:center;box-shadow:0 0 0 .5px rgba(0,0,0,.06)}.gf .gsh>b{font-size:17px}.gf .gbtn{margin:8px 0 10px;background:#1C1C1E;color:#fff;border-radius:999px;padding:6px 16px;font-size:13px;font-weight:600}.gf .gshl{font-size:13px;color:#3C3C43}\n.gf .gperf{background:#000;border-radius:14px;padding:16px 14px;color:#fff;text-align:center}.gf .gbig{font-size:24px;font-weight:700;line-height:1.2;margin:8px 0}.gf .gpc{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12px;color:rgba(255,255,255,.55)}.gf .gpc b{color:#fff;background:rgba(255,255,255,.16);border-radius:999px;padding:4px 12px;font-weight:600}\n.gf .gsw{display:flex;border-radius:12px;overflow:hidden;box-shadow:0 0 0 .5px rgba(0,0,0,.06);height:56px}.gf .gsr{flex:1;background:#fff;display:flex;gap:10px;align-items:center;padding:0 12px;margin-left:-40px;padding-left:52px;white-space:nowrap;overflow:hidden}.gf .gsr b{font-size:15px;font-weight:500}.gf .gsr .gm{font-size:12px}\n.gf .gpin,.gf .gdel{width:64px;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:600;flex:none}.gf .gpin{background:#FF9500}.gf .gdel{background:#FF3B30}",
+  GUIDE_TEXT="[Start here]\nWelcome to *[demo]. This song is a guide to everything in the app. Scroll through, and delete it from your songs whenever you like.\nEverything saves as you type, and syncs to every device you’re signed in on.\n\n[Writing]\nTap + to start a song. Give it a title, then write: every line is a lyric line.\nPut a section name on its own line in square brackets, like [Verse] or [Bridge]. Write your chorus once under [Chorus]. Next time, type [Chorus] and press Return, and it fills itself in.\n\n[Rhymes & words]\nThe rhyme bar above the keyboard rhymes with the word you just wrote. Tap one to put it in.\nRhyme map colours the words that rhyme with each other. Syllable counts shows how long each line runs, so your verses sit evenly. Both are at the top of the song.\n\n[When you’re stuck]\nMuse deals out quick prompts and exercises when the page is blank.\nLines writes rhyming next lines in your voice. Writing voice sets that voice: genre, mood and style. Listen to the whole song makes every suggestion fit what you’ve written so far.\nRate gives an honest co-writer’s read: a score, what’s working, and notes you can act on.\n\n[Ideas & voice memos]\nIdeas sits at the top of your songs. It’s a quick jot for stray lines, titles and concepts: type and press Return.\nRecord a voice memo the moment a melody turns up. When an idea grows, start a song from it.\n\n[Details & release]\nOpen ••• › Details for chords, key, tempo, capo, tuning and a status: Idea, Draft, Demo or Finished.\n••• › Credits keeps the writers and their splits, plus the release details: ISRC, UPC, release date and label. Once a song is out, Find Release looks it up on Apple Music and fills them in for you.\n\n[Audio & lyric sync]\nIn ••• › Audio, add each version of the song: voice memo, demo, mix, master. Tick the one that’s current. Stems, artwork and session files can live with the song too.\nSync Lyrics listens to the current version and times every line for you. Export .lrc saves the timed lyrics for streaming services and distributors.\n\n[Albums]\nGather songs into an album, EP or single with New Album, at the bottom of your songs. Its artwork goes on every song in it, and the album page shows how close each song is to finished.\n\n[Sharing & co-writing]\nShare sends a song as a link anyone can open, with its audio, or as an image of the lyrics. Share an album and it gets a page of its own, with every song on it.\nPick a username in Account so co-writers can find you, then invite them from ••• › Details › Collaborators. You can write in the same song at the same time, and see each other’s changes as they happen.\n\n[Perform]\n••• › Perform turns the song into a scrolling teleprompter for the stage or the studio. Set the speed and the text size, and it rolls on by itself.\n\n[Organising]\nMake folders, and drag songs between them. Swipe a song left to pin it to the top, or to delete it.\nOn iPhone, add the *[demo] widgets to your Home Screen: record a memo in one tap, or jump back into the song you were writing.\n\n[Keeping it safe]\nSave a Version in ••• › Details › Versions before big changes, and restore it any time. *[demo] also keeps one by itself when you come back to a song after a while.\nClean up tidies case, spacing and section tags, ready for streaming services. The original is saved in Versions first.\nCopy Lyrics from •••, or export every song from Account. On Mac, songs are also saved as files in Documents › [demo] Songs.\n\n[Common questions]\nWhere are my songs kept?\nIn your account, synced to iPhone, Mac and the web app at hellodemo.app/app. Each device keeps a copy too, so you can keep writing without a connection.\nWho can see my songs?\nOnly you, until you invite a co-writer or send a share link. You can stop a share link any time.\nHow do I get my songs out?\nCopy Lyrics from •••, export a song’s timed lyrics as .lrc, or export every song from Account.\nI changed something and want it back.\nOpen ••• › Details › Versions and restore an earlier version. Save one yourself before big changes.\nDo the AI features read my songs?\nOnly when you use them. Lines, Muse and Rate send what you’re working on to OpenAI. Turn AI Features off in Account and nothing is sent.\nWhat does Pro add?\nDemos, mixes and stems with 5 GB of space, voice memos synced everywhere, lyric sync, co-writing, share links, Lines and Rate in your voice, and Perform mode.\nWhere do I get help?\nAccount › Contact Support, or email help@hellodemo.app.",
+  GUIDE_RICH="<span style=\"font-weight: bold; color: #8E8E96;\">[Start here]</span><br>Welcome to *[demo]. This song is a guide to everything in the app. Scroll through, and delete it from your songs whenever you like.<br>Everything saves as you type, and syncs to every device you’re signed in on.<br><br><span style=\"font-weight: bold; color: #8E8E96;\">[Writing]</span><br>Tap + to start a song. Give it a title, then write: every line is a lyric line.<br>Put a section name on its own line in square brackets, like [Verse] or [Bridge]. Write your chorus once under [Chorus]. Next time, type [Chorus] and press Return, and it fills itself in.<br><br><span style=\"font-weight: bold; color: #8E8E96;\">[Rhymes &amp; words]</span><br>The rhyme bar above the keyboard rhymes with the word you just wrote. Tap one to put it in.<br>Rhyme map colours the words that rhyme with each other. Syllable counts shows how long each line runs, so your verses sit evenly. Both are at the top of the song.<br><br><span style=\"font-weight: bold; color: #8E8E96;\">[When you’re stuck]</span><br>Muse deals out quick prompts and exercises when the page is blank.<br>Lines writes rhyming next lines in your voice. Writing voice sets that voice: genre, mood and style. Listen to the whole song makes every suggestion fit what you’ve written so far.<br>Rate gives an honest co-writer’s read: a score, what’s working, and notes you can act on.<br><br><span style=\"font-weight: bold; color: #8E8E96;\">[Ideas &amp; voice memos]</span><br>Ideas sits at the top of your songs. It’s a quick jot for stray lines, titles and concepts: type and press Return.<br>Record a voice memo the moment a melody turns up. When an idea grows, start a song from it.<br><br><span style=\"font-weight: bold; color: #8E8E96;\">[Details &amp; release]</span><br>Open ••• › Details for chords, key, tempo, capo, tuning and a status: Idea, Draft, Demo or Finished.<br>••• › Credits keeps the writers and their splits, plus the release details: ISRC, UPC, release date and label. Once a song is out, Find Release looks it up on Apple Music and fills them in for you.<br><br><span style=\"font-weight: bold; color: #8E8E96;\">[Audio &amp; lyric sync]</span><br>In ••• › Audio, add each version of the song: voice memo, demo, mix, master. Tick the one that’s current. Stems, artwork and session files can live with the song too.<br>Sync Lyrics listens to the current version and times every line for you. Export .lrc saves the timed lyrics for streaming services and distributors.<br><br><span style=\"font-weight: bold; color: #8E8E96;\">[Albums]</span><br>Gather songs into an album, EP or single with New Album, at the bottom of your songs. Its artwork goes on every song in it, and the album page shows how close each song is to finished.<br><br><span style=\"font-weight: bold; color: #8E8E96;\">[Sharing &amp; co-writing]</span><br>Share sends a song as a link anyone can open, with its audio, or as an image of the lyrics. Share an album and it gets a page of its own, with every song on it.<br>Pick a username in Account so co-writers can find you, then invite them from ••• › Details › Collaborators. You can write in the same song at the same time, and see each other’s changes as they happen.<br><br><span style=\"font-weight: bold; color: #8E8E96;\">[Perform]</span><br>••• › Perform turns the song into a scrolling teleprompter for the stage or the studio. Set the speed and the text size, and it rolls on by itself.<br><br><span style=\"font-weight: bold; color: #8E8E96;\">[Organising]</span><br>Make folders, and drag songs between them. Swipe a song left to pin it to the top, or to delete it.<br>On iPhone, add the *[demo] widgets to your Home Screen: record a memo in one tap, or jump back into the song you were writing.<br><br><span style=\"font-weight: bold; color: #8E8E96;\">[Keeping it safe]</span><br>Save a Version in ••• › Details › Versions before big changes, and restore it any time. *[demo] also keeps one by itself when you come back to a song after a while.<br>Clean up tidies case, spacing and section tags, ready for streaming services. The original is saved in Versions first.<br>Copy Lyrics from •••, or export every song from Account. On Mac, songs are also saved as files in Documents › [demo] Songs.<br><br><span style=\"font-weight: bold; color: #8E8E96;\">[Common questions]</span><br><b>Where are my songs kept?</b><br>In your account, synced to iPhone, Mac and the web app at hellodemo.app/app. Each device keeps a copy too, so you can keep writing without a connection.<br><b>Who can see my songs?</b><br>Only you, until you invite a co-writer or send a share link. You can stop a share link any time.<br><b>How do I get my songs out?</b><br>Copy Lyrics from •••, export a song’s timed lyrics as .lrc, or export every song from Account.<br><b>I changed something and want it back.</b><br>Open ••• › Details › Versions and restore an earlier version. Save one yourself before big changes.<br><b>Do the AI features read my songs?</b><br>Only when you use them. Lines, Muse and Rate send what you’re working on to OpenAI. Turn AI Features off in Account and nothing is sent.<br><b>What does Pro add?</b><br>Demos, mixes and stems with 5 GB of space, voice memos synced everywhere, lyric sync, co-writing, share links, Lines and Rate in your voice, and Perform mode.<br><b>Where do I get help?</b><br>Account › Contact Support, or email help@hellodemo.app.";
+/*/GUIDE-CONTENT*/
+var GUIDE_V=5,GUIDE_ID='5f1d0c2e-6a8b-4c3d-9e7f-0a1b2c3d4e5f',GUIDE_AT=Date.UTC(2026,10,2,12);
 function guideSong(){
-  var L=[
-    '[Start here]',
-    'This is a song like any other. Read it, edit it, delete it when you’re done.',
-    'Everything saves as you type, and syncs to every device you’re signed in on.',
-    '',
-    '[Writing]',
-    'Each line here is a lyric line.',
-    'Put a section name on its own line in square brackets, like [Verse] or [Bridge].',
-    'Write your chorus once under [Chorus]. Next time, type [Chorus] and press Enter: it fills itself in.',
-    'Select words to make them bold, colour them, or highlight them.',
-    '{Highlights mark a Hook,} a line to Rework, or an Idea.',
-    '',
-    '[Rhymes]',
-    'The rhyme bar suggests rhymes for the word you just wrote. Tap one to use it.',
-    'Switch it to Perfect, Near, Phrases, Synonyms, Opposites, Define and more.',
-    'Tap the handle on top of the bar to open the Dictionary and look up any word.',
-    'Rhyme map colours the words that rhyme. Syllable counts shows how long each line is.',
-    '',
-    '[When you’re stuck]',
-    'Lines writes rhyming next lines in your voice.',
-    'Muse deals out quick prompts when the page is blank.',
-    'Writing voice sets how you write: genre, mood and style.',
-    'Listen to the whole song makes every suggestion fit the song so far.',
-    'Rate gives an honest co-writer’s read, with a score and notes you can act on.',
-    '',
-    '[Music]',
-    'In Details, add chords, key, tempo, tuning and a status.',
-    'Perform turns the song into a scrolling teleprompter, with speed and text size.',
-    '',
-    '[Audio & release]',
-    'In Details › Audio, add versions of the song: voice memo, demo, mix, master. Tick the current one.',
-    'Sync Lyrics listens to the current version and times every line for you.',
-    'Play with Lyrics plays it with each line lighting up in time. Tap a line to jump there.',
-    'Export .lrc saves the timed lyrics for streaming services and distributors.',
-    'Stems, artwork and session files can live with the song too.',
-    'Details › Credits keeps writers and their splits, plus ISRC, UPC, release date and label.',
-    '',
-    '[Keeping it safe]',
-    'Save a Version before big changes, and restore it any time.',
-    'Clean up tidies case, spacing and section tags, ready for streaming services.',
-    'Copy Lyrics from Details, or export every song from Account.',
-    'On Mac, songs are also saved as files in Documents › [demo] Songs.',
-    '',
-    '[Organising]',
-    'Make folders, and drag songs between them.',
-    'Swipe a song left in the list to pin it or delete it.',
-    'Ideas, at the top of your songs, is a quick jot for lines, ideas and concepts. Type and press Return.',
-    '',
-    '[Writing together]',
-    'Choose a username in Account so co-writers can find you.',
-    'Invite them from Details › Collaborators. Shared songs stay in sync for everyone.',
-    'Songs you mark Finished show up under Credits in Account.'
-  ];
-  var lyrics=L.map(function(l){return l.replace(/[{}]/g,'')}).join('\n');
-  var rich=L.map(function(l){
-    if(/^\[[^\]]+\]$/.test(l))return'<span style="font-weight: bold; color: #8E8E96;">'+esc(l)+'</span>';
-    return esc(l).replace(/\{([^}]*)\}/,'<span style="background-color: rgba(255, 204, 0, 0.38);">$1</span>');
-  }).join('<br>');
-  return{id:GUIDE_ID,guide:true,guideAt:GUIDE_AT,title:'How *[demo] works',lyrics:lyrics,rich:rich,chords:'',key:'',bpm:'',capo:'',time:'',tuning:'',status:'Idea',folder:'',notes:'',artist:'',created:GUIDE_AT,updated:GUIDE_AT};
+  return{id:GUIDE_ID,guide:true,guideAt:GUIDE_AT,title:'How *[demo] works',lyrics:GUIDE_TEXT,rich:GUIDE_RICH,chords:'',key:'',bpm:'',capo:'',time:'',tuning:'',status:'Idea',folder:'',notes:'',artist:'',created:GUIDE_AT,updated:GUIDE_AT};
 }
+/* the guide, read with its pictures: shown in place of the lyrics while its words are still the guide's own.
+   The pictures only ever live here: they aren't in the song's text, so Copy Lyrics, exports and Perform never see them. */
+function isGuideView(s){return!!s&&s.id===GUIDE_ID&&nlNorm(s.lyrics||'')===GUIDE_TEXT}
+function guideHTML(){return GUIDE_BLOCKS.map(function(b){
+  if(b[0]==='h')return'<div class="gvh">['+esc(b[1])+']</div>';
+  if(b[0]==='p')return'<p class="gvp">'+esc(b[1])+'</p>';
+  if(b[0]==='f')return'<figure class="gvf"><div class="gf">'+(GUIDE_FIGS[b[1]]||'')+'</div><figcaption>'+esc(b[2])+'</figcaption></figure>';
+  return'<div class="gvq"><b>'+esc(b[1])+'</b><p>'+esc(b[2])+'</p></div>'}).join('')}
+function guideView(s){var g=document.getElementById('gview');if(!g)return;var on=isGuideView(s);
+  if(on&&!document.getElementById('guidecss')){var st=document.createElement('style');st.id='guidecss';st.textContent=GUIDE_CSS;document.head.appendChild(st)}
+  if(on&&!g.firstChild)g.innerHTML=guideHTML();g.hidden=!on;lyr.style.display=on?'none':'';document.documentElement.classList.toggle('guidev',on)}
 function seedGuide(){
   if(!ACTIVE_KEY||ACTIVE_KEY===K)return;
   var fk='songpad:guide:'+ACTIVE_KEY,had=0;try{had=+localStorage.getItem(fk)||0}catch(e){}
@@ -15612,10 +15654,10 @@ function renderIdeas(){ideaMemosPending();
 }
 function editIdea(i){curIdea=i||null;$('#ititle').textContent=i?'Idea':'New Idea';var ta=$('#itext');ta.value=i?i.text:'';ta.placeholder=i&&i.memo?'Add words to go with it…':'A line, a title, an idea…';
   var mw=$('#imemow');mw.innerHTML='';if(i&&i.memo){var mr=imRow(i,true),rm=document.createElement('button');rm.className='imrm';rm.textContent='Remove';
-    rm.onclick=function(){ideaMemoRemove(i);if(!i.text){ideas=ideas.filter(function(x){return x!==i});sheet(false);toast('Voice memo deleted')}else{i.updated=Date.now();toast('Recording removed');editIdea(i)}saveIdeas()};mr.appendChild(rm);mw.appendChild(mr)}
+    rm.onclick=function(){ideaMemoRemove(i);if(!i.text){ideas=ideas.filter(function(x){return x!==i});sheet(false)}else{i.updated=Date.now();editIdea(i)}saveIdeas()};mr.appendChild(rm);mw.appendChild(mr)}
   var ac=$('#iacts');ac.innerHTML='';ac.hidden=!i;
   if(i){ac.appendChild(accCell({tile:ACC_ICO.note,grad:8,label:'Start a Song',chev:true,onclick:function(){var t=ta.value.trim();if(t){i.text=t;if(i.kind==='memo')i.kind='line'}ideaToSong(i)}}));
-    ac.appendChild(accCell({label:'Delete Idea',cls:'danger notile',onclick:function(){var nat=natDestroy({title:'Delete this idea?',message:'This can’t be undone.',ok:'Delete Idea'});if(nat){nat.then(function(ok){if(!ok)return;ideaMemoRemove(i);ideas=ideas.filter(function(x){return x!==i});saveIdeas();sheet(false);toast('Idea deleted')});return}ideaMemoRemove(i);ideas=ideas.filter(function(x){return x!==i});saveIdeas();sheet(false);toast('Idea deleted')}}))}
+    ac.appendChild(accCell({label:'Delete Idea',cls:'danger notile',onclick:function(){var nat=natDestroy({title:'Delete this idea?',message:'This can’t be undone.',ok:'Delete Idea'});if(nat){nat.then(function(ok){if(!ok)return;ideaMemoRemove(i);ideas=ideas.filter(function(x){return x!==i});saveIdeas();sheet(false)});return}ideaMemoRemove(i);ideas=ideas.filter(function(x){return x!==i});saveIdeas();sheet(false)}}))}
   itextFit();$('#ibd').scrollTop=0;sheet(true,'sheet7');if(!i)setTimeout(function(){ta.focus()},350)}
 function itextFit(){var ta=$('#itext');ta.style.height='auto';ta.style.height=Math.max(96,ta.scrollHeight+2)+'px'}
 function openIdeas(jot){sheet(false);if(document.body.classList.contains('side'))sideOn(false);show('vIdeas');ifilterTag='';ifilterKind='';$('#iq').value='';renderIdeas();if(jot)setTimeout(function(){$('#ijot').focus()},320)}
@@ -15683,7 +15725,9 @@ function toast(m){dbgLog('toast',m);if(/^Couldn[’']t /.test(String(m||'')))rep
   var rhy=$('#rhy'),r=rhy&&rhy.getBoundingClientRect();
   if(r&&r.width&&r.height){var th=t.getBoundingClientRect().height||40;t.style.bottom='auto';t.style.top=(r.top-th-14)+'px'}
   else{t.style.top='';t.style.bottom=''}
-  t.classList.add('on');setTimeout(function(){t.classList.remove('on')},1600);haptic('light')}
+  /* short ones go quickly, longer ones stay long enough to read (about 1.6–4 s); a new one restarts the clock */
+  var ms=Math.min(4000,1600+Math.max(0,String(m||'').length-24)*35);
+  t.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('on')},ms);haptic('light')}
 /* Minimal haptics on iOS native builds (Capacitor); silently does nothing on Mac/web */
 function haptic(kind){
   /* iOS 26 builds: straight to the native generators (kept warm), and a light tap that's already been felt (the
@@ -16164,7 +16208,17 @@ $('#q').oninput=renderList;
 /* real UUIDs so song ids are always valid for the shared_songs table, whether or not the song is ever shared */
 function uuid4(){try{if(window.crypto&&crypto.randomUUID)return crypto.randomUUID()}catch(e){}return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c==='x'?r:(r&3|8);return v.toString(16)})}
 function newSong(){var nm=myName();var s={pf:mkPF({}),id:uuid4(),title:'',lyrics:'',chords:'',key:'',bpm:'',capo:'',time:'',tuning:'',status:'Idea',folder:'',notes:'',artist:nm,_autoArtist:nm,updated:Date.now()};songs.push(s);save();openSong(s.id)}
-$('#new').onclick=newSong;
+var NEW_ICO={song:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-6"/><path d="M17.6 3.6a2 2 0 0 1 2.8 2.8L12 14.8l-3.6.8.8-3.6z"/></svg>',
+  folder:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5a2 2 0 0 1 2-2h3.8l2 2.2h7.2a2 2 0 0 1 2 2v7.8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M12 11.2v5M9.5 13.7h5"/></svg>',
+  album:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="7" width="13.5" height="13.5" rx="2.5"/><path d="M7 3.5h11a2.5 2.5 0 0 1 2.5 2.5v11"/></svg>'};
+/* the songs list's new button: a tap starts a song; press and hold it (or right-click) for New Song, New Folder or New Album */
+(function(){var b=$('#new'),t=0,held=false;
+  function menu(){albMenu(b,[{t:'New Song',ico:NEW_ICO.song,fn:newSong},{t:'New Folder',ico:NEW_ICO.folder,fn:function(){createFolder(false)}},{t:'New Album',ico:NEW_ICO.album,fn:albNew}])}
+  function stop(){clearTimeout(t)}
+  b.addEventListener('pointerdown',function(e){if(e.button)return;held=false;stop();t=setTimeout(function(){held=true;try{navigator.vibrate&&navigator.vibrate(8)}catch(x){}menu()},450)});
+  ['pointerup','pointerleave','pointercancel'].forEach(function(k){b.addEventListener(k,stop)});
+  b.addEventListener('contextmenu',function(e){e.preventDefault();stop();held=true;menu()});
+  b.onclick=function(){if(held){held=false;return}newSong()}})();
 
 /* ---------- editor ---------- */
 var KY=['','C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];KY.slice(1).forEach(function(k){KY.push(k+'m')});
@@ -16198,7 +16252,7 @@ var delArm=0;$('#del').onclick=function(){var b=this,s0=cur;
 function sheet(on,w){if(on&&!wideMQ.matches&&document.body.classList.contains('side'))sideOn(false);
   if(on){var ae=document.activeElement;if(ae&&ae.blur&&(ae.id==='lyr'||ae.id==='title'||ae.id==='q'))ae.blur()}
   if(!on){try{ideaCommit()}catch(e){}var fa=document.activeElement;if(fa&&fa.blur&&fa.closest&&fa.closest('[role=dialog]'))fa.blur();$('#sheet').classList.remove('on');$('#sheet2').classList.remove('on');$('#sheet3').classList.remove('on');$('#sheet4').classList.remove('on');$('#sheet5').classList.remove('on');$('#sheet6').classList.remove('on');$('#sheet7').classList.remove('on');$('#sheet8').classList.remove('on');var s10=$('#sheet10');if(s10)s10.classList.remove('on');var s11=$('#sheet11');if(s11)s11.classList.remove('on');['#sheet12','#sheet13'].forEach(function(q){var e=$(q);if(e)e.classList.remove('on')})}else $('#'+(w||'sheet')).classList.add('on');$('#scrim').classList.toggle('on',on)}
-$('#det').onclick=function(){dtab('inf');renderVers();renderCollab();sheet(true)};$('#done').onclick=function(){sheet(false)};$('#scrim').onclick=function(){sheet(false);closeDict()};
+$('#det').onclick=function(){dtab('inf');renderVers();renderCollab();sheet(true);tkCheck()};$('#done').onclick=function(){sheet(false)};$('#scrim').onclick=function(){sheet(false);closeDict()};
 /* Escape (Mac and web) closes whatever is on top: the dictionary, then any open sheet, then a floating sidebar */
 document.addEventListener('keydown',function(e){if(e.key!=='Escape'||e.defaultPrevented||e.isComposing)return;
   var lp=$('#lplay'),pf=$('#perf');if((lp&&!lp.hidden)||(pf&&!pf.hidden))return; /* those close themselves */
@@ -16234,7 +16288,7 @@ function clean(h){var d=new DOMParser().parseFromString('<body>'+h,'text/html').
 /* one kind of line break everywhere: \r\n, \r and Unicode line/paragraph separators (pasted on iPhone or from other
    apps) become \n; the editor is pre-wrap, so a raw \n in the formatting shows as a line too */
 function nlNorm(t){return typeof t==='string'?t.replace(/\r\n|[\r\u2028\u2029]/g,'\n'):t}
-function setLyr(s){if(s.lyrics)s.lyrics=nlNorm(s.lyrics);if(s.rich)s.rich=nlNorm(s.rich);var x=s.lyrics||'';lyr.innerHTML=s.rich?clean(s.rich):esc(x).replace(/\n/g,'<br>')+(/\n$/.test(x)?'<br>':'');if(getText()==='')lyr.innerHTML=''}
+function setLyr(s){if(s.lyrics)s.lyrics=nlNorm(s.lyrics);if(s.rich)s.rich=nlNorm(s.rich);var x=s.lyrics||'';lyr.innerHTML=s.rich?clean(s.rich):esc(x).replace(/\n/g,'<br>')+(/\n$/.test(x)?'<br>':'');if(getText()==='')lyr.innerHTML='';guideView(s)}
 /* cover art is always a picture the app made itself (a data: image). Anything else, such as a web address a
    co-writer put in a shared song, is ignored rather than loaded, so it can't be used to track who opens it */
 function artOk(a){return typeof a==='string'&&/^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(a)}
@@ -16335,7 +16389,7 @@ $('#avin').onchange=function(){
   rd.onload=function(){var im=new Image();im.onload=function(){
     var s=256,c=document.createElement('canvas');c.width=c.height=s;var m=Math.min(im.width,im.height);c.getContext('2d').drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,s,s);
     var durl=c.toDataURL('image/jpeg',.85);
-    if(AUTH_USER)saveAvatar(durl).then(function(){toast('Photo updated');renderAccount();paintAcctIcons()},function(e){toast(e.message)});
+    if(AUTH_USER)saveAvatar(durl).then(function(){renderAccount();paintAcctIcons()},function(e){toast(e.message)});
     else{var dp=devProfileGet();dp.avatar_url=durl;devProfileSet(dp);toast('Photo updated (dev only)');renderAccount();paintAcctIcons()}
   };im.onerror=function(){toast('Could not read that image')};im.src=rd.result};
   rd.onerror=function(){toast('Could not read that image')};rd.readAsDataURL(f);
@@ -16611,7 +16665,7 @@ $('#iq').addEventListener('input',renderIdeas);
 setTimeout(fitHeads,0);window.addEventListener('load',fitHeads);
 $('#ijot').addEventListener('input',ijotFit);
 $('#ijot').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229){e.preventDefault();ijotSave()}});
-$('#ijotgo').onmousedown=prevent;$('#ijotgo').onclick=ijotSave;$('#ijmic').innerHTML=IMIC;$('#ijmic').onmousedown=prevent;$('#ijmic').onclick=function(){haptic('light');irecStart()};$('#irecs').onclick=function(){irecStop(true)};$('#irecx').onclick=function(){irecStop(false);toast('Recording discarded')};
+$('#ijotgo').onmousedown=prevent;$('#ijotgo').onclick=ijotSave;$('#ijmic').innerHTML=IMIC;$('#ijmic').onmousedown=prevent;$('#ijmic').onclick=function(){haptic('light');irecStart()};$('#irecs').onclick=function(){irecStop(true)};$('#irecx').onclick=function(){irecStop(false)};
 $('#itext').addEventListener('input',itextFit);
 $('#isave').onmousedown=prevent;
 /* the idea sheet saves as it closes, like every other sheet: Done, tapping outside or Escape */
@@ -17318,7 +17372,7 @@ function dictInsert(x){
   var pv=getText().charAt(dictSel.s-1);
   ins(lyr,(pv&&!/\s/.test(pv)?' ':'')+x);
   dictSel={s:getSel().s,e:getSel().e};
-  toast('Inserted “'+x+'”');
+  
 }
 function dictRun(){
   var out=$('#dictout'),w=nw(dictWord)?dictWord.trim():'';out.innerHTML='';
@@ -17393,8 +17447,8 @@ function gut(){
     if(rc&&rc.height){var s=document.createElement('span'),mm=melAt(pos),cn=lsyl(l);s.textContent=cn+(mm?'/'+mm.n:'');if(mm){var df=Math.abs(cn-mm.n);s.className=df===0?'ok':df===1?'o1':'o2';s.title=df?'Melody has '+mm.n+' syllables here':'Fits the melody'}s.style.top=(rc.top-sr.top+st)+'px';s.style.height=rc.height+'px';g.appendChild(s)}}pos+=l.length+1});
 }
 function vset(){$('#ctxb').setAttribute('aria-pressed',VIEW.ctx);$('#ctxb').title=VIEW.ctx?'Listening to the whole song: suggestions fit your song':'Only listening to nearby lines';$('#vmap').setAttribute('aria-pressed',VIEW.map);$('#vsyl').setAttribute('aria-pressed',VIEW.syl);try{localStorage.setItem('songpad:view',JSON.stringify(VIEW))}catch(e){}refreshViews()}
-$('#vmap').onmousedown=prevent;$('#vmap').onclick=function(){VIEW.map=!VIEW.map;vset();toast(VIEW.map?'Rhyme map on':'Rhyme map off')};
-$('#vsyl').onmousedown=prevent;$('#vsyl').onclick=function(){VIEW.syl=!VIEW.syl;vset();toast(VIEW.syl?'Syllable counts on':'Syllable counts off')};
+$('#vmap').onmousedown=prevent;$('#vmap').onclick=function(){VIEW.map=!VIEW.map;vset()};
+$('#vsyl').onmousedown=prevent;$('#vsyl').onclick=function(){VIEW.syl=!VIEW.syl;vset()};
 window.addEventListener('resize',refreshViews);
 $('#ctxb').onmousedown=prevent;$('#ctxb').onclick=function(){if(!isPro())return upsell('listen');VIEW.ctx=!VIEW.ctx;vset();rhyme();toast(VIEW.ctx?'Listening to the whole song':'Only listening to nearby lines')};
 /* ---------- I'm stuck ---------- */
@@ -17739,7 +17793,7 @@ function shareSong(){if(!AUTH_USER){toast('Sign in to share songs');return}if(!c
   }
   if(!s.artist){s.artist=myName();s._autoArtist=s.artist}
   s.shared=true;s.owner=AUTH_USER.id;s.ownerEmail=AUTH_USER.email;s.members=[AUTH_USER.id];s.updated=Date.now();
-  pushShared(s);save();renderCollab();renderList();renderSide();toast('Shared. Invite a collaborator by username below.')}
+  pushShared(s);save();renderCollab();renderList();renderSide()}
 function leaveOrDelete(s){var c=sbClient();
   if(isOwnerOf(s)){if(c)sharedEnd(s);try{audDel(s.id)}catch(e){}}
   else if(c&&AUTH_USER){c.from('collab_members').delete().eq('song_id',s.id).eq('user_id',AUTH_USER.id).then(function(){},function(){})}
@@ -17815,7 +17869,7 @@ function acceptInvite(inv){var c=sbClient();if(!c||!AUTH_USER)return;
 }
 function declineInvite(inv){var c=sbClient();if(!c)return;
   c.from('collab_invites').update({status:'declined',responded_at:new Date().toISOString()}).eq('id',inv.id).then(function(){
-    PENDING_INVITES=PENDING_INVITES.filter(function(x){return x.id!==inv.id});renderInvites();toast('Invite declined')
+    PENDING_INVITES=PENDING_INVITES.filter(function(x){return x.id!==inv.id});renderInvites()
   })
 }
 /* blocking (supabase/user-blocks.sql): their invites stop reaching you, and they aren't told.
@@ -17882,7 +17936,7 @@ function doBlock(id,name){var c=sbClient();if(!c||!AUTH_USER||!id)return;
       if(r2&&r2.error&&!/duplicate|23505/i.test(r2.error.message||r2.error.code||''))return toast('Couldn’t block: '+r2.error.message);after()})})}
 function unblockUser(b){var c=sbClient();if(!c||!AUTH_USER)return;
   c.from('user_blocks').delete().eq('blocker',AUTH_USER.id).eq('blocked',b.id).then(function(r){if(r&&r.error)return toast('Couldn’t unblock: '+r.error.message);
-    BLOCKS=(BLOCKS||[]).filter(function(x){return x.id!==b.id});renderAccount();toast('Unblocked '+b.name)})}
+    BLOCKS=(BLOCKS||[]).filter(function(x){return x.id!==b.id});renderAccount()})}
 function renderInvites(){var b=$('#acc-invites');if(!b)return;b.innerHTML='';
   if(!PENDING_INVITES.length){b.hidden=true;return}b.hidden=false;
   var la=document.createElement('div');la.className='lab';la.textContent='Invitations';b.appendChild(la);
@@ -17954,7 +18008,7 @@ function renderCollab(){var g=$('#collab'),n=$('#collab-note');g.innerHTML='';n.
       /* accepted: a green Co-writer pill; the owner's Remove lives in the "…" menu with Report and Block */
       clPerson(list,{p:p,id:m.user_id,name:nameOf(p,(m.email||'').split('@')[0])+(you?' (you)':''),sub:p&&p.username?'@'+p.username:'',badge:'Co-writer',badgeCls:'ok',
         more:you?null:function(){userActions({id:m.user_id,songId:songId,name:p&&p.username?'@'+p.username:nameOf(p,'this person'),
-          extra:owner?[{t:'Remove from Song',red:true,fn:function(){c.from('collab_members').delete().eq('song_id',songId).eq('user_id',m.user_id).then(function(){toast('Removed '+nameOf(p,'them'));renderCollab()})}}]:[]})}})});
+          extra:owner?[{t:'Remove from Song',red:true,fn:function(){c.from('collab_members').delete().eq('song_id',songId).eq('user_id',m.user_id).then(function(){renderCollab()})}}]:[]})}})});
     invs.forEach(function(iv){var p=prof[iv.invitee_user_id],nm=p&&p.display_name||(iv.invitee_username?'@'+iv.invitee_username:(iv.invitee_email||'Someone'));
       clPerson(list,{p:p,id:iv.invitee_user_id,name:nm,sub:'Hasn’t accepted yet',badge:'Invited',badgeCls:'inv',
         more:owner&&iv.invitee_user_id?function(){userActions({id:iv.invitee_user_id,songId:songId,name:p&&p.username?'@'+p.username:nm,
@@ -18279,7 +18333,7 @@ function ngRowAction(d){var s=d&&songs.filter(function(x){return x.id===d.id})[0
   if(d.action==='open'){openSong(s.id);if(!wideMQ.matches&&document.body.classList.contains('side'))sideOn(false);return}
   if(d.action==='pin'){setPin(s,!isPinned(s));return}
   if(d.action==='album'){albPickFor(s,null);return}
-  if(d.action==='unalbum'){albRemove(s);toast('Removed from album');return}
+  if(d.action==='unalbum'){albRemove(s);return}
   if(d.action==='copy'){var t=(s.title?s.title+'\n\n':'')+(s.lyrics||'');try{navigator.clipboard.writeText(t).then(function(){toast('Lyrics copied')},function(){toast('Copy blocked')})}catch(e){toast('Copy not available')}return}
   if(d.action==='del'){var mine=!(s.shared&&s.owner&&AUTH_USER&&s.owner!==AUTH_USER.id),nm=s.title||'this song';
     var go=function(ok){if(ok)removeSong(s)};var nd=natDestroy({title:mine?'Delete “'+nm+'”?':'Leave “'+nm+'”?',message:mine?'This can’t be undone.':'It stays with its owner.',ok:mine?'Delete Song':'Leave Song'});
@@ -18305,7 +18359,7 @@ function ngLoop(){if(NG.on&&!document.hidden){try{var g=ngSpec(),th=ngTheme(),k=
       document.addEventListener('touchmove',function(e){if(!t0)return;var t=e.touches[0];if(Math.abs(t.clientX-t0.x)>10||Math.abs(t.clientY-t0.y)>10)t0=null},{passive:true,capture:true});
       document.addEventListener('touchend',function(){var s=t0;t0=null;if(!s||!s.el.closest)return;var b=s.el.closest(SEL);if(!b||b.disabled||b.getAttribute('aria-disabled')==='true')return;if(isTextField(s.el))return;haptic('light')},{passive:true,capture:true})})();
     P.addListener('menu',function(d){var id=d&&d.id||'';if(!id)return;
-      if(id.indexOf('d:')===0){dtab(id.slice(2));renderVers();renderCollab();sheet(true);return}
+      if(id.indexOf('d:')===0){dtab(id.slice(2));renderVers();renderCollab();sheet(true);tkCheck();return}
       var b=document.getElementById(id);if(b&&!b.disabled)b.click()});
     P.addListener('input',function(d){var i=d&&document.getElementById(d.id);if(!i)return;i.value=d.text||'';i.dispatchEvent(new Event('input',{bubbles:true}))});
     P.addListener('focus',function(d){NG.edit=d&&d.id||null});P.addListener('blur',function(){NG.edit=null});
@@ -18329,7 +18383,7 @@ function ngLoop(){if(NG.on&&!document.hidden){try{var g=ngSpec(),th=ngTheme(),k=
 document.addEventListener('touchstart',function(e){if(HELDROW&&!(e.target.closest&&e.target.closest('.held')))clearHeld()},{capture:true,passive:true});
 document.addEventListener('scroll',function(){if(HELDROW)clearHeld()},{capture:true,passive:true});
 /* swipe left (or hover, on a Mac) to show a delete button; one tap arms it, a second deletes. Same feel as songs */
-function deleteIdea(i){ideaMemoRemove(i);ideas=ideas.filter(function(x){return x!==i&&x.id!==i.id});saveIdeas();haptic('medium');toast('Idea deleted');renderIdeas();paintVault()}
+function deleteIdea(i){ideaMemoRemove(i);ideas=ideas.filter(function(x){return x!==i&&x.id!==i.id});saveIdeas();haptic('medium');renderIdeas();paintVault()}
 function swipeDelete(b,what,onDel){var d=document.createElement('button');d.className='rdel';d.setAttribute('aria-label','Delete '+what);d.title='Delete '+what;d.innerHTML=TRASH;
   function arm(){document.querySelectorAll('.rdel.arm').forEach(function(x){x.classList.remove('arm');x.innerHTML=TRASH});d.classList.add('arm');d.textContent='Delete';clearTimeout(d._t);d._t=setTimeout(function(){d.classList.remove('arm');d.innerHTML=TRASH},3000)}
   d.onclick=function(e){e.stopPropagation();if(!d.classList.contains('arm')){arm();return}onDel()};
@@ -18395,7 +18449,7 @@ function renderCollabHint(){var h=$('#here');if(!h)return;
   h.hidden=false;h.style.cursor='pointer';h.textContent=nm+' added '+add.length+' new line'+(add.length>1?'s':'')+' · tap to dismiss';
   h.onclick=function(){SEEN[cur.id]=cur.lyrics||'';saveSeen();h.hidden=true}}
 function isPinned(s){return!!PINS[s.id]}
-function setPin(s,on){if(on)PINS[s.id]=Date.now();else delete PINS[s.id];try{localStorage.setItem('songpad:pins',JSON.stringify(PINS))}catch(e){}renderList();renderSide();toast(on?'Pinned “'+(s.title||'Song')+'”':'Unpinned')}
+function setPin(s,on){if(on)PINS[s.id]=Date.now();else delete PINS[s.id];try{localStorage.setItem('songpad:pins',JSON.stringify(PINS))}catch(e){}renderList();renderSide()}
 function removeSong(s){haptic('warning');var name=s.title||'Song',uid=AUTH_USER&&AUTH_USER.id;
   /* leaving someone else's song keeps the files: the owner's copy still plays them */
   if(!(s.shared&&s.owner&&s.owner!==uid))((s.audio||[]).concat(s.files||[])).forEach(function(f){sfRemove(f)});
@@ -18406,12 +18460,12 @@ function removeSong(s){haptic('warning');var name=s.title||'Song',uid=AUTH_USER&
     else if(c&&uid){c.from('collab_members').delete().eq('song_id',s.id).eq('user_id',uid).then(function(){},function(){})}
   }
   if(PINS[s.id]){delete PINS[s.id];try{localStorage.setItem('songpad:pins',JSON.stringify(PINS))}catch(e){}}try{audDel(s.id)}catch(e){}songs=songs.filter(function(x){return x!==s});
-  if(cur===s){cur=null;sheet(false);show('vList')}save();renderList();renderSide();toast((s.shared&&s.owner!==uid?'Left “':'Deleted “')+name+'”')}
+  if(cur===s){cur=null;sheet(false);show('vList')}save();renderList();renderSide()}
 function renameFolder(h,old){var b=h.querySelector('b');if(!b)return;var inp=document.createElement('input');inp.className='frin';inp.id='frin';inp.value=old;inp.setAttribute('aria-label','Folder name');
   b.replaceWith(inp);inp.focus();inp.select();var done=false;
   function commit(ok){if(done)return;done=true;var nv=inp.value.replace(/\s+/g,' ').trim();if(!ok||!nv||nv===old||nv==='Unfiled'||nv==='Songs'){renderList();renderSide();return}
     var n=0;songs.forEach(function(s){if(s.folder===old){s.folder=nv;s.updated=Date.now();n++}});if(collapsed[old]){collapsed[nv]=true;delete collapsed[old]}
-    save();renderList();renderSide();hdr();toast('Renamed to “'+nv+'”'+(n>1?' ('+n+' songs)':''))}
+    save();renderList();renderSide();hdr()}
   inp.onclick=function(e){e.stopPropagation()};inp.onkeydown=function(e){e.stopPropagation();if(e.key==='Enter'){e.preventDefault();commit(true)}else if(e.key==='Escape'){e.preventDefault();commit(false)}};inp.onblur=function(){commit(true)}}
 /* ---------- drag songs between folders ---------- */
 var dragId=null;
@@ -18443,7 +18497,7 @@ function dropTarget(el){var t=el&&el.closest&&el.closest('[data-folder]');if(!t|
 function headFor(t){if(t.classList.contains('gh')||t.classList.contains('sf')||t.classList.contains('newzone'))return t;var L=t.parentElement,f=t.dataset.folder,hs=L.querySelectorAll('.gh,.sf');for(var i=0;i<hs.length;i++)if(hs[i].dataset.folder===f)return hs[i];return t}
 ['dragover','dragenter'].forEach(function(ev){document.addEventListener(ev,function(e){if(!dragId)return;var t=dropTarget(e.target);if(!t)return;e.preventDefault();try{e.dataTransfer.dropEffect='move'}catch(_){}var h=headFor(t);if(!h.classList.contains('dropon')){clearDrop();h.classList.add('dropon')}})});
 function moveSongToFolder(s,f,inSide){var isNew=f==='__new__';if(isNew){var base='New Folder',n=1,names={};songs.forEach(function(x){if(x.folder)names[x.folder]=1});f=base;while(names[f])f=base+' '+(++n)}
-  if((s.folder||'')===f)return;s.folder=f;s.updated=Date.now();delete s.ph;songs=songs.filter(function(x){return!(x.ph&&x!==s&&x.folder===f&&!x.title&&!(x.lyrics||'').trim())});if(cur===s)hdr();save();renderList();renderSide();toast(f?'Moved to “'+f+'”':'Moved out of folders');
+  if((s.folder||'')===f)return;s.folder=f;s.updated=Date.now();delete s.ph;songs=songs.filter(function(x){return!(x.ph&&x!==s&&x.folder===f&&!x.title&&!(x.lyrics||'').trim())});if(cur===s)hdr();save();renderList();renderSide();
   if(isNew)setTimeout(function(){var L=inSide?$('#slist'):$('#list');var h=[].filter.call(L.querySelectorAll('.gh,.sf'),function(x){return x.dataset.folder===f})[0];if(h)renameFolder(h,f)},30)}
 document.addEventListener('drop',function(e){if(!dragId)return;var t=dropTarget(e.target);if(!t)return;e.preventDefault();var s=songs.filter(function(x){return x.id===dragId})[0];clearDrop();if(!s)return;
   moveSongToFolder(s,t.dataset.folder,!!(e.target.closest&&e.target.closest('#slist')))});
@@ -18610,8 +18664,10 @@ function admCard(){var b=document.createElement('div');b.className='song irow0 b
   b.innerHTML='<i class="th ath">'+ADM_ICO+'</i><div class="tx"><b>Admin</b><span></span><em></em></div>';b.querySelector('span').textContent=admSub();
   b.onclick=openAdmin;b.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openAdmin()}};return b}
 function admRpc(fn,args){var c=sbClient();if(!c)return Promise.reject(new Error('Not connected'));return c.rpc(fn,args||{}).then(function(r){if(r.error){if(/admin_|function .* does not exist|PGRST202/i.test(r.error.message||'')&&!/Admins only/.test(r.error.message)){ADM.miss=true}throw r.error}return r.data})}
+/* AI spend, estimated from the request counts (supabase/ai-cost.sql): US$ per request, shown in A$ */
+var AUD_PER_USD=1.54;function audC(usd){var a=(+usd||0)*AUD_PER_USD;return'A$'+(a<10?a.toFixed(2):Math.round(a).toLocaleString('en-AU'))}
 function admLoadOverview(force){if(!BETA.admin)return;if(!force&&ADM.ov&&Date.now()-ADM.t<30000)return;ADM.t=Date.now();
-  admLoadStatus();tkLoad();rpLoad();if(DEV_BUILD)admRpc('admin_trend').then(function(tr){ADM.trend=tr||[];renderAdmin()},function(){});admRpc('admin_overview').then(function(o){ADM.ov=o;ADM.miss=false;paintAdmSide();if(DEV_BUILD&&!$('#q').value)renderList();renderAdmin()},function(){renderAdmin()})}
+  admLoadStatus();tkLoad();rpLoad();if(DEV_BUILD)admRpc('admin_trend').then(function(tr){ADM.trend=tr||[];renderAdmin()},function(){});admRpc('admin_ai_cost').then(function(r){ADM.aic=r;renderAdmin()},function(){});admRpc('admin_overview').then(function(o){ADM.ov=o;ADM.miss=false;paintAdmSide();if(DEV_BUILD&&!$('#q').value)renderList();renderAdmin()},function(){renderAdmin()})}
 function admLoadUsers(){admRpc('admin_users',{p_q:ADM.q,p_limit:200}).then(function(u){ADM.users=u||[];renderAdmin()},function(e){ADM.users=[];renderAdmin();if(!ADM.miss)toast('Couldn’t load users: '+(e.message||e))})}
 function admLoadErrors(){admRpc('admin_errors',{p_hours:ADM.hours}).then(function(r){ADM.errs=r||{groups:[],latest:[]};renderAdmin()},function(){ADM.errs={groups:[],latest:[]};renderAdmin()})}
 function openAdmin(){if(DEV_BUILD&&$('#vDash'))return dashGo('dash');if(!AUTH_USER){toast('Sign in as dev@hellodemo.app to use Admin');return}if(!BETA.admin){toast('Admin is only for the admin account (dev@hellodemo.app)');return}
@@ -18649,6 +18705,8 @@ var DI_FLAG='<path d="M5 21V4"/><path d="M5 4h12l-2.5 4 2.5 4H5"/>';var DI={flag
   text:'<path d="M5 6h14M5 11h14M5 16h9"/>',
   phone:'<rect x="7" y="2.8" width="10" height="18.4" rx="2.6"/><path d="M11 18h2"/>',
   mac:'<rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M8.5 20h7M12 16.5V20"/>',
+  money:'<circle cx="12" cy="12" r="8.5"/><path d="M14.8 9.4c-.5-1-1.6-1.6-2.8-1.6-1.6 0-2.8.9-2.8 2.1 0 2.9 5.8 1.6 5.8 4.5 0 1.2-1.3 2.1-3 2.1-1.3 0-2.5-.6-3-1.7M12 6.2v1.6M12 16.3v1.6"/>',
+  brief:'<rect x="3.5" y="7" width="17" height="12.5" rx="2.5"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3.5 12.5h17"/>',
   globe:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 2.5 14.4 0 17M12 3.5c-2.5 2.6-2.5 14.4 0 17"/>'
 };
 /* Admin › Settings rows get the same solid icon tiles as More */
@@ -18657,17 +18715,248 @@ function dIco(k,w){return'<svg width="'+(w||22)+'" height="'+(w||22)+'" viewBox=
 /* the solid colour square behind each admin icon */
 function dTile(k,col){return'<i class="dtile" style="background:'+col+'">'+dIco(k,17)+'</i>'}
 var DCOL={blue:'#007AFF',green:'#34C759',teal:'#30B0C7',orange:'#FF9500',red:'#FF3B30',purple:'#AF52DE',indigo:'#5856D6',gray:'#8E8E93',pink:'#FF2D55',mint:'#00C7BE'};
+/* ---------- Business: the [developer] app's home base (supabase/business.sql, admins only).
+   Tasks and a job board (biz_tasks), a snapshot of the numbers, and an info center of sheets (biz_sheets:
+   Releases, Pricing & money, Marketing, Services, Supabase, Features, Security, Builds, Repo), each a list of rows
+   under section headings that opens from its tile. Everything saves as you go; Export makes an .xlsx. ---------- */
+var BIZ={sheets:null,tasks:null,at:0,cur:null,open:null,q:'',busy:false,err:'',saving:{},saved:0,tab:'tasks',edit:null,showDone:false};
+try{var bzc=JSON.parse(localStorage.getItem('songpad:biz')||'null');if(bzc&&bzc.sheets)BIZ.sheets=bzc.sheets;if(bzc&&bzc.tasks)BIZ.tasks=bzc.tasks}catch(e){}
+function bizCache(){try{localStorage.setItem('songpad:biz',JSON.stringify({sheets:BIZ.sheets,tasks:BIZ.tasks}))}catch(e){}}
+function bizLoad(force){if(BIZ.busy||(!force&&BIZ.at&&Date.now()-BIZ.at<30000)){bizRender();return}var c=sbClient();if(!c){bizRender();return}BIZ.busy=true;bizRender();
+  /* the snapshot's numbers come from the dashboard's own sources */
+  if(typeof admRpc==='function'){admRpc('admin_overview').then(function(o){ADM.ov=o;bizRender()},function(){});admRpc('admin_ai_cost').then(function(r){ADM.aic=r;bizRender()},function(){})}
+  Promise.all([c.from('biz_sheets').select('*').order('sort'),c.from('biz_tasks').select('*').order('sort')]).then(function(rs){BIZ.busy=false;var r=rs[0],t=rs[1];
+    if(r.error||t.error){BIZ.err=(r.error||t.error).message||'Couldn’t load';bizRender();return}
+    BIZ.err='';BIZ.at=Date.now();BIZ.sheets=(r.data||[]).map(function(s){return{id:s.id,name:s.name,sort:s.sort,title:s.title,note:s.note,cols:s.cols||[],rows:s.rows||[],updated_at:s.updated_at}});
+    BIZ.tasks=(t.data||[]).map(bizTaskIn);bizCache();bizRender()},function(){BIZ.busy=false;BIZ.err='Couldn’t reach Supabase';bizRender()})}
+function bizSheet(){var s=bizInfoSheets();return s.filter(function(x){return x.id===BIZ.cur})[0]||null}
+/* the overview and setup sheets are retired: the snapshot and the tasks do their jobs now */
+function bizInfoSheets(){return(BIZ.sheets||[]).filter(function(s){return s.id!=='overview'&&s.id!=='setup'})}
+var bizT={};function bizSave(sh){sh.updated_at=new Date().toISOString();bizCache();
+  clearTimeout(bizT[sh.id]);BIZ.saving[sh.id]=1;bizFoot();bizT[sh.id]=setTimeout(function(){var c=sbClient();if(!c)return;
+    c.from('biz_sheets').upsert({id:sh.id,name:sh.name,sort:sh.sort,title:sh.title,note:sh.note,cols:sh.cols,rows:sh.rows,updated_at:sh.updated_at,updated_by:AUTH_USER&&AUTH_USER.id||null})
+    .then(function(r){delete BIZ.saving[sh.id];if(r.error){toast('Couldn’t save: '+(r.error.message||'try again'));}else BIZ.saved=Date.now();bizFoot()},function(){delete BIZ.saving[sh.id];toast('Couldn’t save. Check your connection.');bizFoot()})},600)}
+function bizFoot(){var f=document.getElementById('bzfoot');if(!f)return;var sh=bizSheet();f.textContent=Object.keys(BIZ.saving).length?'Saving…':sh&&sh.updated_at?'Saved · edited '+admAgo(sh.updated_at):''}
+var BIZ_COL={Live:'green',Done:'green',Fixed:'green',Beta:'orange',Check:'orange','Needs setup':'red','To do':'red',Open:'red',High:'red',Medium:'orange',Low:'gray',Planned:'gray',Optional:'gray','Not used yet':'gray'};
+/* the second line of each row: the column with the most to say (a description rather than a date or a type) */
+function bizSubCol(sh,si,mi){if(sh._sub!=null)return sh._sub;var best=1,bl=-1;for(var j=1;j<sh.cols.length;j++){if(j===si||j===mi)continue;var t=0,n=0;sh.rows.forEach(function(r){if(r.c){t+=(r.c[j]||'').length;n++}});var a=n?t/n:0;if(a>bl){bl=a;best=j}}return best}
+function bizPill(v){var p=document.createElement('span');p.className='bzpill bz-'+(BIZ_COL[v]||'gray');p.textContent=v;return p}
+function bizMoney(sh){var i=sh.cols.findIndex(function(c){return c.k==='money'});if(i<0)return null;var t=0;sh.rows.forEach(function(r){if(r.c){var v=parseFloat(String(r.c[i]||'').replace(/[^0-9.\-]/g,''));if(!isNaN(v))t+=v}});return t}
+function bizCount(id,vals){var sh=(BIZ.sheets||[]).filter(function(x){return x.id===id})[0];if(!sh)return 0;var i=sh.cols.findIndex(function(c){return c.k==='status'});if(i<0)return 0;
+  return sh.rows.filter(function(r){return r.c&&vals.indexOf(r.c[i])>=0}).length}
+function bizSheetRender(o){var sh=bizSheet();if(!sh){BIZ.cur=null;return bizHome(o)}BIZ.cur=sh.id;
+  var bk=document.createElement('button');bk.className='bzback';bk.innerHTML=dIco('back',17)+'<span>Business</span>';bk.onclick=function(){haptic('light');BIZ.cur=null;BIZ.open=null;BIZ.q='';BIZ.tab='info';bizRender();var d=document.getElementById('dscroll');if(d)d.scrollTop=0};o.appendChild(bk);
+  /* the sheets, as a row of pills */
+  var tabs=document.createElement('div');tabs.className='bztabs';bizInfoSheets().forEach(function(s){var b=document.createElement('button');b.textContent=s.name;b.className=s.id===sh.id?'on':'';
+    b.onclick=function(){if(BIZ.cur===s.id)return;haptic('light');BIZ.cur=s.id;BIZ.open=null;BIZ.q='';bizRender();var d=document.getElementById('dscroll');if(d)d.scrollTop=0};tabs.appendChild(b)});o.appendChild(tabs);
+  /* keep the open sheet's pill in view */
+  var onb=tabs.querySelector('.on');if(onb){tabs.scrollLeft=BIZ.tabsX||0;var want=onb.offsetLeft-16,end=onb.offsetLeft+onb.offsetWidth+16-tabs.clientWidth;if(tabs.scrollLeft>want)tabs.scrollLeft=want;else if(tabs.scrollLeft<end)tabs.scrollLeft=end}tabs.onscroll=function(){BIZ.tabsX=tabs.scrollLeft};
+  var hd=document.createElement('div');hd.className='bzhd';hd.innerHTML='<div><h2></h2><p class="bznote" tabindex="0" role="button" aria-label="Edit the note"></p></div>';
+  hd.querySelector('h2').textContent=sh.title||sh.name;var np=hd.querySelector('.bznote');np.textContent=sh.note||'Add a note';if(!sh.note)np.classList.add('add');
+  np.onclick=function(){var t=document.createElement('textarea');t.className='bznoteed';t.value=sh.note||'';t.rows=2;t.dataset.bk='note';np.replaceWith(t);t.focus();
+    t.onblur=function(){var v=t.value.trim();if(v!==(sh.note||'')){sh.note=v;bizSave(sh)}setTimeout(bizRender,0)}};
+  var ex=document.createElement('div');ex.className='bzact';
+  var q=document.createElement('input');q.type='search';q.placeholder='Search '+sh.name;q.value=BIZ.q;q.dataset.bk='q';q.oninput=function(){BIZ.q=q.value;var p=q.selectionStart;bizRender();var n=document.querySelector('#biz input[data-bk="q"]');if(n){n.focus();try{n.setSelectionRange(p,p)}catch(e){}}};
+  var xb=document.createElement('button');xb.className='bzbtn';xb.textContent='Export';xb.onclick=bizExport;ex.appendChild(q);ex.appendChild(xb);hd.appendChild(ex);o.appendChild(hd);
+  if(sh.id==='overview'){var k=document.createElement('div');k.className='dkpis';o.appendChild(k);
+    var card=function(lab,val,note,red){var c=document.createElement('div');c.className='dcard dk'+(red?' red':'');c.innerHTML='<span class="dkl"></span><b></b><em></em>';c.querySelector('.dkl').textContent=lab;c.querySelector('b').textContent=val;c.querySelector('em').textContent=note;k.appendChild(c)};
+    var svc=(BIZ.sheets||[]).filter(function(x){return x.id==='services'})[0],m=svc?bizMoney(svc):null;
+    card('Services live',String(bizCount('services',['Live'])),bizCount('services',['Needs setup'])+' need setting up');
+    card('Running cost',m?'A$'+(Math.round(m*100)/100).toLocaleString('en-AU'):'—',m?'A$'+Math.round(m*12).toLocaleString('en-AU')+' a year':'Add costs in Services');
+    card('Setup to do',String(bizCount('setup',['To do','Check','Open'])),bizCount('setup',['Done'])+' done',bizCount('setup',['To do'])>0);
+    card('Security open',String(bizCount('security',['Open'])),bizCount('security',['Planned'])+' planned',bizCount('security',['Open'])>0)}
+  /* rows, grouped under their section headings */
+  var groups=[],g={s:null,i:-1,rows:[]};groups.push(g);sh.rows.forEach(function(r,i){if(r.s!=null){g={s:r.s,i:i,rows:[]};groups.push(g)}else g.rows.push(i)});
+  var qq=BIZ.q.trim().toLowerCase(),si=sh.cols.findIndex(function(c){return c.k==='status'}),mi=sh.cols.findIndex(function(c){return c.k==='money'});
+  groups.forEach(function(gr){var idx=gr.rows.filter(function(i){return!qq||sh.rows[i].c.join(' ').toLowerCase().indexOf(qq)>=0});
+    if(gr.s==null&&!gr.rows.length)return;if(qq&&!idx.length)return;
+    if(gr.s!=null){var l=document.createElement('div');l.className='dlab bzsec';l.textContent=gr.s;l.tabIndex=0;l.title='Rename';
+      l.onclick=function(){var t=document.createElement('input');t.className='bzsecin';t.value=gr.s;t.dataset.bk='sec';l.replaceWith(t);t.focus();t.select();
+        var done=function(){var v=t.value.trim();if(v&&v!==gr.s){sh.rows[gr.i].s=v;bizSave(sh)}else if(!v&&!gr.rows.length){sh.rows.splice(gr.i,1);bizSave(sh)}setTimeout(bizRender,0)};
+        t.onblur=done;t.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();t.blur()}}};o.appendChild(l)}
+    var box=document.createElement('div');box.className='dgroup bzg';o.appendChild(box);
+    idx.forEach(function(i){var r=sh.rows[i],open=BIZ.open===sh.id+':'+i;var row=document.createElement('div');row.className='bzrow'+(open?' open':'');
+      var hb=document.createElement('button');hb.className='bzr';hb.innerHTML='<span class="bzt"><b></b><span></span></span><span class="bzv"></span>';
+      hb.querySelector('b').textContent=r.c[0]||'Untitled';
+      var sub=[],sj=bizSubCol(sh,si,mi);if(r.c[sj])sub.push(r.c[sj]);else for(var j=1;j<r.c.length;j++)if(j!==si&&j!==mi&&r.c[j]){sub.push(r.c[j]);break}
+      hb.querySelector('.bzt span').textContent=sub.join(' · ');
+      var v=hb.querySelector('.bzv');if(mi>=0&&r.c[mi]){var mv=document.createElement('span');mv.className='bzmoney';mv.textContent='A$'+r.c[mi];v.appendChild(mv)}if(si>=0&&r.c[si])v.appendChild(bizPill(r.c[si]));
+      hb.onclick=function(){haptic('light');BIZ.open=open?null:sh.id+':'+i;bizRender()};row.appendChild(hb);
+      if(open){var ed=document.createElement('div');ed.className='bzed';sh.cols.forEach(function(col,j){var f=document.createElement('label');f.className='bzf';f.innerHTML='<span></span>';f.firstChild.textContent=col.n;
+          var inp;if(col.k==='status'){inp=document.createElement('select');var opts=(col.o||[]).slice();if(r.c[j]&&opts.indexOf(r.c[j])<0)opts.unshift(r.c[j]);[''].concat(opts).forEach(function(x){var op=document.createElement('option');op.value=x;op.textContent=x||'None';inp.appendChild(op)});inp.value=r.c[j]||''}
+          else{inp=document.createElement('textarea');inp.rows=1;inp.value=r.c[j]||'';if(col.k==='money')inp.inputMode='decimal';var fit=function(){inp.style.height='auto';inp.style.height=inp.scrollHeight+'px'};inp.addEventListener('input',fit);setTimeout(fit,0)}
+          inp.dataset.bk='f'+j;inp.addEventListener('change',function(){var nv=inp.value.trim();if(nv!==(r.c[j]||'')){while(r.c.length<sh.cols.length)r.c.push('');r.c[j]=nv;bizSave(sh);if(inp.tagName==='SELECT')bizRender()}});
+          inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey&&inp.tagName==='TEXTAREA'){e.preventDefault();inp.blur()}});
+          f.appendChild(inp);ed.appendChild(f)});
+        var bar=document.createElement('div');bar.className='bzbar';
+        var del=document.createElement('button');del.className='bzbtn red';del.textContent='Delete Row';del.onclick=function(){if(del.dataset.arm!=='1'){del.dataset.arm='1';del.textContent='Tap again to delete';setTimeout(function(){if(del.isConnected){del.dataset.arm='';del.textContent='Delete Row'}},2500);return}sh.rows.splice(i,1);BIZ.open=null;bizSave(sh);haptic('warning');bizRender()};
+        var dn=document.createElement('button');dn.className='bzbtn strong';dn.textContent='Done';dn.onmousedown=prevent;dn.onclick=function(){var a=document.activeElement;if(a&&a.blur)a.blur();BIZ.open=null;setTimeout(bizRender,0)};
+        bar.appendChild(del);bar.appendChild(dn);ed.appendChild(bar);row.appendChild(ed)}
+      box.appendChild(row)});
+    if(!qq){var add=document.createElement('button');add.className='bzadd';add.innerHTML='<span>+</span> Add Row';add.onclick=function(){var at=gr.rows.length?gr.rows[gr.rows.length-1]+1:gr.i+1;sh.rows.splice(at,0,{c:sh.cols.map(function(){return''})});BIZ.open=sh.id+':'+at;bizSave(sh);bizRender();
+        setTimeout(function(){var f=document.querySelector('#biz [data-bk="f0"]');if(f)f.focus()},30)};box.appendChild(add)}});
+  if(!qq){var ns=document.createElement('button');ns.className='bzbtn bznew';ns.textContent='New Section';ns.onclick=function(){sh.rows.push({s:'New section'});sh.rows.push({c:sh.cols.map(function(){return''})});BIZ.open=sh.id+':'+(sh.rows.length-1);bizSave(sh);bizRender()};o.appendChild(ns)}
+  else if(!o.querySelector('.bzrow')){var e0=document.createElement('div');e0.className='anote';e0.textContent='Nothing matches “'+BIZ.q+'”.';o.appendChild(e0)}
+  var ft=document.createElement('div');ft.className='anote';ft.id='bzfoot';o.appendChild(ft);bizFoot()}
+/* Export: every sheet as a tab in one .xlsx (SheetJS, loaded the first time it's needed) */
+function bizExport(){var go=function(){var X=window.XLSX,wb=X.utils.book_new();(BIZ.sheets||[]).forEach(function(sh){var aoa=[[sh.title||sh.name],[sh.note||''],[],sh.cols.map(function(c){return c.n})];
+      sh.rows.forEach(function(r){aoa.push(r.s!=null?[r.s]:r.c.map(function(v,j){return sh.cols[j]&&sh.cols[j].k==='money'&&v!==''&&!isNaN(+v)?+v:v}))});
+      var ws=X.utils.aoa_to_sheet(aoa);ws['!cols']=sh.cols.map(function(c,j){return{wch:j===0?28:Math.min(60,Math.max(12,c.n.length+4))}});X.utils.book_append_sheet(wb,ws,sh.name.replace(/[\\\/?*\[\]:]/g,' ').slice(0,31))});
+    var ta=[['Task','Status','Area','Due','Notes','Done']];(BIZ.tasks||[]).forEach(function(t){ta.push([t.title,(BIZ_COLS.filter(function(c){return c[0]===t.status})[0]||['',''])[1],(bizArea(t.area)||['',''])[1],t.due||'',t.notes,t.done_at?t.done_at.slice(0,10):''])});
+    var wt=X.utils.aoa_to_sheet(ta);wt['!cols']=[{wch:44},{wch:8},{wch:11},{wch:11},{wch:60},{wch:11}];X.utils.book_append_sheet(wb,wt,'Tasks');
+    var out=X.write(wb,{bookType:'xlsx',type:'array'}),blob=new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='*[demo] business '+new Date().toISOString().slice(0,10)+'.xlsx';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},4000);toast('Exported the sheet')};
+  if(window.XLSX)return go();var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=go;s.onerror=function(){toast('Couldn’t load the exporter. Check your connection.')};document.head.appendChild(s)}
+/* ---- tasks: {id, title, notes, status todo|doing|done, area, due 'YYYY-MM-DD'|null, sort, done_at} ---- */
+var BIZ_AREAS=[['app','App','#007AFF'],['apple','Apple','#8E8E93'],['supabase','Supabase','#34C759'],['marketing','Marketing','#FF2D55'],['money','Money','#FF9500'],['other','Other','#5856D6']];
+var BIZ_ALIAS={sb:'supabase',db:'supabase',mk:'marketing',ig:'marketing',social:'marketing',ios:'apple',appstore:'apple',iphone:'apple',cash:'money',pricing:'money',web:'app',mac:'app',dev:'app'};
+var BIZ_COLS=[['todo','To do'],['doing','Doing'],['done','Done']];
+function bizTaskIn(t){return{id:t.id,title:t.title||'',notes:t.notes||'',status:t.status||'todo',area:t.area||'',due:t.due||null,sort:+t.sort||0,done_at:t.done_at||null,created_at:t.created_at||null}}
+function bizArea(k){return BIZ_AREAS.filter(function(a){return a[0]===k})[0]}
+function bizDay(d){var x=d?new Date(d+'T00:00:00'):new Date();x.setHours(0,0,0,0);return x}
+function bizISO(x){return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}
+function bizDays(t){return t.due?Math.round((bizDay(t.due)-bizDay())/864e5):null}
+function bizDueText(t){var n=bizDays(t);if(n==null)return'';if(n<0)return n===-1?'Yesterday':-n+' days late';if(n===0)return'Today';if(n===1)return'Tomorrow';
+  var d=bizDay(t.due);if(n<7)return d.toLocaleDateString(undefined,{weekday:'short'});return d.toLocaleDateString(undefined,{day:'numeric',month:'short'})}
+/* quick add: "#money" picks the area, and "today", "tomorrow", "fri", "next week", "in 3 days", "12/11" or "2026-12-15" the due date */
+function bizParse(txt){var area='',due=null,t=' '+txt+' ',today=bizDay();
+  t=t.replace(/\s#([a-z]+)\b/i,function(m,k){k=k.toLowerCase();k=BIZ_ALIAS[k]||k;if(bizArea(k)){area=k;return' '}return m});
+  var set=function(n){var x=new Date(today);x.setDate(x.getDate()+n);due=bizISO(x)};
+  var wd=['sun','mon','tue','wed','thu','fri','sat'];
+  t=t.replace(/\s(today|tonight)\s/i,function(){set(0);return' '}).replace(/\s(tomorrow|tmr|tmrw)\s/i,function(){set(1);return' '})
+   .replace(/\snext week\s/i,function(){set(7);return' '}).replace(/\sin (\d{1,3}) days?\s/i,function(m,n){set(+n);return' '})
+   .replace(/\s(?:on |by |due )?(sun|mon|tue|wed|thu|fri|sat)[a-z]*\s/i,function(m,d){var i=wd.indexOf(d.toLowerCase().slice(0,3)),n=(i-today.getDay()+7)%7||7;set(n);return' '})
+   .replace(/\s(\d{4}-\d{2}-\d{2})\s/,function(m,d){due=d;return' '})
+   .replace(/\s(\d{1,2})\/(\d{1,2})\s/,function(m,d,mo){var x=new Date(today.getFullYear(),+mo-1,+d);if(x<today)x.setFullYear(x.getFullYear()+1);due=bizISO(x);return' '});
+  return{title:t.replace(/\s+/g,' ').trim(),area:area,due:due}}
+var bizTT={};function bizTaskSave(t){t.updated_at=new Date().toISOString();bizCache();clearTimeout(bizTT[t.id]);bizTT[t.id]=setTimeout(function(){var c=sbClient();if(!c)return;
+  c.from('biz_tasks').upsert({id:t.id,title:t.title,notes:t.notes,status:t.status,area:t.area,due:t.due||null,sort:t.sort,done_at:t.done_at,updated_at:t.updated_at})
+   .then(function(r){if(r&&r.error)toast('Couldn’t save the task: '+(r.error.message||'try again'))},function(){toast('Couldn’t save. Check your connection.')})},400)}
+function bizTaskAdd(txt,status){var p=bizParse(txt);if(!p.title)return null;var mx=0;(BIZ.tasks||[]).forEach(function(x){mx=Math.max(mx,x.sort)});
+  var t={id:uuid4(),title:p.title,notes:'',status:status||'todo',area:p.area,due:p.due,sort:mx+1,done_at:null,created_at:new Date().toISOString()};BIZ.tasks=(BIZ.tasks||[]).concat([t]);bizTaskSave(t);haptic('light');return t}
+function bizTaskSet(t,k,v){if(t[k]===v)return;t[k]=v;if(k==='status')t.done_at=v==='done'?new Date().toISOString():null;bizTaskSave(t)}
+function bizTaskDel(t){BIZ.tasks=BIZ.tasks.filter(function(x){return x!==t});bizCache();var c=sbClient();if(c)c.from('biz_tasks').delete().eq('id',t.id).then(function(){},function(){});haptic('warning')}
+function bizOpenTasks(){return(BIZ.tasks||[]).filter(function(t){return t.status!=='done'})}
+function bizDueWeek(){return bizOpenTasks().filter(function(t){var n=bizDays(t);return n!=null&&n<7}).length}
+/* ---- the page ---- */
+function bizWide(){return(typeof dSideOn==='function'&&dSideOn())||innerWidth>=900}
+function bizRender(){var o=document.getElementById('biz');if(!o||o.hidden)return;var ae=document.activeElement;
+  if(ae&&o.contains(ae)&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'||ae.tagName==='SELECT')&&ae.dataset.bk!=='q'&&ae.dataset.bk!=='add')return;
+  var keepAdd=ae&&ae.dataset&&ae.dataset.bk==='add'?ae.value:null;
+  var d=document.getElementById('dscroll'),top=d?d.scrollTop:0;o.innerHTML='';
+  if(!BIZ.sheets||!BIZ.tasks){o.innerHTML='<div class="dempty"><b></b><p></p></div>';o.querySelector('b').textContent=BIZ.err?'Couldn’t load Business':'Loading…';o.querySelector('p').textContent=BIZ.err||'';return}
+  if(BIZ.cur)bizSheetRender(o);else bizHome(o);
+  if(keepAdd!=null){var a=o.querySelector('[data-bk="add"]');if(a){a.value=keepAdd;a.focus()}}
+  bizEditor();if(d)d.scrollTop=top}
+function bizHome(o){var wide=bizWide(),dw=bizDueWeek();
+  var sb=document.createElement('div');sb.className='bzsub';sb.textContent=new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})+' · '+(dw?dw+(dw===1?' task':' tasks')+' due this week':'nothing due this week');o.appendChild(sb);
+  if(!wide){var seg=document.createElement('div');seg.className='bzseg';[['tasks','Tasks'],['board','Board'],['info','Info']].forEach(function(x){var b=document.createElement('button');b.textContent=x[1];b.className=BIZ.tab===x[0]?'on':'';
+      b.onclick=function(){if(BIZ.tab===x[0])return;haptic('light');BIZ.tab=x[0];bizRender()};seg.appendChild(b)});o.appendChild(seg)}
+  var tab=wide?'all':BIZ.tab;
+  if(tab!=='info')bizAddBox(o);
+  if(tab==='all'||tab==='info')bizKpis(o);
+  if(tab==='tasks')bizList(o);
+  if(tab==='all'||tab==='board')bizBoard(o,wide);
+  if(tab==='all'||tab==='info')bizTiles(o)}
+function bizAddBox(o){var w=document.createElement('label');w.className='bzaddbox';w.innerHTML='<i>+</i>';var inp=document.createElement('input');inp.placeholder='Add a task…';inp.dataset.bk='add';inp.enterKeyHint='done';inp.autocomplete='off';
+  var hint=document.createElement('span');hint.className='bzhint';hint.textContent='Return to add · #money to tag · “fri” for a due date';
+  inp.onkeydown=function(e){if(e.key==='Enter'&&inp.value.trim()){e.preventDefault();var t=bizTaskAdd(inp.value);inp.value='';if(t){toast('Added “'+t.title+'”'+(t.due?' · due '+bizDueText(t).toLowerCase():''));var k=document.activeElement;bizRenderKeep()}}};
+  w.appendChild(inp);w.appendChild(hint);o.appendChild(w)}
+function bizRenderKeep(){var o=document.getElementById('biz');if(!o)return;var a=o.querySelector('[data-bk="add"]');if(a)a.blur();bizRender();var n=o.querySelector('[data-bk="add"]');if(n)n.focus()}
+function bizKpis(o){var ov=ADM.ov||{},aic=ADM.aic,k=document.createElement('div');k.className='dkpis bzkp';o.appendChild(k);
+  var card=function(lab,val,note,red){var c=document.createElement('div');c.className='dcard dk'+(red?' red':'');c.innerHTML='<span class="dkl"></span><b></b><em></em>';c.querySelector('.dkl').textContent=lab;c.querySelector('b').textContent=val;c.querySelector('em').textContent=note;k.appendChild(c)};
+  var n=function(x){return(+x||0).toLocaleString('en-AU')},pro=+ov.plan_pro||0,aiA=aic?(+aic.month_usd||0)*AUD_PER_USD:0,profit=pro*5.48-52.9-aiA;
+  card('Accounts',ov.users!=null?n(ov.users):'…','+'+n(ov.new_today)+' today');
+  card('Pro subscribers',ov.plan_pro!=null?n(pro):'…',pro>=14?'past break-even':'break-even at about 14');
+  card('Profit this month',(profit<0?'−':'')+'A$'+Math.abs(Math.round(profit)).toLocaleString('en-AU'),'estimate after Apple and costs',profit<0);
+  card('AI cost this month',aic?audC(aic.month_usd):'…',aic?(aic.month_free_usd?audC(aic.month_free_usd)+' from free':'nothing from free'):'');
+  var rel=(BIZ.sheets||[]).filter(function(s){return s.id==='releases'})[0],live='',next='';if(rel)rel.rows.forEach(function(r){if(!r.c)return;var st=r.c[3]||'';if(st==='Live'&&!live)live=r.c[0];if((st==='On dev'||st==='In review')&&r.c[0])next+=(next?' · ':'')+r.c[0]+' '+st.toLowerCase()});
+  card('Release',live||(typeof APP_VERSION!=='undefined'?APP_VERSION:'—'),next||'')}
+function bizCard(t,drag){var c=document.createElement('button');c.className='bzcard'+(t.status==='done'?' done':'');c.dataset.id=t.id;
+  c.innerHTML='<b></b><span class="bzm"></span>';c.querySelector('b').textContent=t.title||'Untitled';bizMeta(c.querySelector('.bzm'),t);
+  c.onclick=function(){if(c._dragged)return;haptic('light');BIZ.edit=t.id;bizEditor()};
+  if(drag){c.draggable=true;c.ondragstart=function(e){c._dragged=true;e.dataTransfer.setData('text/plain',t.id);e.dataTransfer.effectAllowed='move';setTimeout(function(){c.classList.add('drag')},0)};c.ondragend=function(){c.classList.remove('drag');setTimeout(function(){c._dragged=false},50)}}
+  return c}
+function bizMeta(m,t){var a=bizArea(t.area);if(a){var g=document.createElement('span');g.className='bztag';g.style.setProperty('--tc',a[2]);g.textContent=a[1];m.appendChild(g)}
+  var due=bizDueText(t);if(due&&t.status!=='done'){var n=bizDays(t),s=document.createElement('span');s.className='bzdue'+(n<=0?' red':n<=2?' soon':'');s.textContent=due;m.appendChild(s)}
+  if(t.status==='done'&&t.done_at){var dn=document.createElement('span');dn.className='bzdue';dn.textContent=new Date(t.done_at).toLocaleDateString(undefined,{day:'numeric',month:'short'});m.appendChild(dn)}
+  if(t.notes){var nt=document.createElement('span');nt.className='bznoteic';nt.textContent='Notes';m.appendChild(nt)}}
+function bizSorted(st){var l=(BIZ.tasks||[]).filter(function(t){return t.status===st});
+  if(st==='done')return l.sort(function(a,b){return String(b.done_at||'').localeCompare(String(a.done_at||''))});
+  return l.sort(function(a,b){var x=a.due||'9999',y=b.due||'9999';return x<y?-1:x>y?1:a.sort-b.sort})}
+function bizBoard(o,wide){var l=document.createElement('div');l.className='dlab';l.textContent='Jobs';o.appendChild(l);
+  var bd=document.createElement('div');bd.className='bzboard';o.appendChild(bd);
+  BIZ_COLS.forEach(function(cl){var col=document.createElement('div');col.className='bzcol';var list=bizSorted(cl[0]),show=cl[0]==='done'&&!BIZ.showDone?list.slice(0,6):list;
+    col.innerHTML='<h4><span></span><em></em></h4>';col.querySelector('span').textContent=cl[1];col.querySelector('em').textContent=list.length;
+    show.forEach(function(t){col.appendChild(bizCard(t,wide))});
+    if(cl[0]==='done'&&list.length>show.length){var mo=document.createElement('button');mo.className='bzmore';mo.textContent='Show all '+list.length;mo.onclick=function(){BIZ.showDone=true;bizRender()};col.appendChild(mo)}
+    if(cl[0]!=='done'){var ad=document.createElement('button');ad.className='bzmore';ad.textContent='+ Add';ad.onclick=function(){var t=bizTaskAdd('New task',cl[0]);BIZ.edit=t.id;bizRender();setTimeout(function(){var f=document.querySelector('.bzmod [data-bk="title"]');if(f){f.focus();f.select()}},40)};col.appendChild(ad)}
+    if(wide){col.ondragover=function(e){e.preventDefault();col.classList.add('over')};col.ondragleave=function(e){if(!col.contains(e.relatedTarget))col.classList.remove('over')};
+      col.ondrop=function(e){e.preventDefault();col.classList.remove('over');var id=e.dataTransfer.getData('text/plain'),t=(BIZ.tasks||[]).filter(function(x){return x.id===id})[0];if(!t)return;
+        var mx=0;BIZ.tasks.forEach(function(x){mx=Math.max(mx,x.sort)});t.sort=mx+1;bizTaskSet(t,'status',cl[0]);bizTaskSave(t);haptic('light');bizRender()}}
+    bd.appendChild(col)})}
+/* the checklist (iPhone's Tasks tab): late and today, this week, later, someday, then done */
+function bizList(o){var open=bizOpenTasks(),g={now:[],week:[],later:[],some:[]};
+  open.forEach(function(t){var n=bizDays(t);(n==null?g.some:n<=0?g.now:n<7?g.week:g.later).push(t)});
+  var sec=function(name,list){if(!list.length)return;list.sort(function(a,b){var x=a.due||'9999',y=b.due||'9999';return x<y?-1:x>y?1:a.sort-b.sort});
+    var l=document.createElement('div');l.className='dlab';l.textContent=name;o.appendChild(l);var box=document.createElement('div');box.className='dgroup bzg';o.appendChild(box);list.forEach(function(t){box.appendChild(bizRow(t))})};
+  sec('Today',g.now);sec('This week',g.week);sec('Later',g.later);sec('Someday',g.some);
+  if(!open.length){var e=document.createElement('div');e.className='dempty';e.innerHTML='<b>All done</b><p>Add a task above.</p>';o.appendChild(e)}
+  var dn=bizSorted('done');if(dn.length){var l=document.createElement('div');l.className='dlab';l.textContent='Done';o.appendChild(l);var box=document.createElement('div');box.className='dgroup bzg';o.appendChild(box);
+    (BIZ.showDone?dn:dn.slice(0,5)).forEach(function(t){box.appendChild(bizRow(t))});
+    if(dn.length>5&&!BIZ.showDone){var mo=document.createElement('button');mo.className='bzadd';mo.textContent='Show all '+dn.length;mo.onclick=function(){BIZ.showDone=true;bizRender()};box.appendChild(mo)}}}
+function bizRow(t){var r=document.createElement('div');r.className='bztr'+(t.status==='done'?' done':'');
+  var cb=document.createElement('button');cb.className='bzcb'+(t.status==='done'?' y':'');cb.setAttribute('aria-label',t.status==='done'?'Mark not done':'Mark done');
+  cb.onclick=function(){haptic(t.status==='done'?'light':'success');bizTaskSet(t,'status',t.status==='done'?'todo':'done');bizRender()};
+  var b=document.createElement('button');b.className='bztb';b.innerHTML='<b></b><span class="bzm"></span>';b.querySelector('b').textContent=t.title||'Untitled';bizMeta(b.querySelector('.bzm'),t);
+  if(t.status==='doing'){var d=document.createElement('span');d.className='bztag';d.style.setProperty('--tc','#AF52DE');d.textContent='Doing';b.querySelector('.bzm').prepend(d)}
+  b.onclick=function(){haptic('light');BIZ.edit=t.id;bizEditor()};r.appendChild(cb);r.appendChild(b);return r}
+/* ---- the info center: a tile per sheet, with a line from its contents ---- */
+var BIZ_TILE={releases:['up','indigo'],pricing:['money','orange'],marketing:['mega','pink'],services:['pulse','teal'],supabase:['db','green'],features:['spark','purple'],security:['flag','red'],builds:['hammer','gray'],repo:['term','gray']};
+function bizTileLine(sh){var si=sh.cols.findIndex(function(c){return c.k==='status'}),rows=sh.rows.filter(function(r){return r.c}),parts=[];
+  if(sh.id==='pricing'){var p=rows.filter(function(r){return/^Pro (monthly|annual)$/.test(r.c[0])}).map(function(r){return(r.c[1]||'').split(' ')[0]});return p.join(' / ')+(p.length?' · break-even and tiers':'')}
+  if(si>=0){var cnt={};rows.forEach(function(r){var v=r.c[si];if(v)cnt[v]=(cnt[v]||0)+1});parts=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]}).slice(0,2).map(function(k){return cnt[k]+' '+k.toLowerCase()})}
+  else parts=[rows.length+(rows.length===1?' item':' items')];
+  var m=bizMoney(sh);if(m)parts.push('A$'+Math.round(m)+'/mo');return parts.join(' · ')}
+function bizTiles(o){var l=document.createElement('div');l.className='dlab';l.textContent='Info center';o.appendChild(l);var g=document.createElement('div');g.className='bztiles';o.appendChild(g);
+  bizInfoSheets().forEach(function(sh){var ti=BIZ_TILE[sh.id]||['text','gray'],b=document.createElement('button');b.className='dcard bztile';
+    b.innerHTML=dTile(ti[0],DCOL[ti[1]])+'<span><b></b><span></span></span>';b.querySelector('b').textContent=sh.name;b.querySelector('span span').textContent=bizTileLine(sh);
+    b.onclick=function(){haptic('light');BIZ.cur=sh.id;BIZ.open=null;BIZ.q='';bizRender();var d=document.getElementById('dscroll');if(d)d.scrollTop=0};g.appendChild(b)});
+  var x=document.createElement('button');x.className='bzbtn';x.textContent='Export Everything';x.style.marginTop='12px';x.onclick=bizExport;o.appendChild(x)}
+/* ---- a task, opened: title, notes, where it stands, area and due date ---- */
+function bizEditor(){var old=document.querySelector('.bzmodbg');var t=BIZ.edit&&(BIZ.tasks||[]).filter(function(x){return x.id===BIZ.edit})[0];
+  if(!t){if(old)old.remove();return}if(old&&old.dataset.id===t.id)return;if(old)old.remove();
+  var bg=document.createElement('div');bg.className='bzmodbg';bg.dataset.id=t.id;var m=document.createElement('div');m.className='bzmod';bg.appendChild(m);
+  var close=function(){var a=document.activeElement;if(a&&a.blur&&m.contains(a))a.blur();BIZ.edit=null;bg.classList.remove('on');setTimeout(function(){bg.remove();bizRender()},180)};
+  bg.onclick=function(e){if(e.target===bg)close()};
+  var ti=document.createElement('textarea');ti.className='bzmt';ti.rows=1;ti.value=t.title;ti.dataset.bk='title';ti.placeholder='Task';
+  var fit=function(el){el.style.height='auto';el.style.height=el.scrollHeight+'px'};ti.oninput=function(){fit(ti)};ti.onchange=function(){var v=ti.value.trim();if(v)bizTaskSet(t,'title',v)};
+  ti.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();ti.blur()}};m.appendChild(ti);
+  var st=document.createElement('div');st.className='bzseg small';BIZ_COLS.forEach(function(x){var b=document.createElement('button');b.textContent=x[1];b.className=t.status===x[0]?'on':'';
+    b.onclick=function(){bizTaskSet(t,'status',x[0]);st.querySelectorAll('button').forEach(function(y){y.className=y===b?'on':''});haptic('light')};st.appendChild(b)});m.appendChild(st);
+  var ar=document.createElement('div');ar.className='bzareas';BIZ_AREAS.forEach(function(a){var b=document.createElement('button');b.textContent=a[1];b.style.setProperty('--tc',a[2]);b.className=t.area===a[0]?'on':'';
+    b.onclick=function(){bizTaskSet(t,'area',t.area===a[0]?'':a[0]);ar.querySelectorAll('button').forEach(function(y){y.className=''});if(t.area)b.className='on';haptic('light')};ar.appendChild(b)});m.appendChild(ar);
+  var dr=document.createElement('div');dr.className='bzduer';dr.innerHTML='<span>Due</span>';var di=document.createElement('input');di.type='date';di.value=t.due||'';di.dataset.bk='due';
+  di.onchange=function(){bizTaskSet(t,'due',di.value||null)};dr.appendChild(di);
+  [['Today',0],['Tomorrow',1],['Next week',7]].forEach(function(q){var b=document.createElement('button');b.textContent=q[0];b.onclick=function(){var x=bizDay();x.setDate(x.getDate()+q[1]);di.value=bizISO(x);bizTaskSet(t,'due',di.value)};dr.appendChild(b)});
+  var cl=document.createElement('button');cl.textContent='None';cl.onclick=function(){di.value='';bizTaskSet(t,'due',null)};dr.appendChild(cl);m.appendChild(dr);
+  var nt=document.createElement('textarea');nt.className='bzmn';nt.placeholder='Notes';nt.value=t.notes;nt.dataset.bk='notes';nt.oninput=function(){fit(nt)};nt.onchange=function(){bizTaskSet(t,'notes',nt.value.trim())};m.appendChild(nt);
+  var bar=document.createElement('div');bar.className='bzbar';var del=document.createElement('button');del.className='bzbtn red';del.textContent='Delete';
+  del.onclick=function(){if(del.dataset.arm!=='1'){del.dataset.arm='1';del.textContent='Tap again to delete';setTimeout(function(){if(del.isConnected){del.dataset.arm='';del.textContent='Delete'}},2500);return}bizTaskDel(t);close()};
+  var dn=document.createElement('button');dn.className='bzbtn strong';dn.textContent='Done';dn.onmousedown=prevent;dn.onclick=function(){ti.onchange();nt.onchange();close()};
+  bar.appendChild(del);bar.appendChild(dn);m.appendChild(bar);document.body.appendChild(bg);requestAnimationFrame(function(){bg.classList.add('on');fit(ti);fit(nt)});
+  var esc=function(e){if(e.key==='Escape'&&bg.isConnected){e.preventDefault();ti.onchange();nt.onchange();close()}if(!bg.isConnected)document.removeEventListener('keydown',esc)};document.addEventListener('keydown',esc)}
 /* the overview's numbers get an icon each */
-var STAT_ICO={'Accounts':['person','blue'],'New today':['plus','green'],'Signed in today':['clock','teal'],'Waiting for beta':['hourglass','orange'],'Storage used':['disk','gray'],'AI units today':['spark','purple'],'Errors today':['warn','red'],'Help desk':['bubble','pink'],'Reports':['flag','red'],'Services':['pulse','green'],'Songs':['note','indigo']};
+var STAT_ICO={'Accounts':['person','blue'],'New today':['plus','green'],'Signed in today':['clock','teal'],'Waiting for beta':['hourglass','orange'],'Storage used':['disk','gray'],'AI units today':['spark','purple'],'AI cost this month':['spark','purple'],'Errors today':['warn','red'],'Help desk':['bubble','pink'],'Reports':['flag','red'],'Services':['pulse','green'],'Songs':['note','indigo']};
 DI.tray='<path d="M3.5 13.5l2.8-8h11.4l2.8 8V19H3.5z"/><path d="M3.5 13.5h5l1.2 2.2h4.6l1.2-2.2h5"/>';
 DI.mail='<rect x="3.5" y="5.5" width="17" height="13" rx="2.2"/><path d="M4.2 7.2L12 13l7.8-5.8"/>';
 DI.refresh='<path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3M19.5 4.5v4.6h-4.6"/>';
 /* iPhone: five tabs. Mac (a wide window): a sidebar instead, like Mail or System Settings */
 var DTABS=[['dash','Dashboard','grid'],['users','Users','people'],['inbox','Inbox','tray'],['songs','Songs','note'],['more','Settings','gear']];
-var DMORE=[[['settings','App Settings','gear','gray'],['debug','Debug','hammer','indigo']],
+var DMORE=[[['biz','Business','brief','indigo']],[['settings','App Settings','gear','gray'],['debug','Debug','hammer','indigo']],
   [['errors','Errors','warn','red'],['status','Service Status','pulse','green']],
   [['sb','Supabase Dashboard','db','mint',function(){openLink(SB_DASH)}],['sbu','Supabase Users','person','teal',function(){openLink(SB_DASH+'/auth/users')}],['fn','Edge Function Logs','term','purple',function(){openLink(SB_DASH+'/functions')}],['rs','Resend Emails','mail','blue',function(){openLink('https://resend.com/emails')}],['oa','OpenAI Usage','spark','gray',function(){openLink('https://platform.openai.com/usage')}]]];
-var DSIDE=[['',[['dash','Dashboard','grid'],['songs','My Songs','note']]],
+var DSIDE=[['',[['dash','Dashboard','grid'],['songs','My Songs','note'],['biz','Business','brief']]],
   ['People',[['users','Users','people'],['help','Help','bubble'],['reports','Reports','flag'],['beta','Beta Requests','hourglass']]],
   ['System',[['errors','Errors','warn'],['status','Status','pulse'],['settings','Settings','gear'],['debug','Debug','hammer']]],
   ['Open',[['sb','Supabase','db',function(){openLink(SB_DASH)}],['rs','Resend','mail',function(){openLink('https://resend.com/emails')}],['oa','OpenAI','spark',function(){openLink('https://platform.openai.com/usage')}]]]];
@@ -18687,7 +18976,7 @@ function dashBuild(){if($('#dtabs'))return;
   document.body.appendChild(sd);
   var m=$('#dmount');var seg=document.createElement('div');seg.id='dseg';seg.className='bseg';m.appendChild(seg);
   ['adm','brq'].forEach(function(id){var el=$('#'+id);if(el&&m)m.appendChild(el)});
-  var mo=document.createElement('div');mo.id='dmore';m.appendChild(mo);var gate=document.createElement('div');gate.id='dgate';m.appendChild(gate);
+  var mo=document.createElement('div');mo.id='dmore';m.appendChild(mo);var bz=document.createElement('div');bz.id='biz';bz.hidden=true;m.appendChild(bz);var gate=document.createElement('div');gate.id='dgate';m.appendChild(gate);
   $('#dback').onclick=function(){dashGo(DASH.tab)};$('#dacct').onclick=function(){openAccount('')}}
 function dashGo(t,sub){if(!DEV_BUILD)return;dashBuild();
   /* older links: Help was a tab, and Reports and Beta lived under More */
@@ -18697,13 +18986,13 @@ function dashGo(t,sub){if(!DEV_BUILD)return;dashBuild();
   DASH.tab=t;DASH.sub=sub||null;if(!$('#vDash').classList.contains('on')){sheet(false);try{var ae=document.activeElement;if(ae&&ae.blur&&ae!==document.body)ae.blur()}catch(e){}show('vDash')}$('#dscroll').scrollTop=0;dashRender();
   /* fetch what the page needs once, here: dashRender itself never loads, so data arriving can redraw it safely */
   if(AUTH_USER&&BETA.admin){if(t==='inbox'){if(DASH.ib==='beta'){betaAdminLoad(true);betaTabLoad(BRQ_TAB,true)}else admTab(DASH.ib)}
-    else if(t!=='more'||sub){var at=sub||(t==='dash'?'overview':t);admTab(at)}else{betaAdminLoad();admLoadOverview()}}}
+    else if(sub==='biz')bizLoad();else if(t!=='more'||sub){var at=sub||(t==='dash'?'overview':t);admTab(at)}else{betaAdminLoad();admLoadOverview()}}}
 function dInboxN(){return{help:TKT.data&&TKT.data.counts&&TKT.data.counts.open||0,reports:RPT.data&&RPT.data.counts&&RPT.data.counts.open||0,beta:BETA.admin&&BETA.sum&&BETA.sum.pending||0}}
 function dashRender(){if(!DEV_BUILD||!$('#vDash'))return;dashBuild();
-  var t=DASH.tab,sub=DASH.sub,adm=$('#adm'),brq=$('#brq'),mo=$('#dmore'),gate=$('#dgate'),seg=$('#dseg'),side=dSideOn();
-  var titles={dash:'Dashboard',users:'Users',inbox:'Inbox',more:'Settings'},subT={help:'Help',reports:'Reports',beta:'Beta Requests',errors:'Errors',status:'Status',settings:side?'Settings':'App Settings',debug:'Debug'};
+  var t=DASH.tab,sub=DASH.sub,adm=$('#adm'),brq=$('#brq'),mo=$('#dmore'),gate=$('#dgate'),seg=$('#dseg'),bz=$('#biz'),side=dSideOn();
+  var titles={dash:'Dashboard',users:'Users',inbox:'Inbox',more:'Settings'},subT={help:'Help',reports:'Reports',beta:'Beta Requests',errors:'Errors',status:'Status',settings:side?'Settings':'App Settings',debug:'Debug',biz:'Business'};
   var back=!!sub&&!side;$('#dtitle').textContent=t==='inbox'&&side?subT[DASH.ib]:sub?subT[sub]:titles[t]||'Dashboard';$('#dback').hidden=!back;$('#vDash').classList.toggle('dsub',back);
-  [adm,brq,mo,gate,seg].forEach(function(x){if(x)x.hidden=true});
+  [adm,brq,mo,gate,seg,bz].forEach(function(x){if(x)x.hidden=true});
   if(!AUTH_USER||!BETA.admin){gate.hidden=false;gate.innerHTML='<div class="dempty"><b></b><p></p></div>';gate.querySelector('b').textContent=AUTH_USER?(BETA.st?'This account isn’t the admin':'Checking…'):'Sign in as the admin';
     gate.querySelector('p').textContent='The dashboard is for dev@hellodemo.app. Your songs are under Songs.';dashTabsPaint();return}
   if(t==='more'&&!sub){mo.hidden=false;mo.innerHTML='';DMORE.forEach(function(gr){var box=document.createElement('div');box.className='dgroup';
@@ -18713,6 +19002,7 @@ function dashRender(){if(!DEV_BUILD||!$('#vDash'))return;dashBuild();
   if(t==='inbox'){var ib=DASH.ib||'help',cn=dInboxN();
     if(!side){seg.hidden=false;seg.innerHTML='';[['help','Help'],['reports','Reports'],['beta','Beta']].forEach(function(x){var b=document.createElement('button');b.className=ib===x[0]?'on':'';b.textContent=x[1]+(cn[x[0]]?' '+cn[x[0]]:'');b.onclick=function(){haptic('light');dashGo('inbox',x[0])};seg.appendChild(b)})}
     if(ib==='beta'){brq.hidden=false;renderBetaRequests()}else{adm.hidden=false;ADM.tab=ib;renderAdmin()}dashTabsPaint();return}
+  if(sub==='biz'){bz.hidden=false;bizRender();dashTabsPaint();return}
   if(sub==='beta'){brq.hidden=false;renderBetaRequests();dashTabsPaint();return}
   adm.hidden=false;ADM.tab=sub||(t==='dash'?'overview':t);renderAdmin();dashTabsPaint()}
 function dashTabsPaint(){var nav=$('#dtabs');if(!nav)return;var v=document.querySelector('.view.on'),vid=v&&v.id;
@@ -18723,7 +19013,7 @@ function dashTabsPaint(){var nav=$('#dtabs');if(!nav)return;var v=document.query
   var sact=vid==='vList'?'songs':DASH.tab==='inbox'?DASH.ib:DASH.tab==='more'&&DASH.sub?DASH.sub:DASH.tab;
   var ov=ADM.ov||{},num={users:ov.users,help:cn.help,reports:cn.reports,beta:cn.beta,errors:ov.errors_24h},red={help:1,reports:1};
   sd.querySelectorAll('.dsi').forEach(function(b){var k=b.dataset.k,on=k===sact;b.classList.toggle('on',on);if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
-    var n=b.querySelector('.dsn'),x=num[k];n.textContent=x?String(x):'';n.className='dsn'+(x&&red[k]?' r':'')})}
+    var n=b.querySelector('.dsn'),x=num[k];n.textContent=x?String(x):'';n.className='dsn'+(x&&red[k]?' dred':'')})}
 /* the dashboard's front page: four numbers, what needs you, and today */
 function dSpark(vals,col){vals=(vals||[]).map(function(v){return+v||0});if(vals.length<3)return'';var mx=Math.max.apply(0,vals),mn=Math.min.apply(0,vals),r=mx-mn||1;
   return'<svg class="dsp" viewBox="0 0 84 30" aria-hidden="true"><path d="M'+vals.map(function(v,i){return(i*84/(vals.length-1)).toFixed(1)+' '+(27-(v-mn)/r*24).toFixed(1)}).join(' L')+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'}
@@ -18746,11 +19036,14 @@ function dashOverview(o){var ov=ADM.ov||{},tr=ADM.trend||[],n=function(x){return
   row(nd,'pulse','green','Services',sd.n?sd.n+' checked '+admAgo(ADM.st&&ADM.st.checked_at):'Not checked yet',sd.down?sd.down+' down':sd.slow?sd.slow+' slow':sd.n?'All up':'',sd.down?'bad':sd.n?'ok':'',function(){dashGo('more','status')});
   var td=sect('Today'),plan=1073741824,sb=ov.storage_bytes||0;
   row(td,'','','New accounts','',n(ov.new_today)+' · '+n(ov.new_7d)+' this week');
-  if(ov.ai_units_today!=null)row(td,'','','AI requests','',n(ov.ai_units_today)+' units · '+n(ov.ai_users_today)+(ov.ai_users_today===1?' person':' people'));
+  var aic=ADM.aic;
+  if(ov.ai_units_today!=null)row(td,'','','AI requests','',n(ov.ai_units_today)+' units · '+n(ov.ai_users_today)+(ov.ai_users_today===1?' person':' people')+(aic?' · ≈'+audC(aic.today_usd):''));
+  if(aic){var mr=row(td,'','','AI cost this month',(aic.free_users_month?audC(aic.month_free_usd)+' from '+n(aic.free_users_month)+(aic.free_users_month===1?' free account':' free accounts'):'None from free accounts')+(aic.last_month_usd?' · last month '+audC(aic.last_month_usd):''),'≈'+audC(aic.month_usd));
+    var sp=dSpark((aic.days||[]).map(function(d){return d.usd}),'#AF52DE');if(sp)mr.querySelector('.dr').insertAdjacentHTML('beforebegin',sp)}
   if(ov.sync_today!=null)row(td,'','','Lyric syncs','',n(ov.sync_today));
   var st=row(td,'','','Storage','',(sfSize(sb)||'0 KB')+' of 1 GB',sb>plan*.8?'bad':'');var bar=document.createElement('i');bar.className='dbar'+(sb>plan*.8?' bad':'');bar.innerHTML='<i></i>';bar.firstChild.style.width=Math.max(2,Math.min(100,sb/plan*100))+'%';st.insertBefore(bar,st.querySelector('.dr'));
   if(ov.songs!=null){row(td,'','','Songs','',n(ov.songs)+' · '+n(ov.shared_songs)+' co-written');row(td,'','','Ideas and share links','',n(ov.ideas)+' · '+n(ov.share_links))}
-  var nt=document.createElement('div');nt.className='anote';nt.textContent='Updated '+admAgo(ov.at)+'. Days reset at midnight Adelaide time; AI counts at midnight UTC.';o.appendChild(nt)}
+  var nt=document.createElement('div');nt.className='anote';nt.textContent='Updated '+admAgo(ov.at)+'. Days reset at midnight Adelaide time; AI counts at midnight UTC. AI cost is an estimate: about US$0.001 a quick request, US$0.035 a Rate or voice profile and US$0.006 a minute of lyric sync, at A$'+AUD_PER_USD+' to the US dollar.';o.appendChild(nt)}
 function admTab(t){ADM.tab=t;var ao=$('#adm');if(ao)ao.scrollTop=0;renderAdmin();if(t==='status')admLoadStatus();if(t==='overview')admLoadOverview(true);if(t==='users'){if(UD.id)admLoadUser();else admLoadUsers()}if(t==='errors')admLoadErrors();if(t==='help')tkLoad();if(t==='reports')rpLoad();if(t==='debug')dbgPrep();if(t==='settings'){cfgLoad();admLoadBuilds()}}
 function admStat(g,num,label,extra,warn,bar){var d=document.createElement('div');d.className='astat'+(warn?' warn':'');var si=STAT_ICO[label];d.innerHTML=(si?dTile(si[0],DCOL[si[1]]):'')+'<b></b><span></span>';d.querySelector('b').textContent=num;d.querySelector('span').textContent=label;
   if(bar!=null){var br=document.createElement('div');br.className='abar';br.innerHTML='<i></i>';br.firstChild.style.width=Math.max(2,Math.min(100,bar))+'%';d.appendChild(br)}
@@ -18786,6 +19079,7 @@ function admRender(o){
     if(ov.beta_pending!=null)admStat(g,ov.beta_pending,'Waiting for beta',(ov.beta_approved||0)+' approved · lock '+(ov.gate?'on':'off'));
     var plan=1073741824;admStat(g,sfSize(ov.storage_bytes||0)||'0 KB','Storage used','of 1 GB on the free plan'+(ov.storage_mb!=null?' · '+ov.storage_mb+' MB each':''),(ov.storage_bytes||0)>plan*.8,(ov.storage_bytes||0)/plan*100);
     if(ov.ai_units_today!=null)admStat(g,ov.ai_units_today,'AI units today',(ov.ai_users_today||0)+' people · '+(ov.sync_today||0)+' syncs');
+    if(ADM.aic)admStat(g,'≈'+audC(ADM.aic.month_usd),'AI cost this month',(ADM.aic.month_free_usd?audC(ADM.aic.month_free_usd)+' from free accounts':'Nothing from free accounts')+' · today ≈'+audC(ADM.aic.today_usd));
     if(ov.errors_24h!=null)admStat(g,ov.errors_24h,'Errors today',(ov.error_users_24h||0)+' people affected',ov.errors_24h>0);
     if(TKT.data&&TKT.data.counts&&!TKT.data.err){var tc=TKT.data.counts;admStat(g,tc.open||0,'Help desk',(tc.open?'waiting for a reply · ':'')+(tc.replied||0)+' answered',tc.open>0);g.lastChild.style.cursor='pointer';g.lastChild.onclick=function(){admTab('help')}}
     if(RPT.data&&RPT.data.counts&&!RPT.data.err){var rc=RPT.data.counts;admStat(g,rc.open||0,'Reports',rc.open?'to review within 24 hours':'nothing to review',rc.open>0);g.lastChild.style.cursor='pointer';g.lastChild.onclick=function(){if(DEV_BUILD&&$('#vDash'))dashGo('more','reports');else admTab('reports')}}
@@ -19400,10 +19694,10 @@ function startInvitePolling(){if(INVITE_POLL_T)return;INVITE_POLL_T=setInterval(
 function stopInvitePolling(){if(INVITE_POLL_T){clearInterval(INVITE_POLL_T);INVITE_POLL_T=null}}
 function joinNames(a){a=(a||[]).filter(Boolean);if(!a.length)return'';if(a.length===1)return a[0];if(a.length===2)return a[0]+' & '+a[1];return a.slice(0,-1).join(', ')+' & '+a[a.length-1]}
 var SOCIALS=[
-  ['spotify','Spotify','open.spotify.com/artist/… or paste a link','<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.139-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.018zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>'],
-  ['apple_music','Apple Music','music.apple.com/… paste your artist link','<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3.6v11.6a3.2 3.2 0 1 1-1.9-2.9V8.1L10 9.6v7.6a3.2 3.2 0 1 1-1.9-2.9V6.2c0-.6.4-1.1 1-1.2l8.6-1.8c.7-.2 1.3.3 1.3 1z"/></svg>'],
-  ['instagram','Instagram','instagram.com/yourname','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>'],
-  ['tiktok','TikTok','tiktok.com/@yourname','<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></svg>']
+  ['spotify','Spotify','open.spotify.com/artist/… or paste a link','<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>'],
+  ['apple_music','Apple Music','music.apple.com/… paste your artist link','<svg viewBox="5.9 4.2 12.2 15.6" fill="currentColor"><path d="M17.571 10.114V15.826C17.571 16.243 17.513 16.653 17.327 17.032 17.037 17.622 16.567 17.994 15.939 18.172 15.589 18.272 15.233 18.329 14.869 18.345 13.919 18.39 13.096 17.745 12.926 16.809A1.88 1.88 0 0 1 13.964 14.787C14.287 14.627 14.634 14.537 14.982 14.463 15.36 14.381 15.74 14.31 16.116 14.223 16.39 14.16 16.573 13.993 16.626 13.707A0.904 0.904 0 0 0 16.646 13.514C16.646 11.699 16.646 9.884 16.644 8.071A0.725 0.725 0 0 0 16.618 7.886C16.578 7.736 16.468 7.643 16.314 7.652 16.154 7.662 15.996 7.687 15.839 7.718 15.079 7.868 14.319 8.021 13.559 8.174L11.234 8.644 9.86 8.922C9.844 8.925 9.828 8.932 9.812 8.935 9.535 9.012 9.435 9.138 9.422 9.425 9.42 9.467 9.422 9.511 9.422 9.555 9.42 12.157 9.422 14.759 9.419 17.36 9.419 17.78 9.372 18.196 9.204 18.587 8.926 19.227 8.434 19.627 7.77 19.82 7.42 19.92 7.06 19.98 6.695 19.992 5.735 20.028 4.94 19.392 4.775 18.448 4.635 17.636 5.005 16.763 5.929 16.373 6.286 16.223 6.659 16.141 7.037 16.063 7.324 16.003 7.612 15.947 7.897 15.886 8.28 15.803 8.48 15.563 8.497 15.172V15.022C8.497 12.062 8.497 9.1 8.499 6.14 8.499 6.017 8.512 5.89 8.541 5.77 8.611 5.485 8.814 5.322 9.087 5.252 9.342 5.186 9.602 5.14 9.861 5.087 10.594 4.937 11.327 4.791 12.061 4.643L14.331 4.183C15.001 4.049 15.671 3.913 16.341 3.78 16.561 3.737 16.783 3.692 17.004 3.674 17.314 3.649 17.527 3.844 17.558 4.156 17.566 4.229 17.57 4.304 17.57 4.379 17.572 6.289 17.572 8.201 17.57 10.111Z"/></svg>'],
+  ['instagram','Instagram','instagram.com/yourname','<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/></svg>'],
+  ['tiktok','TikTok','tiktok.com/@yourname','<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>']
 ];
 /* the privacy policy and terms on hellodemo.app: an in-app Safari sheet on iPhone, the browser elsewhere */
 function openDoc(n){var u='https://hellodemo.app/'+n+'.html';try{var B=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Browser;if(B&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){B.open({url:u});return}}catch(e){}openLink(u)}
@@ -20035,12 +20329,22 @@ var ACC_ICO={
   cam:'<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M9.2 4h5.6l1.5 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2.7z"/><circle cx="12" cy="12.5" r="3.6" fill="var(--tint)"/><circle cx="12" cy="12.5" r="2" fill="currentColor"/></svg>',
   note:'<svg viewBox="3.20 2.60 18.10 18.10" fill="currentColor"><circle cx="8.6" cy="17.6" r="3.1"/><path d="M10.4 17.6V4.6l8.6-2v4l-6.4 1.5v9.5z"/></svg>'
 };
-var ACC_SOLID={'Credits':'#FF9500','Start a Song':'#FF9500','Name & Username':'#007AFF','Notifications':'#FF3B30','Requests':'#FF9500','Waitlist Lock':'#FF9500','Import Songs':'#007AFF','Export All Songs':'#34C759','Storage':'#8E8E93','AI Features':'#AF52DE','Reset What Rate Learned':'#5856D6','Blocked':'#FF2D55','Privacy Policy':'#007AFF','Terms of Service':'#8E8E93','Contact Support':'#34C759','Switch Account':'#5856D6'};
+/* the account page's icons: filled, SF Symbols-weight glyphs, drawn in colour on a glass tile */
+var ACC_LN={
+  person:ACC_ICO.person,bell:ACC_ICO.bell,down:ACC_ICO.down,up:ACC_ICO.up,disk:ACC_ICO.disk,spark:ACC_ICO.spark,
+  reset:ACC_ICO.reset,block:ACC_ICO.block,lock:ACC_ICO.lock,doc:ACC_ICO.doc,help:ACC_ICO.help,swap:ACC_ICO.swap,
+  sign:'<svg viewBox="2.4 4.4 19.2 15.6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 14.5c1.6-2.6 3.4-6.8 2.6-7.6-.9-.9-2.6 3.6-2.3 6.1.3 2.6 2.4 2.2 3.9.3 1.2-1.5 1.8-3.4 2.6-3.1.8.3-.4 2.9.4 3.2.8.3 1.7-1.6 2.5-1.4.8.2.3 1.8 1.1 1.9.9.1 2.3-1.4 3.4-1.6"/><path d="M3.5 18.6h17"/></svg>',
+  shield:'<svg viewBox="3.2 2.4 17.6 19.2" fill="currentColor"><path d="M12 2.6c.3 0 .6.1.9.2l6.2 2.4c.7.3 1.1.9 1.1 1.6v4.7c0 4.9-3.4 8.6-7.6 10-.4.1-.8.1-1.2 0-4.2-1.4-7.6-5.1-7.6-10V6.8c0-.7.4-1.3 1.1-1.6l6.2-2.4c.3-.1.6-.2.9-.2z"/></svg>'
+};
+/* the same colours as iOS uses them in dark mode, a touch brighter */
+var ACC_DARK={'#007AFF':'#0A84FF','#FF3B30':'#FF453A','#FF9500':'#FF9F0A','#34C759':'#30D158','#8E8E93':'#98989D','#AF52DE':'#BF5AF2','#5856D6':'#7D7AFF','#FF2D55':'#FF375F','#FA2D48':'#FF4560'};
+var ACC_SOLID={'Find Release':'#FA2D48','Credits':'#FF9500','Start a Song':'#FF9500','Name & Username':'#007AFF','Notifications':'#FF3B30','Requests':'#FF9500','Waitlist Lock':'#FF9500','Import Songs':'#007AFF','Export All Songs':'#34C759','Storage':'#8E8E93','AI Features':'#AF52DE','Reset What Rate Learned':'#5856D6','Blocked':'#FF2D55','Privacy Policy':'#007AFF','Terms of Service':'#8E8E93','Contact Support':'#34C759','Switch Account':'#5856D6'};
 function accCell(o){
   var b=document.createElement(o.onclick?'button':'div');b.className='cell'+(o.tile?'':' notile')+(o.cls?' '+o.cls:'');
-  if(o.tile){var t=document.createElement('span');t.className='tile'+(o.tileCls?' '+o.tileCls:'')+(o.grad!=null?' gr':'');t.innerHTML=o.tile;
+  if(o.tile){var t=document.createElement('span');t.className='tile'+(o.tileCls?' '+o.tileCls:'')+(o.grad!=null&&!o.glass?' gr':'');t.innerHTML=o.tile;
     /* iOS Settings style: a flat square in one system colour, white filled glyph, no gloss */
-    if(o.grad!=null){t.style.background=ACC_SOLID[o.label]||['#007AFF','#34C759','#FF9500','#AF52DE','#5856D6','#FF2D55','#30B0C7','#8E8E93'][o.grad%8];t.classList.add('solid')}b.appendChild(t)}
+    if(o.glass){var gc=ACC_SOLID[o.label]||'#8E8E93';t.classList.add('gt');t.style.setProperty('--ic',gc);t.style.setProperty('--icd',ACC_DARK[gc]||gc)}
+    else if(o.grad!=null){t.style.background=ACC_SOLID[o.label]||['#007AFF','#34C759','#FF9500','#AF52DE','#5856D6','#FF2D55','#30B0C7','#8E8E93'][o.grad%8];t.classList.add('solid')}b.appendChild(t)}
   var l=document.createElement('span');l.className='ct';l.textContent=o.label;b.appendChild(l);
   if(o.value!=null&&o.value!==''){var v=document.createElement('span');v.className='cv'+(o.valueCls?' '+o.valueCls:'');v.textContent=o.value;b.appendChild(v)}
   if(o.chev){var c=document.createElement('span');c.className='chev';c.innerHTML=o.chev==='ext'?ACC_ICO.ext:ACC_ICO.chev;b.appendChild(c)}
@@ -20111,11 +20415,11 @@ function renderAccount(){if(PW.on)pwRender();var o=$('#acc'),pro=isPro(),page=AC
         else saveUsername(rawUser,dn).then(function(){renameMyArtistCredit(oldName,myName());ACC_EDIT=null;ACC_DRAFT={};toast('Saved');renderAccount();if(rawUser)setTimeout(function(){pushAsk('You’ll get a notification when someone invites you to a song.')},1800)},function(err){if(btn)btn.disabled=false;toast(err.message)})}
     }else{
       if(page==='main'){var pg1=accSection(o,'');
-      pg1.appendChild(accCell({tile:ACC_ICO.person,grad:1,label:'Name & Username',value:handle?'@'+handle:'Not set',valueCls:handle?'':'add',chev:true,onclick:function(){ACC_EDIT='profile';ACC_DRAFT={};ACC_AUTOFOCUS='profile';renderAccount()}}))}
+      pg1.appendChild(accCell({glass:1,tile:ACC_LN.person,grad:1,label:'Name & Username',value:handle?'@'+handle:'Not set',valueCls:handle?'':'add',chev:true,onclick:function(){ACC_EDIT='profile';ACC_DRAFT={};ACC_AUTOFOCUS='profile';renderAccount()}}))}
       /* iPhone: notifications for invites and help desk replies */
       if(page==='main'&&pushPlugin()&&!devFake){var pg2=accSection(o,'');var pg=PUSH.perm==='granted'?'On':PUSH.perm==='denied'?'Off':'Turn On';
         var npOpen=ACC_EDIT==='notif'&&PUSH.perm==='granted';
-        pg2.appendChild(accCell({tile:ACC_ICO.bell,grad:4,label:'Notifications',value:pg,valueCls:pg==='Turn On'?'add':'',chev:PUSH.perm==='granted',cls:npOpen?'open':'',onclick:function(){
+        pg2.appendChild(accCell({glass:1,tile:ACC_LN.bell,grad:4,label:'Notifications',value:pg,valueCls:pg==='Turn On'?'add':'',chev:PUSH.perm==='granted',cls:npOpen?'open':'',onclick:function(){
           if(PUSH.perm==='granted'){ACC_EDIT=npOpen?null:'notif';if(!npOpen)npLoad();renderAccount();return}
           else if(PUSH.perm==='denied')toast('Notifications are off for *[demo]. Turn them on in Settings › *[demo] › Notifications.');
           else pushAsk('Notifications are on')}}));
@@ -20241,7 +20545,7 @@ function renderAccount(){if(PW.on)pwRender();var o=$('#acc'),pro=isPro(),page=AC
   }
   if(page==='main'&&BETA.admin&&AUTH_USER&&!DEV_MODE&&!DEV_BUILD){betaAdminLoad();var sm=BETA.sum||{},bOpen2=ACC_EDIT==='beta';
     var gq=accSection(o,'Beta Requests');
-    gq.appendChild(accCell({tile:ACC_ICO.person,grad:11,label:'Requests',value:BETA.sum?String(sm.pending||0)+' waiting':'…',chev:true,cls:bOpen2?'open':'',onclick:function(){ACC_EDIT=bOpen2?null:'beta';betaAdminLoad(true);renderAccount()}}));
+    gq.appendChild(accCell({glass:1,tile:ACC_LN.person,grad:11,label:'Requests',value:BETA.sum?String(sm.pending||0)+' waiting':'…',chev:true,cls:bOpen2?'open':'',onclick:function(){ACC_EDIT=bOpen2?null:'beta';betaAdminLoad(true);renderAccount()}}));
     if(bOpen2){if(BETA.list&&!BETA.list.length){var be=document.createElement('div');be.className='crempty';be.innerHTML='<b>No requests waiting</b><span></span>';be.lastChild.textContent='New requests from hellodemo.app/beta show up here.';gq.appendChild(be)}
       (BETA.list||[]).forEach(function(rq){var d=document.createElement('div');d.className='brq';d.innerHTML='<b></b><div class="bm"></div>';
         d.querySelector('b').textContent=rq.name||rq.email;
@@ -20253,42 +20557,42 @@ function renderAccount(){if(PW.on)pwRender();var o=$('#acc'),pro=isPro(),page=AC
         var ok=document.createElement('button');ok.className='ok';ok.textContent=busy?'…':'Approve';ok.disabled=busy;ok.onclick=function(){betaDecide(rq,true)};
         var no=document.createElement('button');no.textContent='Decline';no.disabled=busy;no.onclick=function(){betaDecide(rq,false)};
         ac.appendChild(ok);ac.appendChild(no);d.appendChild(ac);gq.appendChild(d)})}
-    gq.appendChild(accCell({tile:ACC_ICO.lock,grad:2,label:'Waitlist Lock',value:BETA.sum?(sm.gate?'On':'Off'):'…',valueCls:sm.gate?'':'add',onclick:function(){if(BETA.sum)betaSetGate(!sm.gate)}}));
+    gq.appendChild(accCell({glass:1,tile:ACC_LN.lock,grad:2,label:'Waitlist Lock',value:BETA.sum?(sm.gate?'On':'Off'):'…',valueCls:sm.gate?'':'add',onclick:function(){if(BETA.sum)betaSetGate(!sm.gate)}}));
     var nq=document.createElement('div');nq.className='note';nq.style.paddingTop='8px';nq.textContent=BETA.sum?(sm.approved||0)+' approved · '+(sm.declined||0)+' declined. With the lock on, only approved accounts can use *[demo].':'Only you can see this.';o.appendChild(nq)}
   if(page==='main'){
   var g2=accSection(o,'Your songs');
   if(AUTH_USER){var nCred=songs.filter(function(s){return s.title&&s.status==='Finished'}).length;
-    g2.appendChild(accCell({tile:ACC_ICO.sign,grad:3,tileCls:'credtile',label:'Credits',value:nCred?String(nCred):'',chev:true,onclick:function(){accGo('credits')}}))}
-  g2.appendChild(accCell({tile:ACC_ICO.down,grad:2,label:'Import Songs',chev:true,onclick:function(){sheet(false);$('#impin').click()}}));
-  g2.appendChild(accCell({tile:ACC_ICO.up,grad:7,label:'Export All Songs',chev:true,onclick:function(){sheet(false);$('#expb').click()}}));
+    g2.appendChild(accCell({glass:1,tile:ACC_LN.sign,grad:3,tileCls:'credtile',label:'Credits',value:nCred?String(nCred):'',chev:true,onclick:function(){accGo('credits')}}))}
+  g2.appendChild(accCell({glass:1,tile:ACC_LN.down,grad:2,label:'Import Songs',chev:true,onclick:function(){sheet(false);$('#impin').click()}}));
+  g2.appendChild(accCell({glass:1,tile:ACC_LN.up,grad:7,label:'Export All Songs',chev:true,onclick:function(){sheet(false);$('#expb').click()}}));
   /* storage used against the account's limit; fetched fresh each time Account opens, then shown */
   if(AUTH_USER&&!DEV_MODE){var sv=STORE?(STORE.limit!=null?sfSize(STORE.used)+' of '+sfSize(STORE.limit):sfSize(STORE.used)||'0 KB'):'…';
-    g2.appendChild(accCell({tile:ACC_ICO.disk,grad:5,label:'Storage',value:sv,valueCls:sfFull()?'full':''}));
+    g2.appendChild(accCell({glass:1,tile:ACC_LN.disk,grad:5,label:'Storage',value:sv,valueCls:sfFull()?'full':''}));
     if(!renderAccount.st||Date.now()-renderAccount.st>15000){renderAccount.st=Date.now();var was=sv;sfUsage(true).then(function(x){if(!x)return;var nv=x.limit!=null?sfSize(x.used)+' of '+sfSize(x.limit):sfSize(x.used)||'0 KB';if(nv!==was)renderAccount()})}}
   /* Muse & Privacy: what's sent to AI, what Rate has learned, and who you've blocked, together */
   var g3=accSection(o,'Muse & privacy');
-  g3.appendChild(accCell({tile:ACC_ICO.spark,grad:4,label:'AI Features',value:aiOk()==='yes'?'On':'Off',valueCls:aiOk()==='yes'?'':'add',onclick:function(){
-    if(aiOk()==='yes'){aiSet('no');toast('AI features are off');renderAccount()}else{aiSet('');aiConsent(true).then(function(){toast('AI features are on');renderAccount()},function(){renderAccount()})}}}));
-  g3.appendChild(accCell({tile:ACC_ICO.reset,grad:0,label:'Reset What Rate Learned',onclick:function(){var n=0;songs.forEach(function(s){if(s.rating&&s.rating.personality){s.rating.personality='';s.updated=Date.now();n++}});if(n)save();toast('Rate will learn your style fresh')}}));
+  g3.appendChild(accCell({glass:1,tile:ACC_LN.spark,grad:4,label:'AI Features',value:aiOk()==='yes'?'On':'Off',valueCls:aiOk()==='yes'?'':'add',onclick:function(){
+    if(aiOk()==='yes'){aiSet('no');renderAccount()}else{aiSet('');aiConsent(true).then(function(){renderAccount()},function(){renderAccount()})}}}));
+  g3.appendChild(accCell({glass:1,tile:ACC_LN.reset,grad:0,label:'Reset What Rate Learned',onclick:function(){var n=0;songs.forEach(function(s){if(s.rating&&s.rating.personality){s.rating.personality='';s.updated=Date.now();n++}});if(n)save();toast('Rate will learn your style fresh')}}));
   if(AUTH_USER&&!DEV_MODE){if(BLOCKS===null||!renderAccount.bl||Date.now()-renderAccount.bl>15000){renderAccount.bl=Date.now();loadBlocks()}
     if(BLOCKS&&BLOCKS.length){var bOpen=ACC_EDIT==='blocked';
-      g3.appendChild(accCell({tile:ACC_ICO.block,grad:6,label:'Blocked',value:String(BLOCKS.length),chev:true,cls:bOpen?'open':'',onclick:function(){ACC_EDIT=bOpen?null:'blocked';renderAccount()}}));
+      g3.appendChild(accCell({glass:1,tile:ACC_LN.block,grad:6,label:'Blocked',value:String(BLOCKS.length),chev:true,cls:bOpen?'open':'',onclick:function(){ACC_EDIT=bOpen?null:'blocked';renderAccount()}}));
       if(bOpen)BLOCKS.forEach(function(b){g3.appendChild(accCell({label:b.name,value:'Unblock',valueCls:'add',cls:'sub',onclick:function(){unblockUser(b)}}))})}}
   var nAI=document.createElement('div');nAI.className='note';nAI.style.paddingTop='8px';nAI.textContent='AI features send what you’re working on to '+aiWho()+'.';o.appendChild(nAI);
   var gl=accSection(o,'About & support');
-  gl.appendChild(accCell({tile:ACC_ICO.lock,grad:10,label:'Privacy Policy',chev:true,onclick:function(){openDoc('privacy')}}));
-  gl.appendChild(accCell({tile:ACC_ICO.doc,grad:3,label:'Terms of Service',chev:true,onclick:function(){openDoc('terms')}}));
+  gl.appendChild(accCell({glass:1,tile:ACC_LN.shield,grad:10,label:'Privacy Policy',chev:true,onclick:function(){openDoc('privacy')}}));
+  gl.appendChild(accCell({glass:1,tile:ACC_LN.doc,grad:3,label:'Terms of Service',chev:true,onclick:function(){openDoc('terms')}}));
   /* Contact Support: a message to the help desk (supabase/functions/support), with the replies underneath */
   if(AUTH_USER&&!DEV_MODE){var sOpen=ACC_EDIT==='support';supLoad();var sAns=(SUP.list||[]).filter(function(t){return t.status==='replied'}).length;
-    gl.appendChild(accCell({tile:ACC_ICO.help,grad:8,label:'Contact Support',value:sAns?sAns+(sAns===1?' reply':' replies'):'',chev:true,cls:sOpen?'open':'',onclick:function(){ACC_EDIT=sOpen?null:'support';if(!sOpen)supLoad(true);renderAccount()}}));
+    gl.appendChild(accCell({glass:1,tile:ACC_LN.help,grad:8,label:'Contact Support',value:sAns?sAns+(sAns===1?' reply':' replies'):'',chev:true,cls:sOpen?'open':'',onclick:function(){ACC_EDIT=sOpen?null:'support';if(!sOpen)supLoad(true);renderAccount()}}));
     if(sOpen)supForm(gl)}
-  else gl.appendChild(accCell({tile:ACC_ICO.help,grad:8,label:'Contact Support',value:'help@hellodemo.app',chev:'ext',onclick:function(){openLink('mailto:help@hellodemo.app')}}));
+  else gl.appendChild(accCell({glass:1,tile:ACC_LN.help,grad:8,label:'Contact Support',value:'help@hellodemo.app',chev:'ext',onclick:function(){openLink('mailto:help@hellodemo.app')}}));
   }
   /* developer tools ([developer] only), then the account actions last, where Settings keeps Sign Out */
   if(page==='main'&&ga&&(devFake||DEV_BUILD)&&dvl){o.appendChild(dvl);o.appendChild(ga)}
   if(AUTH_USER||devFake){
     var actg=null;if(page==='main'){actg=accSection(o,'');
-    actg.appendChild(accCell({tile:ACC_ICO.swap,grad:9,label:'Switch Account',chev:true,onclick:function(){/* back to the sign-in screen */signOutGoogle();SWITCH_PICK=true}}))}
+    actg.appendChild(accCell({glass:1,tile:ACC_LN.swap,grad:9,label:'Switch Account',chev:true,onclick:function(){/* back to the sign-in screen */signOutGoogle();SWITCH_PICK=true}}))}
     if(page==='main'){var og=actg||accSection(o,'');
     og.appendChild(accCell({label:'Sign Out',cls:'danger',onclick:function(){var nat=natDestroy({title:'Sign out of *[demo]?',message:'Your songs stay safe in your account.',ok:'Sign Out'});if(nat){nat.then(function(ok){if(ok)signOutGoogle()});return}signOutGoogle()}}))}
     /* deleting the account: a second, deliberate step that says exactly what goes */
@@ -20519,11 +20823,57 @@ function sfAdd(files,isAudio){var song=cur;if(!song||!files.length)return;
     .then(function(d){return sfPut(song,f,id).then(function(path){
       var item={id:id,name:busy.name,path:path,size:f.size,mime:f.type||'',added:Date.now()};if(pre){item.orig=pre.orig;item.peaks=pre.peaks}
       if(isAudio){item.kind=/voice|memo|recording/i.test(f.name)?'Voice memo':/master/i.test(f.name)?'Master':/mix/i.test(f.name)?'Mix':'Demo';item.dur=Math.round(d*10)/10;
-        song.audio=song.audio||[];song.audio.forEach(function(x){x.cur=false});item.cur=true;song.audio.push(item);if(!item.peaks)ensurePeaks(item,song,f)}
+        song.audio=song.audio||[];song.audio.forEach(function(x){x.cur=false});item.cur=true;song.audio.push(item);if(!item.peaks)ensurePeaks(item,song,f);tkFill(song,item,f)}
       else{item.kind=/stem|vox|vocal|drum|bass|guitar|keys|synth|perc/i.test(f.name)?'Stem':/^image\//.test(f.type)?'Artwork':/\.(logicx|als|flp|ptx|rpp|band|cpr|song|zip)$/i.test(f.name)?'Session':'Other';song.files=song.files||[];song.files.push(item)}
       SF_JUST[id]=Date.now();sfTouch(song);toast((isAudio?'Added “':'Attached “')+item.name+'”'+(pre?' as MP3, saving '+sfSize(Math.max(0,pre.orig.size-f.size)):''))})})
     .catch(function(e){toast('Couldn’t upload “'+sfBase(f.name)+'”: '+sfErr(e))})
     .then(function(){SF_BUSY=SF_BUSY.filter(function(x){return x!==busy});if(cur===song)renderAud();paintPlayB();next()})})()}
+/* ---------- tempo and key ---------- */
+/* tempo and key from audio: mono samples at ~11 kHz in, {bpm, key} out (key like 'A' or 'Am', the Details picker's names) */
+function tkFFT(re,im){var n=re.length,i,j,k,l;for(i=1,j=0;i<n;i++){var b=n>>1;for(;j&b;b>>=1)j^=b;j^=b;if(i<j){var t=re[i];re[i]=re[j];re[j]=t;t=im[i];im[i]=im[j];im[j]=t}}
+  for(l=2;l<=n;l<<=1){var a=-2*Math.PI/l,wr=Math.cos(a),wi=Math.sin(a);for(i=0;i<n;i+=l){var cr=1,ci=0;for(k=0;k<l/2;k++){var p=i+k,q=p+l/2,tr=re[q]*cr-im[q]*ci,ti=re[q]*ci+im[q]*cr;re[q]=re[p]-tr;im[q]=im[p]-ti;re[p]+=tr;im[p]+=ti;var nr=cr*wr-ci*wi;ci=cr*wi+ci*wr;cr=nr}}}}
+function tkSpectra(x,n,hop,each){var re=new Float64Array(n),im=new Float64Array(n),w=new Float64Array(n),mag=new Float64Array(n/2);for(var i=0;i<n;i++)w[i]=.5-.5*Math.cos(2*Math.PI*i/n);
+  for(var s=0;s+n<=x.length;s+=hop){for(i=0;i<n;i++){re[i]=x[s+i]*w[i];im[i]=0}tkFFT(re,im);for(i=0;i<n/2;i++)mag[i]=Math.sqrt(re[i]*re[i]+im[i]*im[i]);each(mag)}}
+var TK_NOTES=['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],
+  TK_MAJ=[6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88],TK_MIN=[6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17];
+function tkTempo(x,sr){var n=512,hop=64,prev=null,env=[];
+  tkSpectra(x,n,hop,function(m){var f=0,cur=new Float64Array(m.length);for(var i=1;i<m.length;i++){cur[i]=Math.log(1+100*m[i]);if(prev){var d=cur[i]-prev[i];if(d>0)f+=d}}prev=cur;env.push(f)});
+  var N=env.length,fps=sr/hop;if(N<fps*6)return 0;
+  /* take away the slow trend so only the hits are left */
+  var W=Math.round(fps*.4),o=new Float64Array(N),acc=0,q=[];for(var i=0;i<N;i++){acc+=env[i];if(i>=W)acc-=env[i-W];o[i]=Math.max(0,env[i]-acc/Math.min(i+1,W))}
+  var lo=Math.floor(fps*60/200),hi=Math.ceil(fps*60/55),ac=new Float64Array(hi*4+2);
+  for(var L=lo;L<ac.length;L++){var s=0;for(i=0;i+L<N;i++)s+=o[i]*o[i+L];ac[L]=s/(N-L)}
+  var at=function(t){var a=Math.floor(t),f=t-a;return a+1<ac.length?ac[a]*(1-f)+ac[a+1]*f:0};
+  /* score each tempo by its beat and the next three, leaning gently toward 120 */
+  var best=0,bt=0;for(var bpm=55;bpm<=200;bpm+=.25){var Lf=fps*60/bpm,sc=at(Lf)+.5*at(2*Lf)+.33*at(3*Lf)+.25*at(4*Lf)+.5*at(Lf/2>lo?Lf/2:Lf);
+    var wgt=Math.exp(-.5*Math.pow(Math.log2(bpm/120)/1.1,2));sc*=wgt;if(sc>best){best=sc;bt=bpm}}
+  if(!bt)return 0;while(bt<70)bt*=2;while(bt>=180)bt/=2;return Math.round(bt)}
+function tkKey(x,sr){var n=4096,ch=new Float64Array(12),bin=[];for(var i=0;i<n/2;i++){var f=i*sr/n;bin.push(f<60||f>2000?-1:((Math.round(12*Math.log2(f/440))+9)%12+12)%12)}
+  var bass=new Float64Array(12);
+  tkSpectra(x,n,n/2,function(m){var c=new Float64Array(12),cb=new Float64Array(12),t=0,tb=0;for(var i=0;i<m.length;i++)if(bin[i]>=0){var v=m[i]*m[i];c[bin[i]]+=v;t+=v;if(i*sr/n<260){cb[bin[i]]+=v;tb+=v}}
+    if(t>0)for(i=0;i<12;i++)ch[i]+=Math.sqrt(c[i]/t);if(tb>0)for(i=0;i<12;i++)bass[i]+=Math.sqrt(cb[i]/tb)});
+  /* the bass usually sits on the home note, which tells a minor key from its relative major */
+  for(var j=0;j<12;j++)ch[j]+=1*bass[j];
+  var corr=function(p,r){var mx=0,mp=0;for(var i=0;i<12;i++){mx+=ch[(i+r)%12];mp+=p[i]}mx/=12;mp/=12;var a=0,b=0,c=0;for(i=0;i<12;i++){var dx=ch[(i+r)%12]-mx,dp=p[i]-mp;a+=dx*dp;b+=dx*dx;c+=dp*dp}return b&&c?a/Math.sqrt(b*c):0};
+  var best=-2,key='';for(var r=0;r<12;r++){var a=corr(TK_MAJ,r),b=corr(TK_MIN,r);if(a>best){best=a;key=TK_NOTES[r]}if(b>best){best=b;key=TK_NOTES[r]+'m'}}
+  return best>.3?key:''}
+/* the louder middle of the song (up to 2 minutes), mixed to mono and brought down to about 11 kHz */
+function tkPrep(chans,sr){var len=chans[0].length,f=Math.max(1,Math.round(sr/11025)),max=sr*120,s=len>max?Math.floor((len-max)/2):0,e=Math.min(len,s+max),out=new Float32Array(Math.floor((e-s)/f));
+  for(var i=0;i<out.length;i++){var v=0;for(var k=0;k<f;k++)for(var c=0;c<chans.length;c++)v+=chans[c][s+i*f+k];out[i]=v/(f*chans.length)}return{x:out,sr:sr/f}}
+function tkAnalyze(chans,sr){var p=tkPrep(chans,sr);return{bpm:tkTempo(p.x,p.sr),key:tkKey(p.x,p.sr)}}
+/* fill in an empty Key and BPM from the song's audio: when a version is added, and when Details opens on a song
+   that has audio but no key or tempo yet. Only empty fields are filled; each version is only listened to once. */
+function tkKeyName(k){return k?(/m$/.test(k)?k.slice(0,-1)+' minor':k+' major'):''}
+function tkFill(song,item,blob){if(!song||!item||(song.key&&song.bpm)||item.tk)return;item.tk=1;
+  (blob?Promise.resolve(blob):sfUrl(item).then(function(u){return fetch(u).then(function(r){if(!r.ok)throw new Error('download');return r.blob()})}))
+  .then(decodeBlob)
+  .then(function(ab){return new Promise(function(ok){setTimeout(function(){var ch=[];for(var i=0;i<Math.min(2,ab.numberOfChannels);i++)ch.push(ab.getChannelData(i));ok(tkAnalyze(ch,ab.sampleRate))},30)})})
+  .then(function(r){var got=[];if(!song.bpm&&r.bpm){song.bpm=String(r.bpm);got.push(r.bpm+' BPM')}if(!song.key&&r.key){song.key=r.key;got.push(tkKeyName(r.key))}
+    if(!got.length)return;song.updated=Date.now();save();
+    if(cur===song){$('#f-key').value=song.key||'';$('#f-bpm').value=song.bpm||'';chordChips();hdr()}
+    toast('Found '+got.join(' in ')+' from “'+item.name+'”. Change it in Details if it’s off.')})
+  .catch(function(){})}
+function tkCheck(){if(!cur||(cur.key&&cur.bpm))return;var a=(cur.audio||[]).filter(function(x){return x.cur})[0];if(a&&!a.tk&&sfCanPlay(a))tkFill(cur,a)}
 $('#audin').onchange=function(){var f=[].slice.call(this.files||[]);this.value='';sfAdd(f,true)};
 $('#filein').onchange=function(){var f=[].slice.call(this.files||[]);this.value='';sfAdd(f,false)};
 /* quick listen to one version, right from its row */
@@ -20538,7 +20888,7 @@ function sfOpen(item){if(item&&!sfCanPlay(item))return sfLocked(item);var now=sf
   if(c&&c.cached&&sfCloud())return sbClient().storage.from(SF_BUCKET).createSignedUrl(item.path,3600).then(function(r){if(r.error)throw r.error;openLink(r.data.signedUrl)}).catch(function(e){toast('Couldn’t open it: '+sfErr(e))});
   if(now)return openLink(now);sfUrl(item).then(openLink,function(e){toast('Couldn’t open it: '+sfErr(e))})}
 /* remove a version or file: from the song, then from storage */
-function sfDelete(it,onDel){if(SF_PLAY===it.id)sfStopPreview();if(lpAu&&lpAu._id===it.id)npStop();onDel();sfRemove(it);if(cur){cur.rmFiles=cur.rmFiles||{};cur.rmFiles[it.id]=Date.now()}AUD_OPEN=null;sfTouch();haptic('medium');renderAud();paintPlayB();toast('Deleted “'+it.name+'”')}
+function sfDelete(it,onDel){if(SF_PLAY===it.id)sfStopPreview();if(lpAu&&lpAu._id===it.id)npStop();onDel();sfRemove(it);if(cur){cur.rmFiles=cur.rmFiles||{};cur.rmFiles[it.id]=Date.now()}AUD_OPEN=null;sfTouch();haptic('medium');renderAud();paintPlayB()}
 /* expanded row: kind, rename, delete (tap twice) */
 function sfEditor(it,kinds,onDel){var w=document.createElement('div');w.className='audxw';w.dataset.id=it.id;var x=document.createElement('div');x.className='audx';w.appendChild(x);
   var ch=document.createElement('div');ch.className='chips';kinds.forEach(function(k){var b=document.createElement('button');b.textContent=k;if(it.kind===k)b.className='on';b.onclick=function(){it.kind=k;sfTouch();renderAud()};ch.appendChild(b)});x.appendChild(ch);
@@ -20572,7 +20922,7 @@ function renderAud(){var o=$('#aud-body');if(!o||!cur)return;var song=cur,keepTo
   if(!auds.length&&!SF_BUSY.some(function(b){return b.audio}))vg.appendChild(accCell({label:'Add a voice memo, demo, mix or master',value:'',chev:true,onclick:function(){$('#audin').click()}}));
   auds.slice().reverse().forEach(function(a){var r=document.createElement('div');r.className='cell';sfEnter(r,a.id);
     var cb=document.createElement('button');cb.className='audcur'+(a===cu?' on':'');cb.setAttribute('aria-label',a===cu?'Current version':'Make this the current version');cb.innerHTML=a===cu?SVG_CHECK:'';
-    cb.onclick=function(){if(a===cu)return;auds.forEach(function(x){x.cur=x===a});sfTouch();renderAud();paintPlayB();toast('“'+a.name+'” is now the current version')};r.appendChild(cb);
+    cb.onclick=function(){if(a===cu)return;auds.forEach(function(x){x.cur=x===a});sfTouch();renderAud();paintPlayB()};r.appendChild(cb);
     var mid=document.createElement('button');mid.className='c2';mid.innerHTML='<b></b><span></span>';mid.firstChild.textContent=a.name;mid.lastChild.textContent=a._conv?'Converting to MP3…':[a.kind,a.dur?sfTime(a.dur):'',sfSize(a.size),a.orig&&/mpeg/.test(a.mime||'')?'MP3 from '+sfExt(a.orig.name,a.orig.mime).toUpperCase():''].filter(Boolean).join(' · ');if(a._conv)mid.lastChild.dataset.conv=a.id;
     mid.onclick=function(){audToggle(a.id,r,function(){return sfEditor(a,AUD_KINDS,delA)})};r.appendChild(mid);
     var delA=function(){song.audio=auds.filter(function(x){return x!==a});if(a===cu&&song.audio.length)song.audio[song.audio.length-1].cur=true;if(song.sync&&song.sync.audioId===a.id)delete song.sync};
@@ -21172,7 +21522,7 @@ $('#shareb').onclick=openShare;$('#done8').onclick=function(){sheet(false)};
 
 /* ---------- credits & splits, release details ---------- */
 var CREDIT_ROLES=['Writer','Composer','Lyricist','Producer','Performer','Featured artist','Mix engineer','Mastering engineer','Other'],SPLIT_ROLES={Writer:1,Composer:1,Lyricist:1};
-var REL_FIELDS=[['isrc','ISRC','CC-XXX-YY-NNNNN','text'],['upc','UPC / EAN','12 or 13 digits','text'],['date','Release date','','date'],['label','Label','Independent','text'],['genre','Genre','e.g. Indie pop','text']];
+var REL_FIELDS=[['isrc','ISRC','CC-XXX-YY-NNNNN','text'],['upc','UPC / EAN','12 or 13 digits','text'],['date','Release date','','date'],['label','Label','Independent','text'],['genre','Genre','e.g. Indie pop','text'],['iswc','ISWC','T-123.456.789-0','text']];
 function renderRel(){var o=$('#rel-body');if(!o||!cur)return;var song=cur,keepTop=$('#p-rel')?$('#p-rel').scrollTop:0;o.innerHTML='';
   var C=song.credits||[],R=song.release||{};
   function addCredit(){song.credits=song.credits||[];var first=!song.credits.length;var dpn=(!AUTH_USER&&DEV_MODE)?devProfileGet():{};song.credits.push({name:first?(myName()||dpn.display_name||dpn.username||''):'',role:'Writer',split:first?'100':''});sfTouch(song);renderRel();var ins=o.querySelectorAll('.relrow .rn'),last=ins[ins.length-1];if(last&&!last.value)try{last.focus()}catch(e){}}
@@ -21196,9 +21546,11 @@ function renderRel(){var o=$('#rel-body');if(!o||!cur)return;var song=cur,keepTo
     if(Math.abs(tot-100)<.01)note.textContent='Writer splits total 100%.';else{note.className='relnote warn';note.textContent='Writer splits add up to '+tot+'%. They should total 100%.'}}
   paintSplit();
   var rg=accSection(o,'Release'),rnote=document.createElement('div');
+  /* the first row: look the song up in Apple Music and fill the rest in */
+  rg.appendChild(accCell({tile:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg>',grad:0,label:'Find Release',value:'Apple Music',chev:true,onclick:function(){relFind(song,rg)}}));
   REL_FIELDS.forEach(function(f){var r=document.createElement('label');r.className='cell form notile';var l=document.createElement('span');l.className='ct fl';l.textContent=f[1];r.appendChild(l);
     var ip=document.createElement('input');ip.type=f[3];ip.placeholder=f[2];ip.value=R[f[0]]||'';ip.setAttribute('aria-label',f[1]);
-    if(f[0]==='isrc'){ip.autocapitalize='characters';ip.spellcheck=false;ip.autocomplete='off'}if(f[0]==='upc'){ip.inputMode='numeric';ip.autocomplete='off'}
+    if(f[0]==='isrc'||f[0]==='iswc'){ip.autocapitalize='characters';ip.spellcheck=false;ip.autocomplete='off'}if(f[0]==='upc'){ip.inputMode='numeric';ip.autocomplete='off'}
     ip.oninput=function(){var v=ip.value;if(f[0]==='isrc'){v=v.toUpperCase();if(v!==ip.value)ip.value=v}if(f[0]==='upc'){v=v.replace(/\D/g,'');if(v!==ip.value)ip.value=v}
       song.release=song.release||{};song.release[f[0]]=v;sfTouch(song);paintRel()};r.appendChild(ip);rg.appendChild(r)});
   var er=document.createElement('div');er.className='cell notile';var el=document.createElement('span');el.className='ct';el.textContent='Explicit';er.appendChild(el);
@@ -21212,13 +21564,42 @@ function renderRel(){var o=$('#rel-body');if(!o||!cur)return;var song=cur,keepTo
   paintRel();
   var pr=$('#p-rel');if(pr)pr.scrollTop=keepTop}
 
+/* Find Release: look the song up in Apple Music's catalogue (supabase/functions/release-lookup) and fill in its
+   ISRC, UPC, release date, label and genre, plus the ISWC when MusicBrainz has one. Search opens with the title and artist. */
+function relStore(){var l=((navigator.language||'en-AU').split('-')[1]||'').toLowerCase();return /^[a-z]{2}$/.test(l)?l:'au'}
+function relFind(song,group){var old=$('#relfind');if(old){old.remove();return}
+  var p=document.createElement('div');p.id='relfind';p.className='relfind';
+  p.innerHTML='<div class="rfq"><input type="search" placeholder="Song title and artist" aria-label="Find a release"><button class="go2" type="button">Search</button></div><div class="rfres" aria-live="polite"></div>';
+  group.parentNode.insertBefore(p,group);
+  var q=p.querySelector('input'),res=p.querySelector('.rfres'),note=function(t){res.innerHTML='<div class="relnote"></div>';res.firstChild.textContent=t};
+  q.value=[song.title,song.artist||myName()].filter(Boolean).join(' ');
+  function go(){var t=q.value.trim();if(t.length<2)return;note('Searching Apple Music…');
+    fnCall('release-lookup',{action:'search',q:t,storefront:relStore()}).then(function(d){var L=d.results||[];res.innerHTML='';
+      if(!L.length)return note('Nothing on Apple Music by that name. New releases can take a few days to appear.');
+      L.forEach(function(x){var b=document.createElement('button');b.type='button';b.className='rfrow';b.innerHTML='<img alt=""><span><b></b><em></em></span>';
+        if(x.art)b.querySelector('img').src=x.art;b.querySelector('b').textContent=x.title;b.querySelector('em').textContent=[x.artist,x.album,(x.date||'').slice(0,4)].filter(Boolean).join(' · ');
+        b.onclick=function(){note('Getting the details…');fnCall('release-lookup',{action:'detail',id:x.id,storefront:relStore()}).then(function(d2){p.remove();relApply(song,d2)},function(e){note('Couldn’t get the details: '+e.message)})};
+        res.appendChild(b)});
+      var f=document.createElement('div');f.className='relnote';f.textContent='From Apple Music. Pick your song and its details fill in.';res.appendChild(f)},
+      function(e){note(e.message)})}
+  p.querySelector('button').onclick=go;q.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();go()}};go();try{q.focus({preventScroll:true})}catch(e){}}
+function relApply(song,x){song.release=song.release||{};var R=song.release,got=[];
+  [['isrc','ISRC'],['upc','UPC'],['date','release date'],['label','label'],['genre','genre'],['iswc','ISWC']].forEach(function(f){var v=x[f[0]];if(!v)return;v=String(v);if(f[0]==='date')v=v.slice(0,10);if(f[0]==='isrc'||f[0]==='iswc')v=v.toUpperCase();R[f[0]]=v;got.push(f[1])});
+  if(x.url)R.appleMusic=String(x.url);sfTouch(song);renderRel();haptic('success');
+  toast(got.length?'Filled in '+(got.length>1?got.slice(0,-1).join(', ')+' and '+got[got.length-1]:got[0]):'Apple Music had no details for that one')}
+
 /* ---------- perform mode ---------- */
 var pfRaf=0,pfOn=false,pfSpd=1,pfSize=34,pfLock=null,SPD=[.5,.75,1,1.25,1.5,2,3];
-function pfSet(){$('#pf-txt').style.fontSize=pfSize+'px';$('#pf-sp').textContent=pfSpd+'×'}
+/* with a tempo set, the words roll at the song's pace: two bars a lyric line (beats per bar from the time
+   signature, 4 if there's none), spread over the whole page; the speed buttons then nudge it faster or slower */
+function pfTempo(){var bpm=parseFloat(String(cur&&cur.bpm||'').replace(',','.'));if(!(bpm>=30&&bpm<=300))return 0;return bpm}
+function pfRate(p){var bpm=pfTempo();if(!bpm)return 28;var n=(cur.lyrics||'').split('\n').filter(function(l){l=l.trim();return l&&!/^\[[^\]]*\]$/.test(l)}).length;if(!n)return 28;
+  var bar=parseInt(String(cur.time||'').split('/')[0],10);bar=bar>=2&&bar<=12?bar:4;var secs=n*2*bar*60/bpm,dist=Math.max(0,p.scrollHeight-p.clientHeight);return dist>0?Math.max(4,dist/secs):28}
+function pfSet(){$('#pf-txt').style.fontSize=pfSize+'px';$('#pf-sp').textContent=pfSpd+'×'+(pfTempo()?' · '+pfTempo()+' BPM':'')}
 function perfOpen(){if(!cur)return;sheet(false);$('#pf-title').textContent=cur.title||'Untitled';$('#pf-sub').textContent=[cur.artist,cur.key?'Key of '+cur.key:'',cur.bpm?cur.bpm+' BPM':''].filter(Boolean).join(' · ');$('#pf-txt').innerHTML=cur.rich?clean(cur.rich):esc(cur.lyrics||'').replace(/\n/g,'<br>');var p=$('#perf');p.hidden=false;p.scrollTop=0;try{var ae0=document.activeElement;if(ae0&&ae0.blur)ae0.blur();p.focus({preventScroll:true})}catch(e){}pfSet();try{navigator.wakeLock&&navigator.wakeLock.request('screen').then(function(l){pfLock=l},function(){})}catch(e){}}
 function perfClose(){pfPlay(false);$('#perf').hidden=true;try{pfLock&&pfLock.release()}catch(e){}pfLock=null}
-function pfPlay(on){pfOn=on;$('#pf-play').textContent=on?'Pause':'Play';cancelAnimationFrame(pfRaf);if(!on)return;var p=$('#perf'),last=0,acc=0;
-  (function step(ts){if(!pfOn)return;if(last){acc+=(ts-last)/1000*28*pfSpd;var px=Math.floor(acc);if(px){p.scrollTop+=px;acc-=px}}last=ts;if(p.scrollTop+p.clientHeight>=p.scrollHeight-2)return pfPlay(false);pfRaf=requestAnimationFrame(step)})(performance.now())}
+function pfPlay(on){pfOn=on;$('#pf-play').textContent=on?'Pause':'Play';cancelAnimationFrame(pfRaf);if(!on)return;var p=$('#perf'),last=0,acc=0,rate=pfRate(p);
+  (function step(ts){if(!pfOn)return;if(last){acc+=(ts-last)/1000*rate*pfSpd;var px=Math.floor(acc);if(px){p.scrollTop+=px;acc-=px}}last=ts;if(p.scrollTop+p.clientHeight>=p.scrollHeight-2)return pfPlay(false);pfRaf=requestAnimationFrame(step)})(performance.now())}
 $('#perfb').onclick=function(){if(!isPro())return upsell('perform');perfOpen()};$('#pf-x').onclick=perfClose;$('#pf-play').onclick=function(){pfPlay(!pfOn)};$('#pf-txt').onclick=function(){pfPlay(!pfOn)};
 $('#pf-sm').onclick=function(){pfSize=Math.max(20,pfSize-4);pfSet()};$('#pf-lg').onclick=function(){pfSize=Math.min(72,pfSize+4);pfSet()};
 $('#pf-sl').onclick=function(){var i=SPD.indexOf(pfSpd);pfSpd=SPD[Math.max(0,i-1)];pfSet()};$('#pf-fa').onclick=function(){var i=SPD.indexOf(pfSpd);pfSpd=SPD[Math.min(SPD.length-1,i+1)];pfSet()};
@@ -21308,7 +21689,7 @@ function albRowBtn(b,s){var x=document.createElement('button');x.className='rpin
 function albPickFor(s,at){var inA=albOf(s),items=[];
   albLive().forEach(function(a){if(inA&&a.id===inA.id)return;items.push({t:(inA?'Move to “':'Add to “')+(a.title||'Untitled Album')+'”',fn:function(){albAdd(a,[s]);toast('Added to “'+(a.title||'Untitled Album')+'”')}})});
   items.push({t:'New Album…',ico:ALB_I.plus.replace(/width="30" height="30"/,'width="16" height="16"'),sep:1,fn:function(){albNew(function(a){albAdd(a,[s]);toast('Added to “'+(a.title||'Untitled Album')+'”')})}});
-  if(inA)items.push({t:'Remove from Album',d:1,sep:1,fn:function(){albRemove(s);toast('Removed from “'+(inA.title||'Untitled Album')+'”')}});
+  if(inA)items.push({t:'Remove from Album',d:1,sep:1,fn:function(){albRemove(s)}});
   albMenu(at,items,s.title||'Song')}
 /* ---- menus: the system action sheet on iPhone, a small glass list elsewhere. `at` is a button or a {x,y} point ---- */
 function albMenu(at,items,title){var A=natPlug('ActionSheet');items=items.filter(function(o){return o&&!o.off});
@@ -21347,7 +21728,7 @@ function albRender(){var a=albGet(ALB.id),M=$('#amount');if(!a||!M)return;albThe
   var list=albSongs(a),fin=list.filter(function(s){return s.status==='Finished'}).length,ar=albArtist(a);
   M.innerHTML='<div class="ahd"><div class="aart"></div><h2 class="attl"></h2><div class="aby"></div><div class="ameta"></div>'+
     '<div class="abtns"><button class="gl around" id="aadd" aria-label="Add Songs" title="Add Songs">'+ALB_I.plus.replace(/width="30" height="30"/,'width="22" height="22"').replace('stroke-width="1.7"','stroke-width="2.2"')+'</button>'+
-    '<button class="aplay" id="aread"'+(list.length?'':' disabled')+'>'+ALB_I.bookf+'<span>Read Lyrics</span></button>'+
+    '<button class="gl aplay" id="aread"'+(list.length?'':' disabled')+'>'+ALB_I.bookf+'<span>Read Lyrics</span></button>'+
     '<button class="gl around" id="anew" aria-label="New Song" title="New Song">'+ALB_I.pen+'</button></div></div><div class="atl"></div>';
   albArt(M.querySelector('.aart'),a);M.querySelector('.attl').textContent=a.title||'Untitled Album';
   var by=M.querySelector('.aby');by.textContent=ar;by.hidden=!ar;
@@ -21360,7 +21741,7 @@ function albRender(){var a=albGet(ALB.id),M=$('#amount');if(!a||!M)return;albThe
     r.querySelector('.an').textContent=i+1;r.querySelector('b').textContent=s.title||ls[0]||'New Song';r.querySelector('.atx span').textContent=(s.title?ls[0]:ls[1])||'No lyrics yet';
     r.onclick=function(e){if(e.target.closest('.amo'))return;albOpenSong(a,s)};r.onkeydown=function(e){if((e.key==='Enter'||e.key===' ')&&e.target===r){e.preventDefault();albOpenSong(a,s)}};
     r.querySelector('.amo').onclick=function(e){e.stopPropagation();albMenu(this,[{t:'Open',fn:function(){albOpenSong(a,s)}},{t:'Move Up',off:!i,sep:1,fn:function(){albMove(a,s,-1)}},{t:'Move Down',off:i===list.length-1,fn:function(){albMove(a,s,1)}},
-      {t:'Remove from Album',d:1,sep:1,fn:function(){albRemove(s);toast('Removed from “'+(a.title||'Untitled Album')+'”')}}],s.title||'Song')};
+      {t:'Remove from Album',d:1,sep:1,fn:function(){albRemove(s)}}],s.title||'Song')};
     albDrag(r,a,s);T.appendChild(r)});
   if(list.length){var ft=document.createElement('div');ft.className='afoot';var nl=list.reduce(function(n,s){return n+albLines(s)},0),ed=list.reduce(function(m,s){return Math.max(m,s.updated||0)},a.updated||0);
     ft.textContent=list.length+(list.length===1?' song, ':' songs, ')+nl+(nl===1?' line':' lines')+' · Edited '+albAgo(ed);M.appendChild(ft)}}
@@ -21422,7 +21803,7 @@ $('#amore').onclick=function(){var a=albGet(ALB.id);if(!a)return;albMenu(this,[{
 /* Delete: a tombstone row, and its songs go back to the list */
 function albDelete(a){var nm=a.title||'this album',go=function(ok){if(!ok)return;var now=Date.now();
     songs.forEach(function(s){if(s.album===a.id){s.album='';delete s.track;s.updated=now}});save();
-    var i=albums.indexOf(a);albums[i>=0?i:albums.length]={id:a.id,deleted:true,updated:now};saveAlbums();haptic('medium');albClose();toast('Album deleted')};
+    var i=albums.indexOf(a);albums[i>=0?i:albums.length]={id:a.id,deleted:true,updated:now};saveAlbums();haptic('medium');albClose()};
   var nd=natDestroy({title:'Delete “'+nm+'”?',message:'Its songs stay in your library.',ok:'Delete Album'});if(nd)nd.then(go);else go(confirm('Delete “'+nm+'”? Its songs stay in your library.'))}
 /* ---- Read Lyrics: every song in track order, full screen ---- */
 function albRead(a){var el=$('#albread');if(!el){el=document.createElement('div');el.id='albread';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');document.body.appendChild(el)}

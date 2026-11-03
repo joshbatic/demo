@@ -194,7 +194,7 @@ struct AccountScreen: View {
                         .font(.system(size: 13)).foregroundStyle(.secondary)
                     }
                     Spacer(minLength: 4)
-                    Button { Task { await collab.decline(inv); session.toast = "Invite declined" } } label: {
+                    Button { Task { await collab.decline(inv) } } label: {
                         Text("Decline").font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.tint)
                             .padding(.horizontal, 12).frame(height: 30).background(BarFill.color, in: Capsule())
                     }
@@ -216,7 +216,7 @@ struct AccountScreen: View {
             NavigationLink(value: "name") {
                 LabeledContent {
                     if let u = session.profile.username, !u.isEmpty { Text("@" + u) } else { Text("Not set") }
-                } label: { Label { Text("Name & Username") } icon: { TileIcon("person.fill", Theme.Tile.blue) } }
+                } label: { Label { Text("Name & Username") } icon: { GlassTile("person.fill", .blue) } }
             }
             Button { notificationsTapped() } label: {
                 LabeledContent {
@@ -225,7 +225,7 @@ struct AccountScreen: View {
                     case .denied: Text("Off")
                     default: Text("Turn On").foregroundStyle(.blue)
                     }
-                } label: { Label { Text("Notifications").foregroundStyle(.primary) } icon: { TileIcon("bell.badge.fill", Theme.Tile.red) } }
+                } label: { Label { Text("Notifications").foregroundStyle(.primary) } icon: { GlassTile("bell.badge.fill", .red) } }
             }
             if notifOpen && [UNAuthorizationStatus.authorized, .provisional, .ephemeral].contains(push.status) {
                 prefToggle("cowrite", "Co-writing", "When someone accepts your invite or edits a song you share")
@@ -254,7 +254,7 @@ struct AccountScreen: View {
             await push.refreshStatus()
             switch push.status {
             case .notDetermined:
-                if await push.ask() { session.toast = "Notifications are on" }
+                _ = await push.ask()
             case .denied:
                 session.toast = "Notifications are off for *[demo]. Turn them on in Settings › *[demo] › Notifications."
             default:
@@ -294,24 +294,24 @@ struct AccountScreen: View {
                     Label {
                         Text("Credits").foregroundStyle(.primary)
                     } icon: {
-                        TileIcon("music.note.list", Theme.Tile.orange)
+                        GlassTile("signature", .orange)
                     }
                 }
             }
             Button { Haptics.tap(); importing = true } label: {
-                Label { Text("Import Songs").foregroundStyle(.primary) } icon: { TileIcon("tray.and.arrow.down.fill", Theme.Tile.blue) }
+                Label { Text("Import Songs").foregroundStyle(.primary) } icon: { GlassTile("tray.and.arrow.down.fill", .blue) }
             }
             Button {
                 Haptics.tap()
                 if let u = library.exportFile() { exportURL = u } else { session.toast = "No songs to export yet" }
             } label: {
-                Label { Text("Export All Songs").foregroundStyle(.primary) } icon: { TileIcon("tray.and.arrow.up.fill", Theme.Tile.green) }
+                Label { Text("Export All Songs").foregroundStyle(.primary) } icon: { GlassTile("tray.and.arrow.up.fill", .green) }
             }
             LabeledContent {
                 if let st = storage {
                     Text(SongFiles.size(st.used) + " of " + SongFiles.size(st.limit)).foregroundStyle(st.used >= st.limit ? Color.red : .secondary)
                 } else { Text("—") }
-            } label: { Label { Text("Storage") } icon: { TileIcon("externaldrive.fill", Theme.Tile.gray) } }
+            } label: { Label { Text("Storage") } icon: { GlassTile("externaldrive.fill", .gray) } }
         }
     }
 
@@ -321,20 +321,20 @@ struct AccountScreen: View {
         Section {
             Toggle(isOn: Binding(get: { AIService.shared.consent == "yes" }, set: { on in
                 Haptics.selection()
-                if on { AIService.shared.consent = "yes"; session.toast = "AI features are on" }
-                else { AIService.shared.consent = "no"; session.toast = "AI features are off" }
+                if on { AIService.shared.consent = "yes" }
+                else { AIService.shared.consent = "no" }
             })) {
-                Label { Text("AI Features") } icon: { TileIcon("sparkles", Theme.Tile.purple) }
+                Label { Text("AI Features") } icon: { GlassTile("sparkles", .purple) }
             }
             .toggleStyle(.green)
             Button { confirmReset = true } label: {
-                Label { Text("Reset What Rate Learned").foregroundStyle(.primary) } icon: { TileIcon("arrow.counterclockwise", Theme.Tile.indigo) }
+                Label { Text("Reset What Rate Learned").foregroundStyle(.primary) } icon: { GlassTile("arrow.counterclockwise", .indigo) }
             }
             if !blocked.isEmpty {
                 Button { withAnimation(.snappy) { blockedOpen.toggle() } } label: {
                     LabeledContent {
                         Text("\(blocked.count)")
-                    } label: { Label { Text("Blocked").foregroundStyle(.primary) } icon: { TileIcon("nosign", Theme.Tile.pink) } }
+                    } label: { Label { Text("Blocked").foregroundStyle(.primary) } icon: { GlassTile("nosign", .pink) } }
                 }
                 if blockedOpen {
                     ForEach(blocked) { b in
@@ -359,16 +359,16 @@ struct AccountScreen: View {
     private var supportSection: some View {
         Section("About & support") {
             Button { openURL(URL(string: "https://hellodemo.app/privacy.html")!) } label: {
-                Label { Text("Privacy Policy").foregroundStyle(.primary) } icon: { TileIcon("lock.fill", Theme.Tile.blue) }
+                Label { Text("Privacy Policy").foregroundStyle(.primary) } icon: { GlassTile("shield.fill", .blue) }
             }
             Button { openURL(URL(string: "https://hellodemo.app/terms.html")!) } label: {
-                Label { Text("Terms of Service").foregroundStyle(.primary) } icon: { TileIcon("doc.text.fill", Theme.Tile.gray) }
+                Label { Text("Terms of Service").foregroundStyle(.primary) } icon: { GlassTile("doc.text.fill", .gray) }
             }
             NavigationLink(value: "support") {
                 LabeledContent {
                     let n = tickets.reduce(0) { $0 + $1.replies.count }
                     if n > 0 { Text(n == 1 ? "1 reply" : "\(n) replies") }
-                } label: { Label { Text("Contact Support") } icon: { TileIcon("questionmark.bubble.fill", Theme.Tile.green) } }
+                } label: { Label { Text("Contact Support") } icon: { GlassTile("questionmark.bubble.fill", .green) } }
             }
         }
     }
@@ -382,7 +382,7 @@ struct AccountScreen: View {
                 dismiss()
                 Task { await session.signOut() }
             } label: {
-                Label { Text("Switch Account").foregroundStyle(.primary) } icon: { TileIcon("person.2.fill", Theme.Tile.indigo) }
+                Label { Text("Switch Account").foregroundStyle(.primary) } icon: { GlassTile("person.2.fill", .indigo) }
             }
             Button("Sign Out", role: .destructive) { confirmSignOut = true }
             Button("Delete Account", role: .destructive) { Haptics.warning(); confirmDelete = true }
@@ -776,12 +776,11 @@ struct CreditsPage: View {
 }
 
 /// The tile beside each link: the service's own logo (from the app's images) on its own colour.
-/// Apple Music shows its logo once an image named "brand-apple_music" is added to the asset catalog.
 struct LinkTile: View {
     let kind: String
 
-    /// The current app icons: Spotify's green mark on black, Apple Music's red, Instagram's 2022 gradient
-    /// (yellow bottom-left to purple top-right), and TikTok's note with its cyan and red edges.
+    /// The current app icons: Spotify's green mark on black, Apple Music's red, Instagram's gradient
+    /// (warm yellow glowing from the bottom left, through pink to blue), and TikTok's note with its cyan and red edges.
     var body: some View {
         ZStack {
             switch kind {
@@ -789,14 +788,15 @@ struct LinkTile: View {
                 TileBackground(colors: [Color(hex: 0x000000)])
                 glyph(Color(hex: 0x1ED760), size: 20)
             case "apple_music":
-                TileBackground(colors: [Color(hex: 0xFF5C7A), Color(hex: 0xFA233B)])
-                glyph(.white)
+                TileBackground(colors: [Color(hex: 0xFB5C74), Color(hex: 0xFA233B)])
+                glyph(.white, size: 16)
             case "instagram":
-                RoundedRectangle(cornerRadius: 30 * 0.27, style: .continuous)
-                    .fill(LinearGradient(colors: [Color(hex: 0xFFD600), Color(hex: 0xFF7A00), Color(hex: 0xFF0069), Color(hex: 0xD300C5), Color(hex: 0x7638FA)],
-                                         startPoint: .bottomLeading, endPoint: .topTrailing))
-                    .overlay { TileBackground(colors: [.clear]).opacity(0.6) }
-                glyph(.white)
+                RoundedRectangle(cornerRadius: 30 * 0.235, style: .continuous)
+                    .fill(RadialGradient(stops: [.init(color: Color(hex: 0xFDF497), location: 0), .init(color: Color(hex: 0xFDF497), location: 0.05),
+                                                 .init(color: Color(hex: 0xFD5949), location: 0.45), .init(color: Color(hex: 0xD6249F), location: 0.6),
+                                                 .init(color: Color(hex: 0x285AEB), location: 0.9)],
+                                         center: UnitPoint(x: 0.3, y: 1.07), startRadius: 0, endRadius: 30 * 1.3))
+                glyph(.white, size: 20)
             default:
                 TileBackground(colors: [Color(hex: 0x000000)])
                 glyph(Color(hex: 0x25F4EE)).offset(x: -0.8, y: -0.8)

@@ -317,7 +317,8 @@ struct ToastView: View {
                     .padding(.horizontal, 10)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .task(id: text) {
-                        try? await Task.sleep(for: .seconds(3.2))
+                        // short ones go quickly; longer ones stay long enough to read (about 1.6–4 s)
+                        try? await Task.sleep(for: .seconds(min(4, 1.6 + Double(max(0, text.count - 24)) * 0.035)))
                         withAnimation(.smooth) { session.toast = nil; library.notice = nil }
                     }
             }

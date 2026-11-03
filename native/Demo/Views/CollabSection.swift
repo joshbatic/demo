@@ -226,6 +226,7 @@ struct InviteSheet: View {
     @State private var query = ""
     @State private var results: [Collab.Person] = []
     @State private var searching = false
+    @State private var cache: [String: [Collab.Person]] = [:]
     @State private var blockedIDs: Set<String> = []
     @State private var sent: Set<String> = []
     @State private var sending: String?
@@ -273,14 +274,24 @@ struct InviteSheet: View {
             .toolbar { ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } } }
             .task(id: typed) {
                 error = nil
-                guard typed.count >= 2 else { results = []; return }
-                searching = true
-                try? await Task.sleep(for: .milliseconds(250))
+                let q = typed
+                guard q.count >= 2 else { results = []; searching = false; return }
+                // answer straight away from what's already known (an earlier search, or narrowing the last results),
+                // then refresh from the server after a short pause; the spinner only shows when there's nothing yet
+                if let hit = cache[q] { results = hit }
+                else { results = results.filter { $0.username.lowercased().hasPrefix(q) } }
+                searching = results.isEmpty && cache[q] == nil
+                try? await Task.sleep(for: .milliseconds(150))
                 guard !Task.isCancelled else { return }
-                results = await Collab.shared.suggest(typed)
+                let got = await Collab.shared.suggest(q)
+                guard !Task.isCancelled else { return }
+                cache[q] = got
+                if got.map(\.id) != results.map(\.id) { results = got }
                 searching = false
             }
-            .onAppear { DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { focused = true } }
+            // the keyboard comes up with the sheet rather than after it (one movement, not two)
+            .defaultFocus($focused, true)
+            .onAppear { focused = true; DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { if !focused { focused = true } } }
             .task { if let s = library.song(songID) { people = await Collab.shared.people(s) } }
             .task { blockedIDs = Set(await session.loadBlocked().map(\.id)) }
         }
@@ -319,16 +330,18 @@ struct InviteSheet: View {
         .padding(.vertical, 2)
     }
 
+    /// Shows "Invited" the moment it's tapped and sends in the background; if it fails, the button comes back
+    /// with the reason underneath.
     private func invite(_ username: String, id: String) {
-        guard sending == nil else { return }
-        sending = id
+        let pid = results.first(where: { $0.username.lowercased() == username.lowercased() })?.id ?? (id == "typed" ? nil : id)
+        if let pid { guard !sent.contains(pid) else { return }; sent.insert(pid) } else { guard sending == nil else { return }; sending = id }
+        Haptics.success()
+        error = nil
         Task {
             let err = await Collab.shared.invite(username, to: songID)
             sending = nil
-            if let err { error = err; Haptics.warning(); return }
-            Haptics.success()
-            if let p = results.first(where: { $0.username.lowercased() == username.lowercased() }) { sent.insert(p.id) }
-            session.toast = "Invited @" + username.lowercased()
+            if let err { if let pid { sent.remove(pid) }; error = err; Haptics.warning(); return }
+            if pid == nil { session.toast = "Invited @" + username.lowercased() }
         }
     }
 }

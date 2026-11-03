@@ -44,6 +44,8 @@ git merge -q --no-ff dev -m "Release $V"
 cp www/index.html docs/app/index.html
 cp www/index.html mac-app/app/index.html
 cp www/index.html web-artifact/songpad.html
+# the Mac download's name carries the version (demo-mac-X.Y.Z.dmg, .github/workflows/mac-download.yml)
+sed -i.bak -E "s/demo-mac-[0-9]+\.[0-9]+\.[0-9]+\.dmg/demo-mac-$V.dmg/g" docs/mac.html && rm -f docs/mac.html.bak
 git add -A && git commit -q -m "Release $V: web app and Mac app" || true
 scripts/stamp-version.sh
 git push -q origin main

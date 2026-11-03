@@ -245,7 +245,6 @@ struct AudioPane: View {
         Haptics.selection()
         s.audioItems = s.audioItems.map { var x = $0; x.isCurrent = x.id == a.id; return x }
         s.touch(); library.put(s)
-        session.toast = "“\(a.name)” is now the current version"
     }
 
     private func update(_ id: String, audio: Bool, _ change: (inout FileItem) -> Void) {
@@ -278,7 +277,6 @@ struct AudioPane: View {
         armedDelete = nil; openID = nil
         if a.isLocal { if let u = SongFiles.localFile(for: a) { try? FileManager.default.removeItem(at: u) } }
         else if a.isMine(session.userID) { Task { await SongFiles.remove(a.path) } }
-        session.toast = "Deleted “\(a.name)”"
     }
 
     /// Adds one picked file: converts WAV / AIFF / FLAC to AAC, uploads it (or keeps it on the device when
@@ -339,6 +337,8 @@ struct AudioPane: View {
             s.touch(); library.put(s)
             Haptics.success()
             session.toast = saved > 1_048_576 ? "Added “\(display)” as \(ext.uppercased()), saving \(SongFiles.size(saved))" : "Added “\(display)”"
+            // an empty Key and BPM, filled from what's in the audio
+            if audio { await TempoKeyFill.run(songID: songID, itemID: id, url: local, library: library, session: session) }
             try? FileManager.default.removeItem(at: dir)
         } catch {
             Haptics.warning()

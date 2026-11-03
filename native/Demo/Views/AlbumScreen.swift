@@ -186,7 +186,7 @@ struct AlbumScreen: View {
                         Rectangle().fill(.quaternary).frame(height: 0.5).padding(.leading, i == 0 ? 0 : 36)
                     }
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button(role: .destructive) { remove(s) } label: { Label("Remove", systemImage: "minus.circle") }
+                        Button(role: .destructive) { remove(s) } label: { Label("Remove", systemImage: "minus.circle") }.tint(.red)
                     }
             }
             .onMove { from, to in
@@ -221,7 +221,6 @@ struct AlbumScreen: View {
                         message: "Its songs stay in your library.", action: "Delete \(a.kind)") {
             Haptics.success()
             library.deleteAlbum(a.id)
-            session.toast = "Deleted “\(a.displayTitle)”"
         }
     }
 
@@ -283,12 +282,12 @@ struct AlbumScreen: View {
                     Button { Haptics.tap(); reading = true } label: {
                         Label("Read Lyrics", systemImage: "book.fill")
                             .font(.system(size: 17, weight: .semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(look.ink)
                             .frame(width: 176, height: 52)
-                            .background(look.ink, in: Capsule())
                             .contentShape(Capsule())
                     }
                     .buttonStyle(PressScale())
+                    .glassCapsule(interactive: true)
                     .disabled(tracks.isEmpty).opacity(tracks.isEmpty ? 0.55 : 1)
                     round("square.and.pencil", "New Song") { newSong(a) }
                 }
@@ -348,7 +347,6 @@ struct AlbumScreen: View {
     private func remove(_ s: Song) {
         Haptics.tap()
         withAnimation(.snappy) { library.setAlbum([s.id], to: "") }
-        session.toast = "Removed “\(s.displayTitle)”"
     }
 
     private func newSong(_ a: Album) {

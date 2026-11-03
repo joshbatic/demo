@@ -779,7 +779,6 @@ struct DictionarySheet: View {
     private func insert(_ w: String) {
         guard let at = insertAt else { return }
         insertAt = bridge.insertPlain(w, at: at)
-        session.toast = "Inserted “\(w)”"
     }
 }
 

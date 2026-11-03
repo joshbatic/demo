@@ -47,17 +47,27 @@ struct EditorScreen: View {
                 // the lyrics run the full height of the screen and scroll under the glass bars,
                 // which float over them (the web's #sc under .bar and #rhy)
                 ZStack {
-                    RichTextEditor(bridge: bridge, rich: song.rich, lyrics: song.lyrics,
-                                   header: AnyView(header(song).environment(session).environment(library).tint(Theme.tint)),
-                                   insets: textInsets)
-                        .ignoresSafeArea(.container, edges: .vertical)
-                        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { editorFrame = $0 }
+                    if Guide.isView(song) {
+                        // the How *[demo] works guide: read with its pictures, no keyboard or rhyme bar
+                        GuideView(header: AnyView(header(song).environment(session).environment(library).tint(Theme.tint)),
+                                  topInset: textInsets.top)
+                            .ignoresSafeArea(.container, edges: .vertical)
+                            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { editorFrame = $0 }
+                    } else {
+                        RichTextEditor(bridge: bridge, rich: song.rich, lyrics: song.lyrics,
+                                       header: AnyView(header(song).environment(session).environment(library).tint(Theme.tint)),
+                                       insets: textInsets)
+                            .ignoresSafeArea(.container, edges: .vertical)
+                            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { editorFrame = $0 }
+                    }
 
                     VStack(spacing: 0) {
                         topBar
                             .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxY } action: { topBarBottom = $0 }
                         Spacer(minLength: 0)
-                        if sprintEnd != nil {
+                        if Guide.isView(song) {
+                            EmptyView()
+                        } else if sprintEnd != nil {
                             sprintPill.padding(.bottom, 10)
                         } else {
                             RhymeBar(bridge: bridge, context: context, results: results,
@@ -281,11 +291,9 @@ struct EditorScreen: View {
             HStack(spacing: 0) {
                 barToggle("ic-map", "Rhyme map", on: showMap) {
                     showMap.toggle(); bridge.showMap = showMap
-                    session.toast = showMap ? "Rhyme map on" : "Rhyme map off"
                 }
                 barToggle("ic-syl", "Syllable counts", on: showSyl) {
                     showSyl.toggle(); bridge.showSyl = showSyl
-                    session.toast = showSyl ? "Syllable counts on" : "Syllable counts off"
                 }
                 Button { Haptics.tap(); bridge.textView?.resignFirstResponder(); showShare = true } label: {
                     Icon("ic-share", 22).foregroundStyle(Theme.tint).frame(width: 44, height: 48).contentShape(Rectangle())

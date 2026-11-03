@@ -73,7 +73,7 @@ struct IdeasScreen: View {
                     .onTapGesture { editing = IdeaTarget(id: i.id, idea: i) }
                     .listRowInsets(EdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20))
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) { delete(i) } label: { Label("Delete", systemImage: "trash") }
+                        Button(role: .destructive) { delete(i) } label: { Label("Delete", systemImage: "trash") }.tint(.red)
                     }
                     .contextMenu {
                         Button { editing = IdeaTarget(id: i.id, idea: i) } label: { Label("Open", systemImage: "arrow.up.forward.app") }
@@ -140,7 +140,7 @@ struct IdeasScreen: View {
         VStack(spacing: 0) {
             if recorder.isRecording {
                 HStack(spacing: 10) {
-                    Button("Cancel") { recorder.cancel(); Haptics.tap(); session.toast = "Recording discarded" }
+                    Button("Cancel") { recorder.cancel(); Haptics.tap() }
                         .font(.system(size: 15, weight: .medium))
                     Circle().fill(.red).frame(width: 8, height: 8)
                     Text(SongFiles.time(recorder.elapsed)).font(.system(size: 15).monospacedDigit())
@@ -225,7 +225,6 @@ struct IdeasScreen: View {
         Haptics.thud()
         IdeaMemos.deleteFile(i.memo)
         withAnimation { library.deleteIdea(i.id) }
-        session.toast = "Idea deleted"
     }
 }
 
@@ -347,7 +346,7 @@ struct IdeaSheet: View {
                 gone = true
                 IdeaMemos.deleteFile(c.memo)
                 library.deleteIdea(c.id)
-                Haptics.thud(); session.toast = "Idea deleted"
+                Haptics.thud()
                 // after the action sheet has gone, or the sheet won't close
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { dismiss() }
             }
@@ -382,7 +381,6 @@ struct IdeaSheet: View {
         if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             gone = true
             library.deleteIdea(c.id)
-            session.toast = "Voice memo deleted"
             dismiss()
         } else {
             var i = c
@@ -391,7 +389,6 @@ struct IdeaSheet: View {
             i.raw["kind"] = "line"
             i.updated = Clock.nowMs
             library.putIdea(i)
-            session.toast = "Recording removed"
         }
     }
 
