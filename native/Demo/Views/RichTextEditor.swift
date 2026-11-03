@@ -372,6 +372,7 @@ struct RichTextEditor: UIViewRepresentable {
 
         func textViewDidChange(_ tv: UITextView) {
             bridge?.lastEdit = Date()
+            (tv as? LyricsTextView)?.lastTyped = Date()
             afterChange(tv)
             // after the system's own scrolling, make sure the new text sits above the rhyme bar
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) { (tv as? LyricsTextView)?.keepCaretVisible(animated: true) }
@@ -406,7 +407,8 @@ struct RichTextEditor: UIViewRepresentable {
 
         func textViewDidChangeSelection(_ tv: UITextView) {
             bridge?.onSelection?(tv.text, tv.selectedRange)
-            // only while typing (an empty selection); a drag-selection is left where the finger put it
+            // only for an empty selection; a drag-selection is left where the finger put it. keepCaretVisible
+            // only centres the line while typing: a tap that moves the caret leaves the page where it is
             if tv.selectedRange.length == 0, !tv.isTracking, !tv.isDragging, !tv.isDecelerating {
                 DispatchQueue.main.async { (tv as? LyricsTextView)?.keepCaretVisible(animated: true) }
             }
@@ -551,6 +553,11 @@ final class LyricsTextView: UITextView {
         }
     }
 
+    /// When the text last changed by typing (or a paste, a rhyme): only then is the line centred. Tapping
+    /// somewhere, selecting words or the selection menu moving the caret never scrolls the page unless the
+    /// caret would be hidden under a bar.
+    var lastTyped: Date = .distantPast
+
     /// The web's reveal(): while typing (an empty selection), the line you're on is centred between the top bar
     /// and the rhyme bar (which rides on the keyboard), so you never type off screen and the page keeps a steady
     /// rhythm; with words selected it only scrolls when the end of the selection goes off screen.
@@ -558,7 +565,7 @@ final class LyricsTextView: UITextView {
         guard isFirstResponder, let r = selectedTextRange else { return }
         let caret = caretRect(for: r.end)
         guard !caret.isNull, !caret.isInfinite, caret.height > 0 else { return }
-        let centre = center ?? r.isEmpty
+        let centre = center ?? (r.isEmpty && Date().timeIntervalSince(lastTyped) < 0.8)
         let top = contentOffset.y + barSpace + 12
         let bottom = contentOffset.y + bounds.height - contentInset.bottom - 14
         guard bottom > top else { return }
