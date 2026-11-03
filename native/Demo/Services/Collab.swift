@@ -112,7 +112,6 @@ final class Collab {
             return nil
         }
         Haptics.success()
-        session.toast = "Shared. Invite a collaborator by username below."
         return s.id
     }
 

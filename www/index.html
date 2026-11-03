@@ -17793,7 +17793,7 @@ function shareSong(){if(!AUTH_USER){toast('Sign in to share songs');return}if(!c
   }
   if(!s.artist){s.artist=myName();s._autoArtist=s.artist}
   s.shared=true;s.owner=AUTH_USER.id;s.ownerEmail=AUTH_USER.email;s.members=[AUTH_USER.id];s.updated=Date.now();
-  pushShared(s);save();renderCollab();renderList();renderSide();toast('Shared. Invite a collaborator by username below.')}
+  pushShared(s);save();renderCollab();renderList();renderSide()}
 function leaveOrDelete(s){var c=sbClient();
   if(isOwnerOf(s)){if(c)sharedEnd(s);try{audDel(s.id)}catch(e){}}
   else if(c&&AUTH_USER){c.from('collab_members').delete().eq('song_id',s.id).eq('user_id',AUTH_USER.id).then(function(){},function(){})}
