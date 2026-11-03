@@ -56,6 +56,7 @@ struct SongListScreen: View {
                                     Button(role: .destructive) { confirmDelete = s } label: {
                                         Label(isMine(s) ? "Delete" : "Leave", systemImage: isMine(s) ? "trash" : "rectangle.portrait.and.arrow.right")
                                     }
+                                    .tint(.red)   // the app's tint is white in dark mode; keep delete red
                                 }
                                 .swipeActions(edge: .leading) {
                                     Button { togglePin(s) } label: {

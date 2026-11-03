@@ -73,7 +73,7 @@ struct IdeasScreen: View {
                     .onTapGesture { editing = IdeaTarget(id: i.id, idea: i) }
                     .listRowInsets(EdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20))
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) { delete(i) } label: { Label("Delete", systemImage: "trash") }
+                        Button(role: .destructive) { delete(i) } label: { Label("Delete", systemImage: "trash") }.tint(.red)
                     }
                     .contextMenu {
                         Button { editing = IdeaTarget(id: i.id, idea: i) } label: { Label("Open", systemImage: "arrow.up.forward.app") }

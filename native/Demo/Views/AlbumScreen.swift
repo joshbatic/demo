@@ -186,7 +186,7 @@ struct AlbumScreen: View {
                         Rectangle().fill(.quaternary).frame(height: 0.5).padding(.leading, i == 0 ? 0 : 36)
                     }
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button(role: .destructive) { remove(s) } label: { Label("Remove", systemImage: "minus.circle") }
+                        Button(role: .destructive) { remove(s) } label: { Label("Remove", systemImage: "minus.circle") }.tint(.red)
                     }
             }
             .onMove { from, to in

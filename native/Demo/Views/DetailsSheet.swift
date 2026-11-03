@@ -312,7 +312,7 @@ struct DetailsSheet: View {
         let f = Self.dayFormat
         if let d = f.date(from: raw) {
             DatePicker("Release date", selection: Binding(get: { d }, set: { setReleaseDate(f.string(from: $0)) }), displayedComponents: .date)
-                .swipeActions { Button("Clear", role: .destructive) { setReleaseDate("") } }
+                .swipeActions { Button("Clear", role: .destructive) { setReleaseDate("") }.tint(.red) }
         } else {
             HStack {
                 Text("Release date"); Spacer()
