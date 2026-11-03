@@ -292,7 +292,7 @@ struct SongListScreen: View {
             }
             Button { newAlbum([s.id]) } label: { Label("New Album…", systemImage: "plus.square.on.square") }
             if let a = library.album(s.albumID) {
-                Button { Haptics.tap(); withAnimation(.snappy) { library.setAlbum([s.id], to: "") }; session.toast = "Removed from “\(a.displayTitle)”" } label: {
+                Button { Haptics.tap(); withAnimation(.snappy) { library.setAlbum([s.id], to: "") } } label: {
                     Label("Remove from Album", systemImage: "minus.square")
                 }
             }
@@ -309,7 +309,6 @@ struct SongListScreen: View {
         guard let s = library.song(id), s.folder != f else { return }
         Haptics.tap()
         withAnimation(.snappy) { library.move(id, to: f) }
-        session.toast = f.isEmpty ? "Moved out of folders" : "Moved to “\(f)”"
     }
 
     private func newFolder() {
@@ -330,7 +329,6 @@ struct SongListScreen: View {
         let nv = renameText
         guard let n = withAnimation(.snappy, { library.renameFolder(old, to: nv) }) else { return }
         let name = nv.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression).trimmingCharacters(in: .whitespaces)
-        session.toast = "Renamed to “\(name)”" + (n > 1 ? " (\(n) songs)" : "")
     }
 
     private func exportAll() {
@@ -370,7 +368,6 @@ struct SongListScreen: View {
     private func togglePin(_ s: Song) {
         Haptics.selection()
         withAnimation(.snappy) { library.setPin(s.id, !library.isPinned(s.id)) }
-        session.toast = library.isPinned(s.id) ? "Pinned “\(s.displayTitle)”" : "Unpinned"
     }
 
     private func copyLyrics(_ s: Song) {

@@ -83,7 +83,7 @@ extension AppSession {
         do {
             try await Backend.client.from("profiles").upsert(Up(user_id: uid, avatar_url: url, display_name: myName.isEmpty ? nil : myName, updated_at: LibraryStore.iso(Date())), onConflict: "user_id").execute()
             profile.avatar_url = url; cacheProfile()
-            Haptics.success(); toast = "Photo updated"
+            Haptics.success()
         } catch { toast = "Couldn’t update your photo: " + describe(error) }
     }
 
@@ -195,7 +195,6 @@ extension AppSession {
     func unblock(_ b: Blocked) async {
         guard let uid = userID else { return }
         _ = try? await Backend.client.from("user_blocks").delete().eq("blocker", value: uid).eq("blocked", value: b.id).execute()
-        toast = "Unblocked " + (b.username.isEmpty ? b.name : "@" + b.username)
     }
 
     // MARK: storage, notification prefs

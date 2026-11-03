@@ -382,7 +382,6 @@ final class Collab {
         if person.role == "invited" {
             _ = try? await Backend.client.from("collab_invites").delete().eq("song_id", value: songID).eq("invitee_user_id", value: person.id).execute()
         }
-        session?.toast = "Removed \(person.name)"
     }
 
     // MARK: invites to me

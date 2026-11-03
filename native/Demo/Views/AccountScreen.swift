@@ -194,7 +194,7 @@ struct AccountScreen: View {
                         .font(.system(size: 13)).foregroundStyle(.secondary)
                     }
                     Spacer(minLength: 4)
-                    Button { Task { await collab.decline(inv); session.toast = "Invite declined" } } label: {
+                    Button { Task { await collab.decline(inv) } } label: {
                         Text("Decline").font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.tint)
                             .padding(.horizontal, 12).frame(height: 30).background(BarFill.color, in: Capsule())
                     }
@@ -254,7 +254,7 @@ struct AccountScreen: View {
             await push.refreshStatus()
             switch push.status {
             case .notDetermined:
-                if await push.ask() { session.toast = "Notifications are on" }
+                _ = await push.ask()
             case .denied:
                 session.toast = "Notifications are off for *[demo]. Turn them on in Settings › *[demo] › Notifications."
             default:
@@ -321,8 +321,8 @@ struct AccountScreen: View {
         Section {
             Toggle(isOn: Binding(get: { AIService.shared.consent == "yes" }, set: { on in
                 Haptics.selection()
-                if on { AIService.shared.consent = "yes"; session.toast = "AI features are on" }
-                else { AIService.shared.consent = "no"; session.toast = "AI features are off" }
+                if on { AIService.shared.consent = "yes" }
+                else { AIService.shared.consent = "no" }
             })) {
                 Label { Text("AI Features") } icon: { GlassTile("sparkles", .purple) }
             }

@@ -291,11 +291,9 @@ struct EditorScreen: View {
             HStack(spacing: 0) {
                 barToggle("ic-map", "Rhyme map", on: showMap) {
                     showMap.toggle(); bridge.showMap = showMap
-                    session.toast = showMap ? "Rhyme map on" : "Rhyme map off"
                 }
                 barToggle("ic-syl", "Syllable counts", on: showSyl) {
                     showSyl.toggle(); bridge.showSyl = showSyl
-                    session.toast = showSyl ? "Syllable counts on" : "Syllable counts off"
                 }
                 Button { Haptics.tap(); bridge.textView?.resignFirstResponder(); showShare = true } label: {
                     Icon("ic-share", 22).foregroundStyle(Theme.tint).frame(width: 44, height: 48).contentShape(Rectangle())

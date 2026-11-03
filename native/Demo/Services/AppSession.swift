@@ -234,10 +234,8 @@ final class AppSession {
                 .filter { !$0.hasPrefix("local:") && $0.hasPrefix(uid + "/") }
             if !paths.isEmpty { _ = try? await client.storage.from("song-files").remove(paths: paths) }
             if s.isShared { _ = try? await client.from("shared_songs").delete().eq("id", value: s.id).execute() }
-            toast = "Song deleted"
         } else {
             _ = try? await client.from("collab_members").delete().eq("song_id", value: s.id).eq("user_id", value: uid).execute()
-            toast = "You left “\(s.displayTitle)”"
         }
     }
 

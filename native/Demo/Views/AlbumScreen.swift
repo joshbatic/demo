@@ -221,7 +221,6 @@ struct AlbumScreen: View {
                         message: "Its songs stay in your library.", action: "Delete \(a.kind)") {
             Haptics.success()
             library.deleteAlbum(a.id)
-            session.toast = "Deleted “\(a.displayTitle)”"
         }
     }
 
@@ -348,7 +347,6 @@ struct AlbumScreen: View {
     private func remove(_ s: Song) {
         Haptics.tap()
         withAnimation(.snappy) { library.setAlbum([s.id], to: "") }
-        session.toast = "Removed “\(s.displayTitle)”"
     }
 
     private func newSong(_ a: Album) {
