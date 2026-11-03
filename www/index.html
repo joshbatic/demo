@@ -15445,7 +15445,7 @@ AH-S-IH-N	bussin52s`;
 var APP_COMMIT='2b15ead';
 var APP_SEQ=770;
 /* the version people see, the same as the iPhone app's; Account shows it with the build number so every device can be compared */
-var APP_VERSION='1.1.0';
+var APP_VERSION='1.2.0';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
 function currentKey(){if(typeof DEV_MODE!=='undefined'&&DEV_MODE&&!AUTH_USER)return K_DEV;if(typeof AUTH_USER!=='undefined'&&AUTH_USER&&AUTH_USER.id)return K+':'+AUTH_USER.id;return K}
 function load(){ACTIVE_KEY=currentKey();try{songs=JSON.parse(localStorage.getItem(ACTIVE_KEY))||[]}catch(e){songs=[]}seedGuide();loadIdeas();loadAlbums()}
