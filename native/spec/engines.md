@@ -198,18 +198,19 @@ function ctx(){
   containing the column, else the last token before it). Empty lines give no word.
 - `ref` = partner line or previous stanza line — used for "N to match" (syllables).
 
-### 1.9 Ordering of chips (verbatim 16604–16605)
+### 1.9 Ordering of chips — `rankWords` (web) / `WordRank` (iPhone), Nov 2026
 
-<!-- verbatim index.html lines 16604-16605 -->
-```js
-  function order(a){var rare=function(x){var w=nw(x),e=W[w];return!!e&&(e.t>=8||(e.s>=2&&w.length<=e.s))};a=a.filter(function(x){return!rare(x)}).concat(a.filter(rare));
-    if(!left)return a;var f=function(x){return sy(x)===left&&!rare(x)};return a.filter(f).concat(a.filter(function(x){return!f(x)}))}
-```
-
-"Rare" = tier ≥8, or an abbreviation read letter by letter (syllables ≥2 and word length ≤ syllables, e.g. "atm",
-"mph"). Rare words go last; when the line needs exactly `left` more syllables, words with exactly that count (and not
-rare) go first. Default caps: Rhymes = 40 perfect + 30 near (near dropped when "Perfect only"), Perfect = 40,
-Near = 60; Dictionary 60/40 (Near 80).
+Rhymes (perfect and near lists separately) and word lists are scored, lowest first, stable:
+- syllables: `min(9, |syl(x) − syl(target)| × 3)`, or 0 when `left` (syllables the line still needs) > 0 and syl(x) = left;
+- tier × 0.5 (unknown words 7, phrases 4);
+- this song: the song's 40 most frequent content words (no STOP words, longer than 2 letters, not the target) and the
+  word library's synonyms + related words of each; a candidate ties once if it's among those, and once per song word in
+  its own synonyms + related words; −1.5 for one tie, −3.5 for two or more;
+- +3 when one word is the other with letters in front ("time"/"sometime"); +2 when it already ends another line;
+- +100 for rare words (tier ≥ 8) and letter-by-letter abbreviations (syllables ≥ 2 and length ≤ syllables).
+The AI ranking for the song (Listen to whole song) still reorders first when it has answered; this then sorts.
+Default caps: Rhymes = 40 perfect + 30 near (near dropped when "Perfect only"), Perfect = 40, Near = 60; Dictionary
+60/40 (Near 80).
 
 ### 1.10 Rhyme map colouring — `rmap()` (verbatim 17049–17079, includes STOP list and gutter)
 

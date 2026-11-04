@@ -51,6 +51,8 @@ final class WordResults {
     @ObservationIgnored var ai: (() -> AIContext)?
     /// The caret's line, for ranking and meaning lookups.
     var line = ""
+    /// The whole song's text: words tied to what it's about rank higher (WordRank).
+    @ObservationIgnored var song = ""
     /// A multi-word selection: Phrases rhymes it with the AI (Pro).
     var phrase = ""
     private(set) var ranking = false
@@ -139,7 +141,8 @@ final class WordResults {
                 guard t == token else { return }
                 busy = false; dmSyl = s
                 guard let l else { message = "This list needs a connection, and it isn’t reachable right now."; return }
-                chips = RhymeEngine.shared.filter(l, register: register).prefix(big ? 80 : 60).map { WordChip(word: $0, syl: syl($0)) }
+                let kept = Array(RhymeEngine.shared.filter(l, register: register).prefix(big ? 80 : 60))
+                chips = WordRank.rank(kept, word: w, left: 0, song: song, line: line, syl: syl).map { WordChip(word: $0, syl: syl($0)) }
                 message = chips.isEmpty ? "Nothing found for “\(w)”." : nil
             }
         }
@@ -155,8 +158,9 @@ final class WordResults {
         let eng = RhymeEngine.shared
         var p: [String], n: [String]
         if !local, let s = dmCached { (p, n) = s } else { let s = eng.sets(word); p = s.perfect; n = s.near }
-        p = eng.order(eng.filter(p, register: register), left: left, syl: syl)
-        n = eng.order(eng.filter(n, register: register), left: left, syl: syl)
+        // syllables like the word, everyday words and ties to this song first; rare words last (WordRank)
+        p = WordRank.rank(eng.filter(p, register: register), word: word, left: left, song: song, line: line, syl: syl)
+        n = WordRank.rank(eng.filter(n, register: register), word: word, left: left, song: song, line: line, syl: syl)
         let capP = big ? 60 : 40, capN = big ? (mode == .near ? 80 : 40) : (mode == .near ? 60 : 30)
         var out: [WordChip] = []
         switch mode {

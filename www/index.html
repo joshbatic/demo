@@ -22396,6 +22396,36 @@ function wlPhrases(w){if(!WL)return null;
   function take(gi){(WL.pr[gi]||[]).forEach(function(x){var p=x[0];if(!seen[p]&&nw(p)!==me){seen[p]=1;out.push(p)}})}
   take(S.gi);var near={};S.n.forEach(function(x){var e=W[x];if(e&&!near[e.k]&&out.length<200){near[e.k]=1;take(e.k)}});
   return out}
+/* ---------- ranking rhymes and word lists without the AI (rankWords; WordRank on iPhone) ----------
+   Each word gets a score, lowest first:
+   - syllables: words with as many syllables as the word you're rhyming come first (one-syllable "light" → "night",
+     "bright" before "tonight"), 3 points for each syllable off. A word with exactly the syllables the line still
+     needs (left) counts as a match too.
+   - how common: 0.5 a step through the dictionary's ten tiers, so everyday words lead.
+   - this song: ties to the song's other words (the word library's synonyms and related words, both ways; the word
+     being rhymed doesn't count): -1.5 for one, -3.5 for two or more, so a less usual word that fits what the song is
+     about can jump ahead.
+   - +3 for a rhyme that's just the same word inside a longer one ("time" → "sometime"), +2 for a word already
+     ending another line of the song.
+   - rare words (the two rarest tiers) and abbreviations read letter by letter still go last. */
+var RWCTX={k:null};
+function rwSong(text,skip){var key=text+'\u0000'+(skip||'');if(RWCTX.k===key)return RWCTX;var n={},ends={};
+  String(text||'').split('\n').forEach(function(l){var t=l.trim();if(!t||t[0]==='[')return;var ws=t.toLowerCase().match(/[a-z']+/g)||[];
+    ws.forEach(function(w){w=nw(w);if(w.length>2&&!STOP[w]&&w!==skip)n[w]=(n[w]||0)+1});if(ws.length)ends[nw(ws[ws.length-1])]=(ends[nw(ws[ws.length-1])]||0)+1});
+  var words=Object.keys(n).sort(function(a,b){return n[b]-n[a]}).slice(0,40),has={},R={};words.forEach(function(w){has[w]=1});
+  if(WL)words.forEach(function(w){(wlList('syn',w)||[]).concat(wlList('rel',w)||[]).forEach(function(x){R[nw(x)]=(R[nw(x)]||0)+1})});
+  return RWCTX={k:WL?key:null,has:has,R:R,ends:ends}}
+function rankWords(a,o){
+  var w=nw(o.w||''),sw=o.w?(String(o.w).indexOf(' ')>=0?lsyl(o.w):syl(o.w)):0,left=o.left||0,C=rwSong(o.song,w),me=o.line?nw(lastW(o.line)):'';
+  var sc=a.map(function(x,i){var k=nw(x),e=W[k],s=sy(x),v=0;
+    if(e&&(e.t>=8||(e.s>=2&&k.length<=e.s)))v+=100;
+    if(sw)v+=(left&&s===left)?0:Math.min(9,Math.abs(s-sw)*3);
+    v+=(e?e.t:x.indexOf(' ')>=0?4:7)*.5;
+    if(WL){var tie=C.R[k]?1:0,L=(wlList('syn',x)||[]).concat(wlList('rel',x)||[]);for(var j=0;j<L.length&&tie<2;j++)if(C.has[nw(L[j])])tie++;v-=tie>=2?3.5:tie*1.5}
+    if(w&&k!==w&&(k.length>w.length&&k.slice(-w.length)===w||w.length>k.length&&w.slice(-k.length)===k))v+=3;
+    if(C.ends[k]&&k!==me)v+=2;
+    return[x,v,i]});
+  sc.sort(function(p,q){return p[1]-q[1]||p[2]-q[2]});return sc.map(function(p){return p[0]})}
 /* fetch it in the background soon after the app opens, so the first lookup doesn't wait */
 setTimeout(function(){wlLoad().catch(function(){})},4000);
 function getR(w){var d=DM[nw(w)];if(d&&!d.then)return{src:'dm',p:fl(d.p),n:fl(d.n)};var S=rsets(w);return{src:'local',p:fl(S.p),n:fl(S.n)}}
@@ -22605,11 +22635,8 @@ function rhyme(){
     MC[k]=pr;
     pr.then(function(a){MC[k]=a;if(!lines&&ctx().sel.trim()===selPhrase)rhyme()});
   }
-  /* rare words (the dictionary's two least-common tiers, e.g. "diltiazem") and abbreviations read letter by letter
-     ("atm", "mph": as many syllables as letters) go last, and are never lifted to the front just because their
-     syllables fit the line */
-  function order(a){var rare=function(x){var w=nw(x),e=W[w];return!!e&&(e.t>=8||(e.s>=2&&w.length<=e.s))};a=a.filter(function(x){return!rare(x)}).concat(a.filter(rare));
-    if(!left)return a;var f=function(x){return sy(x)===left&&!rare(x)};return a.filter(f).concat(a.filter(function(x){return!f(x)}))}
+  /* syllables like the word, everyday words, ties to this song first; rare words last (rankWords) */
+  function order(a){return rankWords(a,{w:tgt,left:left,song:getText(),line:c.cur})}
   function add(x,type){chip(x,left&&sy(x)===left?'f':'',sy(x),function(){var ta=$('#lyr'),pv=ta.value.charAt(ta.selectionStart-1);var orig=c.sel?c.sel.trim():sp?ta.value.slice(sp[0],sp[1]):'',out=x;
     if(/^[A-Z][A-Z]+$/.test(orig))out=x.toUpperCase();else if(/^[A-Z]/.test(orig))out=x.charAt(0).toUpperCase()+x.slice(1);
     if(c.sel){ins(ta,out)}
@@ -23060,6 +23087,7 @@ function dictRun(){
     var S=getR(w),P=dictMode==='near'?[]:S.p.slice(0,60),Nr=dictMode==='per'?[]:S.n.slice(0,dictMode==='near'?80:40);
     if(S.src==='local'&&!dmOff){var want=nw(w);dmRhymes(w).then(function(r){if(r&&dictMode!=='def'&&nw(dictWord)===want&&$('#dictSheet').classList.contains('on'))dictRun()})}
     if(!P.length&&!Nr.length)return hint('No '+(dictMode==='per'?'perfect ':dictMode==='near'?'near ':'')+'rhymes found for “'+w+'”.');
+    var dsong=cur?getText():'';P=rankWords(P,{w:w,song:dsong});Nr=rankWords(Nr,{w:w,song:dsong});
     P.forEach(function(x){chip(x,sy(x))});Nr.forEach(function(x){chip(x,sy(x))});
     return;
   }

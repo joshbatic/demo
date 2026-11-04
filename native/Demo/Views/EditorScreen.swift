@@ -537,6 +537,7 @@ struct EditorScreen: View {
         results.left = max(0, need)
         if c != context { context = c }
         results.line = c.line
+        results.song = text
         let sel = c.selection.trimmingCharacters(in: .whitespacesAndNewlines)
         results.phrase = sel.split(whereSeparator: { $0 == " " }).count > 1 && !sel.contains("\n") ? sel : ""
         if RhymeEngine.normalise(c.word) != RhymeEngine.normalise(results.word) || leftChanged { results.show(c.word) }
