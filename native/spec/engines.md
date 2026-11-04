@@ -21,10 +21,13 @@ Contents
 - One JS template literal: `var DATA=\`` starts on **line 1643** and the closing `` `; `` is at the end of **line
   15083** (the last entry is `AH-S-IH-N\tbussin52s`). Immediately after it, line 15084 is the comment
   `/* git commit this build came from … */` and 15085 `var APP_COMMIT=…`.
-- **13,441 lines** (one per rhyme group), **45,230 words** (each word appears exactly once — one pronunciation per word),
-  ~674 KB of text. Largest group: 717 words.
-- There are no other embedded dictionaries: no definitions, synonyms or phrase tables ship in the file. Those come from
-  Datamuse or the AI. (The other big blobs are the splash PNGs on line 1211 and the lamejs encoder, 1307–1614.)
+- **19,054 lines** (one per rhyme group), **68,669 words** (each word appears exactly once — one pronunciation per word),
+  ~951 KB of text. Built by `scripts/words/build.py` (Nov 2026: every CMU word WordNet knows, plus any other with a wordfreq
+  zipf of 2 or more; earlier words kept their group, tier, syllables and flag, new groups were added at the end).
+- Synonyms, related words, opposites, definitions and rhyming phrases come from the **word library**
+  (`docs/data/words-v1.txt`, the iPhone's `Words.txt`; format in `scripts/words/build.py`): the web fetches it once
+  from hellodemo.app/data and keeps it in IndexedDB (`wlLoad`), the iPhone bundles it (`WordLibrary`). Datamuse and
+  the AI only answer what it doesn't have (Describe, Sounds like, unknown words). (The other big blobs are the splash PNGs on line 1211 and the lamejs encoder, 1307–1614.)
 
 ### 1.2 Format (exact parsing rules)
 

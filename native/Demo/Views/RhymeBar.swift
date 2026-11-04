@@ -96,6 +96,14 @@ final class WordResults {
         } else if mode == .phr {
             chips = []; message = nil; busy = true
             Task {
+                // phrases from the built-in library first (they work offline), Datamuse when it has none
+                let local = await Task.detached(priority: .userInitiated) { WordLibrary.shared.phrases(rhymingWith: w) }.value
+                guard t == token else { return }
+                if !local.isEmpty {
+                    busy = false
+                    chips = local.prefix(big ? 80 : 40).map { WordChip(word: $0, syl: syl($0)) }
+                    return
+                }
                 let r = await Datamuse.shared.rhymes(w)
                 let s = await Datamuse.shared.syllables
                 guard t == token else { return }
@@ -108,7 +116,9 @@ final class WordResults {
         } else if mode == .def {
             chips = []; message = nil; busy = true
             Task {
-                var d = await Datamuse.shared.define(w)
+                // the built-in library first; Datamuse, then the AI, only when it has nothing
+                let local = WordLibrary.shared.definitions(w)
+                var d: [(String, String)]? = local.isEmpty ? await Datamuse.shared.define(w) : local
                 if d == nil || d?.isEmpty == true, let a = ai?(), a.pro, let env = a.env {
                     let x = await aiDefine(w, env: env)
                     if !x.isEmpty { d = x }
@@ -120,12 +130,15 @@ final class WordResults {
         } else {
             chips = []; message = nil; busy = true
             Task {
-                var l = await Datamuse.shared.list(mode.rawValue, w, topics: [])
+                // synonyms, related words and opposites from the built-in library first; Describe and Sounds like,
+                // and words it doesn't know, ask Datamuse, then the AI
+                let local = WordLibrary.shared.list(mode.rawValue, w)
+                var l: [String]? = local.isEmpty ? await Datamuse.shared.list(mode.rawValue, w, topics: []) : local
                 if l == nil, let a = ai?(), a.pro, let env = a.env { let x = await aiList(mode, w, env: env, ctxOn: a.ctxOn); if !x.isEmpty { l = x } }
                 let s = await Datamuse.shared.syllables
                 guard t == token else { return }
                 busy = false; dmSyl = s
-                guard let l else { message = "Meaning-based lists need a connection, and it isn’t reachable right now."; return }
+                guard let l else { message = "This list needs a connection, and it isn’t reachable right now."; return }
                 chips = RhymeEngine.shared.filter(l, register: register).prefix(big ? 80 : 60).map { WordChip(word: $0, syl: syl($0)) }
                 message = chips.isEmpty ? "Nothing found for “\(w)”." : nil
             }
