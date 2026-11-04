@@ -4,8 +4,9 @@ import Foundation
 /// these upgrade the results when they arrive. Two failures in a row switch it off for the session.
 actor Datamuse {
     static let shared = Datamuse()
-    /// Datamuse asks for a key from 1 January 2027.
-    static let key = ""
+    /// Datamuse asks for its key ("k") on every request from 1 January 2027. It comes with the remote settings
+    /// (app_config.dm_key, signed-in only; RemoteConfig keeps it), so it isn't in the public repo.
+    nonisolated static var key: String { UserDefaults.standard.string(forKey: "songpad:dmkey") ?? "" }
 
     private var rhymeCache: [String: (perfect: [String], near: [String])] = [:]
     private var listCache: [String: [String]] = [:]
@@ -17,7 +18,8 @@ actor Datamuse {
 
     private func fetch(_ query: String) async throws -> [Item] {
         var s = "https://api.datamuse.com/words?" + query
-        if !Self.key.isEmpty { s += "&key=" + (Self.key.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "") }
+        let k = Self.key
+        if !k.isEmpty { s += "&k=" + (k.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "") }
         guard let url = URL(string: s) else { return [] }
         var req = URLRequest(url: url)
         req.timeoutInterval = 4

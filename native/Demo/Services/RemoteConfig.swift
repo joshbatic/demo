@@ -57,6 +57,8 @@ final class RemoteConfig {
         uploadsOff = v["uploads_off"]?.bool ?? false
         minSeq = Int(v["min_seq"]?.number ?? 0)
         updateNote = v["update_note"]?.string ?? ""
+        // Datamuse's key (only sent to signed-in people): kept for Datamuse.fetch, which reads it off the main actor
+        if let k = v["dm_key"]?.string, !k.isEmpty { UserDefaults.standard.set(k, forKey: "songpad:dmkey") }
         guard !cached else { return }
         let text = (v["banner"]?.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         let id = v["banner_id"]?.string ?? text

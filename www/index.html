@@ -22326,11 +22326,13 @@ function setHL(name,a,b){if(!window.CSS||!CSS.highlights||!window.Highlight)retu
 function flash(len){var e=getSel().e;setHL('fl',e-len,e);setTimeout(function(){setHL('fl')},520)}
 buildFmt();
 /* ---------- Datamuse rhymes (online), built-in dictionary as instant fallback ---------- */
-var DMKEY='';/* Datamuse requires a key from 1 Jan 2027: paste it here */
+/* Datamuse's key (it asks for one on every request from 1 Jan 2027) comes with the remote settings (app_config.dm_key,
+   signed-in only), so it isn't in this public file */
+function dmKey(){return(typeof CFG==='object'&&CFG&&CFG.dm_key)||''}
 var DM={},DMS={},dmFails=0,dmOff=false;
 function sy(x){return DMS[x]||(x.indexOf(' ')>=0?lsyl(x):syl(x))}
 function dmFetch(q){var c=new AbortController(),tm=setTimeout(function(){c.abort()},4000);
-  return fetch('https://api.datamuse.com/words?'+q+(DMKEY?'&key='+encodeURIComponent(DMKEY):''),{signal:c.signal}).then(function(r){clearTimeout(tm);if(!r.ok)throw new Error(r.status);return r.json()})}
+  return fetch('https://api.datamuse.com/words?'+q+(dmKey()?'&k='+encodeURIComponent(dmKey()):''),{signal:c.signal}).then(function(r){clearTimeout(tm);if(!r.ok)throw new Error(r.status);return r.json()})}
 function dmRhymes(w){
   w=nw(w);if(!w||dmOff)return Promise.resolve(null);var d=DM[w];if(d)return d.then?d:Promise.resolve(d);
   var pr=Promise.all([dmFetch('rel_rhy='+w+'&md=sf&max=250'),dmFetch('rel_nry='+w+'&md=sf&max=150')]).then(function(r){
