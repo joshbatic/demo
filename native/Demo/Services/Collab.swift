@@ -105,6 +105,7 @@ final class Collab {
         s.raw["owner"] = .string(uid)
         s.raw["ownerEmail"] = .string(session.email)
         s.raw["members"] = .array([.string(uid)])
+        s.raw.removeValue(forKey: "_base"); s.raw.removeValue(forKey: "_srv")
         s.touch()
         library.put(s)
         do { try await push(s) } catch {
@@ -118,7 +119,23 @@ final class Collab {
     /// pushShared: the owner upserts the row; a co-writer may only update it.
     func push(_ song: Song) async throws {
         guard let library, let session, let uid else { return }
-        var s = song
+        var s = library.song(song.id) ?? song
+        // someone else saved since this device last did: merge their changes in first (not while live: the
+        // words are already in step)
+        if s.raw["_base"] != nil, let srv = s.raw["_srv"]?.number, liveUp != s.id,
+           let res = try? await Backend.client.from("shared_songs").select("data").eq("id", value: s.id).limit(1).execute(),
+           let d = ((try? JSONDecoder().decode([[String: JSONValue]].self, from: res.data)) ?? []).first?["data"]?.object,
+           (d["updated"]?.number ?? 0) != srv {
+            s = library.song(s.id) ?? s
+            if SharedMerge.mergeInto(&s, d) {
+                s.updated = max(Clock.nowMs, (d["updated"]?.number ?? 0) + 1)
+                SharedMerge.keep(&s.raw, d)
+                library.put(s)
+            } else {
+                SharedMerge.keep(&s.raw, d)
+                library.putQuietly(s)
+            }
+        }
         s.raw["lastEditBy"] = .string(session.email)
         s.raw["lastEditAt"] = .number(Clock.nowMs)
         let body = Self.ser(s)
@@ -139,6 +156,7 @@ final class Collab {
         if var now = library.song(s.id) {
             now.raw["_pushed"] = .number(max(now.raw["_pushed"]?.number ?? 0, s.updated))
             now.raw["lastEditBy"] = s.raw["lastEditBy"]; now.raw["lastEditAt"] = s.raw["lastEditAt"]
+            if case .object(let b) = body { SharedMerge.keep(&now.raw, b) }
             library.putQuietly(now)
         }
     }
@@ -189,7 +207,19 @@ final class Collab {
             let theirsRm = d["rmFiles"]?.object ?? [:]
             if !theirsRm.isEmpty { d["rmFiles"] = .object((s.raw["rmFiles"]?.object ?? [:]).merging(theirsRm) { a, _ in a }) }
             let theirs = d["updated"]?.number ?? 0
-            if theirs <= s.updated {
+            // has the shared copy moved on since this device last saw it? (older songs without a record go by time)
+            let moved = s.raw["_srv"]?.number.map { $0 != theirs } ?? (theirs > s.updated)
+            let dirty = s.updated > (s.raw["_pushed"]?.number ?? 0)
+            if moved && dirty && s.raw["_base"] != nil && liveUp != songID {
+                SharedMerge.mergeInto(&s, d)
+                SharedMerge.keep(&s.raw, d)
+                s.raw["owner"] = row["owner_id"] ?? s.raw["owner"]
+                s.raw["ownerEmail"] = row["owner_email"] ?? s.raw["ownerEmail"]
+                s.updated = max(Clock.nowMs, theirs + 1)
+                library.put(s)
+                return true
+            }
+            if !moved {
                 if Self.fileMerge(&s, rm: d["rmFiles"]?.object ?? [:], audio: d["audio"]?.array ?? [], files: d["files"]?.array ?? []) {
                     s.touch(); library.put(s)
                 }
@@ -214,6 +244,7 @@ final class Collab {
             s.raw["owner"] = row["owner_id"] ?? s.raw["owner"]
             s.raw["ownerEmail"] = row["owner_email"] ?? s.raw["ownerEmail"]
             s.raw["_pushed"] = .number(theirs)
+            SharedMerge.keep(&s.raw, d)
             if keptNewer { s.touch() }
             library.put(s)
             return true
@@ -259,14 +290,41 @@ final class Collab {
             guard let again = await missing() else { return }
             gone = again
         }
-        for s in gone { library.dropLocally(s.id) }
+        for s in gone {
+            // my uploads to it: the owner kept copies (or deleted the song), so they'd only use up my storage
+            for f in (s.raw["audio"]?.array ?? []) + (s.raw["files"]?.array ?? []) {
+                if let p = f["path"]?.string, p.split(separator: "/").first.map(String.init)?.lowercased() == uid.lowercased() { await SongFiles.remove(p) }
+            }
+            library.dropLocally(s.id)
+        }
         if gone.count == 1 { session.toast = "“\(gone[0].displayTitle)” was removed by its owner" }
         else if gone.count > 1 { session.toast = "\(gone.count) shared songs were removed by their owners" }
     }
 
     /// The owner stops sharing: tell everyone, then delete the shared row (members and invites go with it).
     func stopSharing(_ songID: String) async {
-        guard let library, let session, var s = library.song(songID) else { return }
+        guard let library, let session, let uid, var s = library.song(songID) else { return }
+        // co-writers' files live in their folders, which the owner can only open while the song is shared: copy
+        // each into the owner's folder first. If any copy fails, sharing stays on and nothing is lost.
+        var changed = false
+        for key in ["audio", "files"] {
+            guard var list = s.raw[key]?.array else { continue }
+            for (i, x) in list.enumerated() {
+                guard let p = x["path"]?.string, !p.hasPrefix("local:"), let id = x["id"]?.string,
+                      p.split(separator: "/").first.map(String.init)?.lowercased() != uid.lowercased(), var o = x.object else { continue }
+                let ext = p.split(separator: ".").last.map(String.init) ?? "bin"
+                let to = "\(uid)/\(s.id)/\(id).\(ext)"
+                do { try await SongFiles.copy(p, to: to) } catch {
+                    if !describe(error).lowercased().contains("exist") {
+                        session.toast = "Couldn’t keep your co-writers’ files, so the song is still shared: " + describe(error)
+                        return
+                    }
+                }
+                o["path"] = .string(to); list[i] = .object(o); changed = true
+            }
+            s.raw[key] = .array(list)
+        }
+        if changed { s.touch(); library.put(s) }
         await sharedEnd(s)
         for k in ["owner", "ownerEmail", "members"] { s.raw.removeValue(forKey: k) }
         s.raw["shared"] = false
@@ -441,6 +499,7 @@ final class Collab {
             let now = Clock.nowMs
             d["updated"] = .number(now)
             d["_pushed"] = .number(now)
+            if let shared = row["data"]?.object { SharedMerge.keep(&d, shared) }
             library.add(Song(raw: d))
         }
         invites.removeAll { $0.id == inv.id }

@@ -21061,7 +21061,49 @@ var APP_SEQ=814;
 var APP_VERSION='1.2.0';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
 function currentKey(){if(typeof DEV_MODE!=='undefined'&&DEV_MODE&&!AUTH_USER)return K_DEV;if(typeof AUTH_USER!=='undefined'&&AUTH_USER&&AUTH_USER.id)return K+':'+AUTH_USER.id;return K}
-function load(){ACTIVE_KEY=currentKey();try{songs=JSON.parse(localStorage.getItem(ACTIVE_KEY))||[]}catch(e){songs=[]}seedGuide();loadIdeas();loadAlbums()}
+/* ---------- the library on this device: IndexedDB ----------
+   Songs, ideas, albums and the sync bookkeeping used to live in localStorage, which browsers cap at about 5 MB for
+   everything together. They now live in IndexedDB (database 'demo-lib', store 'kv'), which has far more room.
+   Reads come from a copy held in memory, loaded once at start; writes update that copy straight away and reach
+   IndexedDB a moment later. The first start moves the old localStorage entries across, then removes them (an older
+   build then finds no library and no sync record, so it simply pulls everything from the account). Until the copy
+   is loaded nothing is written and nothing syncs, so a slow start can never save an empty library over a full one.
+   Without IndexedDB (rare), everything stays in localStorage as before. */
+var BIG={m:{},ready:false,db:null,q:{},on:false,full:0};
+function bigKey(k){return/^songpad:(v1|devmode:v1|ideas:v1|albums:|sync:)/.test(k)}
+function bigHas(k){return Object.prototype.hasOwnProperty.call(BIG.m,k)}
+function bigGet(k){if(BIG.db)return bigHas(k)?BIG.m[k]:null;try{return localStorage.getItem(k)}catch(e){return null}}
+/* throws like localStorage when there's no room, so callers keep their "out of space" handling */
+function bigSet(k,v){if(!BIG.ready)return;if(!BIG.db){localStorage.setItem(k,v);return}if(BIG.full&&Date.now()-BIG.full<15000&&v.length>(bigHas(k)?BIG.m[k].length:0))throw new Error('full');BIG.m[k]=v;BIG.q[k]=v;bigSoon()}
+function bigDel(k){if(BIG.db){delete BIG.m[k];BIG.q[k]=null;bigSoon()}try{localStorage.removeItem(k)}catch(e){}}
+function bigSoon(){if(BIG.on)return;BIG.on=true;Promise.resolve().then(bigFlush)}
+function bigFlush(){BIG.on=false;var q=BIG.q,ks=Object.keys(q);if(!ks.length||!BIG.db)return;BIG.q={};
+  try{var tx=BIG.db.transaction('kv','readwrite'),st=tx.objectStore('kv');ks.forEach(function(k){if(q[k]==null)st.delete(k);else st.put(q[k],k)});
+    tx.oncomplete=function(){BIG.full=0};
+    tx.onabort=tx.onerror=function(e){var er=tx.error||(e&&e.target&&e.target.error);if(e&&e.preventDefault)e.preventDefault();
+      /* put them back so the next write tries again */ks.forEach(function(k){if(!(k in BIG.q))BIG.q[k]=q[k]});
+      if(er&&/quota/i.test(er.name+' '+er.message)){if(!BIG.full)toast(AUTH_USER?'This device is out of space for songs. Your edits are still saving to your account.':'This device is out of space for songs. Sign in so your edits are saved to your account.');BIG.full=Date.now()}
+      else setTimeout(bigSoon,2000)}}catch(e){setTimeout(bigSoon,2000)}}
+function bigOpen(cb){var fin=function(db){if(BIG.ready)return;BIG.db=db||null;BIG.ready=true;cb()};
+  /* if IndexedDB never answers, carry on with localStorage rather than showing an empty app */
+  var to=setTimeout(function(){fin(null)},8000);
+  try{var r=indexedDB.open('demo-lib',1);r.onupgradeneeded=function(){r.result.createObjectStore('kv')};
+    r.onerror=function(){clearTimeout(to);fin(null)};
+    r.onsuccess=function(){var db=r.result;if(BIG.ready){db.close();return}
+      try{var tx=db.transaction('kv','readonly'),st=tx.objectStore('kv'),cur0=st.openCursor();
+        cur0.onsuccess=function(){var c=cur0.result;if(c){BIG.m[c.key]=c.value;c.continue()}};
+        tx.oncomplete=function(){clearTimeout(to);if(BIG.ready){db.close();return}
+          /* move the old localStorage entries across, then free that space */
+          var mv=[];try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(bigKey(k))mv.push(k)}}catch(e){}
+          var add=mv.filter(function(k){return!bigHas(k)});
+          add.forEach(function(k){try{BIG.m[k]=localStorage.getItem(k)}catch(e){}});
+          if(!mv.length)return fin(db);
+          var t2=db.transaction('kv','readwrite'),s2=t2.objectStore('kv');add.forEach(function(k){if(BIG.m[k]!=null)s2.put(BIG.m[k],k)});
+          t2.oncomplete=function(){mv.forEach(function(k){try{localStorage.removeItem(k)}catch(e){}});fin(db)};
+          t2.onabort=t2.onerror=function(e){if(e&&e.preventDefault)e.preventDefault();add.forEach(function(k){delete BIG.m[k]});fin(null)}};
+        tx.onerror=function(){clearTimeout(to);fin(null)}}catch(e){clearTimeout(to);fin(null)}}}catch(e){clearTimeout(to);fin(null)}}
+function bigBytes(){var n=0;Object.keys(BIG.m).forEach(function(k){n+=((BIG.m[k]||'').length+k.length)*2});return n}
+function load(){ACTIVE_KEY=currentKey();if(!BIG.ready){songs=[];ideas=[];albums=[];return}try{songs=JSON.parse(bigGet(ACTIVE_KEY))||[]}catch(e){songs=[]}seedGuide();loadIdeas();loadAlbums()}
 /* ---------- built-in guide: a "How *[demo] works" song every account starts with ----------
    Added once per library (each account, and Dev Mode) with a fixed id and a fixed, old `updated`
    stamp. The fixed id means two devices adding it to the same account make one song, not two; the
@@ -21097,12 +21139,12 @@ function seedGuide(){
   var g=guideSong(),ex=songs.filter(function(s){return s.id===GUIDE_ID})[0];
   if(ex){if(ex.updated===ex.guideAt&&ex.guideAt<GUIDE_AT){Object.keys(ex).forEach(function(k){delete ex[k]});Object.assign(ex,g)}}
   else if(!had)songs.push(g);
-  try{localStorage.setItem(ACTIVE_KEY,JSON.stringify(songs));localStorage.setItem(fk,String(GUIDE_V))}catch(e){}
+  try{bigSet(ACTIVE_KEY,JSON.stringify(songs));localStorage.setItem(fk,String(GUIDE_V))}catch(e){}
 }
 var IK='songpad:ideas:v1',ideas=[],ifilterTag='',curIdea=null;
 function ideasKey(){if(typeof DEV_MODE!=='undefined'&&DEV_MODE&&!AUTH_USER)return IK+':dev';if(typeof AUTH_USER!=='undefined'&&AUTH_USER&&AUTH_USER.id)return IK+':'+AUTH_USER.id;return IK}
-function loadIdeas(){try{ideas=JSON.parse(localStorage.getItem(ideasKey()))||[]}catch(e){ideas=[]}paintVault()}
-var ist;function saveIdeas(){clearTimeout(ist);ist=setTimeout(function(){try{localStorage.setItem(ideasKey(),JSON.stringify(ideas))}catch(e){toast('Could not save in this browser')}if(typeof cloudPush==='function')cloudPush();paintVault();if(document.getElementById('vIdeas').classList.contains('on'))renderIdeas()},200)}
+function loadIdeas(){try{ideas=JSON.parse(bigGet(ideasKey()))||[]}catch(e){ideas=[]}paintVault()}
+var ist;function saveIdeas(){clearTimeout(ist);ist=setTimeout(function(){try{bigSet(ideasKey(),JSON.stringify(ideas))}catch(e){toast('Could not save in this browser')}if(typeof cloudPush==='function')cloudPush();paintVault();if(document.getElementById('vIdeas').classList.contains('on'))renderIdeas()},200)}
 function allIdeaTags(){var t={};ideas.forEach(function(i){(i.tags||[]).forEach(function(x){t[x]=(t[x]||0)+1})});return Object.keys(t).sort(function(a,b){return t[b]-t[a]})}
 /* ---------- ideas: a quick jot for stray lines, ideas and concepts ----------
    A card at the top of the song list opens them; the box at the top of Ideas saves with Return. Each one is a
@@ -21278,9 +21320,9 @@ function ensureStorageForMode(){var k=currentKey();if(k!==ACTIVE_KEY){ACTIVE_KEY
 var st,lastSaveShow=0,showThisSave=false,saveFullT=0;
 /* the real write. If this device's storage is full, older versions are trimmed to make room, and the
    song still goes to the cloud either way, so nothing typed is lost */
-function saveLocal(key){var body=JSON.stringify(songs);try{localStorage.setItem(key,body);return true}catch(e){}
+function saveLocal(key){if(!BIG.ready)return true;var body=JSON.stringify(songs);try{bigSet(key,body);return true}catch(e){}
   songs.forEach(function(x){if(x.versions&&x.versions.length){x.versions=x.versions.slice(-10);x.versions.forEach(function(v,i,a){if(i<a.length-3)v.rich=''})}});
-  try{localStorage.setItem(key,JSON.stringify(songs));return true}catch(e2){return false}}
+  try{bigSet(key,JSON.stringify(songs));return true}catch(e2){return false}}
 function saveFlush(){clearTimeout(st);st=null;var key=ACTIVE_KEY||currentKey(),ok=saveLocal(key);
   if(!ok&&Date.now()-saveFullT>60000){saveFullT=Date.now();toast(AUTH_USER?'This device is out of space for songs. Your edits are still saving to your account.':'This device is out of space for songs. Sign in so your edits are saved to your account.')}
   if(key!==K_DEV){desktopMirror();syncShared();cloudPush()}if(document.body.classList.contains('side'))renderSide();if(showThisSave)setSaveState(ok?'saved':false)}
@@ -23339,11 +23381,67 @@ function sharedGoneCheck(cb,again){var c=sbClient(),me=AUTH_USER&&AUTH_USER.id;i
     var have={};(r.data||[]).forEach(function(x){have[String(x.id)]=1});if(cb)cb(have);
     var gone=theirs.filter(function(x){return!have[String(x.id)]});if(!gone.length)return;
     if(gone.length===theirs.length&&theirs.length>1&&!again){setTimeout(function(){sharedGoneCheck(null,true)},8000);return}
-    gone.forEach(function(x){if(cur===x){liveLeave();cur=null;sheet(false);show('vList')}if(PINS[x.id]){delete PINS[x.id]}try{audDel(x.id)}catch(e){}});
+    gone.forEach(function(x){if(cur===x){liveLeave();cur=null;sheet(false);show('vList')}if(PINS[x.id]){delete PINS[x.id]}try{audDel(x.id)}catch(e){}
+      /* my uploads to it: the owner has kept copies of them (or deleted the song), so they'd only use up my storage */
+      (x.audio||[]).concat(x.files||[]).forEach(function(f){if(f&&f.path&&f.path.split('/')[0]===me)sfRemove(f)})});
     songs=songs.filter(function(x){return gone.indexOf(x)<0});save();renderList();renderSide();
     toast(gone.length===1?'“'+(gone[0].title||'Untitled')+'” was removed by its owner':gone.length+' shared songs were removed by their owners')},function(){GONE_BUSY=false})},function(){GONE_BUSY=false})}
 function isOwnerOf(s){return!!(s&&AUTH_USER&&s.owner===AUTH_USER.id)}
-var shT=null,shLast=0;
+/* ---------- co-writing offline: a three-way merge instead of "newest copy wins" ----------
+   Each shared song remembers (device-only) the shared copy as it last stood here: `_srv` is that copy's `updated`
+   and `_base` its words and details. If the shared copy has moved on since (someone else saved) and this device
+   has its own unsaved changes (written offline, say), the two are merged against `_base` rather than one
+   replacing the other: each field someone changed keeps their change; lyrics, chords and notes merge line by line,
+   so two people working on different lines both keep their work. Where both changed the same lines differently,
+   the longer one is kept if it contains the other, otherwise both are kept (yours first), and your copy from
+   before the merge is saved in Versions. Files merge as before (fileMerge). While the live channel is connected
+   none of this is needed: live patches already keep everyone's words in step. */
+var SH_SKIP={updated:1,lastEditBy:1,lastEditAt:1,owner:1,ownerEmail:1,members:1,shared:1,versions:1,audio:1,files:1,rmFiles:1,rich:1},SH_LINES={lyrics:1,chords:1,notes:1};
+function shBase(d){var o={};Object.keys(d||{}).forEach(function(k){if(k[0]!=='_'&&!SH_SKIP[k])o[k]=d[k]});return JSON.parse(JSON.stringify(o))}
+function shKeep(s,d){s._srv=d.updated||0;s._base=shBase(d)}
+function shStr(v){return v==null?'':typeof v==='string'?v:libStr(v)}
+/* line-by-line LCS: for each line of a, the matching line of b (or -1) */
+function shLcs(a,b){var n=a.length,m=b.length,p=0;while(p<n&&p<m&&a[p]===b[p])p++;var q=0;while(q<n-p&&q<m-p&&a[n-1-q]===b[m-1-q])q++;
+  var A=a.slice(p,n-q),B=b.slice(p,m-q),N=A.length,M=B.length,map=new Array(n).fill(-1),i,j;
+  for(i=0;i<p;i++)map[i]=i;for(i=0;i<q;i++)map[n-q+i]=m-q+i;if(!N||!M)return map;
+  if(N*M>4e6)return map;
+  var L=[];for(i=0;i<=N;i++)L.push(new Uint16Array(M+1));
+  for(i=N-1;i>=0;i--)for(j=M-1;j>=0;j--)L[i][j]=A[i]===B[j]?L[i+1][j+1]+1:Math.max(L[i+1][j],L[i][j+1]);
+  i=0;j=0;while(i<N&&j<M){if(A[i]===B[j]){map[p+i]=p+j;i++;j++}else if(L[i+1][j]>=L[i][j+1])i++;else j++}
+  return map}
+/* diff3 on lines. Returns the merged text and whether the same lines were changed on both sides. */
+function shMerge3(o,a,b){if(a===b)return{t:a};if(a===o)return{t:b};if(b===o)return{t:a};
+  var O=o.split('\n'),A=a.split('\n'),B=b.split('\n'),ma=shLcs(O,A),mb=shLcs(O,B),out=[],i=0,j=0,k=0,clash=false,same=function(x,y){return x.join('\n')===y.join('\n')};
+  var chunk=function(i2,j2,k2){var o2=O.slice(i,i2),a2=A.slice(j,j2),b2=B.slice(k,k2);
+    if(same(a2,b2)||same(b2,o2))out.push.apply(out,a2);else if(same(a2,o2))out.push.apply(out,b2);
+    else{clash=true;var as=a2.join('\n'),bs=b2.join('\n');
+      if(bs.indexOf(as)>=0&&as.trim())out.push.apply(out,b2);else if(as.indexOf(bs)>=0&&bs.trim())out.push.apply(out,a2);
+      else{out.push.apply(out,a2);b2.forEach(function(l){if(!l.trim()||a2.indexOf(l)<0)out.push(l)})}}};
+  for(var x=0;x<O.length;x++){if(ma[x]<0||mb[x]<0||ma[x]<j||mb[x]<k)continue;chunk(x,ma[x],mb[x]);out.push(O[x]);i=x+1;j=ma[x]+1;k=mb[x]+1}
+  chunk(O.length,A.length,B.length);return{t:out.join('\n'),clash:clash}}
+/* merge the shared copy d into song s (which has changes of its own); returns true if anything of theirs came in */
+function shMergeInto(s,d){var o=s._base||{},mine=JSON.parse(JSON.stringify(s)),newer=(d.updated||0)>(s.updated||0),took=false,clash=false,ks={};
+  Object.keys(d).concat(Object.keys(s)).forEach(function(k){if(k[0]!=='_'&&!SH_SKIP[k])ks[k]=1});
+  Object.keys(ks).forEach(function(k){var ov=shStr(o[k]),mv=shStr(s[k]),tv=shStr(d[k]);if(tv===mv||tv===ov)return;
+    if(mv===ov){if(d[k]===undefined)delete s[k];else s[k]=JSON.parse(JSON.stringify(d[k]));took=true;return}
+    if(SH_LINES[k]&&typeof (d[k]==null?'':d[k])==='string'&&typeof (s[k]==null?'':s[k])==='string'){var r=shMerge3(ov,mv,tv);if(r.clash)clash=true;if(r.t!==mv){s[k]=r.t;took=true}return}
+    if(newer){s[k]=JSON.parse(JSON.stringify(d[k]));took=true}});
+  /* the formatted words follow the words: whichever side's text won keeps its formatting, a mix starts plain */
+  if(s.lyrics!==mine.lyrics){s.rich=s.lyrics===d.lyrics?(d.rich||''):''}
+  else if(newer&&s.lyrics===d.lyrics&&d.rich!=null&&d.rich!==s.rich){s.rich=d.rich;took=true}
+  /* versions: everyone's, by time */
+  var vs={};(mine.versions||[]).concat(d.versions||[]).forEach(function(v){if(v&&v.t)vs[v.t+'|'+(v.lyrics||'').length]=v});
+  var vl=Object.keys(vs).map(function(k){return vs[k]}).sort(function(x,y){return x.t-y.t});
+  if(clash&&(mine.lyrics||'')!==(s.lyrics||''))vl.push({t:Date.now(),lyrics:mine.lyrics||'',rich:mine.rich||'',label:'Your words before merging'});
+  if(vl.length)s.versions=vl.slice(-30);
+  fileMerge(s,d.rmFiles,d.audio,d.files);
+  if(took)s.lastEditBy=d.lastEditBy||s.lastEditBy;
+  return took}
+/* show a merged or pulled song on screen if it's the one open */
+function shPaint(s,sel,focused){if(s!==cur)return;Object.keys(map).forEach(function(sel2){var el=$(sel2);if(el&&document.activeElement!==el)el.value=s[map[sel2]]||''});setLyr(s);
+  if(focused&&sel){var L=getText().length;setSel(Math.min(sel.s,L),Math.min(sel.e,L))}PF=mkPF(s.pf||pgGet());hdr();LSK=null;rhyme();refreshViews();renderAud();paintPlayB()}
+function shLiveUp(s){return LIVE.ok===true&&LIVE.id===s.id&&!!LIVE.ch}
+var shT=null,shLast=0,SH_BUSY={};
 function syncShared(){if(!AUTH_USER)return;var live=LIVE.ch&&LIVE.id;
   /* any shared song on this device is one you own or write on (the server refuses anyone else), so don't rely on
      the synced members list, which comes from the owner's copy and may not list you */
@@ -23351,30 +23449,46 @@ function syncShared(){if(!AUTH_USER)return;var live=LIVE.ch&&LIVE.id;
     /* the open song's changes already reached co-writers live, so its full copy is saved at most every 4 s */
     if(live&&s.id===LIVE.id){if(!shT){var w=Math.max(0,4000-(Date.now()-shLast));shT=setTimeout(function(){shT=null;shLast=Date.now();if((s.updated||0)>(s._pushed||0))pushShared(s)},w)}return}
     pushShared(s)})}
-function pushShared(s){if(!AUTH_USER)return;var c=sbClient();if(!c)return;s.lastEditBy=AUTH_USER.email;s.lastEditAt=Date.now();var body=ser(s),u=body.updated;
+/* before saving to the shared copy, check whether someone else saved since this device last did; if so, merge
+   their changes in first (not needed while live: the words are already in step) */
+function pushShared(s){if(!AUTH_USER)return;var c=sbClient();if(!c)return;
+  if(SH_BUSY[s.id]){SH_BUSY[s.id]=2;return}
+  if(!s._base||s._srv==null||shLiveUp(s))return pushShared1(s);
+  SH_BUSY[s.id]=1;var fin=function(){var again=SH_BUSY[s.id]===2;delete SH_BUSY[s.id];if(again&&(s.updated||0)>(s._pushed||0))pushShared(s)};
+  c.from('shared_songs').select('data').eq('id',s.id).maybeSingle().then(function(r){var d=r&&!r.error&&r.data&&r.data.data;
+    if(d&&(d.updated||0)!==s._srv){var sel=s===cur?getSel():null,focused=s===cur&&document.activeElement===lyr;
+      if(shMergeInto(s,d)){s.updated=Math.max(Date.now(),(d.updated||0)+1);shPaint(s,sel,focused);LIVE.applying=true;try{saveLocal(ACTIVE_KEY||currentKey())}finally{LIVE.applying=false}renderList();renderSide()}
+      shKeep(s,d)}
+    pushShared1(s);fin()},function(){pushShared1(s);fin()})}
+function pushShared1(s){if(!AUTH_USER)return;var c=sbClient();if(!c)return;s.lastEditBy=AUTH_USER.email;s.lastEditAt=Date.now();var body=ser(s),u=body.updated;
   /* co-writers update the owner's row; only the owner creates it. An upsert from a co-writer is checked against
      the "create" rule too, which only the owner passes, so it was refused even though they're allowed to edit */
   var mineOwn=!s.owner||s.owner===AUTH_USER.id;
   (mineOwn?c.from('shared_songs').upsert({id:s.id,owner_id:s.owner||AUTH_USER.id,owner_email:s.ownerEmail||AUTH_USER.email,data:body,updated_at:new Date().toISOString()})
     :c.from('shared_songs').update({data:body,updated_at:new Date().toISOString()}).eq('id',s.id).select('id').then(function(r){if(r&&!r.error&&(!r.data||!r.data.length))r.error={code:'42501',message:'not a member'};return r})).then(function(r){
     if(r&&r.error){console.warn('shared_songs sync failed',r.error);if(r.error.code==='42501'){sharedGoneCheck(function(have){if(have[String(s.id)]&&!s._warned){s._warned=1;toast('Couldn’t save your changes to “'+(s.title||'Untitled')+'”. Ask the owner to invite you again.')}});return}toast('Couldn’t sync this song (kept on this device): '+(r.error.message||r.error.code||'unknown error'));return}
-    s._pushed=Math.max(s._pushed||0,u)
+    s._pushed=Math.max(s._pushed||0,u);shKeep(s,body)
   })
 }
 function pullShared(s){var c=sbClient();if(!c||!AUTH_USER||!s||!s.shared)return;
   c.from('shared_songs').select('data,owner_id,owner_email').eq('id',s.id).maybeSingle().then(function(r){
     if(!r||r.error||!r.data)return;var d=r.data.data||{};
     if(d.rmFiles)d.rmFiles=Object.assign({},s.rmFiles||{},d.rmFiles);
-    if((d.updated||0)<=(s.updated||0)&&fileMerge(s,d.rmFiles,null,null)){s.updated=Date.now();save();if(s===cur){renderAud();paintPlayB()}renderList()}
-    if((d.updated||0)>(s.updated||0)){var keepRm=s.rmFiles;
+    /* has the shared copy moved on since this device last saw it? (older songs without a record go by time) */
+    var moved=s._srv!=null?(d.updated||0)!==s._srv:(d.updated||0)>(s.updated||0),dirty=(s.updated||0)>(s._pushed||0);
+    if(!moved&&fileMerge(s,d.rmFiles,null,null)){s.updated=Date.now();save();if(s===cur){renderAud();paintPlayB()}renderList()}
+    if(moved&&dirty&&s._base&&!shLiveUp(s)){var sel0=s===cur?getSel():null,foc0=s===cur&&document.activeElement===lyr;
+      shMergeInto(s,d);shKeep(s,d);s.owner=r.data.owner_id;s.ownerEmail=r.data.owner_email;s.updated=Math.max(Date.now(),(d.updated||0)+1);
+      shPaint(s,sel0,foc0);save();renderList();renderSide();return}
+    if(moved){var keepRm=s.rmFiles;
       var mine=s===cur,sel=mine?getSel():null,focused=mine&&document.activeElement===lyr;
       /* open and live here: the words come from live patches, so keep them (the saved copy can be a few seconds
          behind what's on screen, and taking it would wipe what was just typed); take everything else */
       var liveText=LIVE.ok===true&&LIVE.id===s.id&&!!LIVE.ch,mineT={},kept=false;if(liveText)LIVE_F.concat(['rich']).forEach(function(k){mineT[k]=s[k]});
       Object.keys(d).forEach(function(k){s[k]=d[k]});
       if(liveText)Object.keys(mineT).forEach(function(k){if(liveVal(s,k)!==liveVal(mineT,k))kept=true;s[k]=mineT[k]});
-      if(keepRm&&fileMerge(s,keepRm,null,null))s.updated=Date.now();else fileGC(s);s.owner=r.data.owner_id;s.ownerEmail=r.data.owner_email;s._pushed=d.updated;if(kept)s.updated=Date.now();if(!liveText)liveSnap(s);if(s===cur){renderAud();paintPlayB()}
-      if(mine&&!liveText){Object.keys(map).forEach(function(sel2){var el=$(sel2);if(document.activeElement!==el)el.value=s[map[sel2]]||''});setLyr(s);if(focused){var L=getText().length;setSel(Math.min(sel.s,L),Math.min(sel.e,L))}PF=mkPF(s.pf||pgGet());hdr();LSK=null;rhyme();refreshViews()}
+      if(keepRm&&fileMerge(s,keepRm,null,null))s.updated=Date.now();else fileGC(s);s.owner=r.data.owner_id;s.ownerEmail=r.data.owner_email;s._pushed=d.updated;shKeep(s,d);if(kept)s.updated=Date.now();if(!liveText)liveSnap(s);if(s===cur){renderAud();paintPlayB()}
+      if(mine&&!liveText)shPaint(s,sel,focused);LIVE.applying=true;try{save()}finally{LIVE.applying=false}
       renderList();renderSide()
     }
   })
@@ -23497,13 +23611,25 @@ function shareSong(){if(!AUTH_USER){toast('Sign in to share songs');return}if(!c
     s.id=newId;
   }
   if(!s.artist){s.artist=myName();s._autoArtist=s.artist}
-  s.shared=true;s.owner=AUTH_USER.id;s.ownerEmail=AUTH_USER.email;s.members=[AUTH_USER.id];s.updated=Date.now();
+  s.shared=true;s.owner=AUTH_USER.id;s.ownerEmail=AUTH_USER.email;s.members=[AUTH_USER.id];s.updated=Date.now();delete s._base;delete s._srv;
   pushShared(s);save();renderCollab();renderList();renderSide()}
 function leaveOrDelete(s){var c=sbClient();
   if(isOwnerOf(s)){if(c)sharedEnd(s);try{audDel(s.id)}catch(e){}}
   else if(c&&AUTH_USER){c.from('collab_members').delete().eq('song_id',s.id).eq('user_id',AUTH_USER.id).then(function(){},function(){})}
   songs=songs.filter(function(x){return x!==s});if(cur===s)cur=null;save();sheet(false);renderList();renderSide();show('vList');toast(isOwnerOf(s)?'Deleted for everyone':'You left the song')}
-function stopSharing(){var s=cur;if(!isOwnerOf(s))return;var c=sbClient();if(c)sharedEnd(s);
+/* co-writers' files live in their own folders, which the owner can only open while the song is shared; so before
+   sharing stops, each one is copied into the owner's folder and the song points at the copy. If any copy fails
+   (no connection, storage full), sharing stays on and nothing is lost. */
+function sfKeepTheirs(s){var c=sbClient(),me=AUTH_USER&&AUTH_USER.id;if(!c||!me)return Promise.resolve(0);
+  var items=(s.audio||[]).concat(s.files||[]).filter(function(x){return x&&x.path&&!/^local:/.test(x.path)&&x.path.split('/')[0]!==me});
+  if(!items.length)return Promise.resolve(0);
+  return Promise.all(items.map(function(x){var to=me+'/'+s.id+'/'+x.id+'.'+(x.path.split('.').pop()||'bin');
+    return c.storage.from(SF_BUCKET).copy(x.path,to).then(function(r){if(r&&r.error&&!/exists|duplicate/i.test(r.error.message||''))throw r.error;
+      var old=x.path;x.path=to;delete SF_URLS[old];if(acHas(old))acGet(old).then(function(b){if(b)acPut(to,b)});return 1})})).then(function(a){return a.length})}
+function stopSharing(){var s=cur;if(!isOwnerOf(s))return;var c=sbClient();
+  sfKeepTheirs(s).then(function(n){if(n){s.updated=Date.now();save()}stopSharing1(s)},function(e){
+    toast('Couldn’t keep your co-writers’ files, so the song is still shared: '+((e&&e.message)||'try again.'))})}
+function stopSharing1(s){var c=sbClient();if(c)sharedEnd(s);
   delete s.owner;delete s.ownerEmail;delete s.members;s.shared=false;s.updated=Date.now();save();renderCollab();renderList();renderSide();toast('Sharing stopped. The song is back on this device only.')}
 function inviteCollaborator(target){if(!cur||!AUTH_USER)return;
   /* inviting is Pro (joining isn't); the server refuses it too */
@@ -23559,7 +23685,7 @@ function acceptInvite(inv){var c=sbClient();if(!c||!AUTH_USER)return;
           var s=JSON.parse(JSON.stringify(d));s.id=inv.song_id;s.shared=true;s.owner=(row&&row.owner_id)||inv.owner_id;s.ownerEmail=(row&&row.owner_email)||inv.owner_email;
           s.members=(s.members||[]).concat([AUTH_USER.id]).filter(function(v,i,a){return a.indexOf(v)===i});
           /* joined now: newer than any record of leaving it before, so the next sync keeps it */
-          s.updated=Date.now();s._pushed=s.updated;songs.push(s)
+          s.updated=Date.now();s._pushed=s.updated;shKeep(s,d);songs.push(s)
         }
         save();renderList();renderSide();
         PENDING_INVITES=PENDING_INVITES.filter(function(x){return x.id!==inv.id});renderInvites();
@@ -24907,7 +25033,7 @@ function fnCall(name,body){var c=sbClient();if(!c)return Promise.reject(new Erro
 /* ---------- diagnostics: what Contact Support can include and Admin › Debug shows. Never lyrics, song text or keys. ---------- */
 function dbgScrub(s){return String(s==null?'':s).replace(/((?:access_|refresh_|id_)?token|code|nonce|apikey|key)=[^&\s"]+/gi,'$1=…').replace(/eyJ[\w-]{10,}\.[\w-]+\.[\w-]+/g,'(token)')}
 function diagLocal(){var sz={},tot=0;try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i),n=((localStorage.getItem(k)||'').length+k.length)*2;tot+=n;sz[k]=n}}catch(e){}
-  return{total:tot,keys:Object.keys(sz).length,largest:Object.keys(sz).sort(function(a,b){return sz[b]-sz[a]}).slice(0,8).map(function(k){return[k,sz[k]]})}}
+  return{total:tot,library:bigBytes(),idb:!!BIG.db,keys:Object.keys(sz).length,largest:Object.keys(sz).sort(function(a,b){return sz[b]-sz[a]}).slice(0,8).map(function(k){return[k,sz[k]]})}}
 function diagReport(full){var lc=diagLocal(),C=window.Capacitor;
   var d={build:APP_COMMIT,seq:APP_SEQ,platform:errPlatform(),dev:cfgIsDev(),native:!!(C&&C.isNativePlatform&&C.isNativePlatform()),ua:String(navigator.userAgent||'').slice(0,220),
     screen:(screen.width||0)+'×'+(screen.height||0)+' @'+(window.devicePixelRatio||1)+'x, window '+innerWidth+'×'+innerHeight,lang:navigator.language||'',
@@ -25627,9 +25753,9 @@ function sbClient(){
 var LIB_DEV=(function(){try{var d=localStorage.getItem('songpad:device');if(!d){d=uuid4();localStorage.setItem('songpad:device',d)}return d}catch(e){return uuid4()}})();
 var libSeenAt=null,libBusy=false,libAgain=false,libT=null,libChan=null,libPollT=null,libTyping=0,libToastAt=0,LIB_TOMB_TTL=90*864e5;
 function libKey(n){return'songpad:sync:'+n+':'+AUTH_USER.id}
-function libGet(n,d){try{return JSON.parse(localStorage.getItem(libKey(n)))||d}catch(e){return d}}
-function libSet(n,v){try{localStorage.setItem(libKey(n),JSON.stringify(v))}catch(e){}}
-function libReady(){return!!(AUTH_USER&&!AUTH_STALE&&!DEV_MODE&&ACTIVE_KEY===K+':'+AUTH_USER.id&&sbClient())}
+function libGet(n,d){try{return JSON.parse(bigGet(libKey(n)))||d}catch(e){return d}}
+function libSet(n,v){try{bigSet(libKey(n),JSON.stringify(v))}catch(e){}}
+function libReady(){return!!(BIG.ready&&AUTH_USER&&!AUTH_STALE&&!DEV_MODE&&ACTIVE_KEY===K+':'+AUTH_USER.id&&sbClient())}
 function libStr(v){if(v===null||typeof v!=='object')return JSON.stringify(v)||'null';if(Array.isArray(v))return'['+v.map(libStr).join(',')+']';return'{'+Object.keys(v).sort().filter(function(k){return v[k]!==undefined}).map(function(k){return JSON.stringify(k)+':'+libStr(v[k])}).join(',')+'}'}
 function libClean(x){var o={};Object.keys(x).forEach(function(k){if(k[0]!=='_')o[k]=x[k]});return o}
 /* the cloud copy is kept in id order so devices that list songs differently still agree it's unchanged */
@@ -25690,8 +25816,8 @@ function cloudSync(first){
       var as=libApplyList(songs,ms,cur),ai=libApplyList(ideas,mi,null);
       songs=as.list;ideas=ai.list;libSet('tomb',tomb);
       if(as.n||ai.n){
-        try{localStorage.setItem(ACTIVE_KEY,JSON.stringify(songs))}catch(e){}
-        try{localStorage.setItem(ideasKey(),JSON.stringify(ideas))}catch(e){}
+        try{bigSet(ACTIVE_KEY,JSON.stringify(songs))}catch(e){}
+        try{bigSet(ideasKey(),JSON.stringify(ideas))}catch(e){}
         desktopMirror();renderList();renderSide();albRefresh();
         paintVault();
         if(document.getElementById('vIdeas').classList.contains('on'))renderIdeas();
@@ -25743,7 +25869,7 @@ function libPoll(){if(!libReady()||document.hidden||libBusy)return;
   sbClient().from('cloud_library').select('updated_at').eq('user_id',AUTH_USER.id).maybeSingle().then(function(r){if(r&&!r.error&&r.data&&r.data.updated_at!==libSeenAt)cloudSync()},function(){})}
 document.addEventListener('visibilitychange',function(){if(!document.hidden)libPoll()});
 window.addEventListener('focus',libPoll);
-window.addEventListener('online',function(){cloudSync()});
+window.addEventListener('online',function(){cloudSync();setTimeout(function(){try{syncShared()}catch(e){}},1500)});
 /* ---------- cloud plan sync: Pro status follows the Google account, not the browser ---------- */
 /* the plan comes from the server (my_plan, supabase/plans.sql); nothing is written from here */
 function cloudPushPlan(){}
@@ -26333,6 +26459,7 @@ function deleteAccount(){var c=sbClient(),uid=AUTH_USER&&AUTH_USER.id;if(!c||!ui
     /* the Mac's Songs folder copy goes too */try{if(window.desktop&&window.desktop.mirror)window.desktop.mirror([])}catch(e){}
     local.forEach(function(k){try{audDel(k)}catch(e){}});
     try{Object.keys(localStorage).forEach(function(k){if(k.indexOf(uid)>=0)localStorage.removeItem(k)})}catch(e){}
+    Object.keys(BIG.m).forEach(function(k){if(k.indexOf(uid)>=0)bigDel(k)});
     DEL_BUSY=false;ACC_EDIT=null;signOutGoogle();toast('Your account and everything in it has been deleted.')})
   .catch(function(e){DEL_BUSY=false;renderAccount();var m=(e&&e.message)||'';
     toast(/function|delete_my_account|schema cache|PGRST20/i.test(m)?'Account deletion isn’t set up on the server yet (supabase/delete-account.sql).':'Couldn’t delete your account: '+(m||'try again.'))})}
@@ -27336,8 +27463,8 @@ var ALB_I={
   x:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>'};
 /* ---- storage: kept per library (each account, and Dev Mode), next to its songs ---- */
 function albKey(){return'songpad:albums:'+(ACTIVE_KEY||currentKey())}
-function loadAlbums(){try{albums=JSON.parse(localStorage.getItem(albKey()))||[]}catch(e){albums=[]}if(!Array.isArray(albums))albums=[];ALB.pk=''}
-function albStore(){try{localStorage.setItem(albKey(),JSON.stringify(albums))}catch(e){toast('Could not save in this browser')}}
+function loadAlbums(){try{albums=JSON.parse(bigGet(albKey()))||[]}catch(e){albums=[]}if(!Array.isArray(albums))albums=[];ALB.pk=''}
+function albStore(){try{bigSet(albKey(),JSON.stringify(albums))}catch(e){toast('Could not save in this browser')}}
 function saveAlbums(){albStore();albPush()}
 function albLive(){return albums.filter(function(a){return a&&a.id&&!a.deleted}).sort(function(a,b){return(b.updated||0)-(a.updated||0)})}
 function albGet(id){if(!id)return null;for(var i=0;i<albums.length;i++){var a=albums[i];if(a&&a.id===id)return a.deleted?null:a}return null}
@@ -27580,8 +27707,10 @@ $('#aaq').oninput=albAddPaint;
 $('#aa-ok').onclick=function(){var a=albGet(ALB.addTo),n=Object.keys(ALB.sel).length;if(!a)return sheet(false);if(!n){sheet(false);return}
   var pick=songs.filter(function(s){return ALB.sel[s.id]}).sort(function(x,y){return ALB.sel[x.id]-ALB.sel[y.id]});ALB.sel={};sheet(false);albAdd(a,pick);haptic('success');toast(n===1?'Added 1 song':'Added '+n+' songs')};
 $('#aa-x').onclick=function(){ALB.sel={};sheet(false)};
-vset();applyPlan();load();renderList();renderSide();paintAcctIcons();
-if(songs.length){songs.sort(function(a,b){return b.updated-a.updated});openSong(songs[0].id)}else newSong();
+vset();applyPlan();
+bigOpen(function(){load();renderList();renderSide();paintAcctIcons();
+  if(songs.length){songs.sort(function(a,b){return b.updated-a.updated});openSong(songs[0].id)}else newSong();
+  if(typeof cloudSync==='function')cloudSync()});
 </script>
 </body>
 </html>
