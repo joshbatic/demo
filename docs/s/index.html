@@ -148,13 +148,15 @@ function shAlbumRender(d){var q=shEsc,t=d.tracks||[],title=d.title||'Untitled Al
   var str=function(v,n){return typeof v==='string'?v.slice(0,n||300):typeof v==='number'?String(v):''};
   var col=function(v,d){return typeof v==='string'&&/^hsla?\(\d{1,3},\d{1,3}%,\d{1,3}%(,[\d.]+)?\)$/.test(v)?v:d};
   var url=function(v){return typeof v==='string'&&v.indexOf(PUB)===0&&!/["'<>\s]/.test(v)?v:''};
+  /* audio is either a file in the shares bucket (older links) or the share-audio function for this link */
+  var aurl=function(v){return url(v)||(typeof v==='string'&&v.indexOf(SB_URL+'/functions/v1/share-audio?s=')===0&&/^[A-Za-z0-9]{10}$/.test(v.slice((SB_URL+'/functions/v1/share-audio?s=').length))?v:'')};
   function clean(d){var b=d.bg||{},a=d.audio,out={title:str(d.title),artist:str(d.artist),key:str(d.key,12),bpm:/^\d{1,3}$/.test(String(d.bpm))?String(d.bpm):'',
       bg:{top:col(b.top,'hsl(20,80%,86%)'),bot:col(b.bot,'hsl(280,60%,80%)'),glow:col(b.glow,'hsl(210,70%,88%)'),k:typeof b.k==='string'&&/^\d{1,3},\d{1,3}%,\d{1,3}%$/.test(b.k)?b.k:'260,30%,15%'},
       art:url(d.art),audio:null,blocks:[]};
     /* a song opened from a shared album links back to it */
     if(d.alb&&typeof d.alb==='object'&&/^[A-Za-z0-9]{10}$/.test(d.alb.id))out.alb={id:d.alb.id,title:str(d.alb.title,160)};
     (Array.isArray(d.blocks)?d.blocks.slice(0,3000):[]).forEach(function(x){if(!x||typeof x!=='object')return;if(x.gap)out.blocks.push({gap:true});else if(x.sec!=null)out.blocks.push({sec:str(x.sec,120)});else if(x.line!=null)out.blocks.push({line:str(x.line,500),t:typeof x.t==='number'&&isFinite(x.t)?x.t:null})});
-    if(a&&url(a.src))out.audio={src:url(a.src),name:str(a.name,160),dur:+a.dur||0,peaks:(Array.isArray(a.peaks)?a.peaks.slice(0,2000):[]).map(Number).filter(isFinite)};
+    if(a&&aurl(a.src))out.audio={src:aurl(a.src),name:str(a.name,160),dur:+a.dur||0,peaks:(Array.isArray(a.peaks)?a.peaks.slice(0,2000):[]).map(Number).filter(isFinite)};
     return out}
   function cleanAlbum(d){var b=clean(d);return{type:'album',title:b.title,artist:b.artist,kind:/^(Album|EP|Single)$/.test(d.kind)?d.kind:'Album',year:/^\d{4}$/.test(String(d.year))?String(d.year):'',art:b.art,bg:b.bg,
     tracks:(Array.isArray(d.tracks)?d.tracks.slice(0,200):[]).filter(function(x){return x&&typeof x==='object'}).map(function(x){return{title:str(x.title,160),line:str(x.line,300),link:/^[A-Za-z0-9]{10}$/.test(x.link)?x.link:''}})}}
