@@ -9,6 +9,7 @@ const VIEWER = require('./_viewer.js');
 const SB_URL = /var SB_URL='([^']+)'/.exec(VIEWER)[1];
 const SB_KEY = /SB_KEY='([^']+)'/.exec(VIEWER)[1];
 const PUB = SB_URL + '/storage/v1/object/public/shares/';
+const AUD = SB_URL + '/functions/v1/share-audio?s=';
 const SITE = 'https://listen.hellodemo.app/';
 
 const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -39,7 +40,7 @@ module.exports = async (req, res) => {
     const title = txt(data.title, 120) || 'Untitled';
     const artist = txt(data.artist, 120);
     // no lyrics in the preview: they're for whoever opens the link
-    const hasAudio = !!(data.audio && pub(data.audio.src));
+    const hasAudio = !!(data.audio && (pub(data.audio.src) || (typeof data.audio.src === 'string' && data.audio.src === AUD + id)));
     const album = data.type === 'album', n = Array.isArray(data.tracks) ? data.tracks.length : 0;
     const desc = album ? (/^(Album|EP|Single)$/.test(data.kind) ? data.kind : 'Album') + ' · ' + n + (n === 1 ? ' song' : ' songs') + ' on *[demo]'
       : (hasAudio ? 'Listen and read along' : 'Read the lyrics') + ' on *[demo]';

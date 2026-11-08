@@ -1139,7 +1139,7 @@ button.cell:active,button.row:active,.drow:active,.accplan:active,.accme:active,
 .shsw button.on{box-shadow:0 0 0 2.5px var(--bg),0 0 0 4.5px var(--ink)}.shsw button:active{transform:scale(.9)}
 .shg .row{border-bottom:0;min-height:58px}.shg .row>span{display:flex;flex-direction:column;gap:2px}.shg small{font-size:13px;color:var(--mute);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.shg .row>span{flex:1;min-width:0}.shg .row>button,.shg .row>.shspin{flex:none}.shg .row{padding-top:10px;padding-bottom:10px}.shlink.has small:first-of-type{direction:rtl;text-align:left}
 .shg:not(:has(.row)){display:none}
-.shlink .go2{height:32px;font-size:14px;flex:none}.shlink>span{min-width:0}
+.shlink .go2{height:32px;font-size:14px;flex:none}.shexp{font:inherit;font-size:15px;color:var(--tint,inherit);background:transparent;border:0;text-align:right;flex:none;max-width:42%;padding:6px 0;cursor:pointer}.shlink>span{min-width:0}
 .shg .row+.row{border-top:.5px solid var(--sep)}
 .shla{margin-bottom:8px}.go2.ghost.red{color:var(--red)}
 .shspin{width:18px;height:18px;border-radius:50%;border:2px solid var(--sep);border-top-color:var(--ink);flex:none;animation:shspin .8s linear infinite}@keyframes shspin{to{transform:rotate(360deg)}}
@@ -25390,6 +25390,7 @@ function onAuthUser(){
   if(uid!==lastAuthUid){lastAuthUid=uid;cloudDidPull=false;PENDING_INVITES=[];MY_PROFILE=null;mzLoad()}
   var ag=$('#authgate');if(ag)ag.style.display=(AUTH_USER||DEV_MODE)?'none':'flex';
   if(AUTH_USER&&AUTH_STALE){ensureStorageForMode();refreshAccount();paintAcctIcons();return}
+  if(AUTH_USER&&!DEV_MODE&&uid!==shSweep.uid){shSweep.uid=uid;setTimeout(shSweep,20000)}
   if(AUTH_USER&&!DEV_MODE){if(uid!==betaCheck.uid){betaCheck.uid=uid;BETA={st:null,admin:false,sum:null,list:null,t:0,busy:{}};betaCheck()}}else{betaCheck.uid=null;betaGate(null)}
   if(AUTH_USER&&!DEV_MODE)iapStart();
   ensureStorageForMode();
@@ -27240,7 +27241,7 @@ function shCanFile(f){try{return!!(navigator.canShare&&navigator.canShare({files
 function shSend(file){if(!file)return;if(shCanFile(file)){navigator.share({files:[file],title:file.name}).catch(function(){});return}
   try{var u=URL.createObjectURL(file),a=document.createElement('a');a.href=u;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},8000);toast('Saved '+file.name)}catch(e){toast('Sharing files isn’t available here')}}
 /* ---- the sheet ---- */
-function openShare(){var song=cur;if(!song)return;if(document.body.classList.contains('side'))sideOn(false);SHR.song=song;SHR.img=SHR.page=null;SHR.pal=[];SHR.ci=0;SHR.aud=!!audCur(song);
+function openShare(){var song=cur;if(!song)return;if(document.body.classList.contains('side'))sideOn(false);SHR.song=song;SHR.expd=null;SHR.img=SHR.page=null;SHR.pal=[];SHR.ci=0;SHR.aud=!!audCur(song);
   songPalette(song).then(function(p){if(SHR.song!==song)return;SHR.pal=p.length?p:[[220,.1,.3]];sheet(true,'sheet8');renderShare();shMake()})}
 function shMake(){var song=SHR.song;if(!song||!SHR.pal.length)return;var n=++SHR.busy,bg=shBg(SHR.pal,SHR.ci),nm=shName(song);SHR.img=SHR.page=null;paintShareBtns();
   shImage(song,bg,SHR.aud?audCur(song):null).then(function(b){if(n!==SHR.busy||!b)return;SHR.img=new File([b],nm+'.png',{type:'image/png'});paintShareBtns()}).catch(function(){});
@@ -27268,6 +27269,11 @@ function renderShare(){var o=$('#shr'),song=SHR.song;if(!o||!song)return;var bg=
   if(audCur(song)){var r=document.createElement('div');r.className='row';r.innerHTML='<span>Include audio<small></small></span>';sub(r,SHR.aud?[audCur(song).name,song.sync&&song.sync.audioId===audCur(song).id?'Plays with the lyrics lit in time':'Plays from the link']:['Lyrics only']);
     var s=document.createElement('button');s.className='swtch'+(SHR.aud?' on':'');s.setAttribute('role','switch');s.setAttribute('aria-checked',SHR.aud?'true':'false');s.setAttribute('aria-label','Include audio');s.innerHTML='<i></i>';
     s.onclick=function(){SHR.aud=!SHR.aud;renderShare();shMake()};r.appendChild(s);g.appendChild(r)}
+  if(sfCloud()){var er=document.createElement('div');er.className='row';er.innerHTML='<span>Expires<small></small></span>';var ed=shExpD(song);
+    sub(er,[sh&&sh.exp?(sh.exp>Date.now()?'Stops working '+new Date(sh.exp).toLocaleDateString():'Expired'):ed?'Counts from when you create or update the link':'The link works until you stop it']);
+    var es=document.createElement('select');es.className='shexp';es.setAttribute('aria-label','Link expires');
+    [[0,'Never'],[7,'7 days'],[30,'30 days'],[90,'90 days']].forEach(function(o){var op=document.createElement('option');op.value=o[0];op.textContent=o[1];if(o[0]===ed)op.selected=true;es.appendChild(op)});
+    es.onchange=function(){shExpSet(song,+es.value)};er.appendChild(es);g.appendChild(er)}
   o.appendChild(g);
   var acts=document.createElement('div');acts.className='shacts';
   var bi=document.createElement('button');bi.id='shr-img';bi.className='go2';bi.onclick=function(){shSend(SHR.img)};
@@ -27313,7 +27319,11 @@ function shLinkMake(song,bg,withAudio,id,o2){var c=sbClient(),uid=AUTH_USER.id;i
   var up=function(name,blob){keep.push(name);return sfRoom().then(function(){return st.upload(dir+name,blob,{upsert:true,contentType:blob.type||'application/octet-stream',cacheControl:'31536000'})}).then(function(r){if(r.error)throw r.error;STORE&&(STORE.used+=blob.size||0);return url(name)})};
   /* the audio is the slow part, so: reuse it when it's the same version as last time; otherwise copy it straight
      across inside Supabase (nothing goes through the phone); only if that isn't possible, download and re-upload */
+  /* the song's own file, played through the share-audio function (no second copy); only a file that isn't in the
+     account yet (kept on this device) is uploaded with the link */
+  var apath=a&&a.path&&!/^local:/.test(a.path)?a.path:null;
   var audio=function(){if(!a)return Promise.resolve(null);
+    if(apath)return Promise.resolve(SB_URL+'/functions/v1/share-audio?s='+id);
     if(prev&&prev.aid===a.id&&prev.aname){keep.push(prev.aname);aname=prev.aname;return Promise.resolve(url(prev.aname))}
     var viaPhone=function(){return shAudioBlob(a).catch(shStep('read')).then(function(b){aname='audio-'+v+'.'+(/mpeg/.test(b.type)?'mp3':sfExt(a.name||a.path||'',b.type||a.mime));return up(aname,b).catch(shStep('upload'))})};
     if(!a.path||/^local:/.test(a.path)||(a.size&&a.size>40e6))return viaPhone();
@@ -27323,9 +27333,10 @@ function shLinkMake(song,bg,withAudio,id,o2){var c=sbClient(),uid=AUTH_USER.id;i
   var art=shArtBlob(song).then(function(b){return up('art-'+v+(b.type==='image/png'?'.png':'.jpg'),b).catch(shStep('upload'))});
   var au=audio(),ogp=shOgImage(song,bg,a).then(function(b){return up('og-'+v+(b.type==='image/png'?'.png':'.jpg'),b).catch(shStep('upload'))});
   return Promise.all([art,au,ogp]).then(function(r){var d=shSnap(song,bg,a,r[1],r[0]);d.og=r[2];if(o2&&o2.alb)d.alb=o2.alb;
-    return Promise.resolve().then(function(){return c.from('shares').upsert({id:id,owner:uid,song_id:song.id,data:d,updated_at:new Date().toISOString()}).then(function(res){if(res.error){res.error.step='save';throw res.error}
+    var exp=o2&&o2.expd?Date.now()+o2.expd*864e5:null;
+    return Promise.resolve().then(function(){return c.from('shares').upsert({id:id,owner:uid,song_id:song.id,data:d,audio_path:r[1]&&apath?apath:null,expires_at:exp?new Date(exp).toISOString():null,updated_at:new Date().toISOString()}).then(function(res){if(res.error){res.error.step='save';throw res.error}
       if(!(o2&&o2.stale&&o2.stale()))st.list(uid+'/'+id).then(function(l){var old=((l&&l.data)||[]).map(function(f){return f.name}).filter(function(n){return keep.indexOf(n)<0});if(old.length)st.remove(old.map(function(n){return dir+n}))}).catch(function(){});
-      if(o2&&o2.stale&&o2.stale())return id;shSet(song,{id:id,at:Date.now(),audio:!!r[1],by:uid,aid:r[1]&&a?a.id:null,aname:r[1]?aname:null});return id})})})}
+      if(o2&&o2.stale&&o2.stale())return id;shSet(song,{id:id,at:Date.now(),audio:!!r[1],by:uid,aid:r[1]&&a?a.id:null,aname:r[1]?aname:null,exp:exp||0,expd:(o2&&o2.expd)||0});return id})})})}
 function shLinkStop(song){var c=sbClient(),id=shMine(song);if(!id)return Promise.reject(new Error('Only the writer who made this link can stop it.'));var uid=AUTH_USER.id,st=c.storage.from(SHARE_BUCKET);
   return c.from('shares').delete().eq('id',id).then(function(r){if(r.error)throw r.error;
     return st.list(uid+'/'+id).then(function(l){var n=((l&&l.data)||[]).map(function(f){return uid+'/'+id+'/'+f.name});return n.length?st.remove(n):null}).catch(function(){})})
@@ -27338,7 +27349,7 @@ function shLinkGo(){var song=SHR.song;if(!song||SHR.linkBusy)return;if(!sfCloud(
   var copied=shCopyNow(SHARE_BASE+id);
   /* if this one times out and the writer tries again, the late finisher must not tidy away the new attempt's files
      or claim the link: each attempt gets a number and only the latest may do either */
-  var gen=++SH_GEN,made=shLinkMake(song,shBg(SHR.pal,SHR.ci),SHR.aud&&!!audCur(song),id,{stale:function(){return gen!==SH_GEN}}),cap=new Promise(function(res,rej){setTimeout(function(){SH_GEN++;rej({message:'It took too long. Check your connection and try again.',step:'time'})},180000)});
+  var gen=++SH_GEN,made=shLinkMake(song,shBg(SHR.pal,SHR.ci),SHR.aud&&!!audCur(song),id,{stale:function(){return gen!==SH_GEN},expd:shExpD(song)}),cap=new Promise(function(res,rej){setTimeout(function(){SH_GEN++;rej({message:'It took too long. Check your connection and try again.',step:'time'})},180000)});
   Promise.race([made,cap]).then(function(){SHR.linkBusy=null;haptic('success');renderShare();
       copied.then(function(ok){toast((had?'Link updated':'Link ready')+(ok?' and copied':'. Tap Share Link to send it.'))})},
     function(e){SHR.linkBusy=null;renderShare();copied.then(function(ok){toast('Couldn’t make the link: '+shLinkErr(e)+(ok&&!had?' (the copied link won’t work)':''))})})}
@@ -27349,6 +27360,23 @@ function shCopyNow(t){var old=function(){try{var ta=document.createElement('text
 function shLinkSend(){var song=SHR.song,r=shRec(song),u=r&&SHARE_BASE+r.id;if(!u)return;
   if(navigator.share&&!window.desktop){navigator.share({title:song.title||'A song',url:u}).catch(function(){});return}
   shCopyNow(u).then(function(ok){toast(ok?'Link copied':u)})}
+/* ---------- links that expire ----------
+   A link can stop working after 7, 30 or 90 days (the server hides it from then on: get_share). The choice is kept
+   with the link; changing it on a live link moves its end date straight away, counted from now. Expired links and
+   their files are removed the next time the owner's app starts (shSweep). */
+function shExpD(song){if(SHR.expd!=null&&SHR.song===song)return SHR.expd;var r=shRec(song);return(r&&r.expd)||0}
+function shExpSet(song,d){SHR.expd=d;var r=shRec(song);if(!r||!sfCloud()){renderShare();return}
+  var exp=d?Date.now()+d*864e5:null;
+  sbClient().from('shares').update({expires_at:exp?new Date(exp).toISOString():null}).eq('id',r.id).then(function(x){
+    if(x&&x.error){toast('Couldn’t change it: '+(x.error.message||'try again.'));SHR.expd=null;renderShare();return}
+    var n=Object.assign({},r,{exp:exp||0,expd:d});shSet(song,n);renderShare();toast(d?'The link stops working in '+d+' days':'The link no longer expires')},function(){toast('Couldn’t change it. Check your connection.')})}
+function shSweep(){var c=sbClient(),uid=AUTH_USER&&AUTH_USER.id;if(!c||!uid||!BIG.ready)return;
+  c.from('shares').select('id').eq('owner',uid).lt('expires_at',new Date().toISOString()).then(function(r){var ids=((r&&r.data)||[]).map(function(x){return x.id});if(!ids.length)return;
+    var st=c.storage.from(SHARE_BUCKET);
+    ids.forEach(function(id){st.list(uid+'/'+id).then(function(l){var n=((l&&l.data)||[]).map(function(f){return uid+'/'+id+'/'+f.name});if(n.length)st.remove(n)}).catch(function(){})});
+    c.from('shares').delete().in('id',ids).then(function(){},function(){});
+    songs.forEach(function(s){var x=shRec(s);if(x&&ids.indexOf(x.id)>=0)shSet(s,null)});
+    albums.forEach(function(a){if(a.share&&ids.indexOf(a.share.id)>=0){delete a.share;a.updated=Date.now()}});saveAlbums()},function(){})}
 function shAgo(t){var s=Math.round((Date.now()-t)/1000);if(s<60)return'just now';if(s<3600)return Math.round(s/60)+' min ago';if(s<86400)return Math.round(s/3600)+' h ago';return new Date(t).toLocaleDateString()}
 $('#shareb').onclick=openShare;$('#done8').onclick=function(){sheet(false)};
 

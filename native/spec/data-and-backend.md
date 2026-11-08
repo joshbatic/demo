@@ -83,7 +83,7 @@ Songs are plain JSON objects held in the array `songs`. The same object shape go
 | `intents[]` | `[{quote:string, why:string, t:ms}]` | Lines the writer marked "meant that way" in Rate. |
 | `brief` | `{who?, to?, where?, thing?, more?}` | Song brief strings (each ≤160 chars, `more` ≤600). Deleted when empty. |
 | `scheme` | string | Rhyme scheme hint: `auto` (default when missing), `ABAB`, `AABB`, `ABBA`, `ABCB`. |
-| `shares` | `{ [userId]: {id, at:ms, audio:bool, by:userId, aid:audioId\|null, aname:string\|null} }` | This user's share link per writer (§4.4). |
+| `shares` | `{ [userId]: {id, at:ms, audio:bool, by:userId, aid:audioId\|null, aname:string\|null, exp:ms\|0, expd:0\|7\|30\|90} }` | This user's share link per writer (§4.4). `exp` = when it stops working (0 never), `expd` = the chosen length. |
 | `share` | `{id, at, audio, by?, ...}` | **Legacy** single-slot share link. Read it if it's yours (`by===uid`, or no `by` and you own the song or it isn't shared). Delete it when you write `shares`. |
 | `ph` | `1` | Placeholder "empty folder" song (§1.6). |
 | `guide`, `guideAt` | `true`, ms | Built-in guide song (§1.7). |
@@ -765,7 +765,7 @@ Restrictive insert policies on both buckets:
 | Play or open | `createSignedUrl(path, 3600)`, cached in memory until 60 s before expiry. Audio is served from the IDB cache first. The first stream also fills the cache (`acFill`). Non-Pro users trying to play others' files get an upsell instead (`sfCanPlay = isPro() \|\| sfMine(item)`). |
 | A file 404s | Likely replaced on another device: `pullShared` / `cloudSync`, wait 1.8 s, find the item by id (or by `orig.name` match) and retry once with its new path. |
 | Copy memo → song | `storage.from('song-files').copy(memoPath, '<uid>/<songId>/<newId>.<ext>')` |
-| Copy audio → share | `storage.from('song-files').copy(a.path, '<uid>/<shareId>/audio-<v>.<ext>', {destinationBucket:'shares'})`. Falls back to download and re-upload when the item is `local:`, over 40 MB, or the copy fails. |
+| Audio for a share | **Since 9 Nov 2026 no copy:** the link plays the song's own file through `share-audio` (§4.4a). Only a `local:` item is still uploaded to `<uid>/<shareId>/audio-<v>.<ext>`. Older links keep their copies until updated. |
 | Delete | `remove([path])` (errors are ignored). Also drops the cache entry. |
 | Delete account | List both buckets recursively under `<uid>` (`list(prefix,{limit:1000})`: entries with `id` are files, without are folders) and remove in chunks of 100. Then call the RPC. |
 
@@ -778,6 +778,20 @@ Restrictive insert policies on both buckets:
 - The client blocks the upload when `used >= limit` ("you've used all X of your storage…"). The server enforces
   it too. A full or RLS error is mapped to friendly messages in `sfErr`. Account shows "Storage: X of Y" (refreshed
   every 15 s while open).
+
+### 4.4a Share-link audio and expiry (since 9 Nov 2026, `share-links-v2.sql`)
+
+- New columns: `shares.audio_path` (the song-files path; never in `get_share`'s output) and `shares.expires_at`
+  (null = never). `get_share` returns nothing once expired, so the page says it's not shared any more.
+- With a cloud audio item, `data.audio.src = SB_URL + '/functions/v1/share-audio?s=' + shareId` and the upsert sets
+  `audio_path = item.path`. The `share-audio` edge function (Verify JWT off) calls `share_audio(sid)` (service role
+  only), which returns the path only if the link exists, hasn't expired, and the owner may open the file themselves
+  (their upload, or one on a song they're on); then it 302s to a 6-hour signed URL (`Cache-Control: private,
+  max-age=3600`). The viewer and `share/api/s.js` accept exactly that URL for audio, besides the public bucket.
+- Expires: Never / 7 / 30 / 90 days, chosen in the share sheet. `expires_at = now + days` on create, update, or when
+  changed on a live link (an `update` of `expires_at` only). Stored on the song as `exp`/`expd`.
+- `shSweep()` (web/Mac, 20 s after sign-in): select my shares with `expires_at < now`, remove their bucket files and
+  rows, and clear the matching `song.shares[me]` / `album.share`.
 
 ### 4.4 Share links (`shares` table + listen.hellodemo.app)
 
