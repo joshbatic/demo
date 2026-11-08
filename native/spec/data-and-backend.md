@@ -83,7 +83,7 @@ Songs are plain JSON objects held in the array `songs`. The same object shape go
 | `intents[]` | `[{quote:string, why:string, t:ms}]` | Lines the writer marked "meant that way" in Rate. |
 | `brief` | `{who?, to?, where?, thing?, more?}` | Song brief strings (each ≤160 chars, `more` ≤600). Deleted when empty. |
 | `scheme` | string | Rhyme scheme hint: `auto` (default when missing), `ABAB`, `AABB`, `ABBA`, `ABCB`. |
-| `shares` | `{ [userId]: {id, at:ms, audio:bool, by:userId, aid:audioId\|null, aname:string\|null, exp:ms\|0, expd:0\|7\|30\|90} }` | This user's share link per writer (§4.4). `exp` = when it stops working (0 never), `expd` = the chosen length. |
+| `shares` | `{ [userId]: {id, at:ms, audio:bool, by:userId, aid:audioId\|null, aname:string\|null, exp:ms} }` | This user's share link per writer (§4.4). `exp` = when it stops working (30 days after it was made or updated). |
 | `share` | `{id, at, audio, by?, ...}` | **Legacy** single-slot share link. Read it if it's yours (`by===uid`, or no `by` and you own the song or it isn't shared). Delete it when you write `shares`. |
 | `ph` | `1` | Placeholder "empty folder" song (§1.6). |
 | `guide`, `guideAt` | `true`, ms | Built-in guide song (§1.7). |
@@ -788,8 +788,9 @@ Restrictive insert policies on both buckets:
   only), which returns the path only if the link exists, hasn't expired, and the owner may open the file themselves
   (their upload, or one on a song they're on); then it 302s to a 6-hour signed URL (`Cache-Control: private,
   max-age=3600`). The viewer and `share/api/s.js` accept exactly that URL for audio, besides the public bucket.
-- Expires: Never / 7 / 30 / 90 days, chosen in the share sheet. `expires_at = now + days` on create, update, or when
-  changed on a live link (an `update` of `expires_at` only). Stored on the song as `exp`/`expd`.
+- **Every link lasts 30 days** from when it was made or last updated (Update renews it). The `shares_30_days`
+  trigger sets `expires_at = now() + 30 days` on every insert and update, so clients don't send it. Stored on the
+  song as `exp` (ms) for the share sheet's "Works until …" line; albums too (`album.share.exp`).
 - `shSweep()` (web/Mac, 20 s after sign-in): select my shares with `expires_at < now`, remove their bucket files and
   rows, and clear the matching `song.shares[me]` / `album.share`.
 

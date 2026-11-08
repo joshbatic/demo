@@ -247,8 +247,6 @@ struct ShareSheet: View {
     @AppStorage("share.audio") private var includeAudio = true
     @State private var busy: String?
     @State private var confirmStop = false
-    /// 0 = never, else days; nil = use what the link already has
-    @State private var expDays: Int?
     @State private var shareURL: URL?
     /// The content's height, so the sheet opens just tall enough for it. It starts at the
     /// tallest the sheet can be and settles down to the content, so it never grows on open.
@@ -260,7 +258,6 @@ struct ShareSheet: View {
         guard let uid = session.userID else { return nil }
         return song?.raw["shares"]?[uid]?.object
     }
-    private var expChoice: Int { expDays ?? Int(myShare?["expd"]?.number ?? 0) }
 
     var body: some View {
         NavigationStack {
@@ -381,70 +378,24 @@ struct ShareSheet: View {
                 .toggleStyle(.green)
                 .padding(.horizontal, 20).padding(.vertical, 10).frame(minHeight: 58)
             }
-            if session.userID != nil {
-                Divider().padding(.leading, 20)
-                HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Expires").font(.system(size: 17))
-                        Text(expLine).font(.system(size: 13)).foregroundStyle(.secondary).lineLimit(1)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    Menu {
-                        Picker("Expires", selection: Binding(get: { expChoice }, set: { d in Task { await setExpiry(d) } })) {
-                            Text("Never").tag(0); Text("7 days").tag(7); Text("30 days").tag(30); Text("90 days").tag(90)
-                        }
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text(expChoice == 0 ? "Never" : "\(expChoice) days")
-                            Image(systemName: "chevron.up.chevron.down").font(.system(size: 12, weight: .semibold))
-                        }
-                        .font(.system(size: 17)).foregroundStyle(.secondary)
-                    }
-                }
-                .padding(.horizontal, 20).padding(.vertical, 10).frame(minHeight: 58)
-            }
         }
         .glass(in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .padding(.horizontal, 20).padding(.bottom, 16)
     }
 
-    private var expLine: String {
-        if let e = myShare?["exp"]?.number, e > 0 {
-            let d = Date(timeIntervalSince1970: e / 1000)
-            return d > Date() ? "Stops working " + d.formatted(date: .abbreviated, time: .omitted) : "Expired"
-        }
-        return expChoice == 0 ? "The link works until you stop it" : "Counts from when you create or update the link"
-    }
-
-    /// A live link's end date moves straight away (counted from now); otherwise it applies when the link is made.
-    private func setExpiry(_ d: Int) async {
-        expDays = d
-        guard let uid = session.userID, let id = myShare?["id"]?.string else { return }
-        let exp: Double? = d > 0 ? Clock.nowMs + Double(d) * 86_400_000 : nil
-        let iso: JSONValue = exp.map { .string(ISO8601DateFormatter().string(from: Date(timeIntervalSince1970: $0 / 1000))) } ?? .null
-        do {
-            _ = try await Backend.client.from("shares").update(["expires_at": iso] as [String: JSONValue]).eq("id", value: id).execute()
-            if var s = library.song(songID), var mine = s.raw["shares"]?[uid]?.object {
-                mine["exp"] = .number(exp ?? 0); mine["expd"] = .number(Double(d))
-                var shares = s.raw["shares"]?.object ?? [:]; shares[uid] = .object(mine); s.raw["shares"] = .object(shares)
-                s.touch(); library.put(s)
-            }
-            session.toast = d > 0 ? "The link stops working in \(d) days" : "The link no longer expires"
-        } catch {
-            expDays = nil
-            session.toast = "Couldn’t change it: " + describe(error)
-        }
-    }
-
+    /// Links work for 30 days from when they were made or last updated (the server sets it: shares_30_days).
     private var linkLines: [String] {
         if let b = busy { return [b] }
         if session.userID == nil { return ["Sign in to make a link"] }
         if let m = myShare, let id = m["id"]?.string {
             var l = [Config.listenHost + "/" + id]
-            if let at = m["at"]?.number { l.append("Updated " + RelativeDateTimeFormatter().localizedString(for: Date(timeIntervalSince1970: at / 1000), relativeTo: Date())) }
+            if let e = m["exp"]?.number, e > 0 {
+                let d = Date(timeIntervalSince1970: e / 1000)
+                l.append(d > Date() ? "Works until " + d.formatted(date: .abbreviated, time: .omitted) + ". Update to renew" : "Expired. Update to renew")
+            } else if let at = m["at"]?.number { l.append("Updated " + RelativeDateTimeFormatter().localizedString(for: Date(timeIntervalSince1970: at / 1000), relativeTo: Date())) }
             return l
         }
-        return ["Anyone can open it, no account needed"]
+        return ["Anyone can open it for 30 days, no account needed"]
     }
 
     /// The web's .go2 pills: filled, or a light "ghost" (red for Stop Sharing).
@@ -569,11 +520,9 @@ struct ShareSheet: View {
             }
             aid = a.id; aname = a.name
         } else { data["audio"] = .null }
-        let d = expChoice
-        let exp: Double? = d > 0 ? Clock.nowMs + Double(d) * 86_400_000 : nil
+        let exp = Clock.nowMs + 30 * 86_400_000
         let row: [String: JSONValue] = ["id": .string(id), "owner": .string(uid), "song_id": .string(s.id), "data": .object(data),
                                         "audio_path": apath.map { .string($0) } ?? .null,
-                                        "expires_at": exp.map { .string(ISO8601DateFormatter().string(from: Date(timeIntervalSince1970: $0 / 1000))) } ?? .null,
                                         "updated_at": .string(ISO8601DateFormatter().string(from: Date()))]
         _ = try await Backend.client.from("shares").upsert(row, onConflict: "id").execute()
         // tidy: files from older versions of this link
@@ -586,7 +535,7 @@ struct ShareSheet: View {
         var mine: [String: JSONValue] = ["id": .string(id), "at": .number(Clock.nowMs), "audio": .bool(audio != nil), "by": .string(uid)]
         if let aid { mine["aid"] = .string(aid) }
         if let aname { mine["aname"] = .string(aname) }
-        mine["exp"] = .number(exp ?? 0); mine["expd"] = .number(Double(d))
+        mine["exp"] = .number(exp)
         shares[uid] = .object(mine)
         now.raw["shares"] = .object(shares)
         now.touch()

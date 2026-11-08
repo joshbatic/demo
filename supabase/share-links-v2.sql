@@ -53,3 +53,20 @@ end
 $$;
 revoke all on function public.share_audio(text) from public, anon, authenticated;
 grant execute on function public.share_audio(text) to service_role;
+
+-- 9 Nov 2026 (Josh): no choice; every link works for 30 days from when it was made or last updated. Set here on
+-- every save, so it holds for every app version (older apps don't send expires_at at all).
+create or replace function public.shares_30_days()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  new.expires_at := now() + interval '30 days';
+  return new;
+end
+$$;
+create or replace trigger shares_30_days before insert or update on public.shares
+  for each row execute function public.shares_30_days();
+-- links made before this: 30 days from today
+update public.shares set updated_at = updated_at where expires_at is null;
