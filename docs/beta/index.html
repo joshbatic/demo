@@ -21055,8 +21055,8 @@ UW-K-ER-M-AH-N	zukerman93
 UW-L-UW-Z	zulus82
 AH-M-W-AH-L-T	zumwalt82`;
 /* git commit this build came from, shown at the bottom of Account. Written by scripts/stamp-version.sh — don't edit by hand. */
-var APP_COMMIT='5bdb8b4';
-var APP_SEQ=816;
+var APP_COMMIT='926bbc2';
+var APP_SEQ=820;
 /* the version people see, the same as the iPhone app's; Account shows it with the build number so every device can be compared */
 var APP_VERSION='1.2.0';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
@@ -25390,6 +25390,7 @@ function onAuthUser(){
   if(uid!==lastAuthUid){lastAuthUid=uid;cloudDidPull=false;PENDING_INVITES=[];MY_PROFILE=null;mzLoad()}
   var ag=$('#authgate');if(ag)ag.style.display=(AUTH_USER||DEV_MODE)?'none':'flex';
   if(AUTH_USER&&AUTH_STALE){ensureStorageForMode();refreshAccount();paintAcctIcons();return}
+  if(AUTH_USER&&!DEV_MODE&&uid!==shSweep.uid){shSweep.uid=uid;setTimeout(shSweep,20000)}
   if(AUTH_USER&&!DEV_MODE){if(uid!==betaCheck.uid){betaCheck.uid=uid;BETA={st:null,admin:false,sum:null,list:null,t:0,busy:{}};betaCheck()}}else{betaCheck.uid=null;betaGate(null)}
   if(AUTH_USER&&!DEV_MODE)iapStart();
   ensureStorageForMode();
@@ -27261,7 +27262,7 @@ function renderShare(){var o=$('#shr'),song=SHR.song;if(!o||!song)return;var bg=
   var lr=document.createElement('div');lr.className='row shlink'+(sh&&!SHR.linkBusy&&sfCloud()?' has':'');lr.innerHTML='<span>Link<small></small></span>';
   /* one short fact per line, each cut off with … rather than wrapping, so the rows stay tidy at any width */
   var sub=function(row,lines){var sp=row.querySelector('span'),sm=sp.querySelector('small');sm.textContent=lines[0];for(var k=1;k<lines.length;k++){var m=document.createElement('small');m.textContent=lines[k];sp.appendChild(m)}};
-  sub(lr,SHR.linkBusy?[SHR.linkBusy]:!sfCloud()?['Sign in to make a link']:sh?['\u200e'+SHARE_BASE.replace(/^https:\/\//,'')+sh.id+'\u200e','Updated '+shAgo(sh.at)]:['Anyone can open it, no account needed']);
+  sub(lr,SHR.linkBusy?[SHR.linkBusy]:!sfCloud()?['Sign in to make a link']:sh?['\u200e'+SHARE_BASE.replace(/^https:\/\//,'')+sh.id+'\u200e',sh.exp?(sh.exp>Date.now()?'Works until '+new Date(sh.exp).toLocaleDateString()+'. Update to renew':'Expired. Update to renew'):'Updated '+shAgo(sh.at)]:['Anyone can open it for 30 days, no account needed']);
   if(SHR.linkBusy){var sp=document.createElement('i');sp.className='shspin';lr.appendChild(sp)}
   else if(sfCloud()){var lb=document.createElement('button');lb.className='go2'+(sh?' ghost':'');lb.textContent=sh?'Update':'Create Link';lb.onclick=shLinkGo;lr.appendChild(lb)}
   g.appendChild(lr);
@@ -27313,7 +27314,11 @@ function shLinkMake(song,bg,withAudio,id,o2){var c=sbClient(),uid=AUTH_USER.id;i
   var up=function(name,blob){keep.push(name);return sfRoom().then(function(){return st.upload(dir+name,blob,{upsert:true,contentType:blob.type||'application/octet-stream',cacheControl:'31536000'})}).then(function(r){if(r.error)throw r.error;STORE&&(STORE.used+=blob.size||0);return url(name)})};
   /* the audio is the slow part, so: reuse it when it's the same version as last time; otherwise copy it straight
      across inside Supabase (nothing goes through the phone); only if that isn't possible, download and re-upload */
+  /* the song's own file, played through the share-audio function (no second copy); only a file that isn't in the
+     account yet (kept on this device) is uploaded with the link */
+  var apath=a&&a.path&&!/^local:/.test(a.path)?a.path:null;
   var audio=function(){if(!a)return Promise.resolve(null);
+    if(apath)return Promise.resolve(SB_URL+'/functions/v1/share-audio?s='+id);
     if(prev&&prev.aid===a.id&&prev.aname){keep.push(prev.aname);aname=prev.aname;return Promise.resolve(url(prev.aname))}
     var viaPhone=function(){return shAudioBlob(a).catch(shStep('read')).then(function(b){aname='audio-'+v+'.'+(/mpeg/.test(b.type)?'mp3':sfExt(a.name||a.path||'',b.type||a.mime));return up(aname,b).catch(shStep('upload'))})};
     if(!a.path||/^local:/.test(a.path)||(a.size&&a.size>40e6))return viaPhone();
@@ -27323,9 +27328,10 @@ function shLinkMake(song,bg,withAudio,id,o2){var c=sbClient(),uid=AUTH_USER.id;i
   var art=shArtBlob(song).then(function(b){return up('art-'+v+(b.type==='image/png'?'.png':'.jpg'),b).catch(shStep('upload'))});
   var au=audio(),ogp=shOgImage(song,bg,a).then(function(b){return up('og-'+v+(b.type==='image/png'?'.png':'.jpg'),b).catch(shStep('upload'))});
   return Promise.all([art,au,ogp]).then(function(r){var d=shSnap(song,bg,a,r[1],r[0]);d.og=r[2];if(o2&&o2.alb)d.alb=o2.alb;
-    return Promise.resolve().then(function(){return c.from('shares').upsert({id:id,owner:uid,song_id:song.id,data:d,updated_at:new Date().toISOString()}).then(function(res){if(res.error){res.error.step='save';throw res.error}
+    var exp=Date.now()+SH_DAYS*864e5;
+    return Promise.resolve().then(function(){return c.from('shares').upsert({id:id,owner:uid,song_id:song.id,data:d,audio_path:r[1]&&apath?apath:null,updated_at:new Date().toISOString()}).then(function(res){if(res.error){res.error.step='save';throw res.error}
       if(!(o2&&o2.stale&&o2.stale()))st.list(uid+'/'+id).then(function(l){var old=((l&&l.data)||[]).map(function(f){return f.name}).filter(function(n){return keep.indexOf(n)<0});if(old.length)st.remove(old.map(function(n){return dir+n}))}).catch(function(){});
-      if(o2&&o2.stale&&o2.stale())return id;shSet(song,{id:id,at:Date.now(),audio:!!r[1],by:uid,aid:r[1]&&a?a.id:null,aname:r[1]?aname:null});return id})})})}
+      if(o2&&o2.stale&&o2.stale())return id;shSet(song,{id:id,at:Date.now(),audio:!!r[1],by:uid,aid:r[1]&&a?a.id:null,aname:r[1]?aname:null,exp:exp});return id})})})}
 function shLinkStop(song){var c=sbClient(),id=shMine(song);if(!id)return Promise.reject(new Error('Only the writer who made this link can stop it.'));var uid=AUTH_USER.id,st=c.storage.from(SHARE_BUCKET);
   return c.from('shares').delete().eq('id',id).then(function(r){if(r.error)throw r.error;
     return st.list(uid+'/'+id).then(function(l){var n=((l&&l.data)||[]).map(function(f){return uid+'/'+id+'/'+f.name});return n.length?st.remove(n):null}).catch(function(){})})
@@ -27349,6 +27355,18 @@ function shCopyNow(t){var old=function(){try{var ta=document.createElement('text
 function shLinkSend(){var song=SHR.song,r=shRec(song),u=r&&SHARE_BASE+r.id;if(!u)return;
   if(navigator.share&&!window.desktop){navigator.share({title:song.title||'A song',url:u}).catch(function(){});return}
   shCopyNow(u).then(function(ok){toast(ok?'Link copied':u)})}
+/* ---------- links last 30 days ----------
+   Every share link (song or album) works for 30 days from when it was made or last updated; the server sets that
+   on every save (shares_30_days trigger), so it holds for every app version. After that the page says it's not
+   shared any more. Expired links and their files are removed the next time the owner's app starts (shSweep). */
+var SH_DAYS=30;
+function shSweep(){var c=sbClient(),uid=AUTH_USER&&AUTH_USER.id;if(!c||!uid||!BIG.ready)return;
+  c.from('shares').select('id').eq('owner',uid).lt('expires_at',new Date().toISOString()).then(function(r){var ids=((r&&r.data)||[]).map(function(x){return x.id});if(!ids.length)return;
+    var st=c.storage.from(SHARE_BUCKET);
+    ids.forEach(function(id){st.list(uid+'/'+id).then(function(l){var n=((l&&l.data)||[]).map(function(f){return uid+'/'+id+'/'+f.name});if(n.length)st.remove(n)}).catch(function(){})});
+    c.from('shares').delete().in('id',ids).then(function(){},function(){});
+    songs.forEach(function(s){var x=shRec(s);if(x&&ids.indexOf(x.id)>=0)shSet(s,null)});
+    albums.forEach(function(a){if(a.share&&ids.indexOf(a.share.id)>=0){delete a.share;a.updated=Date.now()}});saveAlbums()},function(){})}
 function shAgo(t){var s=Math.round((Date.now()-t)/1000);if(s<60)return'just now';if(s<3600)return Math.round(s/60)+' min ago';if(s<86400)return Math.round(s/3600)+' h ago';return new Date(t).toLocaleDateString()}
 $('#shareb').onclick=openShare;$('#done8').onclick=function(){sheet(false)};
 
@@ -27623,7 +27641,7 @@ function albLinkMake(a,id,step){var c=sbClient(),uid=AUTH_USER.id,dir=uid+'/'+id
         tracks:list.map(function(s,i){var ls=llines(s);return{title:s.title||ls[0]||'New Song',line:(s.title?ls[0]:ls[1])||'',link:links[i]||''}})};
       return c.from('shares').upsert({id:id,owner:uid,song_id:'album:'+a.id,data:d,updated_at:new Date().toISOString()}).then(function(res){if(res.error){res.error.step='save';throw res.error}
         st.list(uid+'/'+id).then(function(l){var old=((l&&l.data)||[]).map(function(f){return f.name}).filter(function(n){return n!==nm});if(old.length)st.remove(old.map(function(n){return dir+n}))}).catch(function(){});
-        var x=albGet(a.id);if(x){x.share={id:id,at:Date.now(),by:uid};x.updated=Date.now();saveAlbums()}return id})})})}
+        var x=albGet(a.id);if(x){x.share={id:id,at:Date.now(),by:uid,exp:Date.now()+SH_DAYS*864e5};x.updated=Date.now();saveAlbums()}return id})})})}
 function albLinkStop(a){var c=sbClient(),r=albShareRec(a);if(!r)return Promise.resolve();var uid=AUTH_USER.id,st=c.storage.from(SHARE_BUCKET);
   return c.from('shares').delete().eq('id',r.id).then(function(x){if(x.error)throw x.error;
     return st.list(uid+'/'+r.id).then(function(l){var n=((l&&l.data)||[]).map(function(f){return uid+'/'+r.id+'/'+f.name});return n.length?st.remove(n):null}).catch(function(){})})
