@@ -38,8 +38,8 @@ struct IdeasRow: View {
 }
 
 
-/// Ideas (spec §5): a daily idea from the past, then recent ideas as cards in two columns, each wearing the
-/// cover-art gradient for its id. Search, record and + float at the bottom. Matches the web's renderIdeas.
+/// Ideas (spec §5): a plain list grouped by day like Notes, newest first. Search, record and + float at the
+/// bottom. Matches the web's renderIdeas.
 struct IdeasScreen: View {
     @Environment(\.appSession) private var session
     @Environment(\.library) private var library
@@ -49,39 +49,48 @@ struct IdeasScreen: View {
     @State private var query = ""
     @State private var editing: IdeaTarget?
     @State private var recorder = MemoRecorder()
-    @State private var dayOffset = 0
-    @State private var confirmDelete: Idea?
 
     /// The Idea sheet's subject: an existing idea or a new blank one.
     struct IdeaTarget: Identifiable { let id: String; let idea: Idea? }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                if !subtitle.isEmpty {
-                    Text(subtitle).font(.system(size: 15)).foregroundStyle(.secondary)
-                        .padding(.horizontal, 24).padding(.bottom, 16)
-                }
-                if query.isEmpty, let d = IdeaLook.ofDay(library.ideas, offset: dayOffset) {
-                    DailyIdea(idea: d, open: { editing = IdeaTarget(id: d.id, idea: d) }, another: {
-                        Haptics.tap(); withAnimation(.snappy) { dayOffset += 1 }
-                    }, start: { Task { await startSong(d) } })
-                    .padding(.horizontal, 16)
-                }
-                if filtered.isEmpty {
-                    Text(query.isEmpty ? "Nothing here yet. Tap + to jot a line, or the mic to hum one." : "No ideas match “\(query)”.")
-                        .font(.subheadline).foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity).multilineTextAlignment(.center)
-                        .padding(.vertical, 40).padding(.horizontal, 24)
-                } else {
-                    Text(query.isEmpty ? "Recent" : "\(filtered.count) \(filtered.count == 1 ? "match" : "matches")")
-                        .font(.system(size: 22, weight: .bold)).tracking(-0.2)
-                        .padding(.horizontal, 24).padding(.top, 22).padding(.bottom, 10)
-                    columns.padding(.horizontal, 16)
+        List {
+            if !subtitle.isEmpty {
+                Text(subtitle).font(.system(size: 15)).foregroundStyle(.secondary)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 24))
+            }
+            if filtered.isEmpty {
+                Text(query.isEmpty ? "Nothing here yet. Tap + to jot a line, or the mic to hum one." : "No ideas match “\(query)”.")
+                    .font(.subheadline).foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity).multilineTextAlignment(.center)
+                    .padding(.vertical, 40)
+                    .listRowSeparator(.hidden)
+            }
+            ForEach(groups) { g in
+                Section {
+                    ForEach(g.ideas) { i in
+                        // a tap opens it; a swipe deletes it. Not a Button, so the list's own swipe isn't fighting it.
+                        IdeaCard(idea: i)
+                            .contentShape(Rectangle())
+                            .onTapGesture { editing = IdeaTarget(id: i.id, idea: i) }
+                            .listRowInsets(EdgeInsets(top: 12, leading: 24, bottom: 12, trailing: 20))
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) { delete(i) } label: { Label("Delete", systemImage: "trash") }.tint(.red)
+                            }
+                            .contextMenu {
+                                Button { Task { await startSong(i) } } label: { Label("Start a Song", systemImage: "music.note") }
+                                if !i.text.isEmpty { Button { UIPasteboard.general.string = i.text } label: { Label("Copy", systemImage: "doc.on.doc") } }
+                                Button(role: .destructive) { delete(i) } label: { Label("Delete Idea", systemImage: "trash") }
+                            }
+                    }
+                } header: {
+                    Text(g.id).font(.system(size: 20, weight: .bold)).foregroundStyle(.primary).textCase(nil)
+                        .padding(.leading, 8)
                 }
             }
-            .padding(.bottom, 110)
         }
+        .listStyle(.plain)
         .scrollDismissesKeyboard(.interactively)
         .toolbar(.hidden, for: .navigationBar)
         .safeAreaInset(edge: .top, spacing: 0) { header }
@@ -98,9 +107,6 @@ struct IdeasScreen: View {
             .animation(.snappy(duration: 0.25), value: recorder.isRecording)
         }
         .sheet(item: $editing) { t in IdeaSheet(idea: t.idea) }
-        .confirmDestroy("Delete this idea?", isPresented: Binding(get: { confirmDelete != nil }, set: { if !$0 { confirmDelete = nil } }), message: "This can’t be undone.", action: "Delete Idea") {
-            if let i = confirmDelete { delete(i) }
-        }
         .task { await IdeaMemos.uploadPending(library: library, session: session) }
         .onDisappear { stopAndSave() }
         .onChange(of: scenePhase) { _, p in if p != .active { stopAndSave() } }
@@ -148,31 +154,15 @@ struct IdeasScreen: View {
             .filter { !$0.isEmpty }.joined(separator: ", ")
     }
 
-    /// Two columns, each card going to the shorter one so the grid stays level.
-    private var columns: some View {
-        var cols: [[Idea]] = [[], []], hs: [Double] = [0, 0]
+    /// Ideas grouped by day like Notes: Today, Yesterday, Previous 7 Days, Previous 30 Days, then months and years.
+    struct DayGroup: Identifiable { let id: String; var ideas: [Idea] }
+    private var groups: [DayGroup] {
+        var out: [DayGroup] = []
         for i in filtered {
-            let k = hs[1] < hs[0] - 1 ? 1 : 0
-            cols[k].append(i)
-            hs[k] += i.memo != nil ? 110 : 70 + Double(min(i.text.count, 160)) * 0.55
+            let g = query.isEmpty ? IdeaLook.group(i.updated) : "\(filtered.count) \(filtered.count == 1 ? "Match" : "Matches")"
+            if out.last?.id == g { out[out.count - 1].ideas.append(i) } else { out.append(DayGroup(id: g, ideas: [i])) }
         }
-        return HStack(alignment: .top, spacing: 10) {
-            ForEach(0..<2, id: \.self) { c in
-                VStack(spacing: 10) {
-                    ForEach(cols[c]) { i in
-                        IdeaCard(idea: i)
-                            .onTapGesture { editing = IdeaTarget(id: i.id, idea: i) }
-                            .contextMenu {
-                                Button { Task { await startSong(i) } } label: { Label("Start a Song", systemImage: "music.note") }
-                                Button { editing = IdeaTarget(id: i.id, idea: i) } label: { Label("Open", systemImage: "arrow.up.forward.app") }
-                                if !i.text.isEmpty { Button { UIPasteboard.general.string = i.text } label: { Label("Copy", systemImage: "doc.on.doc") } }
-                                Button(role: .destructive) { confirmDelete = i } label: { Label("Delete Idea", systemImage: "trash") }
-                            }
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .top)
-            }
-        }
+        return out
     }
 
     private var recordingPanel: some View {
@@ -235,8 +225,7 @@ struct IdeasScreen: View {
     }
 }
 
-/// The look and the helpers the web's Ideas uses: kind names and icons, the gradient, the daily pick,
-/// "From 3 weeks ago", and related ideas.
+/// The helpers the web's Ideas uses: kind names, day groups and related ideas.
 enum IdeaLook {
     static func kind(_ i: Idea) -> String {
         if i.memo != nil && i.text.isEmpty { return "memo" }
@@ -246,27 +235,17 @@ enum IdeaLook {
     static func symbol(_ k: String) -> String { ["line": "text.alignleft", "title": "textformat", "idea": "textformat", "concept": "lightbulb", "memo": "waveform"][k] ?? "text.alignleft" }
     static func created(_ i: Idea) -> Double { i.raw["created"]?.number ?? i.updated }
 
-    static func ago(_ t: Double) -> String {
-        let d = Int((Clock.nowMs - t) / 864e5)
-        if d < 1 { return "From today" }
-        if d < 2 { return "From yesterday" }
-        if d < 7 { return "From \(d) days ago" }
-        if d < 14 { return "From last week" }
-        if d < 60 { return "From \(Int((Double(d) / 7).rounded())) weeks ago" }
-        if d < 365 { return "From \(Int((Double(d) / 30).rounded())) months ago" }
-        let y = Int((Double(d) / 365).rounded())
-        return y < 2 ? "From a year ago" : "From \(y) years ago"
-    }
-
-    /// The same idea all day on every device (seeded by the date as the web does), from ideas at least two days old.
-    static func ofDay(_ ideas: [Idea], offset: Int) -> Idea? {
-        let old = ideas.filter { Clock.nowMs - created($0) >= 2 * 864e5 }.sorted { $0.id < $1.id }
-        guard !old.isEmpty else { return nil }
-        let c = Calendar.current.dateComponents([.year, .month, .day], from: Date())
-        let seed = (c.year ?? 0) * 400 + ((c.month ?? 1) - 1) * 32 + (c.day ?? 1)
-        var h: UInt32 = 2166136261
-        for u in String(seed).utf16 { h ^= UInt32(u); h = h &* 16777619 }
-        return old[Int((UInt64(h) + UInt64(max(0, offset))) % UInt64(old.count))]
+    /// The web's ideaGroup.
+    static func group(_ t: Double) -> String {
+        let cal = Calendar.current, d = Date(timeIntervalSince1970: t / 1000)
+        let n = cal.dateComponents([.day], from: cal.startOfDay(for: d), to: cal.startOfDay(for: Date())).day ?? 0
+        if n <= 0 { return "Today" }
+        if n == 1 { return "Yesterday" }
+        if n < 7 { return "Previous 7 Days" }
+        if n < 30 { return "Previous 30 Days" }
+        let f = DateFormatter()
+        f.dateFormat = cal.component(.year, from: d) == cal.component(.year, from: Date()) ? "LLLL" : "yyyy"
+        return f.string(from: d)
     }
 
     private static let stop: Set<String> = Set("that this with from your have what when they them were there their then than just like into been will would could about over only some more back down here also because before after where while which these those cant dont wont youre ever even still every never always".split(separator: " ").map(String.init))
@@ -301,160 +280,37 @@ enum IdeaLook {
     }
 }
 
-/// The cover-art gradient for an idea (the web's avGradCss('idea:'+id)): a 135° wash between two palette
-/// colours with a glow, the same colours on every device.
-struct IdeaGradient: View {
-    let id: String
-    var body: some View {
-        let k = CoverPick(id: "idea:" + id)
-        Canvas { ctx, sz in
-            let r = CGRect(origin: .zero, size: sz)
-            ctx.fill(Path(r), with: .linearGradient(Gradient(colors: [k.a, k.b]), startPoint: .zero, endPoint: CGPoint(x: sz.width, y: sz.height)))
-            let c = CGPoint(x: k.cx * sz.width, y: k.cy * sz.height)
-            let far = [CGPoint.zero, CGPoint(x: sz.width, y: 0), CGPoint(x: 0, y: sz.height), CGPoint(x: sz.width, y: sz.height)]
-                .map { hypot($0.x - c.x, $0.y - c.y) }.max() ?? sz.width
-            ctx.fill(Path(r), with: .radialGradient(Gradient(colors: [k.glow.opacity(0.75), k.glow.opacity(0)]), center: c, startRadius: 0, endRadius: far * 0.7))
-        }
-    }
-}
-
-/// The big card at the top: an older idea, with Start a Song and Another.
-struct DailyIdea: View {
-    let idea: Idea
-    let open: () -> Void
-    let another: () -> Void
-    let start: () -> Void
-    private let ink = Color(hex: 0x2B1D2C)
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Label(IdeaLook.ago(IdeaLook.created(idea)), systemImage: "clock")
-                .font(.system(size: 13, weight: .semibold)).opacity(0.7)
-            if !idea.text.isEmpty {
-                Text("“\(idea.text.trimmingCharacters(in: .whitespacesAndNewlines))”")
-                    .font(.system(size: 27, design: .serif)).lineSpacing(-2).lineLimit(4)
-                    .padding(.top, 12)
-            }
-            if let m = idea.memo { MemoPlayer(ideaID: idea.id, memo: m).padding(.top, 12) }
-            Spacer(minLength: 18)
-            HStack(spacing: 8) {
-                Button(action: start) {
-                    Text("Start a Song").font(.system(size: 15, weight: .semibold)).foregroundStyle(.white)
-                        .padding(.horizontal, 16).padding(.vertical, 10).background(ink, in: Capsule())
-                }
-                .buttonStyle(PressScale())
-                Button(action: another) {
-                    Label("Another", systemImage: "shuffle").font(.system(size: 15, weight: .semibold))
-                        .padding(.horizontal, 16).padding(.vertical, 10).background(Color.white.opacity(0.55), in: Capsule())
-                }
-                .buttonStyle(PressScale())
-                .accessibilityHint("Shows a different idea")
-            }
-        }
-        .foregroundStyle(ink)
-        .padding(18)
-        .frame(maxWidth: .infinity, minHeight: 196, alignment: .topLeading)
-        .background {
-            ZStack(alignment: .topTrailing) {
-                IdeaGradient(id: idea.id)
-                ZStack { ForEach([34.0, 54, 74, 94], id: \.self) { r in Circle().stroke(.white, lineWidth: 1.4).frame(width: r * 1.9, height: r * 1.9) } }
-                    .frame(width: 180, height: 180).offset(x: 34, y: -34).opacity(0.55)
-            }
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
-        .contentShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
-        .onTapGesture(perform: open)
-        .environment(\.colorScheme, .light)
-        .accessibilityElement(children: .contain)
-    }
-}
-
-/// The live meter while recording: a bar per 70 ms scrolling left, fading toward the left.
-struct LiveLevels: View {
-    let levels: [Double]
-    var body: some View {
-        Canvas { ctx, size in
-            let bw: CGFloat = 3, gap: CGFloat = 2.5
-            let count = Int(size.width / (bw + gap))
-            let shown = levels.suffix(count)
-            var x = size.width - bw
-            for v in shown.reversed() {
-                let h = max(3, size.height * v)
-                let a = 0.35 + 0.65 * Double(x / max(1, size.width))
-                ctx.fill(Path(roundedRect: CGRect(x: x, y: (size.height - h) / 2, width: bw, height: h), cornerRadius: 1.5),
-                         with: .color(.primary.opacity(a)))
-                x -= bw + gap
-                if x < 0 { break }
-            }
-        }
-    }
-}
-
-/// An idea in the grid: its kind, words (serif; a title bold, a concept in italic) or memo, tags, and the date
-/// or the song it went into, on its gradient softened so the words stay easy to read.
+/// An idea in the list: its memo, its words (a Title in semibold), then one quiet line: time, kind (when it
+/// isn't a line), tags, and the song it went into. Matches the web's ideaRow.
 struct IdeaCard: View {
     let idea: Idea
     @Environment(\.library) private var library
-    @Environment(\.colorScheme) private var scheme
     var body: some View {
         let k = IdeaLook.kind(idea)
-        let label = scheme == .dark ? Color.white.opacity(0.7) : Color.black.opacity(0.55)
-        VStack(alignment: .leading, spacing: 0) {
-            Label(IdeaLook.name(k), systemImage: IdeaLook.symbol(k))
-                .font(.system(size: 12, weight: .semibold)).foregroundStyle(label).labelStyle(TightLabel())
-                .padding(.bottom, 6)
-            if let m = idea.memo { MemoPlayer(ideaID: idea.id, memo: m, compact: true).padding(.bottom, idea.text.isEmpty ? 0 : 6) }
+        VStack(alignment: .leading, spacing: 5) {
+            if let m = idea.memo { MemoPlayer(ideaID: idea.id, memo: m, compact: true) }
             if !idea.text.isEmpty {
-                Group {
-                    if idea.memo != nil { Text(idea.text).font(.system(size: 14)) }
-                    else if k == "title" { Text(idea.text).font(.system(size: 21, weight: .bold)).tracking(-0.4) }
-                    else if k == "concept" { Text(idea.text).font(.system(size: 17.5, design: .serif)).italic() }
-                    else { Text(idea.text).font(.system(size: 17.5, design: .serif)) }
-                }
-                .lineLimit(7).foregroundStyle(.primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                Text(idea.text)
+                    .font(idea.memo != nil ? .system(size: 15.5) : k == "title" ? .system(size: 18, weight: .semibold) : .system(size: 17))
+                    .lineSpacing(2).lineLimit(4).foregroundStyle(.primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-            let tags = (idea.raw["tags"]?.array ?? []).compactMap(\.string).prefix(3)
-            if !tags.isEmpty {
-                HStack(spacing: 5) {
-                    ForEach(Array(tags), id: \.self) { t in
-                        Text("#" + t).font(.system(size: 12, weight: .semibold)).foregroundStyle(label)
-                            .padding(.horizontal, 8).padding(.vertical, 2)
-                            .background(Color.white.opacity(scheme == .dark ? 0.12 : 0.55), in: Capsule())
-                    }
-                }
-                .padding(.top, 8)
-            }
-            footer.font(.system(size: 12)).foregroundStyle(label).padding(.top, 9)
+            meta.font(.system(size: 13)).foregroundStyle(.secondary).lineLimit(1)
         }
-        .padding(.horizontal, 14).padding(.top, 13).padding(.bottom, 12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background {
-            ZStack {
-                IdeaGradient(id: idea.id)
-                scheme == .dark ? Color(hex: 0x1C1C1E).opacity(0.62) : Color.white.opacity(0.5)
-            }
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Color.primary.opacity(0.06), lineWidth: 0.5))
-        .contentShape(.contextMenuPreview, RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isButton)
     }
 
-    @ViewBuilder private var footer: some View {
+    private var meta: Text {
+        let k = IdeaLook.kind(idea), g = IdeaLook.group(idea.updated)
+        let d = Date(timeIntervalSince1970: idea.updated / 1000)
+        var bits = [g == "Today" || g == "Yesterday" ? d.formatted(date: .omitted, time: .shortened) : ShortDate.string(idea.updated)]
+        if k != "line" { bits.append(IdeaLook.name(k) + (k == "memo" ? " · " + SongFiles.time(idea.memo?.dur ?? 0) : "")) }
+        else if let m = idea.memo { bits.append(SongFiles.time(m.dur)) }
+        bits += (idea.raw["tags"]?.array ?? []).compactMap(\.string).prefix(3).map { "#" + $0 }
+        var t = Text(bits.joined(separator: " · "))
         if let sid = idea.usedSongID, let s = library.song(sid) {
-            Text("In ") + Text(s.title.isEmpty ? "Untitled" : s.title).fontWeight(.semibold)
-        } else {
-            Text(ShortDate.string(idea.updated) + (idea.memo.map { " · " + SongFiles.time($0.dur) } ?? ""))
+            t = t + Text(" · In ") + Text(s.title.isEmpty ? "Untitled" : s.title).fontWeight(.semibold).foregroundColor(.primary)
         }
-    }
-}
-
-/// A label with its icon tucked close, like the web's kind tags.
-struct TightLabel: LabelStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        HStack(spacing: 5) { configuration.icon.imageScale(.small); configuration.title }
+        return t
     }
 }
 
@@ -496,15 +352,13 @@ struct MemoPlayer: View {
     }
 }
 
-/// The Idea sheet (spec §2.6): its gradient washes down from the top, the words in big serif, a switch for
-/// Line, Title or Concept, and "Goes with": related ideas. Saves when it closes. Matches the web's editIdea.
+/// The Idea sheet (spec §2.6): a switch for Line, Title or Concept, the words, and "Goes with": related ideas. Saves when it closes. Matches the web's editIdea.
 struct IdeaSheet: View {
     let idea: Idea?
     @Environment(\.appSession) private var session
     @Environment(\.library) private var library
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openRoute) private var openRoute
-    @Environment(\.colorScheme) private var scheme
     @State private var text = ""
     @State private var kind = "line"
     @State private var draftID = UUID().uuidString.lowercased()
@@ -543,8 +397,6 @@ struct IdeaSheet: View {
                         .font(textFont)
                         .lineLimit(2...20)
                         .focused($focused)
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: 4, leading: 6, bottom: 4, trailing: 6))
                 }
                 if let c = current {
                     let rel = IdeaLook.related(c, in: library.ideas)
@@ -552,21 +404,15 @@ struct IdeaSheet: View {
                         Section {
                             ForEach(rel) { r in
                                 Button { commit(); Haptics.tap(); show(r.idea) } label: {
-                                    HStack(spacing: 12) {
-                                        Image(systemName: IdeaLook.symbol(IdeaLook.kind(r.idea))).font(.system(size: 14, weight: .semibold)).foregroundStyle(.white)
-                                            .frame(width: 34, height: 34)
-                                            .background { IdeaGradient(id: r.idea.id) }
-                                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                                        VStack(alignment: .leading, spacing: 1) {
+                                    VStack(alignment: .leading, spacing: 1) {
                                             Text(r.idea.text.isEmpty ? "Voice memo · " + SongFiles.time(r.idea.memo?.dur ?? 0) : r.idea.text.components(separatedBy: "\n").first ?? "")
                                                 .foregroundStyle(.primary).lineLimit(1)
                                             Text(r.why).font(.system(size: 13)).foregroundStyle(.secondary)
-                                        }
                                     }
                                 }
                             }
                         } header: {
-                            Label("Goes with", systemImage: "link").font(.system(size: 15, weight: .bold)).foregroundStyle(.primary).textCase(nil)
+                            Text("Goes with")
                         }
                     }
                     Section {
@@ -577,15 +423,7 @@ struct IdeaSheet: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
-            .background(alignment: .top) {
-                IdeaGradient(id: current?.id ?? draftID)
-                    .frame(height: 320)
-                    .mask(LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom))
-                    .opacity(scheme == .dark ? 0.4 : 0.75)
-                    .ignoresSafeArea()
-            }
-            .navigationTitle(current.map { title($0) } ?? "New Idea")
+            .navigationTitle(current == nil ? "New Idea" : "Idea")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { DoneButton { dismiss() } } }
             .confirmDestroy("Delete this idea?", isPresented: $confirmDelete, message: "This can’t be undone.", action: "Delete Idea") {
@@ -614,18 +452,7 @@ struct IdeaSheet: View {
         .onDisappear { commit(); library.ideaEditingID = nil }
     }
 
-    private var textFont: Font {
-        switch kind {
-        case "title": return .system(size: 26, weight: .bold)
-        case "concept": return .system(size: 26, design: .serif).italic()
-        default: return .system(size: 26, design: .serif)
-        }
-    }
-
-    private func title(_ i: Idea) -> String {
-        let a = IdeaLook.ago(IdeaLook.created(i)).replacingOccurrences(of: "From ", with: "")
-        return a.prefix(1).uppercased() + a.dropFirst()
-    }
+    private var textFont: Font { kind == "title" ? .system(size: 19, weight: .semibold) : .system(size: 19) }
 
     private func load(_ i: Idea?) {
         loaded = false

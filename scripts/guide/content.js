@@ -27,7 +27,7 @@ const blocks = [
   ['f', 'rate', 'Rate’s notes point at the lines they’re about.'],
 
   ['h', 'Ideas & voice memos'],
-  ['p', 'Ideas sits at the top of your songs. It’s a quick jot for stray lines, titles and concepts: tap + to jot one. Each day it brings back an older idea to finish.'],
+  ['p', 'Ideas sits at the top of your songs. It’s a quick jot for stray lines, titles and concepts: tap + to jot one.'],
   ['p', 'Record a voice memo the moment a melody turns up. When an idea grows, start a song from it.'],
   ['f', 'ideas', 'Lines, ideas, concepts and memos, all in one place.'],
 
