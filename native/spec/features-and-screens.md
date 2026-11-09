@@ -874,12 +874,14 @@ for the song. When off, prompts include only the current stanza.
   `#iq` "Search ideas", mic `#imic` (records a voice memo; tap again stops and saves) and **+** `#inew` (opens a blank
   Idea sheet, the only place to type a new idea). While recording, the panel `.ijot` (Cancel, red dot, time, live
   waveform, stop) floats above the dock.
-- **List** `#ilist` (`renderIdeas`, `ideaRow`): plain rows like Notes, newest first, under day headings (`ideaGroup`:
-  Today, Yesterday, Previous 7 Days, Previous 30 Days, then the month, then the year; searching shows one heading
-  "N Matches"). A row: the memo player (no time), the words at 17 pt (a Title semibold 18; a memo's words 15.5),
-  up to 4 lines, then one line at 13 pt: the time (today/yesterday) or date, the kind unless it's a Line (with a
-  memo's length), up to 3 tags, and "In <song title>" once a song was started from it. Swipe to delete; tap opens
-  the sheet. iPhone long-press: Start a Song, Copy, Delete Idea.
+- **List** `#ilist` (`renderIdeas`, `ideaRow`), like Notes: grey page (#F2F2F7, dark black), one rounded list
+  `.igrp` (white, dark #1C1C1E, radius 14) per day heading (`ideaGroup`: Today, Yesterday, Previous 7 Days, Previous
+  30 Days, then the month, then the year; searching shows one heading "N Matches"). A row: the first line in
+  semibold 17, cut short with … if long ("Voice memo" for a memo without words); under it at 15 pt the time
+  (`ideaWhen`: the time today and yesterday, the weekday this week, else the date) and a grey preview: the rest of
+  the words, else "In <song>", else the kind (Title, Concept, Idea), else a memo's length, else its tags. A memo has
+  a round play button on the right (`.iplay`, follows the shared player). Swipe to delete; tap opens the sheet.
+  iPhone long-press: Start a Song, Copy, Delete Idea.
 - **Idea sheet** `#sheet7`: title "Idea" / "New Idea", a Line / Title / Concept switch `#ikseg` (hidden for a memo
   without words; changing it saves at once), the text at 19 pt (Title semibold), then **Goes with** `#igoes`
   (`ideaRelated`): up to 3 other ideas scored by shared tags (×3, "Shares #night"), shared words of 4+ letters that

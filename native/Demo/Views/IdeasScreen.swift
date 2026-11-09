@@ -38,7 +38,7 @@ struct IdeasRow: View {
 }
 
 
-/// Ideas (spec §5): a plain list grouped by day like Notes, newest first. Search, record and + float at the
+/// Ideas (spec §5): like Notes, one rounded list per day, newest first. Search, record and + float at the
 /// bottom. Matches the web's renderIdeas.
 struct IdeasScreen: View {
     @Environment(\.appSession) private var session
@@ -58,7 +58,8 @@ struct IdeasScreen: View {
             if !subtitle.isEmpty {
                 Text(subtitle).font(.system(size: 15)).foregroundStyle(.secondary)
                     .listRowSeparator(.hidden)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 24))
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8))
             }
             if filtered.isEmpty {
                 Text(query.isEmpty ? "Nothing here yet. Tap + to jot a line, or the mic to hum one." : "No ideas match “\(query)”.")
@@ -66,6 +67,7 @@ struct IdeasScreen: View {
                     .frame(maxWidth: .infinity).multilineTextAlignment(.center)
                     .padding(.vertical, 40)
                     .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
             }
             ForEach(groups) { g in
                 Section {
@@ -74,7 +76,7 @@ struct IdeasScreen: View {
                         IdeaCard(idea: i)
                             .contentShape(Rectangle())
                             .onTapGesture { editing = IdeaTarget(id: i.id, idea: i) }
-                            .listRowInsets(EdgeInsets(top: 12, leading: 24, bottom: 12, trailing: 20))
+                            .listRowInsets(EdgeInsets(top: 10, leading: 18, bottom: 10, trailing: 14))
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 Button(role: .destructive) { delete(i) } label: { Label("Delete", systemImage: "trash") }.tint(.red)
                             }
@@ -86,11 +88,12 @@ struct IdeasScreen: View {
                     }
                 } header: {
                     Text(g.id).font(.system(size: 20, weight: .bold)).foregroundStyle(.primary).textCase(nil)
-                        .padding(.leading, 8)
+                        .padding(.leading, -8)
                 }
             }
         }
-        .listStyle(.plain)
+        .listStyle(.insetGrouped)
+        .listSectionSpacing(6)
         .scrollDismissesKeyboard(.interactively)
         .toolbar(.hidden, for: .navigationBar)
         .safeAreaInset(edge: .top, spacing: 0) { header }
@@ -280,37 +283,56 @@ enum IdeaLook {
     }
 }
 
-/// An idea in the list: its memo, its words (a Title in semibold), then one quiet line: time, kind (when it
-/// isn't a line), tags, and the song it went into. Matches the web's ideaRow.
+/// An idea in the list, like a note in Notes: one bold line (cut short if long), then when it was and a grey
+/// preview (the rest of its words, the song it went into, its kind, a memo's length or its tags). A memo has a
+/// play button. Matches the web's ideaRow.
 struct IdeaCard: View {
     let idea: Idea
     @Environment(\.library) private var library
+    private var player: AudioPlayer { AudioPlayer.shared }
+
     var body: some View {
-        let k = IdeaLook.kind(idea)
-        VStack(alignment: .leading, spacing: 5) {
-            if let m = idea.memo { MemoPlayer(ideaID: idea.id, memo: m, compact: true) }
-            if !idea.text.isEmpty {
-                Text(idea.text)
-                    .font(idea.memo != nil ? .system(size: 15.5) : k == "title" ? .system(size: 18, weight: .semibold) : .system(size: 17))
-                    .lineSpacing(2).lineLimit(4).foregroundStyle(.primary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+        let t = idea.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lines = t.components(separatedBy: "\n")
+        let first = lines.first?.trimmingCharacters(in: .whitespaces) ?? ""
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(first.isEmpty ? "Voice memo" : first)
+                    .font(.system(size: 17, weight: .semibold)).lineLimit(1)
+                (Text(when).foregroundColor(.primary.opacity(0.85)) + Text("  " + preview(lines)).foregroundColor(.secondary))
+                    .font(.system(size: 15)).lineLimit(1)
             }
-            meta.font(.system(size: 13)).foregroundStyle(.secondary).lineLimit(1)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            if let m = idea.memo {
+                let k = AudioPlayer.key(idea: idea.id), on = player.isActive(k) && player.isPlaying
+                Button { Haptics.tap(); player.toggle(k, item: m, fallbackDuration: m.dur) } label: {
+                    Image(systemName: on ? "pause.fill" : "play.fill").font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(Color(uiColor: .systemBackground))
+                        .frame(width: 32, height: 32).background(Color.primary, in: Circle())
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel(on ? "Pause voice memo" : "Play voice memo")
+            }
         }
     }
 
-    private var meta: Text {
-        let k = IdeaLook.kind(idea), g = IdeaLook.group(idea.updated)
-        let d = Date(timeIntervalSince1970: idea.updated / 1000)
-        var bits = [g == "Today" || g == "Yesterday" ? d.formatted(date: .omitted, time: .shortened) : ShortDate.string(idea.updated)]
-        if k != "line" { bits.append(IdeaLook.name(k) + (k == "memo" ? " · " + SongFiles.time(idea.memo?.dur ?? 0) : "")) }
-        else if let m = idea.memo { bits.append(SongFiles.time(m.dur)) }
-        bits += (idea.raw["tags"]?.array ?? []).compactMap(\.string).prefix(3).map { "#" + $0 }
-        var t = Text(bits.joined(separator: " · "))
-        if let sid = idea.usedSongID, let s = library.song(sid) {
-            t = t + Text(" · In ") + Text(s.title.isEmpty ? "Untitled" : s.title).fontWeight(.semibold).foregroundColor(.primary)
-        }
-        return t
+    /// The time today and yesterday, the weekday this week, else the date (the web's ideaWhen).
+    private var when: String {
+        let g = IdeaLook.group(idea.updated), d = Date(timeIntervalSince1970: idea.updated / 1000)
+        if g == "Today" || g == "Yesterday" { return d.formatted(date: .omitted, time: .shortened) }
+        if g == "Previous 7 Days" { return d.formatted(.dateTime.weekday(.wide)) }
+        return ShortDate.string(idea.updated)
+    }
+
+    private func preview(_ lines: [String]) -> String {
+        let rest = lines.dropFirst().map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }.joined(separator: " ")
+        if !rest.isEmpty { return rest }
+        if let sid = idea.usedSongID, let s = library.song(sid) { return "In " + (s.title.isEmpty ? "Untitled" : s.title) }
+        let k = IdeaLook.kind(idea)
+        if k != "line" && k != "memo" { return IdeaLook.name(k) }
+        if let m = idea.memo { return SongFiles.time(m.dur) }
+        let tags = (idea.raw["tags"]?.array ?? []).compactMap(\.string)
+        return tags.isEmpty ? "" : "#" + tags.joined(separator: " #")
     }
 }
 
