@@ -6,7 +6,7 @@ import WidgetKit
 /// Each one is a link, demo-native://<action>[/<song id>], so every way in goes through `open(_:)`:
 ///   new-song     a blank song, ready to type
 ///   record       Ideas, recording straight away
-///   new-idea     Ideas, the keyboard up in the jot box
+///   new-idea     Ideas, with a new idea open
 ///   song/<id>    that song
 /// (demo-native:// is also the sign-in callback scheme; those links never reach `open`, sign-in catches them.)
 @MainActor

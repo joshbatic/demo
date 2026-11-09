@@ -85,7 +85,7 @@ enum IdeaMemos {
         var s = Song.new(artist: session.myName)
         let t = idea.text
         switch idea.kind {
-        case "idea":
+        case "idea", "title":
             let first = t.components(separatedBy: "\n").first?.trimmingCharacters(in: .whitespaces) ?? ""
             if first.count <= 60 { s.title = first }
             s.notes = t

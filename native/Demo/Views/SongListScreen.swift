@@ -579,7 +579,15 @@ struct SearchDock: View {
     let label: String
     /// press and hold the round button for these (the songs list: New Song, New Folder, New Album); a tap is `action`
     var menu: [DockItem] = []
+    /// an extra round button between the search field and the main one (Ideas: record a voice memo)
+    var side: Side? = nil
     let action: () -> Void
+
+    struct Side {
+        let symbol: String
+        let label: String
+        let run: () -> Void
+    }
     @FocusState private var focused: Bool
 
     private var dockIcon: some View {
@@ -620,6 +628,18 @@ struct SearchDock: View {
                 .contentShape(Capsule())
                 .onTapGesture { focused = true }
                 .glassCapsule(interactive: true)
+
+                if let side {
+                    Button { side.run() } label: {
+                        Image(systemName: side.symbol).font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(side.symbol == "stop.fill" ? Color.red : Color.primary)
+                            .contentTransition(.symbolEffect(.replace))
+                            .frame(width: 52, height: 52).contentShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .glassCircle()
+                    .accessibilityLabel(side.label)
+                }
 
                 if menu.isEmpty {
                     Button {

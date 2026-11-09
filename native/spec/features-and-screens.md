@@ -870,11 +870,26 @@ for the song. When off, prompts include only the current stanza.
 
 ## 5. Ideas `#vIdeas`
 
-- Header: back `#ideaBack`, large title "Ideas". Bottom dock: search `#iq` "Search ideas" + **+** `#inew` (opens a
-  blank Idea sheet).
-- **Jot box** (top): auto-growing textarea `#ijot` (max 180 pt) "A line, a title, an idea…", Return (without Shift, not
-  composing) saves (`ijotSave`): new idea `{kind:'line', text}` at the top, light haptic, box cleared; on iPhone the
-  keyboard then closes, on Mac it stays focused for the next one. Send button `#ijotgo`, mic button `#ijmic`.
+- Header: back `#ideaBack`, large title "Ideas", then a count line `#isub` ("5 ideas, 1 memo"). Bottom dock: search
+  `#iq` "Search ideas", mic `#imic` (records a voice memo; tap again stops and saves) and **+** `#inew` (opens a blank
+  Idea sheet, the only place to type a new idea). While recording, the panel `.ijot` (Cancel, red dot, time, live
+  waveform, stop) floats above the dock.
+- **Daily idea** `#idaily` (`renderDaily`, hidden while searching): one idea at least two days old, the same all day on
+  every device (`ideaOfDay`: ideas sorted by id, FNV-1a of the date number y*400+m0*32+d picks one). "From 3 weeks ago"
+  (`ideaAgo`), the words in quotes in serif 27 pt (or the memo player), **Start a Song** and **Another** (next one).
+  Full-strength gradient with four white rings top right, dark ink `#2B1D2C`.
+- **Gradient:** every idea wears the cover-art gradient for `'idea:'+id` (`avGradCss`, native `IdeaGradient`).
+- **Recent** grid `#ilist`: 2 columns (3 at 720 px+), each card placed in the shorter column. Card: gradient under a
+  50 % white layer (dark: 62 % #1C1C1E), radius 20; kind label with icon (Line, Title, Concept, Idea for old ideas,
+  Memo); words in serif 17.5 (Title: sans bold 21; Concept: italic); memo player without the time; up to 3 tags;
+  footer the date (and memo length), or "In <song title>" once a song was started from it. Tap opens the sheet;
+  right-click/long-press: Start a Song, Open, Copy, Delete (iPhone context menu). Search: heading "N matches".
+- **Idea sheet** `#sheet7`: title is the age ("3 weeks ago", "Today"), the gradient washes down from the top
+  (`.iwash`, 75 % / dark 40 %), a Line / Title / Concept switch `#ikseg` (hidden for a memo without words; changing it
+  saves at once), the text in serif 27 (Title bold sans, Concept italic), then **Goes with** `#igoes` (`ideaRelated`):
+  up to 3 other ideas scored by shared tags (×3, "Shares #night"), shared words of 4+ letters that aren't common
+  (×2, "Both mention “light”"), the same day (+1, "Written/Recorded the same day"); tapping one saves this idea and
+  opens that one. Then Start a Song and Delete Idea. A Title idea starts a song with it as the title.
 - **Voice memo recording** (`irecStart`, 15206):
   - Free: max **10 memo ideas** (`FREE_MEMOS`) — the 11th → `upsell('memos')` ("Free keeps 10 voice memos on this
     device, up to a minute each. Pro syncs them everywhere, with no limit."); max **60 s** each (auto-stops: "Saved at a
