@@ -24172,7 +24172,7 @@ function ngMirrorSpecs(out,rd){
 }
 /* the editor's ••• opens Apple's pop-up menu: the Details tabs, then Perform and Copy Lyrics, then the red ones */
 function ngSongMenu(){var vis=function(id){var e=document.getElementById(id);return!!e&&getComputedStyle(e).display!=='none'};
-  var a=[{id:'d:inf',title:'Details',sf:'info.circle'},{id:'d:aud',title:'Audio',sf:'waveform'},{id:'cowrite',title:'Co-write',sf:'pencil.and.scribble'},{id:'d:rel',title:'Credits',sf:'person.2'}],
+  var a=[{id:'d:inf',title:'Details',sf:'info.circle'},{id:'d:aud',title:'Audio',sf:'waveform'},{id:'cowrite',title:'Co-write',sf:'person.2.badge.plus'},{id:'d:rel',title:'Credits',sf:'signature'}],
     b=[{id:'perfb',title:'Perform',sf:'music.mic'},{id:'cp',title:'Copy Lyrics',sf:'doc.on.doc'}],c=[];
   if(vis('rmart'))c.push({id:'rmart',title:'Remove Cover Art',sf:'photo',destructive:true});
   if(vis('del'))c.push({id:'del',title:'Delete Song',sf:'trash',destructive:true});

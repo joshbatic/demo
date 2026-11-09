@@ -347,8 +347,8 @@ struct EditorScreen: View {
             Section {
                 Button { openDetails(.info) } label: { Label("Details", systemImage: "info.circle") }
                 Button { openDetails(.audio) } label: { Label("Audio", systemImage: "waveform") }
-                Button { coWrite() } label: { Label("Co-write", systemImage: "pencil.and.scribble") }
-                Button { openDetails(.credits) } label: { Label("Credits", systemImage: "person.2") }
+                Button { coWrite() } label: { Label("Co-write", systemImage: Self.coWriteIcon) }
+                Button { openDetails(.credits) } label: { Label("Credits", systemImage: "signature") }
             }
             Section {
                 Button {
@@ -376,6 +376,9 @@ struct EditorScreen: View {
         }
         .accessibilityLabel("Details")
     }
+
+    /// two people with a plus; the single-person badge where an older iOS lacks it
+    private static let coWriteIcon = UIImage(systemName: "person.2.badge.plus") != nil ? "person.2.badge.plus" : "person.badge.plus"
 
     /// ••• › Co-write: straight to Invite a Co-writer. A song that isn't shared yet is shared first
     /// (only when its id won't change); anything else opens Details, where Collaborators lives.
