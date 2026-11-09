@@ -90,12 +90,20 @@ struct SongListScreen: View {
                 .onMove { from, to in dropped(from: from, to: to) }
                 if groups.isEmpty {
                     // the web's .empty
+                    // nothing to show: say why, and what to do next
                     VStack(spacing: 6) {
                         if !query.isEmpty || !library.songs.isEmpty {
-                            Text("No Results").font(.system(size: 17)).foregroundStyle(.secondary)
+                            Text(query.isEmpty ? "No Results" : "No songs match “\(query.trimmingCharacters(in: .whitespaces))”")
+                                .font(.system(size: 17, weight: .semibold)).multilineTextAlignment(.center)
+                            Text("Search looks through song titles and lyrics.").font(.system(size: 15)).foregroundStyle(.secondary)
                         } else {
                             Text("No songs yet").font(.system(size: 17, weight: .semibold))
-                            Text("Tap the pencil to write your first line.").font(.system(size: 15)).foregroundStyle(.secondary)
+                            Text("Every song starts with one line.").font(.system(size: 15)).foregroundStyle(.secondary)
+                            Button { newSong() } label: {
+                                Text("Write a Song").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.onTint)
+                                    .padding(.horizontal, 18).frame(height: 40).background(Theme.tint, in: Capsule())
+                            }
+                            .buttonStyle(PressScale()).padding(.top, 10)
                         }
                     }
                     .frame(maxWidth: .infinity).padding(.vertical, 60)

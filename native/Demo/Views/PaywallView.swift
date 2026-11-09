@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-/// The paywall (spec §2.9): the Pro hero, what's included, and the Yearly / Monthly trial on iPhone.
+/// The paywall (spec §2.9): the moving Pro pages (ProPages), and the Yearly / Monthly trial on iPhone.
 struct PaywallView: View {
     let why: String
     @Environment(\.appSession) private var session
@@ -15,21 +15,15 @@ struct PaywallView: View {
         ZStack(alignment: .topTrailing) {
             ScrollView {
                 VStack(spacing: 0) {
-                    hero
-                    VStack(alignment: .leading, spacing: 18) {
-                        ForEach(Pro.features) { f in
-                            HStack(alignment: .firstTextBaseline, spacing: 12) {
-                                Image(systemName: "checkmark.circle.fill").font(.system(size: 20)).foregroundStyle(Theme.verified)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(f.title).font(.system(size: 17, weight: .semibold))
-                                    Text(f.sub).font(.system(size: 15)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                                }
-                            }
-                            .opacity(shown ? 1 : 0).offset(y: shown ? 0 : 8)
-                            .animation(.easeOut(duration: 0.35).delay(0.12 + Double(f.id) * 0.045), value: shown)
-                        }
+                    if !why.isEmpty {
+                        Text(Pro.message(why)).font(.system(size: 15, weight: .medium)).multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 14).padding(.vertical, 11)
+                            .background(BarFill.color, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            .padding(.leading, 20).padding(.trailing, 64).padding(.top, 10)
                     }
-                    .padding(.horizontal, 28).padding(.top, 28).padding(.bottom, 24)
+                    ProPages().padding(.top, why.isEmpty ? 44 : 6).padding(.bottom, 16)
+                        .accessibilityLabel("*[demo] Pro")
                 }
             }
             .scrollIndicators(.hidden)
@@ -52,21 +46,6 @@ struct PaywallView: View {
         // becoming Pro closes it
         .onChange(of: session.plan.isPro) { _, pro in if pro { dismiss() } }
         .onChange(of: store.note) { _, n in if let n { print("[Paywall] " + n) } }
-    }
-
-    private var hero: some View {
-        VStack(spacing: 10) {
-            AppMark(size: 96)
-                .shadow(color: Color(hex: 0x9678DC).opacity(0.25), radius: 16, y: 8)
-            .padding(.bottom, 6)
-            Text("*[demo] Pro").font(.system(size: 32, weight: .bold)).tracking(-0.5)
-            Text("Everything you need to take a song from the first line to the finished demo.")
-                .font(.system(size: 17)).foregroundStyle(.secondary).multilineTextAlignment(.center)
-            if !why.isEmpty {
-                Text(Pro.message(why)).font(.system(size: 15, weight: .medium)).multilineTextAlignment(.center).padding(.top, 4)
-            }
-        }
-        .padding(.horizontal, 32).padding(.top, 56)
     }
 
     @ViewBuilder private var bar: some View {

@@ -59,7 +59,7 @@ struct IdeasScreen: View {
                 .listRowSeparator(.hidden)
                 .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 12, trailing: 16))
             if filtered.isEmpty {
-                Text(query.isEmpty ? "Nothing here yet. Type a line and press Return, or tap the mic and hum it." : "No ideas match.")
+                Text(query.isEmpty ? "Nothing here yet. Type a line and press Return, or tap the mic and hum it." : "No ideas match that search or tag.")
                     .font(.subheadline).foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity).multilineTextAlignment(.center)
                     .padding(.vertical, 30)

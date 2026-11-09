@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 import Observation
 import Supabase
 
@@ -64,8 +65,14 @@ final class Collab {
         pollTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(5))
             await self?.goneCheck()
+            try? await Task.sleep(for: .seconds(15))
+            await self?.sweepExpiredLinks()
+            var n = 0
             while !Task.isCancelled {
                 await self?.pullInvites()
+                // every ~2 minutes: co-writers' changes to shared songs that aren't open live, so the list stays current
+                if n % 3 == 0 { await self?.pullAllShared() }
+                n += 1
                 try? await Task.sleep(for: .seconds(45))
             }
         }
@@ -249,6 +256,42 @@ final class Collab {
             library.put(s)
             return true
         } catch { return false }
+    }
+
+    /// Share links last 30 days (the server sets it). Expired ones of mine: their files and rows go, and the songs and
+    /// albums stop pointing at them (the web's shSweep).
+    func sweepExpiredLinks() async {
+        guard let library, let uid else { return }
+        let now = ISO8601DateFormatter().string(from: Date())
+        guard let res = try? await Backend.client.from("shares").select("id").eq("owner", value: uid).lt("expires_at", value: now).execute() else { return }
+        let ids = Set(((try? JSONDecoder().decode([[String: JSONValue]].self, from: res.data)) ?? []).compactMap { $0["id"]?.string })
+        guard !ids.isEmpty else { return }
+        let bucket = Backend.client.storage.from("shares")
+        for id in ids {
+            if let files = try? await bucket.list(path: "\(uid)/\(id)") {
+                let paths = files.map { "\(uid)/\(id)/" + $0.name }
+                if !paths.isEmpty { _ = try? await bucket.remove(paths: paths) }
+            }
+        }
+        _ = try? await Backend.client.from("shares").delete().in("id", values: Array(ids)).execute()
+        for var s in library.songs {
+            guard let mine = s.raw["shares"]?[uid]?.object, let id = mine["id"]?.string, ids.contains(id) else { continue }
+            var shares = s.raw["shares"]?.object ?? [:]
+            shares.removeValue(forKey: uid)
+            s.raw["shares"] = .object(shares)
+            s.touch(); library.put(s)
+        }
+        for var a in library.albums where (a.raw["share"]?["id"]?.string).map(ids.contains) == true {
+            a.raw.removeValue(forKey: "share")
+            a.raw["updated"] = .number(Clock.nowMs)
+            library.putAlbum(a)
+        }
+    }
+
+    /// Pulls every shared song that isn't open live (the app is in front: this runs from the poll loop).
+    func pullAllShared() async {
+        guard let library, UIApplication.shared.applicationState == .active else { return }
+        for s in library.songs where s.isShared && s.id != liveUp { await pull(s.id) }
     }
 
     /// fileMerge: union the tombstones and the file lists (theirs first), drop anything tombstoned, keep one current audio.
