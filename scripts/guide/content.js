@@ -48,7 +48,7 @@ const blocks = [
   ['h', 'Sharing & co-writing'],
   ['p', 'Share sends a song as a link anyone can open, with its audio, or as an image of the lyrics. Share an album and it gets a page of its own, with every song on it.'],
   ['f', 'share', 'A share page: the song, its audio and its words, on any phone or computer.'],
-  ['p', 'Pick a username in Account so co-writers can find you, then invite them from ••• › Details › Collaborators. You can write in the same song at the same time, and see each other’s changes as they happen.'],
+  ['p', 'Pick a username in Account so co-writers can find you, then invite them from ••• › Co-write. You can write in the same song at the same time, and see each other’s changes as they happen.'],
 
   ['h', 'Perform'],
   ['p', '••• › Perform turns the song into a scrolling teleprompter for the stage or the studio. Set the speed and the text size, and it rolls on by itself.'],
