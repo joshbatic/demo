@@ -5,9 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>*[demo]</title>
 <meta name="robots" content="noindex">
-<!-- the beta is over: old "Request access" links go to the home page -->
-<meta http-equiv="refresh" content="0; url=index.html#get">
+<!-- GitHub Pages answers both /beta and /beta.html with this file. /beta is the private beta (docs/beta/), so it goes
+     there; the old public "Request access" links (beta.html) still go to the home page. -->
+<script>location.replace(/\/beta\/?$/.test(location.pathname)?'/beta/'+location.search+location.hash:'index.html#get')</script>
+<noscript><meta http-equiv="refresh" content="0; url=index.html#get"></noscript>
 <link rel="canonical" href="https://hellodemo.app/">
 </head>
-<body><p>The beta is over. <a href="index.html#get">Get *[demo]</a>.</p></body>
+<body><p><a href="/beta/">Open the beta</a> · <a href="index.html#get">Get *[demo]</a></p></body>
 </html>
