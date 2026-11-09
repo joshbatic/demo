@@ -335,24 +335,29 @@ html.devbuild #splash .spl-l,html.devbuild #splash .spl-d{display:none}html.devb
 /* the recording panel floats above the dock while a voice memo records (the typed jot moved to the + sheet) */
 .ijot.gf{position:absolute;left:14px;right:14px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:3;padding:10px 10px 10px 14px;display:none;flex-direction:column;gap:8px;max-width:560px;margin:0 auto}
 .ijot.gf.recording,.ijot.gf.arming{display:flex}.ijot .ijrow{display:none!important}
-/* ---------- Ideas, like Notes: grey page, one rounded list per day; each idea is one bold line (cut short if
-   long), then its time and a grey preview (the rest of its words, or its kind, or the song it went into). */
-#vIdeas{--igbg:#F2F2F7;--igrp:#fff;background:var(--igbg)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #vIdeas{--igbg:#000;--igrp:#1C1C1E}}
-:root[data-theme="dark"] #vIdeas{--igbg:#000;--igrp:#1C1C1E}
+/* ---------- Ideas: grey page, one rounded list per day. Each idea: a small label (its kind, coloured, and the
+   song it went into) with the time opposite, then its words in full. A memo ends with its length and a play icon. */
+#vIdeas{--igbg:#F2F2F7;--igrp:#fff;--k-title:#C9700F;--k-concept:#7151E8;--k-memo:#16916F;background:var(--igbg)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #vIdeas{--igbg:#000;--igrp:#1C1C1E;--k-title:#FFB35C;--k-concept:#A993FF;--k-memo:#4CD3A8}}
+:root[data-theme="dark"] #vIdeas{--igbg:#000;--igrp:#1C1C1E;--k-title:#FFB35C;--k-concept:#A993FF;--k-memo:#4CD3A8}
 .isub{padding:0 24px;margin:0 0 2px;font-size:15px;color:var(--mute)}
 .ihd{font-size:20px;font-weight:700;letter-spacing:-.2px;margin:18px 24px 8px}
 .igrp{margin:0 16px;background:var(--igrp);border-radius:14px;overflow:hidden}
-#ilist .igrp .idea{align-items:center;padding:11px 16px 11px 18px;border-radius:0;gap:12px}
-#ilist .igrp .idea+.idea::before{left:18px}
-#ilist .idea .ibody{min-width:0}
-#ilist .idea .it{display:block;font-size:17px;font-weight:600;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#ilist .idea .ip{display:block;font-size:15px;line-height:1.3;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--mute)}
-#ilist .idea .ip b{font-weight:400;color:var(--ink);opacity:.85;margin-right:8px}
-.iplay{flex:none;width:32px;height:32px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;transition:transform .12s}
-.iplay:active{transform:scale(.9)}.iplay svg{width:13px;height:13px}
+#ilist .igrp .idea{display:block;padding:11px 16px 12px;border-radius:0}
+#ilist .igrp .idea+.idea::before{left:16px}
+#ilist .idea .ilb{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;line-height:1.3;color:var(--mute);margin-bottom:3px}
+#ilist .idea .ilb b{font-weight:600}
+#ilist .idea.k-title .ilb b{color:var(--k-title)}#ilist .idea.k-concept .ilb b{color:var(--k-concept)}#ilist .idea.k-memo .ilb b{color:var(--k-memo)}
+#ilist .idea .ilb .iwhen{flex:none}
+#ilist .idea .itx{font-size:17px;line-height:1.35;white-space:pre-line;overflow-wrap:anywhere}
+#ilist .idea.k-title .itx{font-weight:600}
+#ilist .idea .imr{display:flex;align-items:center;gap:10px}
+#ilist .idea .imr .itx{flex:1;min-width:0}
+#ilist .idea .imr .ilen{flex:none;font-size:13px;color:var(--mute);font-variant-numeric:tabular-nums}
+.iplay{flex:none;width:30px;height:30px;margin:-4px -6px -4px 0;border-radius:50%;color:var(--ink);opacity:.8;display:grid;place-items:center;transition:transform .12s}
+.iplay:active{transform:scale(.88)}.iplay svg{width:15px;height:15px}
 #ilist .igrp .idea>.rdel{position:absolute;right:12px;top:50%;margin-top:-16px}
-@media (hover:hover){#ilist .igrp .idea:hover{background:var(--fill)}#ilist .igrp .idea:hover .ibody{padding-right:34px}#ilist .igrp .idea:hover .iplay{margin-right:40px}}
+@media (hover:hover){#ilist .igrp .idea:hover{background:var(--fill)}#ilist .igrp .idea:hover .iwhen,#ilist .igrp .idea:hover .imr{padding-right:40px}}
 /* the idea sheet */
 #sheet7 .ikseg{margin:2px 20px 14px}
 #sheet7 .ifield{margin:0 20px 14px}
@@ -21093,8 +21098,8 @@ UW-K-ER-M-AH-N	zukerman93
 UW-L-UW-Z	zulus82
 AH-M-W-AH-L-T	zumwalt82`;
 /* git commit this build came from, shown at the bottom of Account. Written by scripts/stamp-version.sh — don't edit by hand. */
-var APP_COMMIT='ab06d7a';
-var APP_SEQ=832;
+var APP_COMMIT='29b348e';
+var APP_SEQ=834;
 /* the version people see, the same as the iPhone app's; Account shows it with the build number so every device can be compared */
 var APP_VERSION='1.2.0';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
@@ -21330,8 +21335,8 @@ function ideaToSong(i){if(!i)return;
   if(k==='concept')s.brief={more:t.slice(0,600)};
   songs.push(s);i.used=s.id;i.updated=Date.now();saveIdeas();save();sheet(false);openSong(s.id);if(i.memo)ideaMemoToSong(i,s);toast('New song from your '+(i.memo&&!t?'voice memo':'idea'))}
 /* ---------- Ideas: the screen ----------
-   Like Notes: one rounded list per day, newest first. Each idea is a bold first line, then its time and a grey
-   preview; a memo has a play button. Swipe to delete; tap to open. */
+   One rounded list per day, newest first. Each idea: a small label (kind and song) with the time, then its words
+   in full; a memo ends with its length and a play icon. Swipe to delete; tap to open. */
 var IK_NAME={line:'Line',title:'Title',idea:'Idea',concept:'Concept',memo:'Memo'};
 function ikOf(i){return i.memo&&!i.text?'memo':IK_NAME[i.kind]&&i.kind!=='memo'?i.kind:'line'}
 function ideaSongTitle(i){if(!i.used)return'';var s=songs.filter(function(x){return x.id===i.used})[0];return s?(s.title||'Untitled'):''}
@@ -21340,15 +21345,15 @@ function ideaGroup(t){var d=new Date(t),now=new Date(),day=function(x){return ne
   return d.getFullYear()===now.getFullYear()?d.toLocaleDateString([],{month:'long'}):String(d.getFullYear())}
 /* when it was: the time today and yesterday, the weekday this week, else the date */
 function ideaWhen(t){var g=ideaGroup(t),d=new Date(t);return g==='Today'||g==='Yesterday'?d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):g==='Previous 7 Days'?d.toLocaleDateString([],{weekday:'long'}):fd(t)}
-function ideaRow(i){var k=ikOf(i),b=document.createElement('div');b.className='idea k-'+k;b.setAttribute('role','button');b.tabIndex=0;
-  var t=(i.text||'').trim(),nl=t.indexOf('\n'),first=nl<0?t:t.slice(0,nl).trim(),rest=nl<0?'':t.slice(nl+1).replace(/\s*\n\s*/g,' ').trim();
-  var st=ideaSongTitle(i),info=rest||(st?'In '+st:'')||(k!=='line'&&k!=='memo'?IK_NAME[k]:'')||(i.memo?sfTime(i.memo.dur||0):'')||(i.tags&&i.tags.length?'#'+i.tags.join(' #'):'');
-  var bx=document.createElement('div');bx.className='ibody';
-  var h=document.createElement('span');h.className='it';h.textContent=first||'Voice memo';bx.appendChild(h);
-  var p=document.createElement('span');p.className='ip';var w=document.createElement('b');w.textContent=ideaWhen(i.updated);p.appendChild(w);p.appendChild(document.createTextNode(info));bx.appendChild(p);
-  b.appendChild(bx);
-  if(i.memo){var pb=document.createElement('button');pb.className='iplay';pb.dataset.mid=i.memo.id;pb.setAttribute('aria-label','Play voice memo');pb.innerHTML=SVG_PLAY;pb.onmousedown=prevent;
-    pb.onclick=function(e){e.stopPropagation();haptic('light');imPlay(i)};imWarm(i);b.appendChild(pb)}
+function ideaRow(i){var k=i.memo?'memo':ikOf(i),b=document.createElement('div');b.className='idea k-'+k;b.setAttribute('role','button');b.tabIndex=0;
+  var lb=document.createElement('div');lb.className='ilb';var l=document.createElement('span'),kb=document.createElement('b');kb.textContent=IK_NAME[k];l.appendChild(kb);
+  var st=ideaSongTitle(i);if(st)l.appendChild(document.createTextNode(' · in '+st));
+  var w=document.createElement('span');w.className='iwhen';w.textContent=ideaWhen(i.updated);lb.appendChild(l);lb.appendChild(w);b.appendChild(lb);
+  var tx=document.createElement('div');tx.className='itx';tx.textContent=(i.text||'').trim()||'Voice memo';
+  if(i.memo){var r=document.createElement('div');r.className='imr';r.appendChild(tx);var ln=document.createElement('span');ln.className='ilen';ln.textContent=sfTime(i.memo.dur||0);r.appendChild(ln);
+    var pb=document.createElement('button');pb.className='iplay';pb.dataset.mid=i.memo.id;pb.setAttribute('aria-label','Play voice memo');pb.innerHTML=SVG_PLAY;pb.onmousedown=prevent;
+    pb.onclick=function(e){e.stopPropagation();haptic('light');imPlay(i)};imWarm(i);r.appendChild(pb);b.appendChild(r)}
+  else b.appendChild(tx);
   swipeDelete(b,'idea',function(){deleteIdea(i)});
   b.onclick=function(e){if(e.target.closest('.iplay,.rdel'))return;editIdea(i)};b.onkeydown=function(e){if((e.key==='Enter'||e.key===' ')&&e.target===b){e.preventDefault();editIdea(i)}};return b}
 function renderIdeas(){ideaMemosPending();
