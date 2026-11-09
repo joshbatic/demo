@@ -122,6 +122,7 @@ enum AlbumRoute {
 // MARK: - the shelf in the song list
 
 /// Albums along the top of the song list: artwork tiles that scroll sideways, like Apple Music.
+/// The tiles round their corners in the same proportion as the song list's covers (CoverView: 26% of the size).
 struct AlbumShelf: View {
     @Environment(\.library) private var library
     let newAlbum: () -> Void
@@ -134,7 +135,7 @@ struct AlbumShelf: View {
                     ForEach(albums) { a in
                         NavigationLink(value: AlbumRoute.prefix + a.id) {
                             VStack(alignment: .leading, spacing: 2) {
-                                AlbumArt(album: a, size: 148, radius: 10).shadow(color: .black.opacity(0.08), radius: 6, y: 3).padding(.bottom, 6)
+                                AlbumArt(album: a, size: 148, radius: 148 * 0.26).shadow(color: .black.opacity(0.08), radius: 6, y: 3).padding(.bottom, 6)
                                 Text(a.displayTitle).font(.system(size: 15, weight: .medium)).lineLimit(1)
                                 let n = library.albumSongs( a.id).count
                                 Text("\(a.kind) · \(n) \(n == 1 ? "song" : "songs")").font(.system(size: 13)).foregroundStyle(.secondary).lineLimit(1)
@@ -146,7 +147,7 @@ struct AlbumShelf: View {
                     }
                     Button(action: newAlbum) {
                         VStack(alignment: .leading, spacing: 2) {
-                            RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.primary.opacity(0.05))
+                            RoundedRectangle(cornerRadius: 148 * 0.26, style: .continuous).fill(Color.primary.opacity(0.05))
                                 .frame(width: 148, height: 148)
                                 .overlay(Image(systemName: "plus").font(.system(size: 30, weight: .regular)).foregroundStyle(.secondary))
                                 .padding(.bottom, 6)
