@@ -21098,8 +21098,8 @@ UW-K-ER-M-AH-N	zukerman93
 UW-L-UW-Z	zulus82
 AH-M-W-AH-L-T	zumwalt82`;
 /* git commit this build came from, shown at the bottom of Account. Written by scripts/stamp-version.sh — don't edit by hand. */
-var APP_COMMIT='1fd4a15';
-var APP_SEQ=842;
+var APP_COMMIT='105ce73';
+var APP_SEQ=844;
 /* the version people see, the same as the iPhone app's; Account shows it with the build number so every device can be compared */
 var APP_VERSION='1.2.0';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
@@ -24172,7 +24172,7 @@ function ngMirrorSpecs(out,rd){
 }
 /* the editor's ••• opens Apple's pop-up menu: the Details tabs, then Perform and Copy Lyrics, then the red ones */
 function ngSongMenu(){var vis=function(id){var e=document.getElementById(id);return!!e&&getComputedStyle(e).display!=='none'};
-  var a=[{id:'d:inf',title:'Details',sf:'info.circle'},{id:'d:aud',title:'Audio',sf:'waveform'},{id:'cowrite',title:'Co-write',sf:'pencil.and.scribble'},{id:'d:rel',title:'Credits',sf:'person.2'}],
+  var a=[{id:'d:inf',title:'Details',sf:'info.circle'},{id:'d:aud',title:'Audio',sf:'waveform'},{id:'cowrite',title:'Co-write',sf:'person.2.badge.plus'},{id:'d:rel',title:'Credits',sf:'signature'}],
     b=[{id:'perfb',title:'Perform',sf:'music.mic'},{id:'cp',title:'Copy Lyrics',sf:'doc.on.doc'}],c=[];
   if(vis('rmart'))c.push({id:'rmart',title:'Remove Cover Art',sf:'photo',destructive:true});
   if(vis('del'))c.push({id:'del',title:'Delete Song',sf:'trash',destructive:true});
