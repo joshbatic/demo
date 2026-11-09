@@ -76,7 +76,7 @@ struct IdeasScreen: View {
                         IdeaCard(idea: i)
                             .contentShape(Rectangle())
                             .onTapGesture { editing = IdeaTarget(id: i.id, idea: i) }
-                            .listRowInsets(EdgeInsets(top: 10, leading: 18, bottom: 10, trailing: 14))
+                            .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 11, trailing: 12))
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 Button(role: .destructive) { delete(i) } label: { Label("Delete", systemImage: "trash") }.tint(.red)
                             }
@@ -283,37 +283,56 @@ enum IdeaLook {
     }
 }
 
-/// An idea in the list, like a note in Notes: one bold line (cut short if long), then when it was and a grey
-/// preview (the rest of its words, the song it went into, its kind, a memo's length or its tags). A memo has a
-/// play button. Matches the web's ideaRow.
+/// An idea in the list: a small label (its kind, coloured, and the song it went into) with the time opposite,
+/// then its words in full. A memo ends with its length and a play icon. Matches the web's ideaRow.
 struct IdeaCard: View {
     let idea: Idea
     @Environment(\.library) private var library
+    @Environment(\.colorScheme) private var scheme
     private var player: AudioPlayer { AudioPlayer.shared }
 
     var body: some View {
+        let k = idea.memo != nil ? "memo" : IdeaLook.kind(idea)
         let t = idea.text.trimmingCharacters(in: .whitespacesAndNewlines)
-        let lines = t.components(separatedBy: "\n")
-        let first = lines.first?.trimmingCharacters(in: .whitespaces) ?? ""
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(first.isEmpty ? "Voice memo" : first)
-                    .font(.system(size: 17, weight: .semibold)).lineLimit(1)
-                (Text(when).foregroundColor(.primary.opacity(0.85)) + Text("  " + preview(lines)).foregroundColor(.secondary))
-                    .font(.system(size: 15)).lineLimit(1)
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 10) {
+                label(k)
+                Spacer(minLength: 8)
+                Text(when).foregroundStyle(.secondary)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            if let m = idea.memo {
-                let k = AudioPlayer.key(idea: idea.id), on = player.isActive(k) && player.isPlaying
-                Button { Haptics.tap(); player.toggle(k, item: m, fallbackDuration: m.dur) } label: {
-                    Image(systemName: on ? "pause.fill" : "play.fill").font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(Color(uiColor: .systemBackground))
-                        .frame(width: 32, height: 32).background(Color.primary, in: Circle())
+            .font(.system(size: 12.5)).lineLimit(1)
+            HStack(spacing: 10) {
+                Text(t.isEmpty ? "Voice memo" : t)
+                    .font(.system(size: 17, weight: k == "title" ? .semibold : .regular))
+                    .foregroundStyle(.primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if let m = idea.memo {
+                    let key = AudioPlayer.key(idea: idea.id), on = player.isActive(key) && player.isPlaying
+                    Text(SongFiles.time(m.dur)).font(.system(size: 13).monospacedDigit()).foregroundStyle(.secondary)
+                    Button { Haptics.tap(); player.toggle(key, item: m, fallbackDuration: m.dur) } label: {
+                        Image(systemName: on ? "pause.fill" : "play.fill").font(.system(size: 15))
+                            .foregroundStyle(.primary.opacity(0.8))
+                            .frame(width: 30, height: 30).contentShape(Rectangle())
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel(on ? "Pause voice memo" : "Play voice memo")
                 }
-                .buttonStyle(.borderless)
-                .accessibilityLabel(on ? "Pause voice memo" : "Play voice memo")
             }
         }
+    }
+
+    private func label(_ k: String) -> Text {
+        let c: Color = switch k {
+        case "title": Color(hex: scheme == .dark ? 0xFFB35C : 0xC9700F)
+        case "concept": Color(hex: scheme == .dark ? 0xA993FF : 0x7151E8)
+        case "memo": Color(hex: scheme == .dark ? 0x4CD3A8 : 0x16916F)
+        default: .secondary
+        }
+        var t = Text(IdeaLook.name(k)).fontWeight(.semibold).foregroundColor(c)
+        if let sid = idea.usedSongID, let s = library.song(sid) {
+            t = t + Text(" · in " + (s.title.isEmpty ? "Untitled" : s.title)).foregroundColor(.secondary)
+        }
+        return t
     }
 
     /// The time today and yesterday, the weekday this week, else the date (the web's ideaWhen).
@@ -322,17 +341,6 @@ struct IdeaCard: View {
         if g == "Today" || g == "Yesterday" { return d.formatted(date: .omitted, time: .shortened) }
         if g == "Previous 7 Days" { return d.formatted(.dateTime.weekday(.wide)) }
         return ShortDate.string(idea.updated)
-    }
-
-    private func preview(_ lines: [String]) -> String {
-        let rest = lines.dropFirst().map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }.joined(separator: " ")
-        if !rest.isEmpty { return rest }
-        if let sid = idea.usedSongID, let s = library.song(sid) { return "In " + (s.title.isEmpty ? "Untitled" : s.title) }
-        let k = IdeaLook.kind(idea)
-        if k != "line" && k != "memo" { return IdeaLook.name(k) }
-        if let m = idea.memo { return SongFiles.time(m.dur) }
-        let tags = (idea.raw["tags"]?.array ?? []).compactMap(\.string)
-        return tags.isEmpty ? "" : "#" + tags.joined(separator: " #")
     }
 }
 

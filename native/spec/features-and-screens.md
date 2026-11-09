@@ -874,14 +874,14 @@ for the song. When off, prompts include only the current stanza.
   `#iq` "Search ideas", mic `#imic` (records a voice memo; tap again stops and saves) and **+** `#inew` (opens a blank
   Idea sheet, the only place to type a new idea). While recording, the panel `.ijot` (Cancel, red dot, time, live
   waveform, stop) floats above the dock.
-- **List** `#ilist` (`renderIdeas`, `ideaRow`), like Notes: grey page (#F2F2F7, dark black), one rounded list
-  `.igrp` (white, dark #1C1C1E, radius 14) per day heading (`ideaGroup`: Today, Yesterday, Previous 7 Days, Previous
-  30 Days, then the month, then the year; searching shows one heading "N Matches"). A row: the first line in
-  semibold 17, cut short with … if long ("Voice memo" for a memo without words); under it at 15 pt the time
-  (`ideaWhen`: the time today and yesterday, the weekday this week, else the date) and a grey preview: the rest of
-  the words, else "In <song>", else the kind (Title, Concept, Idea), else a memo's length, else its tags. A memo has
-  a round play button on the right (`.iplay`, follows the shared player). Swipe to delete; tap opens the sheet.
-  iPhone long-press: Start a Song, Copy, Delete Idea.
+- **List** `#ilist` (`renderIdeas`, `ideaRow`): grey page (#F2F2F7, dark black), one rounded list `.igrp` (white,
+  dark #1C1C1E, radius 14) per day heading (`ideaGroup`: Today, Yesterday, Previous 7 Days, Previous 30 Days, then the
+  month, then the year; searching shows one heading "N Matches"). A row: a small 12.5 pt label line — the kind in
+  semibold (Line grey; Title #C9700F / dark #FFB35C; Concept #7151E8 / #A993FF; Memo, for any idea with a voice memo,
+  #16916F / #4CD3A8), then " · in <song>" once a song was started from it — with the time opposite (`ideaWhen`: the
+  time today and yesterday, the weekday this week, else the date); then the words in full at 17 pt (Title semibold;
+  "Voice memo" if a memo has none). A memo's line ends with its length and a plain play icon (`.iplay`, no circle;
+  follows the shared player). Swipe to delete; tap opens the sheet. iPhone long-press: Start a Song, Copy, Delete Idea.
 - **Idea sheet** `#sheet7`: title "Idea" / "New Idea", a Line / Title / Concept switch `#ikseg` (hidden for a memo
   without words; changing it saves at once), the text at 19 pt (Title semibold), then **Goes with** `#igoes`
   (`ideaRelated`): up to 3 other ideas scored by shared tags (×3, "Shares #night"), shared words of 4+ letters that
