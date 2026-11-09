@@ -347,7 +347,7 @@ struct EditorScreen: View {
             Section {
                 Button { openDetails(.info) } label: { Label("Details", systemImage: "info.circle") }
                 Button { openDetails(.audio) } label: { Label("Audio", systemImage: "waveform") }
-                Button { coWrite() } label: { Label("Co-write", systemImage: "person.badge.plus") }
+                Button { coWrite() } label: { Label("Co-write", systemImage: "pencil.and.scribble") }
                 Button { openDetails(.credits) } label: { Label("Credits", systemImage: "person.2") }
             }
             Section {

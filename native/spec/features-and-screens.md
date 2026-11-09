@@ -106,7 +106,7 @@ On iOS 26 these are native Liquid Glass buttons (§1.10) with SF Symbols: back `
 map `highlighter`, syllables `number`, share `square.and.arrow.up`, rate `star`, details `ellipsis`.
 
 **Details ••• menu (iOS 26 native, `ngSongMenu` 17793)** — three sections:
-1. Details `info.circle` · Audio `waveform` · Co-write `person.badge.plus` (Invite a Co-writer; shares the song first if needed) · Credits `person.2` (each opens the Details sheet
+1. Details `info.circle` · Audio `waveform` · Co-write `pencil.and.scribble` (Invite a Co-writer; shares the song first if needed) · Credits `person.2` (each opens the Details sheet
    on that tab)
 2. Perform `music.mic` · Copy Lyrics `doc.on.doc`
 3. (destructive) Remove Cover Art `photo` (only if art) · Delete Song `trash`
