@@ -101,7 +101,7 @@ private struct ProPage: View {
             .frame(width: size, height: size)
     }
 
-    private func bars(_ n: Int, _ seed: Double, _ h: Double, lit: (Int) -> Color) -> some View {
+    private func bars(_ n: Int, _ seed: Double, _ h: Double, lit: @escaping (Int) -> Color) -> some View {
         HStack(spacing: 2) {
             ForEach(0..<n, id: \.self) { i in
                 RoundedRectangle(cornerRadius: 1).fill(lit(i))
