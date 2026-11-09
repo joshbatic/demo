@@ -558,3 +558,24 @@ struct IdeasTile: View {
             .accessibilityHidden(true)
     }
 }
+
+// Live input meter shown while a memo records.
+struct LiveLevels: View {
+    let levels: [Double]
+    var body: some View {
+        Canvas { ctx, size in
+            let bw: CGFloat = 3, gap: CGFloat = 2.5
+            let count = Int(size.width / (bw + gap))
+            let shown = levels.suffix(count)
+            var x = size.width - bw
+            for v in shown.reversed() {
+                let h = max(3, size.height * v)
+                let a = 0.35 + 0.65 * Double(x / max(1, size.width))
+                ctx.fill(Path(roundedRect: CGRect(x: x, y: (size.height - h) / 2, width: bw, height: h), cornerRadius: 1.5),
+                         with: .color(.primary.opacity(a)))
+                x -= bw + gap
+                if x < 0 { break }
+            }
+        }
+    }
+}
