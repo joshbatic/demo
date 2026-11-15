@@ -15,7 +15,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 VER=$(node -p "require('./package.json').version")
 echo "Building *[demo] $VER for Mac…"
-npm install --no-audit --no-fund
+# exact versions from package-lock.json (CI installs them before the signing certificate is loaded)
+[ -d node_modules ] || npm ci --no-audit --no-fund
 npx electron-packager . "[demo]" --platform=darwin --arch=universal \
   --icon=build/icon.icns --app-bundle-id=com.demo.songwriting --app-category-type=public.app-category.music \
   --extend-info=build/extend.plist --app-version="$VER" --build-version="$VER" \
@@ -23,6 +24,13 @@ npx electron-packager . "[demo]" --platform=darwin --arch=universal \
 APP="dist/[demo]-darwin-universal/[demo].app"
 rm -f "$APP/Contents/Resources/app/dev-build"   # never ship the developer version
 bash scripts/trim-languages.sh "$APP"           # English only: about 40 MB smaller
+# Electron's "fuses": switch off ways to run the app's bundled Node as a general tool or attach a debugger to it
+node -e '
+const { flipFuses, FuseVersion, FuseV1Options } = require("@electron/fuses");
+flipFuses(process.argv[1], { version: FuseVersion.V1, resetAdHocDarwinSignature: true,
+  [FuseV1Options.RunAsNode]: false, [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
+  [FuseV1Options.EnableNodeCliInspectArguments]: false, [FuseV1Options.EnableCookieEncryption]: true,
+}).then(() => console.log("Fuses set."), (e) => { console.error(e); process.exit(1); });' "$APP"
 
 if [ -n "${DEVELOPER_ID:-}" ]; then
   echo "Signing with ${DEVELOPER_ID}…"

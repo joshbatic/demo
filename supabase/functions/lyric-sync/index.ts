@@ -39,8 +39,7 @@ Deno.serve(async (req) => {
   const { data: who, error: whoErr } = await sb.auth.getUser();
   if (whoErr || !who?.user) return json({ error: "Sign in to sync lyrics." }, 401);
 
-  // each one-minute piece counts against the account's lyric-sync allowance (supabase/plans.sql: Pro and Beta only);
-  // if that isn't set up yet, syncing goes ahead
+  // each one-minute piece counts against the account's lyric-sync allowance (supabase/plans.sql: Pro and Beta only)
   const { data: take, error: takeErr } = await sb.rpc("ai_take", { kind: "sync", units: 1 });
   if (!takeErr && take && take.ok === false) {
     if (take.reason === "off") return json({ error: "Lyric sync is paused for maintenance. It'll be back shortly.", off: true }, 503);
@@ -49,6 +48,8 @@ Deno.serve(async (req) => {
     if (take.reason === "month") return json({ error: "You've used this month's 5 hours of lyric sync. It resets on the 1st." }, 429);
     return json({ error: take.reason === "minute" ? "Syncing a lot at once. Give it a minute and try again." : `You've reached today's lyric sync limit (about an hour of songs). It resets in about ${hoursToReset()} hours.` }, 429);
   }
+  // if the allowance can't be checked, nothing is sent (an unchecked request could bypass every limit)
+  if (takeErr || !take) { console.error("ai_take", takeErr); return json({ error: "Lyric sync couldn't start just now. Try again in a moment." }, 503); }
 
   let form: FormData;
   try { form = await req.formData(); } catch { return json({ error: "Expected audio as form data." }, 400); }
@@ -73,6 +74,15 @@ Deno.serve(async (req) => {
   });
   const body = await r.json().catch(() => null);
   if (!r.ok || !body) return json({ error: body?.error?.message ?? `Transcription failed (${r.status}).` }, 502);
+
+  // charge what the audio really was: one unit per started minute (the app sends one-minute pieces)
+  const secs = Number(body.duration) || 60;
+  if (typeof take.id === "number") {
+    try {
+      const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
+      await admin.rpc("ai_charge", { p_id: take.id, p_units: Math.max(1, Math.ceil(secs / 60)), p_cost: Math.round(secs / 60 * 0.006 * 1e5) / 1e5, p_model: "whisper-1" });
+    } catch (e) { console.error("ai_charge", e); }
+  }
 
   const words = (body.words ?? []).map((w: { word: string; start: number; end: number }) => ({
     w: w.word, s: Math.round(w.start * 100) / 100, e: Math.round(w.end * 100) / 100,

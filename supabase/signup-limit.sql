@@ -34,8 +34,9 @@ declare
   provider text := coalesce(event->'user'->'app_metadata'->>'provider', '');
   em text := lower(coalesce(event->'user'->>'email', ''));
 begin
-  -- email + password exists only for the App Review demo accounts (@hellodemo.app): no one else can sign up that way
-  if provider = 'email' and em not like '%@hellodemo.app' then
+  -- email + password exists only for the App Review demo accounts listed in demo_signups (demo-signups.sql):
+  -- no one else can sign up that way, not even with another @hellodemo.app address
+  if provider = 'email' and not exists (select 1 from public.demo_signups s where s.email = em) then
     return jsonb_build_object('error', jsonb_build_object('http_code', 403,
       'message', '*[demo] uses Sign in with Apple. Sign up with Apple instead.'));
   end if;

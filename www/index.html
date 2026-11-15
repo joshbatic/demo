@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; form-action 'self'">
+<script>/* on hellodemo.app the app is never shown inside another site's frame (that would let a page trick someone into
+   clicking things). Other copies (the Mac app, the iPhone dev app) aren't on that address, so they're unaffected. */
+try{if(window.top!==window.self&&/(^|\.)hellodemo\.app$/.test(location.hostname)){document.documentElement.style.display='none';window.top.location.replace(location.href)}}catch(e){document.documentElement.style.display='none'}</script>
 <script>try{if((window.desktop&&window.desktop.devBuild)||localStorage.getItem('songpad:devbuild')==='1')document.documentElement.classList.add('devbuild')}catch(e){}
 /* iPhone app: the launch screen's record label carries on into a short animation (see splashOut) */
 try{var C0=window.Capacitor;if(C0&&C0.isNativePlatform&&C0.isNativePlatform()&&(!C0.getPlatform||C0.getPlatform()==='ios'))document.documentElement.classList.add('splashing')}catch(e){}
@@ -2041,7 +2045,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
 <script>
 var DATA=`AH	the01 a01 ca31 le31 huh41 uh41 papa52 gaga52 bruh51s duh51 dah61 uhh61 maharashtra64 sta61 hezbollah63 maharaja74 suh71 maradona74 huerta72 siddhartha73 delacroix83 minolta83 ruh81 kumbaya83 depardieu83 shema82
 UW	to01 you01 do01 who01 new01 two01 too11 through11 few11 true21 due21 knew21 view21 blue21 review22 interview33 crew31 grew31 revenue33 debut32 eu32 threw41 avenue43 tissue42 pursue42 screw41 shoe41 sue41 clue41 flew41 tattoo42 zoo41 blew41 overview43 statue42 coup41 drew41 du41 hugh41 hindu42 flu51 preview52 boo51 woo51 yahoo52 breakthrough52 guru52 glue51 queue51 ooh51 cue51 renew52 withdrew52 chew51 bamboo52 brew51 barbecue53 shampoo52 undo52 rue51 residue53 dew51 waterloo53 canoe52 kangaroo53 overdue53 lou51 su51 yu51 peru52 fu51 jew51 que51 thru51 wu51 soo51 ou51 tu51 liu51 cpu53 iq52 mu51 bbq53 lu51 doo51 hu51 ju51 nu51 poo51 ku51 chu51 ru51 hue61 stew61 taboo62 lieu61 voodoo62 goo61 pew61 untrue62 slew61 lulu62 rendezvous63 coo61 loo61 undue62 ado62 anew62 redo62 horseshoe62 hitherto63 moo61 cuckoo62 revue62 subdue62 emu62 gnu61 yew61 tutu62 roux61 skew61 mew61 yoo61 pu61 sioux61 gu61 oooh61 hoo61 purdue62 zhou61 foo61 manu62 netanyahu64 xu61 pooh61 thankyou62 vu61 choo61 qu61 lew61 ubuntu63 guangzhou62 urdu62 worldview62 hulu62 tue61 whew61 bellevue62 stu61 cebu62 nehru62 shu61 zulu62 byu63 jus61 joo61 phew61 bartholomew64 vous61 zhu61 hou61 jammu62 montague63 goto62 kew61 babu72 chou71 caribou73 thereto72 bleu71 accrue72 ensue72 spew71 overthrew73 mildew72 purview72 shoo71 overdo73 adieu72 ewe71 flue71 cashew72 askew72 hairdo72 outdo72 corkscrew72 barbeque73 devalue73 retinue73 hew71 fondue72 eschew72 wahoo72 cockatoo73 aircrew72 baku72 kalamazoo74 hsu71 koo71 crewe71 todo72 deux71 pugh71 angelou73 mogadishu74 chiu71 chengdu72 fairview72 mchugh72 vue71 kyu71 dfw75 donahue73 whoo71 isu72 jeju72 yue71 abou72 suu73 zanu72 montagu73 richelieu73 giroux72 lakeview72 xue71 karlsruhe72 tsu71 phu71 abreu72 timbuktu73 donohue73 hutu72 cou71 longview72 dru71 perdue72 devereux73 larue72 pettigrew73 uwe71 cmu73 lemieux72 isuzu73 mcadoo73 pou71 xanadu73 leu81 outgrew82 shew81 tiramisu84 imbue82 snowshoe82 honeydew83 kazoo82 construe82 hullabaloo84 jujitsu83 fescue82 ingenue83 gumshoe82 misconstrue83 bugaboo83 prue81 suzhou82 grandview82 tew81 theroux82 badu82 shigeru83 lue81 pompidou83 pru81 yazoo82 ballou82 bellew82 fitzhugh82 komatsu83 glenview82 daewoo82 tuvalu83 plainview82 leroux82 ainu82 taku82 wenzhou82 iou83 ramu82 amadou83 broadview82 mobutu83 zhengzhou82 khoo81 gue81 ledoux82 shue81 beaucoup82 shamu82 thew81 ragu82 masaru83 mcandrew83 mccue82 louw81 papandreou84 ratu82 thuy81 goodhue82 reto82 tartu82 zaibatsu83 naidoo82 mcgrew82 cosatu83 depew82 frew81 trew81 tatu92 ballyhoo93 marabou93 miscue92 ague92 hoopoe92 revalue93 strew91 katmandu93 khufu92 feverfew93 kwangju92 moue91 apercu93 overdrew93
@@ -24742,7 +24746,7 @@ function bizExport(){var go=function(){var X=window.XLSX,wb=X.utils.book_new();(
     var wt=X.utils.aoa_to_sheet(ta);wt['!cols']=[{wch:44},{wch:8},{wch:11},{wch:11},{wch:60},{wch:11}];X.utils.book_append_sheet(wb,wt,'Tasks');
     var out=X.write(wb,{bookType:'xlsx',type:'array'}),blob=new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),a=document.createElement('a');
     a.href=URL.createObjectURL(blob);a.download='*[demo] business '+new Date().toISOString().slice(0,10)+'.xlsx';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},4000);toast('Exported the sheet')};
-  if(window.XLSX)return go();var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=go;s.onerror=function(){toast('Couldn’t load the exporter. Check your connection.')};document.head.appendChild(s)}
+  if(window.XLSX)return go();var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.integrity='sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw';s.crossOrigin='anonymous';s.onload=go;s.onerror=function(){toast('Couldn’t load the exporter. Check your connection.')};document.head.appendChild(s)}
 /* ---- tasks: {id, title, notes, status todo|doing|done, area, due 'YYYY-MM-DD'|null, sort, done_at} ---- */
 var BIZ_AREAS=[['app','App','#007AFF'],['apple','Apple','#8E8E93'],['supabase','Supabase','#34C759'],['marketing','Marketing','#FF2D55'],['money','Money','#FF9500'],['other','Other','#5856D6']];
 var BIZ_ALIAS={sb:'supabase',db:'supabase',mk:'marketing',ig:'marketing',social:'marketing',ios:'apple',appstore:'apple',iphone:'apple',cash:'money',pricing:'money',web:'app',mac:'app',dev:'app'};
@@ -25808,28 +25812,9 @@ function sbClient(){
       });
       return;
     }
-    var at=null,rt=null;
-    var atm=url.match(/[?&#]access_token=([^&#]+)/);if(atm)at=decodeURIComponent(atm[1]);
-    var rtm=url.match(/[?&#]refresh_token=([^&#]+)/);if(rtm)rt=decodeURIComponent(rtm[1]);
-    if(at&&rt){
-      oauthDbg('setting session from tokens');
-      sbc.auth.setSession({access_token:at,refresh_token:rt}).then(function(r){
-        if(r&&r.error){
-          oauthDbg('setSession error: '+r.error.message);
-          toast('Sign-in failed. Please try again.');
-          var ag=$('#ag-note');if(ag)ag.textContent=r.error.message||'Sign-in failed.';
-        }else{
-          oauthDbg('setSession success');
-        }
-      }).catch(function(e){
-        oauthDbg('setSession thrown: '+((e&&e.message)||e));
-      });
-      return;
-    }
-    oauthDbg('fallback raw exchangeCodeForSession');
-    sbc.auth.exchangeCodeForSession(url).then(function(r){
-      if(r&&r.error){toast('Sign-in failed. Please try again.');var ag=$('#ag-note');if(ag)ag.textContent=r.error.message||'Sign-in failed.'}
-    }).catch(function(){toast('Sign-in failed. Please try again.')});
+    /* only the PKCE code is accepted: it can only be redeemed by the device that started this sign-in. Links that carry
+       ready-made tokens are ignored, so a page can't swap someone into another account mid sign-in. */
+    oauthDbg('ignored auth link: no code');
   }
   if(window.desktop&&window.desktop.onAuthCallback)window.desktop.onAuthCallback(handleAuthUrl);
   /* iOS app: same problem as the Mac app above — Google can't redirect back into the WKWebView's
