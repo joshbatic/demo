@@ -115,24 +115,23 @@ private struct ProPage: View {
     private var intro: some View {
         ZStack(alignment: .topLeading) {
             ZStack(alignment: .topLeading) {
-                floater("pro-a", 130, -40, -60, 0)
-                floater("pro-b", 140, 115, -80, 0.8)
-                floater("pro-c", 130, 255, -50, 1.6)
-                floater("pro-d", 120, 20, 70, 0.4)
-                floater("pro-e", 110, 150, 80, 1.2)
-                floater("pro-f", 120, 266, 90, 2)
+                // a row of whole records across the top, inside the page (they used to hang off the top edge)
+                floater("pro-a", 84, 6, 26, 0)
+                floater("pro-c", 100, 252, 12, 1.6)
+                floater("pro-d", 92, 170, 20, 0.4)
+                floater("pro-b", 104, 78, 10, 0.8)
             }
-            .frame(width: 360, height: 200, alignment: .topLeading)
-            .mask(LinearGradient(stops: [.init(color: .black, location: 0.35), .init(color: .clear, location: 0.92)], startPoint: .top, endPoint: .bottom))
+            .frame(width: 360, height: 130, alignment: .topLeading)
+            .mask(LinearGradient(stops: [.init(color: .black, location: 0.8), .init(color: .clear, location: 1)], startPoint: .top, endPoint: .bottom))
             (Text("Turn every ") + Text("[").fontWeight(.light).foregroundColor(.secondary) + Text("demo") + Text("]").fontWeight(.light).foregroundColor(.secondary) + Text(" into a finished song"))
                 .font(.system(size: 27, weight: .heavy)).tracking(-0.8).multilineTextAlignment(.center)
-                .frame(width: 316).position(x: 180, y: 145)
-            VStack(alignment: .leading, spacing: 18) {
+                .frame(width: 316).position(x: 180, y: 161)
+            VStack(alignment: .leading, spacing: 16) {
                 feat("waveform", "Your demos, everywhere", "5 GB for demos, mixes and stems, and voice memos synced to every device.", 0)
                 feat("pencil", "Help when you’re stuck", "Lines in your voice, an honest Rate, lyric sync and Perform mode.", 1)
                 feat("person.2", "Write together", "Invite co-writers to your songs, and send links people can listen to.", 2)
             }
-            .frame(width: 314, alignment: .leading).offset(x: 24, y: 206)
+            .frame(width: 314, alignment: .leading).offset(x: 24, y: 214)
         }
     }
 
