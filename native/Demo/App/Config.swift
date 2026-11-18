@@ -12,7 +12,7 @@ nonisolated enum Config {
     static let revenueCatKey = "appl_XNKRNsIsXDlJzSerQvGGVffIHWd"
     static let proEntitlement = "demo_pro"
     /// The App Store app's Apple ID (App Store Connect › App Information › Apple ID), for "Time to update".
-    static let appStoreID = ""
+    static let appStoreID = "6825757339"
     static var appStoreURL: URL {
         appStoreID.isEmpty ? URL(string: "https://hellodemo.app")! : URL(string: "itms-apps://apps.apple.com/app/id\(appStoreID)")!
     }

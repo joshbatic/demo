@@ -25103,8 +25103,8 @@ function betaSetGate(on){var c=sbClient();if(!c)return;c.rpc('beta_admin_set_gat
    the last copy is kept so they still apply offline. [developer] builds are never told to update. ---------- */
 var CFG={};try{CFG=JSON.parse(localStorage.getItem('songpad:cfg'))||{}}catch(e){CFG={}}
 var CFG_PAUSED={ai:'AI features are paused for maintenance. They’ll be back shortly.',sync:'Lyric sync is paused for maintenance. It’ll be back shortly.',uploads:'Adding music and files is paused for maintenance. Try again shortly.'};
-/* where "Time to update" sends people: TestFlight for now on iPhone (switch to the App Store page once *[demo] is listed) */
-var UPDATE_URL={ios:'itms-beta://',mac:'https://hellodemo.app/mac.html'};
+/* where "Time to update" sends people: the App Store page on iPhone, the download page on Mac */
+var UPDATE_URL={ios:'itms-apps://apps.apple.com/app/id6825757339',mac:'https://hellodemo.app/mac.html'};
 function cfgIsDev(){return!!DEV_BUILD||document.documentElement.classList.contains('devbuild')}
 function cfgKeep(r){CFG=r||{};CFG.at=Date.now();try{localStorage.setItem('songpad:cfg',JSON.stringify(CFG))}catch(e){}cfgPaint()}
 function cfgLoad(){var c=sbClient();if(!c)return Promise.resolve();
