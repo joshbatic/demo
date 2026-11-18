@@ -83,7 +83,7 @@ Songs are plain JSON objects held in the array `songs`. The same object shape go
 | `intents[]` | `[{quote:string, why:string, t:ms}]` | Lines the writer marked "meant that way" in Rate. |
 | `brief` | `{who?, to?, where?, thing?, more?}` | Song brief strings (each ≤160 chars, `more` ≤600). Deleted when empty. |
 | `scheme` | string | Rhyme scheme hint: `auto` (default when missing), `ABAB`, `AABB`, `ABBA`, `ABCB`. |
-| `shares` | `{ [userId]: {id, at:ms, audio:bool, by:userId, aid:audioId\|null, aname:string\|null} }` | This user's share link per writer (§4.4). |
+| `shares` | `{ [userId]: {id, at:ms, audio:bool, by:userId, aid:audioId\|null, aname:string\|null, exp:ms} }` | This user's share link per writer (§4.4). `exp` = when it stops working (30 days after it was made or updated). |
 | `share` | `{id, at, audio, by?, ...}` | **Legacy** single-slot share link. Read it if it's yours (`by===uid`, or no `by` and you own the song or it isn't shared). Delete it when you write `shares`. |
 | `ph` | `1` | Placeholder "empty folder" song (§1.6). |
 | `guide`, `guideAt` | `true`, ms | Built-in guide song (§1.7). |
@@ -458,7 +458,13 @@ own tables), the profile, plan, notification prefs, melody source audio, and the
 
 ### 2.6 Offline behaviour
 
-- Everything works from localStorage. Writes queue implicitly: the next `cloudSync` (online event, foreground,
+- **Web and Mac (since 9 Nov 2026):** songs (`songpad:v1…`), ideas (`songpad:ideas:v1…`), albums
+  (`songpad:albums:…`) and the sync record (`songpad:sync:…`) live in IndexedDB `demo-lib`, store `kv` (same keys,
+  same JSON strings), not localStorage. A memory copy is loaded before the app starts (`bigOpen`); nothing is saved
+  and `cloudSync` doesn't run until it has loaded. The first start moves those localStorage keys across and then
+  deletes them. Without IndexedDB (or no answer in 8 s) it falls back to localStorage. Other settings stay in
+  localStorage.
+- Everything works offline from local storage. Writes queue implicitly: the next `cloudSync` (online event, foreground,
   next edit) merges and pushes.
 - If localStorage is full, versions are trimmed (§1.4) and the cloud push still happens. A toast appears at most
   once a minute.
@@ -563,8 +569,46 @@ There's **no background polling of shared songs**. A co-writer's edits reach a s
 it's opened, via push notification, or via the live channel while open. (The member's *own* other devices get it
 through `cloud_library` sync.) Consider adding a periodic pull in native.
 
-Conflict handling is LWW on `updated` for the whole song, except file tombstones, which are a union (§3.6).
-While the song is open, live patches (§3.7) are what actually keep text consistent.
+Conflict handling (since 9 Nov 2026) is a three-way merge (§3.5a); older songs without `_srv` fall back to LWW
+on `updated`. File tombstones are always a union (§3.6). While the song is open, live patches (§3.7) are what
+actually keep text consistent.
+
+### 3.5a Offline edits: three-way merge (`shMergeInto` web, `SharedMerge` native)
+
+Each shared song keeps two device-only keys, set whenever this device and the shared copy agree (a successful
+push: from the body pushed; a pull that takes theirs, a merge, or joining: from `d`):
+
+- `_srv` = the shared copy's `data.updated` at that moment (compared for **equality**, so clock skew can't matter);
+- `_base` = `shBase(d)`: every key except `_*`, `updated, lastEditBy, lastEditAt, owner, ownerEmail, members,
+  shared, versions, audio, files, rmFiles, rich`.
+
+`moved` = `d.updated !== _srv` (no `_srv`: `d.updated > s.updated`). `dirty` = `s.updated > _pushed`.
+
+- **Pull:** `!moved` → file tombstones only. `moved && dirty && _base && !liveConnected` → merge, `shKeep(d)`,
+  `updated = max(now, d.updated+1)`, save (which pushes the merge). Otherwise `moved` → take theirs as before, then
+  `shKeep(d)`.
+- **Push:** if `_base` and `_srv` exist and the live channel isn't connected for the song, first
+  `select data from shared_songs where id`. If `d.updated !== _srv`: merge, `shKeep(d)`, bump `updated`, then push.
+  After any successful push: `shKeep(body)`. Offline edits also push when the connection comes back (`online`).
+- **Merge, per key** (`o`=base, `m`=mine, `t`=theirs, compared as text, objects as sorted-key JSON):
+  `t==m` or `t==o` → keep mine; `m==o` → take theirs; `lyrics/chords/notes` → line diff3 against `o`;
+  anything else → theirs if `d.updated > s.updated`.
+- **diff3:** LCS of lines (common prefix/suffix trimmed first; skipped above 4M cells). A hunk changed on one side
+  takes that side. Changed on both: identical → once; one contains the other → the longer; else mine, then their
+  lines not already in mine.
+- **rich:** if the merged lyrics equal theirs → their `rich`; equal mine → mine; a mix → `''` (plain).
+- **versions:** union by `t`, sorted, last 30. If lines clashed, mine-before-merge is added with label
+  "Your words before merging".
+- **files:** `fileMerge(s, d.rmFiles, d.audio, d.files)`.
+
+### 3.5b Files after sharing ends (`song-files-kept.sql`)
+
+- Storage read rule: someone on the song can read a file if its uploader is on the song **or** the shared copy's
+  `audio`/`files` lists its path. So a co-writer leaving no longer breaks their demos for everyone else.
+- **Stop Sharing:** the owner first copies every co-writer upload (path not under the owner's uid) to
+  `<owner>/<song>/<item id>.<ext>` (`storage.copy`), points the item at the copy, then ends sharing. If any copy
+  fails (other than "already exists"), sharing stays on and a toast says why.
+- When a song disappears for a co-writer (`sharedGoneCheck`), their own uploads to it are removed from storage.
 
 ### 3.6 File tombstones on shared songs
 
@@ -721,7 +765,7 @@ Restrictive insert policies on both buckets:
 | Play or open | `createSignedUrl(path, 3600)`, cached in memory until 60 s before expiry. Audio is served from the IDB cache first. The first stream also fills the cache (`acFill`). Non-Pro users trying to play others' files get an upsell instead (`sfCanPlay = isPro() \|\| sfMine(item)`). |
 | A file 404s | Likely replaced on another device: `pullShared` / `cloudSync`, wait 1.8 s, find the item by id (or by `orig.name` match) and retry once with its new path. |
 | Copy memo → song | `storage.from('song-files').copy(memoPath, '<uid>/<songId>/<newId>.<ext>')` |
-| Copy audio → share | `storage.from('song-files').copy(a.path, '<uid>/<shareId>/audio-<v>.<ext>', {destinationBucket:'shares'})`. Falls back to download and re-upload when the item is `local:`, over 40 MB, or the copy fails. |
+| Audio for a share | **Since 9 Nov 2026 no copy:** the link plays the song's own file through `share-audio` (§4.4a). Only a `local:` item is still uploaded to `<uid>/<shareId>/audio-<v>.<ext>`. Older links keep their copies until updated. |
 | Delete | `remove([path])` (errors are ignored). Also drops the cache entry. |
 | Delete account | List both buckets recursively under `<uid>` (`list(prefix,{limit:1000})`: entries with `id` are files, without are folders) and remove in chunks of 100. Then call the RPC. |
 
@@ -734,6 +778,21 @@ Restrictive insert policies on both buckets:
 - The client blocks the upload when `used >= limit` ("you've used all X of your storage…"). The server enforces
   it too. A full or RLS error is mapped to friendly messages in `sfErr`. Account shows "Storage: X of Y" (refreshed
   every 15 s while open).
+
+### 4.4a Share-link audio and expiry (since 9 Nov 2026, `share-links-v2.sql`)
+
+- New columns: `shares.audio_path` (the song-files path; never in `get_share`'s output) and `shares.expires_at`
+  (null = never). `get_share` returns nothing once expired, so the page says it's not shared any more.
+- With a cloud audio item, `data.audio.src = SB_URL + '/functions/v1/share-audio?s=' + shareId` and the upsert sets
+  `audio_path = item.path`. The `share-audio` edge function (Verify JWT off) calls `share_audio(sid)` (service role
+  only), which returns the path only if the link exists, hasn't expired, and the owner may open the file themselves
+  (their upload, or one on a song they're on); then it 302s to a 6-hour signed URL (`Cache-Control: private,
+  max-age=3600`). The viewer and `share/api/s.js` accept exactly that URL for audio, besides the public bucket.
+- **Every link lasts 30 days** from when it was made or last updated (Update renews it). The `shares_30_days`
+  trigger sets `expires_at = now() + 30 days` on every insert and update, so clients don't send it. Stored on the
+  song as `exp` (ms) for the share sheet's "Works until …" line; albums too (`album.share.exp`).
+- `shSweep()` (web/Mac, 20 s after sign-in): select my shares with `expires_at < now`, remove their bucket files and
+  rows, and clear the matching `song.shares[me]` / `album.share`.
 
 ### 4.4 Share links (`shares` table + listen.hellodemo.app)
 

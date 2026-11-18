@@ -106,7 +106,7 @@ On iOS 26 these are native Liquid Glass buttons (§1.10) with SF Symbols: back `
 map `highlighter`, syllables `number`, share `square.and.arrow.up`, rate `star`, details `ellipsis`.
 
 **Details ••• menu (iOS 26 native, `ngSongMenu` 17793)** — three sections:
-1. Details `info.circle` · Audio `waveform` · Chords `music.note.list` · Credits `person.2` (each opens the Details sheet
+1. Details `info.circle` · Audio `waveform` · Co-write `person.2.badge.plus` (Invite a Co-writer; shares the song first if needed) · Credits `signature` (each opens the Details sheet
    on that tab)
 2. Perform `music.mic` · Copy Lyrics `doc.on.doc`
 3. (destructive) Remove Cover Art `photo` (only if art) · Delete Song `trash`
@@ -870,11 +870,23 @@ for the song. When off, prompts include only the current stanza.
 
 ## 5. Ideas `#vIdeas`
 
-- Header: back `#ideaBack`, large title "Ideas". Bottom dock: search `#iq` "Search ideas" + **+** `#inew` (opens a
-  blank Idea sheet).
-- **Jot box** (top): auto-growing textarea `#ijot` (max 180 pt) "A line, a title, an idea…", Return (without Shift, not
-  composing) saves (`ijotSave`): new idea `{kind:'line', text}` at the top, light haptic, box cleared; on iPhone the
-  keyboard then closes, on Mac it stays focused for the next one. Send button `#ijotgo`, mic button `#ijmic`.
+- Header: back `#ideaBack`, large title "Ideas", then a count line `#isub` ("5 ideas, 1 memo"). Bottom dock: search
+  `#iq` "Search ideas", mic `#imic` (records a voice memo; tap again stops and saves) and **+** `#inew` (opens a blank
+  Idea sheet, the only place to type a new idea). While recording, the panel `.ijot` (Cancel, red dot, time, live
+  waveform, stop) floats above the dock.
+- **List** `#ilist` (`renderIdeas`, `ideaRow`): grey page (#F2F2F7, dark black), one rounded list `.igrp` (white,
+  dark #1C1C1E, radius 14) per day heading (`ideaGroup`: Today, Yesterday, Previous 7 Days, Previous 30 Days, then the
+  month, then the year; searching shows one heading "N Matches"). A row: a small 12.5 pt label line — the kind in
+  semibold (Line grey; Title #C9700F / dark #FFB35C; Concept #7151E8 / #A993FF; Memo, for any idea with a voice memo,
+  #16916F / #4CD3A8), then " · in <song>" once a song was started from it — with the time opposite (`ideaWhen`: the
+  time today and yesterday, the weekday this week, else the date); then the words in full at 17 pt (Title semibold;
+  "Voice memo" if a memo has none). A memo's line ends with its length and a plain play icon (`.iplay`, no circle;
+  follows the shared player). Swipe to delete; tap opens the sheet. iPhone long-press: Start a Song, Copy, Delete Idea.
+- **Idea sheet** `#sheet7`: title "Idea" / "New Idea", a Line / Title / Concept switch `#ikseg` (hidden for a memo
+  without words; changing it saves at once), the text at 19 pt (Title semibold), then **Goes with** `#igoes`
+  (`ideaRelated`): up to 3 other ideas scored by shared tags (×3, "Shares #night"), shared words of 4+ letters that
+  aren't common (×2, "Both mention “light”"), the same day (+1, "Written/Recorded the same day"); tapping one saves
+  this idea and opens that one. Then Start a Song and Delete Idea. A Title idea starts a song with it as the title.
 - **Voice memo recording** (`irecStart`, 15206):
   - Free: max **10 memo ideas** (`FREE_MEMOS`) — the 11th → `upsell('memos')` ("Free keeps 10 voice memos on this
     device, up to a minute each. Pro syncs them everywhere, with no limit."); max **60 s** each (auto-stops: "Saved at a

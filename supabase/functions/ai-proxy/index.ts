@@ -5,10 +5,13 @@
 //   modelTier "write" (Lines, rewrites) thinks a little before writing (1 unit).
 //   modelTier "judge" (ranking and filtering lines) uses the small model with light reasoning (1 unit).
 //   anything else uses gpt-5-mini with minimal reasoning (1 unit).
+// Free accounts always get the small model with a shorter prompt and answer, whatever tier is asked for: the app only
+// uses AI on Free for the rhyme bar, and the server can't trust the app to ask for the right tier.
 // Models can be overridden with the AI_WRITE_MODEL / AI_JUDGE_MODEL secrets; if a model is refused,
 // the next one in the list is tried, so a bad override never breaks AI.
-// Each request is counted against the account's plan limits first (supabase/plans.sql, ai_take()): Free gets a
-// few quick requests a day, Pro and Beta the full set, with a monthly cap on the heavy ones for Pro.
+// Each request is counted against the account's plan limits first (ai_take(), supabase/plans.sql and ai-budget.sql):
+// request counts, each account's daily cost budget and the daily spend stop for everyone. After an answer, the tokens
+// OpenAI reports are recorded (ai_cost()) so those budgets are real money, not guesses.
 // If the allowance can't be checked (ai_take errors), the request is refused.
 //
 // Deploy:  supabase functions deploy ai-proxy        (or paste this into Edge Functions > ai-proxy > Code)
@@ -26,6 +29,7 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 
 const MAX_PROMPT = 24000;
+const MAX_PROMPT_FREE = 8000;
 
 // limits reset at midnight UTC
 const hoursToReset = () => { const n = new Date(); return Math.max(1, Math.ceil((Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate() + 1) - n.getTime()) / 3600e3)); };
@@ -59,7 +63,8 @@ Deno.serve(async (req) => {
     if (take.reason === "pro") return json({ error: "Rate and writing voice are part of *[demo] Pro.", pro: true });
     if (take.reason === "month") return json({ error: "You've used this month's 100 Rates and voice updates. They reset on the 1st." });
     if (take.reason === "day") return json(take.tier === "free"
-      ? { error: `You've used today's ${take.limit} free AI requests. Go Pro for more, or try again in about ${hoursToReset()} hours.`, pro: true }
+      ? { error: take.limit ? `You've used today's ${take.limit} free AI requests. Go Pro for more, or try again in about ${hoursToReset()} hours.`
+                            : `You've used today's free AI. Go Pro for more, or try again in about ${hoursToReset()} hours.`, pro: true }
       : { error: `You've reached today's AI limit. It resets in about ${hoursToReset()} hours.` });
     if (take.reason === "beta") return json({ error: "Your beta access hasn't been approved yet." }, 403);
     return json({ error: "Sign in to use AI features." }, 401);
@@ -67,10 +72,15 @@ Deno.serve(async (req) => {
   // if the allowance can't be checked, nothing is sent: an unchecked request could bypass every limit
   if (takeErr || !take) { console.error('ai_take', takeErr); return json({ error: "AI couldn't start just now. Try again in a moment." }); }
 
+  // Free: always the small model, shorter prompts and answers
+  const small = take.small === true;
+  if (small && prompt.length > MAX_PROMPT_FREE) return json({ error: "That request is too large. Try a shorter selection." });
+
   const envW = Deno.env.get("AI_WRITE_MODEL"), envJ = Deno.env.get("AI_JUDGE_MODEL");
   type Try = { model: string; effort: string; max: number };
   const plan: Try[] =
-    complex ? [{ model: "gpt-5", effort: "medium", max: 5000 }]
+    small ? [{ model: "gpt-5-mini", effort: tier === "write" || tier === "judge" ? "low" : "minimal", max: 2000 }]
+    : complex ? [{ model: "gpt-5", effort: "medium", max: 5000 }]
     : tier === "write" ? [
         ...(envW ? [{ model: envW, effort: "low", max: 4000 }] : []),
         { model: "gpt-5", effort: "low", max: 4000 },
@@ -81,6 +91,17 @@ Deno.serve(async (req) => {
         { model: "gpt-5-mini", effort: "low", max: 2500 },
       ]
     : [{ model: "gpt-5-mini", effort: "minimal", max: 2000 }];
+
+  // what the call really cost, for the budgets (service role only; a failure here never blocks the answer)
+  const record = async (model: string, usage: any) => {
+    if (typeof take.id !== "number" || !usage) return;
+    try {
+      const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
+      const { error } = await admin.rpc("ai_cost", { p_id: take.id, p_model: model, p_in: usage.prompt_tokens ?? 0, p_out: usage.completion_tokens ?? 0 });
+      if (error) console.error("ai_cost", error.message);
+    } catch (e) { console.error("ai_cost", e); }
+  };
+
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), complex ? 110000 : tier === "write" ? 70000 : 45000);
   try {
@@ -100,6 +121,7 @@ Deno.serve(async (req) => {
         if ((r.status === 400 || r.status === 404 || r.status === 403) && t !== plan[plan.length - 1]) { console.warn("model refused", t.model, last); continue; }
         return json({ error: last });
       }
+      await record(j.model || t.model, j.usage);
       const choice = j.choices?.[0];
       const text: string = choice?.message?.content ?? "";
       if (!text.trim()) return json({ error: choice?.finish_reason === "length" ? "The AI ran out of room before answering. Try again." : "The AI returned an empty response." });

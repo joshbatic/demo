@@ -9,3 +9,13 @@ ios/App/DerivedData/
 *.xcuserstate
 xcuserdata/
 .zsh_sessions/
+
+# secrets and local notes: never commit these
+.env
+.env.*
+*.p8
+*.p12
+*.pem
+*.key
+*.mobileprovision
+.tmp/

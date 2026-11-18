@@ -383,15 +383,19 @@ struct ShareSheet: View {
         .padding(.horizontal, 20).padding(.bottom, 16)
     }
 
+    /// Links work for 30 days from when they were made or last updated (the server sets it: shares_30_days).
     private var linkLines: [String] {
         if let b = busy { return [b] }
         if session.userID == nil { return ["Sign in to make a link"] }
         if let m = myShare, let id = m["id"]?.string {
             var l = [Config.listenHost + "/" + id]
-            if let at = m["at"]?.number { l.append("Updated " + RelativeDateTimeFormatter().localizedString(for: Date(timeIntervalSince1970: at / 1000), relativeTo: Date())) }
+            if let e = m["exp"]?.number, e > 0 {
+                let d = Date(timeIntervalSince1970: e / 1000)
+                l.append(d > Date() ? "Works until " + d.formatted(date: .abbreviated, time: .omitted) + ". Update to renew" : "Expired. Update to renew")
+            } else if let at = m["at"]?.number { l.append("Updated " + RelativeDateTimeFormatter().localizedString(for: Date(timeIntervalSince1970: at / 1000), relativeTo: Date())) }
             return l
         }
-        return ["Anyone can open it, no account needed"]
+        return ["Anyone can open it for 30 days, no account needed"]
     }
 
     /// The web's .go2 pills: filled, or a light "ghost" (red for Stop Sharing).
@@ -486,8 +490,14 @@ struct ShareSheet: View {
             let n = "og-\(v).jpg"; keep.insert(n)
             data["og"] = .string(try await put(jpg, n, "image/jpeg"))
         }
-        var aid: String?, aname: String?
-        if let a = audio {
+        var aid: String?, aname: String?, apath: String?
+        if let a = audio, !a.isLocal, !a.path.isEmpty {
+            // the song's own file, played through the share-audio function: no second copy
+            apath = a.path
+            data["audio"] = .object(["src": .string(Config.supabaseURL.absoluteString + "/functions/v1/share-audio?s=" + id),
+                                     "name": .string(a.name), "dur": .number(a.dur), "peaks": .array(a.peaks.map { .number($0) })])
+            aid = a.id
+        } else if let a = audio {
             let prev = myShare
             let ext = a.ext.isEmpty ? "mp3" : a.ext
             if prev?["aid"]?.string == a.id, let old = (try? await bucket.list(path: folder))?.first(where: { $0.name.hasPrefix("audio-") }) {
@@ -510,7 +520,9 @@ struct ShareSheet: View {
             }
             aid = a.id; aname = a.name
         } else { data["audio"] = .null }
+        let exp = Clock.nowMs + 30 * 86_400_000
         let row: [String: JSONValue] = ["id": .string(id), "owner": .string(uid), "song_id": .string(s.id), "data": .object(data),
+                                        "audio_path": apath.map { .string($0) } ?? .null,
                                         "updated_at": .string(ISO8601DateFormatter().string(from: Date()))]
         _ = try await Backend.client.from("shares").upsert(row, onConflict: "id").execute()
         // tidy: files from older versions of this link
@@ -523,6 +535,7 @@ struct ShareSheet: View {
         var mine: [String: JSONValue] = ["id": .string(id), "at": .number(Clock.nowMs), "audio": .bool(audio != nil), "by": .string(uid)]
         if let aid { mine["aid"] = .string(aid) }
         if let aname { mine["aname"] = .string(aname) }
+        mine["exp"] = .number(exp)
         shares[uid] = .object(mine)
         now.raw["shares"] = .object(shares)
         now.touch()

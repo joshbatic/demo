@@ -21,10 +21,13 @@ Contents
 - One JS template literal: `var DATA=\`` starts on **line 1643** and the closing `` `; `` is at the end of **line
   15083** (the last entry is `AH-S-IH-N\tbussin52s`). Immediately after it, line 15084 is the comment
   `/* git commit this build came from … */` and 15085 `var APP_COMMIT=…`.
-- **13,441 lines** (one per rhyme group), **45,230 words** (each word appears exactly once — one pronunciation per word),
-  ~674 KB of text. Largest group: 717 words.
-- There are no other embedded dictionaries: no definitions, synonyms or phrase tables ship in the file. Those come from
-  Datamuse or the AI. (The other big blobs are the splash PNGs on line 1211 and the lamejs encoder, 1307–1614.)
+- **19,054 lines** (one per rhyme group), **68,669 words** (each word appears exactly once — one pronunciation per word),
+  ~951 KB of text. Built by `scripts/words/build.py` (Nov 2026: every CMU word WordNet knows, plus any other with a wordfreq
+  zipf of 2 or more; earlier words kept their group, tier, syllables and flag, new groups were added at the end).
+- Synonyms, related words, opposites, definitions and rhyming phrases come from the **word library**
+  (`docs/data/words-v1.txt`, the iPhone's `Words.txt`; format in `scripts/words/build.py`): the web fetches it once
+  from hellodemo.app/data and keeps it in IndexedDB (`wlLoad`), the iPhone bundles it (`WordLibrary`). Datamuse and
+  the AI only answer what it doesn't have (Describe, Sounds like, unknown words). (The other big blobs are the splash PNGs on line 1211 and the lamejs encoder, 1307–1614.)
 
 ### 1.2 Format (exact parsing rules)
 
@@ -195,18 +198,19 @@ function ctx(){
   containing the column, else the last token before it). Empty lines give no word.
 - `ref` = partner line or previous stanza line — used for "N to match" (syllables).
 
-### 1.9 Ordering of chips (verbatim 16604–16605)
+### 1.9 Ordering of chips — `rankWords` (web) / `WordRank` (iPhone), Nov 2026
 
-<!-- verbatim index.html lines 16604-16605 -->
-```js
-  function order(a){var rare=function(x){var w=nw(x),e=W[w];return!!e&&(e.t>=8||(e.s>=2&&w.length<=e.s))};a=a.filter(function(x){return!rare(x)}).concat(a.filter(rare));
-    if(!left)return a;var f=function(x){return sy(x)===left&&!rare(x)};return a.filter(f).concat(a.filter(function(x){return!f(x)}))}
-```
-
-"Rare" = tier ≥8, or an abbreviation read letter by letter (syllables ≥2 and word length ≤ syllables, e.g. "atm",
-"mph"). Rare words go last; when the line needs exactly `left` more syllables, words with exactly that count (and not
-rare) go first. Default caps: Rhymes = 40 perfect + 30 near (near dropped when "Perfect only"), Perfect = 40,
-Near = 60; Dictionary 60/40 (Near 80).
+Rhymes (perfect and near lists separately) and word lists are scored, lowest first, stable:
+- syllables: `min(9, |syl(x) − syl(target)| × 3)`, or 0 when `left` (syllables the line still needs) > 0 and syl(x) = left;
+- tier × 0.5 (unknown words 7, phrases 4);
+- this song: the song's 40 most frequent content words (no STOP words, longer than 2 letters, not the target) and the
+  word library's synonyms + related words of each; a candidate ties once if it's among those, and once per song word in
+  its own synonyms + related words; −1.5 for one tie, −3.5 for two or more;
+- +3 when one word is the other with letters in front ("time"/"sometime"); +2 when it already ends another line;
+- +100 for rare words (tier ≥ 8) and letter-by-letter abbreviations (syllables ≥ 2 and length ≤ syllables).
+The AI ranking for the song (Listen to whole song) still reorders first when it has answered; this then sorts.
+Default caps: Rhymes = 40 perfect + 30 near (near dropped when "Perfect only"), Perfect = 40, Near = 60; Dictionary
+60/40 (Near 80).
 
 ### 1.10 Rhyme map colouring — `rmap()` (verbatim 17049–17079, includes STOP list and gutter)
 

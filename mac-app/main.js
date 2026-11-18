@@ -48,8 +48,8 @@ function createWindow() {
   });
   const appFile = path.join(__dirname, 'app', 'index.html'), appUrl = pathToFileURL(appFile).href;
   win.loadFile(appFile);
-  // links to websites open in the default browser, never inside the app
-  win.webContents.setWindowOpenHandler(({ url }) => { if (/^https?:/i.test(url)) shell.openExternal(url); return { action: 'deny' }; });
+  // links to websites (https only) open in the default browser, never inside the app
+  win.webContents.setWindowOpenHandler(({ url }) => { if (/^https:/i.test(url)) shell.openExternal(url); return { action: 'deny' }; });
   // only the app's own page may load in this window (it holds the desktop bridge); everything else is refused or sent to the browser
   win.webContents.on('will-navigate', (e, url) => { if (url.split('#')[0].split('?')[0] === appUrl) return; e.preventDefault(); if (/^https:/i.test(url)) shell.openExternal(url); });
   win.webContents.on('did-finish-load', () => {

@@ -90,12 +90,20 @@ struct SongListScreen: View {
                 .onMove { from, to in dropped(from: from, to: to) }
                 if groups.isEmpty {
                     // the web's .empty
+                    // nothing to show: say why, and what to do next
                     VStack(spacing: 6) {
                         if !query.isEmpty || !library.songs.isEmpty {
-                            Text("No Results").font(.system(size: 17)).foregroundStyle(.secondary)
+                            Text(query.isEmpty ? "No Results" : "No songs match “\(query.trimmingCharacters(in: .whitespaces))”")
+                                .font(.system(size: 17, weight: .semibold)).multilineTextAlignment(.center)
+                            Text("Search looks through song titles and lyrics.").font(.system(size: 15)).foregroundStyle(.secondary)
                         } else {
                             Text("No songs yet").font(.system(size: 17, weight: .semibold))
-                            Text("Tap the pencil to write your first line.").font(.system(size: 15)).foregroundStyle(.secondary)
+                            Text("Every song starts with one line.").font(.system(size: 15)).foregroundStyle(.secondary)
+                            Button { newSong() } label: {
+                                Text("Write a Song").font(.system(size: 15, weight: .semibold)).foregroundStyle(Theme.onTint)
+                                    .padding(.horizontal, 18).frame(height: 40).background(Theme.tint, in: Capsule())
+                            }
+                            .buttonStyle(PressScale()).padding(.top, 10)
                         }
                     }
                     .frame(maxWidth: .infinity).padding(.vertical, 60)
@@ -571,7 +579,15 @@ struct SearchDock: View {
     let label: String
     /// press and hold the round button for these (the songs list: New Song, New Folder, New Album); a tap is `action`
     var menu: [DockItem] = []
+    /// an extra round button between the search field and the main one (Ideas: record a voice memo)
+    var side: Side? = nil
     let action: () -> Void
+
+    struct Side {
+        let symbol: String
+        let label: String
+        let run: () -> Void
+    }
     @FocusState private var focused: Bool
 
     private var dockIcon: some View {
@@ -612,6 +628,18 @@ struct SearchDock: View {
                 .contentShape(Capsule())
                 .onTapGesture { focused = true }
                 .glassCapsule(interactive: true)
+
+                if let side {
+                    Button { side.run() } label: {
+                        Image(systemName: side.symbol).font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(side.symbol == "stop.fill" ? Color.red : Color.primary)
+                            .contentTransition(.symbolEffect(.replace))
+                            .frame(width: 52, height: 52).contentShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .glassCircle()
+                    .accessibilityLabel(side.label)
+                }
 
                 if menu.isEmpty {
                     Button {

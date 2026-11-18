@@ -51,6 +51,8 @@ final class WordResults {
     @ObservationIgnored var ai: (() -> AIContext)?
     /// The caret's line, for ranking and meaning lookups.
     var line = ""
+    /// The whole song's text: words tied to what it's about rank higher (WordRank).
+    @ObservationIgnored var song = ""
     /// A multi-word selection: Phrases rhymes it with the AI (Pro).
     var phrase = ""
     private(set) var ranking = false
@@ -96,6 +98,14 @@ final class WordResults {
         } else if mode == .phr {
             chips = []; message = nil; busy = true
             Task {
+                // phrases from the built-in library first (they work offline), Datamuse when it has none
+                let local = await Task.detached(priority: .userInitiated) { WordLibrary.shared.phrases(rhymingWith: w) }.value
+                guard t == token else { return }
+                if !local.isEmpty {
+                    busy = false
+                    chips = local.prefix(big ? 80 : 40).map { WordChip(word: $0, syl: syl($0)) }
+                    return
+                }
                 let r = await Datamuse.shared.rhymes(w)
                 let s = await Datamuse.shared.syllables
                 guard t == token else { return }
@@ -108,7 +118,9 @@ final class WordResults {
         } else if mode == .def {
             chips = []; message = nil; busy = true
             Task {
-                var d = await Datamuse.shared.define(w)
+                // the built-in library first; Datamuse, then the AI, only when it has nothing
+                let local = WordLibrary.shared.definitions(w)
+                var d: [(String, String)]? = local.isEmpty ? await Datamuse.shared.define(w) : local
                 if d == nil || d?.isEmpty == true, let a = ai?(), a.pro, let env = a.env {
                     let x = await aiDefine(w, env: env)
                     if !x.isEmpty { d = x }
@@ -120,13 +132,17 @@ final class WordResults {
         } else {
             chips = []; message = nil; busy = true
             Task {
-                var l = await Datamuse.shared.list(mode.rawValue, w, topics: [])
+                // synonyms, related words and opposites from the built-in library first; Describe and Sounds like,
+                // and words it doesn't know, ask Datamuse, then the AI
+                let local = WordLibrary.shared.list(mode.rawValue, w)
+                var l: [String]? = local.isEmpty ? await Datamuse.shared.list(mode.rawValue, w, topics: []) : local
                 if l == nil, let a = ai?(), a.pro, let env = a.env { let x = await aiList(mode, w, env: env, ctxOn: a.ctxOn); if !x.isEmpty { l = x } }
                 let s = await Datamuse.shared.syllables
                 guard t == token else { return }
                 busy = false; dmSyl = s
-                guard let l else { message = "Meaning-based lists need a connection, and it isn’t reachable right now."; return }
-                chips = RhymeEngine.shared.filter(l, register: register).prefix(big ? 80 : 60).map { WordChip(word: $0, syl: syl($0)) }
+                guard let l else { message = "This list needs a connection, and it isn’t reachable right now."; return }
+                let kept = Array(RhymeEngine.shared.filter(l, register: register).prefix(big ? 80 : 60))
+                chips = WordRank.rank(kept, word: w, left: 0, song: song, line: line, syl: syl).map { WordChip(word: $0, syl: syl($0)) }
                 message = chips.isEmpty ? "Nothing found for “\(w)”." : nil
             }
         }
@@ -142,8 +158,9 @@ final class WordResults {
         let eng = RhymeEngine.shared
         var p: [String], n: [String]
         if !local, let s = dmCached { (p, n) = s } else { let s = eng.sets(word); p = s.perfect; n = s.near }
-        p = eng.order(eng.filter(p, register: register), left: left, syl: syl)
-        n = eng.order(eng.filter(n, register: register), left: left, syl: syl)
+        // syllables like the word, everyday words and ties to this song first; rare words last (WordRank)
+        p = WordRank.rank(eng.filter(p, register: register), word: word, left: left, song: song, line: line, syl: syl)
+        n = WordRank.rank(eng.filter(n, register: register), word: word, left: left, song: song, line: line, syl: syl)
         let capP = big ? 60 : 40, capN = big ? (mode == .near ? 80 : 40) : (mode == .near ? 60 : 30)
         var out: [WordChip] = []
         switch mode {

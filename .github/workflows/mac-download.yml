@@ -30,6 +30,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
+      # dependencies are installed (exact versions from the lockfile) before the signing certificate exists on the machine
+      - name: Install
+        run: cd mac-app && npm ci --no-audit --no-fund
       - name: Signing certificate (if set up)
         env:
           P12: ${{ secrets.MAC_CERT_P12 }}

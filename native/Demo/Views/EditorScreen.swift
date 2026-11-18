@@ -22,6 +22,7 @@ struct EditorScreen: View {
     @State private var showPlay = false
     @State private var showPerform = false
     @State private var showShare = false
+    @State private var showInvite = false
     @State private var live = LiveSession()
     @State private var editorFrame = CGRect.zero
     @State private var topBarBottom: CGFloat = 0
@@ -111,6 +112,7 @@ struct EditorScreen: View {
                          })
         }
         .sheet(isPresented: $showShare) { ShareSheet(songID: songID) }
+        .sheet(isPresented: $showInvite) { InviteSheet(songID: songID) }
         // live co-writing: send what changed here (from typing, Details, anywhere) and file changes
         .onChange(of: liveKey) { _, _ in live.localChanged() }
         // Lines works without the keyboard: it would cover the lines and the rhyme bar. Tapping the words still
@@ -345,8 +347,8 @@ struct EditorScreen: View {
             Section {
                 Button { openDetails(.info) } label: { Label("Details", systemImage: "info.circle") }
                 Button { openDetails(.audio) } label: { Label("Audio", systemImage: "waveform") }
-                Button { openDetails(.chords) } label: { Label("Chords", systemImage: "music.note.list") }
-                Button { openDetails(.credits) } label: { Label("Credits", systemImage: "person.2") }
+                Button { coWrite() } label: { Label("Co-write", systemImage: Self.coWriteIcon) }
+                Button { openDetails(.credits) } label: { Label("Credits", systemImage: "signature") }
             }
             Section {
                 Button {
@@ -373,6 +375,26 @@ struct EditorScreen: View {
             Icon("ic-more", 24).foregroundStyle(Theme.tint).frame(width: 48, height: 48).contentShape(Rectangle())
         }
         .accessibilityLabel("Details")
+    }
+
+    /// two people with a plus; the single-person badge where an older iOS lacks it
+    private static let coWriteIcon = UIImage(systemName: "person.2.badge.plus") != nil ? "person.2.badge.plus" : "person.badge.plus"
+
+    /// ••• › Co-write: straight to Invite a Co-writer. A song that isn't shared yet is shared first
+    /// (only when its id won't change); anything else opens Details, where Collaborators lives.
+    private func coWrite() {
+        guard let s = song, session.userID != nil else { openDetails(.info); return }
+        guard session.plan.isPro else { session.upsell("share"); return }
+        let owner = s.owner.isEmpty || s.owner == session.userID
+        guard owner else { openDetails(.info); return }
+        bridge.textView?.resignFirstResponder()
+        if s.isShared { showInvite = true; return }
+        guard Collab.isUUID(s.id) else { openDetails(.info); return }
+        Task {
+            guard await Collab.shared.share(songID) != nil else { return }
+            showInvite = true
+            _ = await Push.shared.ask()
+        }
     }
 
     private func openDetails(_ t: DetailsTab) {
@@ -537,6 +559,7 @@ struct EditorScreen: View {
         results.left = max(0, need)
         if c != context { context = c }
         results.line = c.line
+        results.song = text
         let sel = c.selection.trimmingCharacters(in: .whitespacesAndNewlines)
         results.phrase = sel.split(whereSeparator: { $0 == " " }).count > 1 && !sel.contains("\n") ? sel : ""
         if RhymeEngine.normalise(c.word) != RhymeEngine.normalise(results.word) || leftChanged { results.show(c.word) }

@@ -1,7 +1,7 @@
 import Foundation
 
 /// The built-in rhyme dictionary and engine, ported line for line from the web app (engines.md §1):
-/// 45,230 words in 13,441 rhyme groups (CMU pronunciations), perfect and near rhymes, syllables,
+/// 68,669 words in 19,054 rhyme groups (CMU pronunciations; scripts/words/build.py), perfect and near rhymes, syllables,
 /// the word the rhyme bar targets, chip ordering and the rhyme map.
 nonisolated final class RhymeEngine: @unchecked Sendable {
     static let shared = RhymeEngine()

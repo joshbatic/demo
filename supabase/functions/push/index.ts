@@ -1,7 +1,8 @@
 // *[demo] push notifications to iPhones, through Apple (APNs). Phones register in public.push_tokens (supabase/push.sql).
 //
 //   { action: "invite", song_id, invitee }       The app, right after inviting someone: tells the invitee's phones.
-//                                                Only works for an invite the caller sent in the last 10 minutes.
+//                                                Only works for an invite the caller sent in the last 10 minutes,
+//                                                and only once per invite.
 //   { action: "send", user, title, body, data }  Other functions (the support function, for help desk replies), with the
 //                                                service role key.
 //   { action: "admin_send", user, title, body }  Admins, from Admin › Users › someone › Send a Notification.
@@ -142,9 +143,12 @@ Deno.serve(async (req) => {
     if (!UUID.test(invitee) || !song) return json({ error: "Bad request." }, 400);
     const sb = db();
     const { data: inv } = await sb.from("collab_invites").select("id, song_title, owner_name")
-      .eq("owner_id", me.id).eq("invitee_user_id", invitee).eq("song_id", song).eq("status", "pending")
+      .eq("owner_id", me.id).eq("invitee_user_id", invitee).eq("song_id", song).eq("status", "pending").is("pushed_at", null)
       .gte("created_at", new Date(Date.now() - 10 * 60e3).toISOString()).order("created_at", { ascending: false }).limit(1).maybeSingle();
     if (!inv) return json({ ok: true, sent: 0 });
+    // one push per invite: calling again can't keep buzzing someone's phone
+    const { data: claimed } = await sb.from("collab_invites").update({ pushed_at: new Date().toISOString() }).eq("id", inv.id).is("pushed_at", null).select("id");
+    if (!claimed?.length) return json({ ok: true, sent: 0 });
     const { data: blocked } = await sb.from("user_blocks").select("blocker").eq("blocker", invitee).eq("blocked", me.id).maybeSingle();
     if (blocked) return json({ ok: true, sent: 0 });
     const { data: prof } = await sb.from("profiles").select("display_name, username").eq("user_id", me.id).maybeSingle();

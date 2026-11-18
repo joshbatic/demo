@@ -26,7 +26,7 @@ struct DemoApp: App {
                 .toggleStyle(.green)
                 .task { await session.start() }
                 // the rhyme dictionary loads in the background so it's ready when a song opens
-                .task(priority: .utility) { await Task.detached(priority: .utility) { RhymeEngine.shared.load() }.value }
+                .task(priority: .utility) { await Task.detached(priority: .utility) { RhymeEngine.shared.load(); WordLibrary.shared.load() }.value }
                 // widgets and the Control Centre button open the app with a demo-native:// link
                 .onOpenURL { QuickActions.open($0) }
         }

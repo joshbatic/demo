@@ -27,7 +27,7 @@ const blocks = [
   ['f', 'rate', 'Rate’s notes point at the lines they’re about.'],
 
   ['h', 'Ideas & voice memos'],
-  ['p', 'Ideas sits at the top of your songs. It’s a quick jot for stray lines, titles and concepts: type and press Return.'],
+  ['p', 'Ideas sits at the top of your songs. It’s a quick jot for stray lines, titles and concepts: tap + to jot one.'],
   ['p', 'Record a voice memo the moment a melody turns up. When an idea grows, start a song from it.'],
   ['f', 'ideas', 'Lines, ideas, concepts and memos, all in one place.'],
 
@@ -48,7 +48,7 @@ const blocks = [
   ['h', 'Sharing & co-writing'],
   ['p', 'Share sends a song as a link anyone can open, with its audio, or as an image of the lyrics. Share an album and it gets a page of its own, with every song on it.'],
   ['f', 'share', 'A share page: the song, its audio and its words, on any phone or computer.'],
-  ['p', 'Pick a username in Account so co-writers can find you, then invite them from ••• › Details › Collaborators. You can write in the same song at the same time, and see each other’s changes as they happen.'],
+  ['p', 'Pick a username in Account so co-writers can find you, then invite them from ••• › Co-write. You can write in the same song at the same time, and see each other’s changes as they happen.'],
 
   ['h', 'Perform'],
   ['p', '••• › Perform turns the song into a scrolling teleprompter for the stage or the studio. Set the speed and the text size, and it rolls on by itself.'],

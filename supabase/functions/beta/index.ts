@@ -186,8 +186,13 @@ Deno.serve(async (req) => {
     if (error) return json({ error: /valid email/i.test(error.message) ? "Enter a valid email address." : /a lot of requests/i.test(error.message) ? error.message : "Couldn't save your request. Try again in a moment." }, 400);
     console.log(`Request from ${email}: ${data}`);
     if (data === "new") {
-      const first = esc(name.split(/\s+/)[0] || "there");
-      await send(email, "You're on the list for *[demo]", mail({
+      // only a plain first name goes into the greeting (no links or other text someone could slip in)
+      const nm = name.split(/\s+/)[0] || "", first = /^[\p{L}][\p{L}'’-]{0,29}$/u.test(nm) ? esc(nm) : "there";
+      // anyone can fill in this form with someone else's address: after 20 confirmation emails in a day, stop sending
+      // them (the request is still saved and you're still told)
+      const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
+      const { count } = await db.from("beta_requests").select("id", { head: true, count: "exact" }).gte("created_at", new Date(Date.now() - 86400_000).toISOString());
+      if ((count ?? 0) <= 20) await send(email, "You're on the list for *[demo]", mail({
         preheader: "Thanks for asking to try *[demo]. We'll email you when there's a spot.",
         cover: "lavender", title: "You're on the list",
         body: p(`Hi ${first}, thanks for asking to try *[demo]. We're letting songwriters in a few at a time, so everyone gets a good first run.`) +

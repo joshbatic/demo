@@ -12,16 +12,16 @@ nonisolated enum Config {
     static let revenueCatKey = "appl_XNKRNsIsXDlJzSerQvGGVffIHWd"
     static let proEntitlement = "demo_pro"
     /// The App Store app's Apple ID (App Store Connect › App Information › Apple ID), for "Time to update".
-    static let appStoreID = ""
+    static let appStoreID = "6825757339"
     static var appStoreURL: URL {
         appStoreID.isEmpty ? URL(string: "https://hellodemo.app")! : URL(string: "itms-apps://apps.apple.com/app/id\(appStoreID)")!
     }
     static let listenHost = "listen.hellodemo.app"
     /// The build number, shared with the web and Mac apps' APP_SEQ (the repo's commit count, written by
     /// scripts/stamp-version.sh), so Admin › Minimum Build ("Time to update") covers every app on one scale.
-    static let appSeq = 803
+    static let appSeq = 851
     /// The commit that build was made from (also written by scripts/stamp-version.sh), shown with it in Account.
-    static let appHash = "ed03ac5"
+    static let appHash = "7faaa3e"
     /// The version people see (Account › Version), the same number as the Mac app: 1.0.0.
     static var appVersion: String { Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0" }
     /// Sent with diagnostics and push registration: the version and build number.

@@ -64,13 +64,45 @@ struct AlbumArt: View {
                 ZStack {
                     LinearGradient(colors: [k.a, k.b], startPoint: .topLeading, endPoint: .bottomTrailing)
                     RadialGradient(colors: [k.glow.opacity(0.8), k.glow.opacity(0)], center: UnitPoint(x: k.cx, y: k.cy), startRadius: 0, endRadius: size * 0.8)
-                    Image(systemName: "music.note.list").font(.system(size: size * 0.26, weight: .medium)).foregroundStyle(.white.opacity(0.9))
+                    GlassRecord(pick: k, size: size * 0.66)
                 }
             }
         }
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: radius, style: .continuous).stroke(Color.black.opacity(0.08), lineWidth: 0.5))
+    }
+}
+
+/// An album without artwork: the app's record as a flat sheet of clear glass over the album's pastel, the
+/// colours seen through it turned the other way, faint grooves, a thin bright edge and the white asterisk on a
+/// frosted label (the web's albCover draws the same).
+struct GlassRecord: View {
+    let pick: CoverPick
+    let size: CGFloat
+    var body: some View {
+        let d = size, u = d / 200
+        ZStack {
+            Circle().fill(LinearGradient(colors: [pick.b, pick.a], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .shadow(color: Color(red: 59/255, green: 46/255, blue: 90/255).opacity(0.12), radius: 6 * u, y: 7 * u)
+            Circle().fill(.white.opacity(0.16))
+            ForEach([46, 56, 66, 76, 86], id: \.self) { r in
+                Circle().stroke(.white.opacity(0.3), lineWidth: max(0.4, 0.7 * u)).frame(width: CGFloat(r) * 2 * u, height: CGFloat(r) * 2 * u)
+            }
+            Circle().fill(.white.opacity(0.3)).frame(width: 72 * u, height: 72 * u)
+                .overlay(Circle().stroke(.white.opacity(0.6), lineWidth: max(0.5, 0.9 * u)))
+            ZStack {
+                ForEach([0.0, 60.0, -60.0], id: \.self) { a in
+                    Capsule().fill(.white).frame(width: 12 * u, height: 56 * u).rotationEffect(.degrees(a))
+                }
+            }
+            .shadow(color: Color(red: 59/255, green: 46/255, blue: 90/255).opacity(0.18), radius: 1.6 * u, y: 1.5 * u)
+            Circle().strokeBorder(LinearGradient(stops: [.init(color: .white.opacity(0.95), location: 0), .init(color: .white.opacity(0.15), location: 0.35),
+                                                         .init(color: .white.opacity(0.05), location: 0.7), .init(color: .white.opacity(0.7), location: 1)],
+                                                 startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: max(0.6, 1.4 * u))
+        }
+        .frame(width: d, height: d)
+        .accessibilityHidden(true)
     }
 }
 
@@ -90,6 +122,7 @@ enum AlbumRoute {
 // MARK: - the shelf in the song list
 
 /// Albums along the top of the song list: artwork tiles that scroll sideways, like Apple Music.
+/// The tiles are rounded a little less than the song covers (26 on 148), so the big squares stay calm.
 struct AlbumShelf: View {
     @Environment(\.library) private var library
     let newAlbum: () -> Void
@@ -102,7 +135,7 @@ struct AlbumShelf: View {
                     ForEach(albums) { a in
                         NavigationLink(value: AlbumRoute.prefix + a.id) {
                             VStack(alignment: .leading, spacing: 2) {
-                                AlbumArt(album: a, size: 148, radius: 10).shadow(color: .black.opacity(0.08), radius: 6, y: 3).padding(.bottom, 6)
+                                AlbumArt(album: a, size: 148, radius: 26).shadow(color: .black.opacity(0.08), radius: 6, y: 3).padding(.bottom, 6)
                                 Text(a.displayTitle).font(.system(size: 15, weight: .medium)).lineLimit(1)
                                 let n = library.albumSongs( a.id).count
                                 Text("\(a.kind) · \(n) \(n == 1 ? "song" : "songs")").font(.system(size: 13)).foregroundStyle(.secondary).lineLimit(1)
@@ -114,7 +147,7 @@ struct AlbumShelf: View {
                     }
                     Button(action: newAlbum) {
                         VStack(alignment: .leading, spacing: 2) {
-                            RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.primary.opacity(0.05))
+                            RoundedRectangle(cornerRadius: 26, style: .continuous).fill(Color.primary.opacity(0.05))
                                 .frame(width: 148, height: 148)
                                 .overlay(Image(systemName: "plus").font(.system(size: 30, weight: .regular)).foregroundStyle(.secondary))
                                 .padding(.bottom, 6)
