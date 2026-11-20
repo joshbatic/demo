@@ -1,7 +1,7 @@
 {
   "name": "demo-songwriting",
   "productName": "[demo]",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "A lyric notepad for songwriters",
   "main": "main.js",
   "private": true,
