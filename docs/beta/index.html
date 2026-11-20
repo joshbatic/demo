@@ -21123,8 +21123,8 @@ UW-K-ER-M-AH-N	zukerman93
 UW-L-UW-Z	zulus82
 AH-M-W-AH-L-T	zumwalt82`;
 /* git commit this build came from, shown at the bottom of Account. Written by scripts/stamp-version.sh — don't edit by hand. */
-var APP_COMMIT='f8339c5';
-var APP_SEQ=906;
+var APP_COMMIT='24bd69c';
+var APP_SEQ=908;
 /* the version people see, the same as the iPhone app's; Account shows it with the build number so every device can be compared */
 var APP_VERSION='1.3.0';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
@@ -23716,17 +23716,23 @@ function liveFull(x){if(!x||x.id!==LIVE.id||x.dev===LIB_DEV||!x.f)return;var s=l
   var nv={};LIVE_F.concat(['rich']).forEach(function(k){if(x.f[k]!=null)nv[k]=String(x.f[k])});nv._whole=1;liveApply(s,nv,x,null)}
 function liveDom(at,dl,ins){ins=nlNorm(ins);var a=locate(at),b=locate(at+dl),r=document.createRange();r.setStart(a[0],a[1]);r.setEnd(b[0],b[1]);r.deleteContents();
   var fr=document.createDocumentFragment();ins.split('\n').forEach(function(t,i){if(i)fr.appendChild(document.createElement('br'));if(t)fr.appendChild(document.createTextNode(t))});r.insertNode(fr);lyr.normalize()}
-function liveApply(s,nv,x,shift){var mine=s===cur,whole=!!nv._whole;delete nv._whole;var focused=mine&&document.activeElement===lyr,sel=focused?getSel():null,txt=('lyrics' in nv)||('rich' in nv);
-  if(mine&&!whole&&('lyrics' in nv)&&shift){var want=nv.lyrics;try{liveDom(shift.at,shift.d,want.slice(shift.at,shift.at+shift.i))}catch(e){}
+/* a co-writer's edit goes in without disturbing yours: your cursor stays where it was (text they type at the very
+   spot you're on goes after it), the line you're on stays put on the screen, and your rhyme bar keeps your word */
+function liveMv(shift,p,L){if(shift){var a=shift.at,d=shift.d,i=shift.i;if(p>a+d||(d>0&&p===a+d))p+=i-d;else if(p>a)p=a+i}return Math.max(0,Math.min(p,L))}
+function liveCaretTop(){var g=getSelection();if(!g.rangeCount||!lyr.contains(g.anchorNode))return null;var r=g.getRangeAt(0).cloneRange();r.collapse(true);var c=r.getClientRects()[0]||r.getBoundingClientRect();return c&&c.height?c.top:null}
+function liveKeep(y0){if(y0==null)return;var y1=liveCaretTop(),sc=$('#sc');if(y1!=null&&sc&&Math.abs(y1-y0)>.5)sc.scrollTop+=y1-y0}
+function liveApply(s,nv,x,shift){var mine=s===cur,whole=!!nv._whole;delete nv._whole;var focused=mine&&document.activeElement===lyr,sel=focused?getSel():null,txt=('lyrics' in nv)||('rich' in nv),y0=focused?liveCaretTop():null;
+  if(mine&&!whole&&('lyrics' in nv)&&shift){var want=nv.lyrics;try{liveDom(shift.at,shift.d,want.slice(shift.at,shift.at+shift.i));if(sel){var L0=getText().length;LIVE.quiet=Date.now();setSel(liveMv(shift,sel.s,L0),liveMv(shift,sel.e,L0))}}catch(e){}
     if(getText()===want){delete nv.lyrics;s.lyrics=want;s.rich=lyr.innerHTML;txt=false}}
   Object.keys(nv).forEach(function(k){s[k]=k==='bpm'&&nv[k]!==''&&!isNaN(+nv[k])?+nv[k]:nv[k]});
   if(mine&&txt&&('lyrics' in nv)&&!('rich' in nv))s.rich='';
   /* only mark it as pushed when nothing of ours was waiting to go up; otherwise our own unsent typing would be skipped */
   var clean0=(s.updated||0)<=(s._pushed||0);s.updated=Math.max(s.updated||0,x.u||0);if(clean0)s._pushed=Math.max(s._pushed||0,s.updated);if(x.who&&x.who!==s.lastEditBy)delete s.lastEditById;s.lastEditBy=x.who||s.lastEditBy;
   if(LIVE.snap&&whole){Object.keys(nv).forEach(function(k){LIVE.snap[k]=liveVal(s,k)});LIVE.snap._rich=liveVal(s,'rich')}
-  if(mine){if(txt){setLyr(s);if(sel){var L=getText().length,mv=function(p){if(shift){if(p>=shift.at+shift.d)p+=shift.i-shift.d;else if(p>shift.at)p=shift.at+shift.i}return Math.max(0,Math.min(p,L))};setSel(mv(sel.s),mv(sel.e))}}
+  if(mine){if(txt){var st0=$('#sc')?$('#sc').scrollTop:0;setLyr(s);if(sel){var L=getText().length;LIVE.quiet=Date.now();setSel(liveMv(shift,sel.s,L),liveMv(shift,sel.e,L))}else if($('#sc'))$('#sc').scrollTop=st0}
+    liveKeep(y0);
     Object.keys(map).forEach(function(q){var el=$(q);if(el&&document.activeElement!==el&&map[q] in nv)el.value=s[map[q]]||''});
-    hdr();LSK=null;rhyme();refreshViews();liveHere(x.who)}
+    hdr();refreshViews();liveHere(x.who)}
   LIVE.applying=true;try{save()}finally{LIVE.applying=false}renderList()}
 /* "Sam is writing…" under the title while their changes are coming in */
 var liveHereT=null;
@@ -27731,7 +27737,10 @@ $('#gear').onmousedown=function(e){e.preventDefault()};$('#gear').onclick=functi
 $('#lm').onmousedown=function(e){e.preventDefault()};
 $('#lm').onclick=function(){if(!lines&&!isPro())return upsell('lines');lines=!lines;rhyme()};
 lyr.addEventListener('input',function(){if(getText()===''&&lyr.innerHTML!=='')lyr.innerHTML='';if(cur){cur.lyrics=getText();cur.rich=lyr.innerHTML;cur.updated=Date.now();lastEdit=Date.now();save()}setTimeout(function(){rhyme();reveal()},0);refreshViews()});
-document.addEventListener('selectionchange',function(){if(document.activeElement===$('#lyr'))setTimeout(function(){rhyme();reveal(true);updateFmtState()},0)});
+document.addEventListener('selectionchange',function(){if(document.activeElement===$('#lyr')){
+  /* the caret only moved because a co-writer's edit went in: the page and the rhyme bar stay as they are */
+  if(typeof LIVE!=='undefined'&&LIVE.quiet&&Date.now()-LIVE.quiet<120)return;
+  setTimeout(function(){rhyme();reveal(true);updateFmtState()},0)}});
 
 /* ---------- albums (supabase/albums.sql) ----------
    Each album is its own row in the albums table: { id, title, kind, year, artist, art, updated }, synced row by row
