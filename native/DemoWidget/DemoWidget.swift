@@ -1,45 +1,40 @@
 import SwiftUI
 import WidgetKit
 
-// The widgets are glass: white words and buttons over the latest song's colour, which iOS swaps for real
-// glass over the wallpaper when the Home Screen is set to Clear. White is always the main action.
+// The widgets follow Apple's own pattern in glass: one small label at the top, the content in system type,
+// white words over a quiet tint of the latest song's colour. On a Clear Home Screen iOS swaps the tint for real
+// glass over the wallpaper, which is the look these are drawn for.
 
-/// The background: the latest song's colour, deep at the foot (the app writes it; a soft purple until then).
-/// A widget's background: tinted glass in the song's colour. A brighter colour at the top left fading to a deep
-/// one, a soft light catching the top corner, a gentle shade at the foot and a thin bright rim, so it reads as a
-/// pane of coloured glass rather than flat paint. On a Clear or Tinted Home Screen iOS swaps this for its own glass.
+/// The background: a quiet, smoky tint of the latest song's colour with a thin bright rim, so it reads as a pane
+/// of glass. No glows or shading: the content carries the widget. iOS replaces it on Clear and Tinted screens.
 struct WidgetTint: View {
     let snap: Snapshot
     var body: some View {
-        let t = snap.tint ?? ["9F8CC4", "5E4E8A"]
+        let t = snap.tint ?? ["8E7FB8", "5E5288"]
         let a = Color(hexString: t[0]), b = Color(hexString: t.count > 1 ? t[1] : t[0])
-        GeometryReader { g in
-            let r = max(g.size.width, g.size.height)
-            ZStack {
-                LinearGradient(colors: [a, b], startPoint: .topLeading, endPoint: .bottomTrailing)
-                RadialGradient(colors: [.white.opacity(0.26), .white.opacity(0.06), .clear], center: .topLeading, startRadius: 0, endRadius: r * 0.95)
-                RadialGradient(colors: [a.opacity(0.35), .clear], center: UnitPoint(x: 0.95, y: 0.15), startRadius: 0, endRadius: r * 0.6)
-                LinearGradient(colors: [.clear, .black.opacity(0.1)], startPoint: .center, endPoint: .bottom)
-                ContainerRelativeShape()
-                    .strokeBorder(LinearGradient(colors: [.white.opacity(0.5), .white.opacity(0.08), .white.opacity(0.18)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
-            }
+        ZStack {
+            LinearGradient(colors: [a, b], startPoint: .top, endPoint: .bottom)
+            Color.white.opacity(0.1)
+            ContainerRelativeShape()
+                .strokeBorder(LinearGradient(colors: [.white.opacity(0.45), .white.opacity(0.12)], startPoint: .top, endPoint: .bottom), lineWidth: 1)
         }
     }
 }
 
-/// The small label at the top of a widget: the asterisk, a name, and something on the right.
+/// Secondary text on glass.
+let wSecondary = Color.white.opacity(0.72)
+
+/// The label at the top of a widget, like the coloured title on Apple's Notes widget, with something on the right.
 struct WLabel: View {
     let text: String
     var trailing: String? = nil
     var body: some View {
-        HStack(spacing: 5) {
-            Image(systemName: "asterisk").font(.system(size: 10, weight: .bold))
-            Text(text).lineLimit(1)
+        HStack(spacing: 4) {
+            Text(text).font(.system(size: 13, weight: .semibold)).lineLimit(1).widgetAccentable()
             Spacer(minLength: 4)
-            if let trailing { Text(trailing).fontWeight(.medium) }
+            if let trailing { Text(trailing).font(.system(size: 13, weight: .medium)).foregroundStyle(wSecondary) }
         }
-        .font(.system(size: 12, weight: .semibold))
-        .foregroundStyle(.white.opacity(0.78))
+        .foregroundStyle(.white)
     }
 }
 
@@ -53,7 +48,8 @@ struct WCover: View {
             if let img = coverImage(item?.cover) {
                 Image(uiImage: img).resizable().widgetAccentedRenderingMode(.desaturated).scaledToFill()
             } else {
-                LinearGradient(colors: [.white.opacity(0.5), .white.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                LinearGradient(colors: [Color(red: 0.72, green: 0.64, blue: 0.96), Color(red: 0.55, green: 0.74, blue: 0.96)],
+                               startPoint: .topLeading, endPoint: .bottomTrailing)
             }
         }
         .frame(width: size, height: size)
@@ -66,7 +62,7 @@ struct WPill: View {
     let title: String?
     let icon: String
     var main = false
-    var height: CGFloat = 36
+    var height: CGFloat = 34
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: icon).font(.system(size: 13, weight: .semibold))
@@ -75,28 +71,28 @@ struct WPill: View {
         .foregroundStyle(main ? Color.black.opacity(0.85) : .white)
         .frame(maxWidth: title == nil ? height : .infinity, minHeight: height, maxHeight: height)
         .frame(width: title == nil ? height : nil)
-        .background(main ? Color.white : Color.white.opacity(0.2), in: Capsule())
+        .background(main ? Color.white.opacity(0.92) : Color.white.opacity(0.2), in: Capsule())
     }
 }
 
-/// The big round record button.
-struct WRecordDisc: View {
+/// A round button: white with a dark icon for the main action, glass with a white icon for the rest.
+struct WRound: View {
+    let icon: String
     var size: CGFloat
+    var main = true
     var body: some View {
-        Image(systemName: "mic.fill")
+        Image(systemName: icon)
             .font(.system(size: size * 0.4, weight: .semibold))
-            .foregroundStyle(Color.black.opacity(0.85))
+            .foregroundStyle(main ? Color.black.opacity(0.85) : .white)
             .frame(width: size, height: size)
-            .background(Color.white, in: Circle())
-            .shadow(color: .black.opacity(0.15), radius: 8, y: 3)
-            .widgetAccentable()
+            .background(main ? Color.white.opacity(0.92) : Color.white.opacity(0.22), in: Circle())
+            .widgetAccentable(main)
     }
 }
 
-/// "Kitchen Light · 2h ago"
-func stamp(_ s: Snapshot.Item) -> String { s.title + " · " + ago(s.updated) }
+func ideasText(_ n: Int) -> String { n == 0 ? "Tap to record" : "\(n) \(n == 1 ? "idea" : "ideas")" }
 
-// MARK: - Record Idea: small is one big button, medium is three quick actions
+// MARK: - Record Idea: small is one button, medium is three quick actions
 
 struct RecordWidget: Widget {
     var body: some WidgetConfiguration {
@@ -138,38 +134,40 @@ struct RecordView: View {
         case .systemMedium:
             quick
         default:
-            VStack(spacing: 0) {
-                WLabel(text: "Ideas", trailing: snap.ideaCount > 0 ? "\(snap.ideaCount)" : nil)
+            // the button top left, the words along the bottom
+            VStack(alignment: .leading, spacing: 0) {
+                WRound(icon: "mic.fill", size: 52)
                 Spacer(minLength: 0)
-                WRecordDisc(size: 68)
-                Spacer(minLength: 0)
-                Text("Record Idea").font(.system(size: 13.5, weight: .semibold)).foregroundStyle(.white)
+                Text("Record idea").font(.system(size: 15, weight: .semibold))
+                Text(ideasText(snap.ideaCount)).font(.system(size: 13)).foregroundStyle(wSecondary).padding(.top, 1)
             }
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             .widgetURL(Links.url("record"))
         }
     }
 
-    /// Medium: Record (white), Write Idea and New Song, each a tile.
+    /// Medium: Record (white), Write Idea and New Song as round buttons with their names under them.
     private var quick: some View {
-        VStack(spacing: 10) {
-            WLabel(text: "*[demo]", trailing: snap.ideaCount > 0 ? "\(snap.ideaCount) \(snap.ideaCount == 1 ? "idea" : "ideas")" : nil)
-            HStack(spacing: 10) {
-                tile("Record", "mic.fill", "record", main: true)
-                tile("Write Idea", "lightbulb", "new-idea")
-                tile("New Song", "square.and.pencil", "new-song")
+        VStack(spacing: 0) {
+            WLabel(text: "*[demo]", trailing: snap.ideaCount > 0 ? ideasText(snap.ideaCount) : nil)
+            Spacer(minLength: 0)
+            HStack(spacing: 0) {
+                button("Record", "mic.fill", "record", main: true)
+                button("Write Idea", "lightbulb", "new-idea")
+                button("New Song", "square.and.pencil", "new-song")
             }
+            Spacer(minLength: 0)
         }
     }
 
-    private func tile(_ title: String, _ icon: String, _ action: String, main: Bool = false) -> some View {
+    private func button(_ title: String, _ icon: String, _ action: String, main: Bool = false) -> some View {
         Link(destination: Links.url(action)) {
-            VStack(spacing: 8) {
-                Image(systemName: icon).font(.system(size: 21, weight: .semibold))
-                Text(title).font(.system(size: 12.5, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.85)
+            VStack(spacing: 7) {
+                WRound(icon: icon, size: 56, main: main)
+                Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
             }
-            .foregroundStyle(main ? Color.black.opacity(0.85) : .white)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(main ? Color.white : Color.white.opacity(0.16), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .frame(maxWidth: .infinity)
         }
     }
 }
@@ -195,14 +193,15 @@ struct SongsView: View {
     var body: some View {
         Group {
             if !snap.signedIn || snap.songs.isEmpty {
-                VStack(spacing: 10) {
-                    WLabel(text: "Continue Writing")
+                VStack(alignment: .leading, spacing: 0) {
+                    WLabel(text: "Continue writing")
                     Spacer(minLength: 0)
                     Text(snap.signedIn ? "Your songs show here." : "Open *[demo] to sign in.")
-                        .font(.system(size: 15, weight: .semibold)).foregroundStyle(.white).multilineTextAlignment(.center)
+                        .font(.system(size: 15, weight: .semibold))
                     Spacer(minLength: 0)
                     if family != .systemSmall { Link(destination: Links.url("new-song")) { WPill(title: "New Song", icon: "square.and.pencil", main: true) } }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .widgetURL(Links.url("new-song"))
             } else {
                 switch family {
@@ -215,39 +214,43 @@ struct SongsView: View {
         .foregroundStyle(.white)
     }
 
-    /// Small: the cover top left, then the song and the line you were on, along the bottom.
+    /// The cover and the song's name.
+    private func heading(_ s: Snapshot.Item, cover: CGFloat) -> some View {
+        HStack(spacing: 12) {
+            WCover(item: s, size: cover, radius: cover * 0.2)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(s.title).font(.system(size: 15, weight: .semibold)).lineLimit(1)
+                Text(s.detail).font(.system(size: 13)).foregroundStyle(wSecondary).lineLimit(1)
+            }
+        }
+    }
+
+    /// Small: label, the cover, and the line you were on.
     private func small(_ s: Snapshot.Item) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .top) {
-                WCover(item: s, size: 40, radius: 9)
-                Spacer()
-                Text(ago(s.updated)).font(.system(size: 11.5, weight: .semibold)).opacity(0.75)
+            WLabel(text: "Continue", trailing: ago(s.updated))
+            HStack(spacing: 10) {
+                WCover(item: s, size: 36, radius: 8)
+                Text(s.title).font(.system(size: 14, weight: .semibold)).lineLimit(2)
             }
+            .padding(.top, 9)
             Spacer(minLength: 4)
-            Text(s.title).font(.system(size: 12, weight: .semibold)).opacity(0.78).lineLimit(1)
-            Text(s.line ?? "No lyrics yet").font(.system(size: 17, weight: .bold)).lineLimit(3).minimumScaleFactor(0.85).padding(.top, 2)
+            Text(s.line ?? "No lyrics yet").font(.system(size: 15)).lineLimit(2).minimumScaleFactor(0.85)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .widgetURL(Links.url("song", s.id))
     }
 
-    /// Medium: the cover large on the left; the line before, the line you were on, then Continue and record.
+    /// Medium: like Apple's Notes widget. Label and time, the song, then the line before and the line you were on.
     private func medium(_ s: Snapshot.Item) -> some View {
-        HStack(spacing: 14) {
-            WCover(item: s, size: 130, radius: 14)
-            VStack(alignment: .leading, spacing: 0) {
-                Text(stamp(s)).font(.system(size: 12, weight: .semibold)).opacity(0.78).lineLimit(1)
-                if let p = s.prev { Text(p).font(.system(size: 13.5)).opacity(0.6).lineLimit(1).padding(.top, 7) }
-                Text(s.line ?? "No lyrics yet").font(.system(size: 17, weight: .bold)).lineLimit(2).minimumScaleFactor(0.85)
-                    .padding(.top, s.prev == nil ? 7 : 0)
-                Spacer(minLength: 6)
-                HStack(spacing: 8) {
-                    Link(destination: Links.url("song", s.id)) { WPill(title: "Continue", icon: "square.and.pencil", main: true) }
-                    Link(destination: Links.url("record")) { WPill(title: nil, icon: "mic.fill") }
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(alignment: .leading, spacing: 0) {
+            WLabel(text: "Continue writing", trailing: ago(s.updated))
+            heading(s, cover: 48).padding(.top, 10)
+            Spacer(minLength: 6)
+            if let p = s.prev { Text(p).font(.system(size: 15)).foregroundStyle(wSecondary).lineLimit(1) }
+            Text(s.line ?? "No lyrics yet").font(.system(size: 15, weight: .medium)).lineLimit(s.prev == nil ? 2 : 1)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .widgetURL(Links.url("song", s.id))
     }
 
@@ -255,28 +258,26 @@ struct SongsView: View {
     private var large: some View {
         let s = snap.songs[0]
         return VStack(alignment: .leading, spacing: 0) {
+            WLabel(text: "Continue writing", trailing: ago(s.updated))
             Link(destination: Links.url("song", s.id)) {
-                HStack(spacing: 12) {
-                    WCover(item: s, size: 64, radius: 12)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("Continue writing · " + ago(s.updated)).font(.system(size: 12, weight: .semibold)).opacity(0.78)
-                        Text(s.title).font(.system(size: 17, weight: .bold)).lineLimit(1)
-                        Text(s.line ?? "No lyrics yet").font(.system(size: 13.5)).opacity(0.8).lineLimit(1)
-                    }
-                    Spacer(minLength: 0)
+                VStack(alignment: .leading, spacing: 8) {
+                    heading(s, cover: 48)
+                    Text(s.line ?? "No lyrics yet").font(.system(size: 15, weight: .medium)).lineLimit(1)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            Rectangle().fill(.white.opacity(0.28)).frame(height: 0.5).padding(.top, 12).padding(.bottom, 3)
+            .padding(.top, 10)
+            Rectangle().fill(.white.opacity(0.25)).frame(height: 0.5).padding(.top, 12).padding(.bottom, 4)
             ForEach(snap.songs.dropFirst().prefix(4)) { r in
                 Link(destination: Links.url("song", r.id)) {
                     HStack(spacing: 11) {
-                        WCover(item: r, size: 38, radius: 8)
+                        WCover(item: r, size: 34, radius: 7)
                         VStack(alignment: .leading, spacing: 0) {
                             Text(r.title).font(.system(size: 14.5, weight: .semibold)).lineLimit(1)
-                            Text(r.line ?? r.detail).font(.system(size: 12.5)).opacity(0.72).lineLimit(1)
+                            Text(r.line ?? r.detail).font(.system(size: 13)).foregroundStyle(wSecondary).lineLimit(1)
                         }
                         Spacer(minLength: 4)
-                        Text(ago(r.updated)).font(.system(size: 12)).opacity(0.7)
+                        Text(ago(r.updated)).font(.system(size: 12.5)).foregroundStyle(wSecondary)
                     }
                     .padding(.vertical, 5)
                 }
@@ -352,35 +353,35 @@ struct RhymeView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .widgetURL(Links.url("new-song"))
         case .systemMedium:
-            HStack(alignment: .top, spacing: 14) {
-                VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .top, spacing: 16) {
+                VStack(alignment: .leading, spacing: 0) {
                     WLabel(text: "Rhyme of the day")
+                    Text(d.word).font(.system(size: 34, weight: .bold)).minimumScaleFactor(0.5).lineLimit(1).padding(.top, 6)
                     Spacer(minLength: 0)
-                    Text(d.word).font(.system(size: 34, weight: .bold)).foregroundStyle(.white)
-                        .minimumScaleFactor(0.5).lineLimit(1)
-                    Text("Tap to start a song").font(.system(size: 12, weight: .medium)).foregroundStyle(.white.opacity(0.72))
+                    Text("Tap to start a song").font(.system(size: 13)).foregroundStyle(wSecondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                // the rhymes, as glass pills
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 3) {
                     ForEach(Array(d.rhymes.prefix(5)), id: \.self) { r in
-                        Text(r).font(.system(size: 14, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
-                            .padding(.horizontal, 10).frame(height: 24)
-                            .background(Color.white.opacity(0.2), in: Capsule())
+                        Text(r).font(.system(size: 15)).foregroundStyle(wSecondary).lineLimit(1)
                     }
                 }
-                .frame(width: 120, alignment: .leading)
+                .frame(width: 110, alignment: .leading)
             }
+            .foregroundStyle(.white)
             .widgetURL(Links.url("new-song"))
         default:
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 0) {
                 WLabel(text: "Rhyme of the day")
+                Text(d.word).font(.system(size: 28, weight: .bold)).minimumScaleFactor(0.5).lineLimit(1).padding(.top, 6)
                 Spacer(minLength: 0)
-                Text(d.word).font(.system(size: 30, weight: .bold)).foregroundStyle(.white)
-                    .minimumScaleFactor(0.5).lineLimit(1)
-                Text(d.rhymes.prefix(3).joined(separator: " · ")).font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.85)).lineLimit(2)
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(Array(d.rhymes.prefix(3)), id: \.self) { r in
+                        Text(r).font(.system(size: 15)).foregroundStyle(wSecondary).lineLimit(1)
+                    }
+                }
             }
+            .foregroundStyle(.white)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             .widgetURL(Links.url("new-song"))
         }
