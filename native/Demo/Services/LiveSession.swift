@@ -220,7 +220,10 @@ final class LiveSession {
             }
             if var s = library.song(songID) {
                 s.updated = max(s.updated, x["u"]?.number ?? 0)
-                if let who = x["who"]?.string, !who.isEmpty { s.raw["lastEditBy"] = .string(who) }
+                if let who = x["who"]?.string, !who.isEmpty {
+                    if s.raw["lastEditBy"]?.string != who { s.raw.removeValue(forKey: "lastEditById") }
+                    s.raw["lastEditBy"] = .string(who)
+                }
                 if Self.fields.allSatisfy({ Self.value(s, $0) == (snap[$0] ?? "") }) { s.raw["_pushed"] = .number(s.updated) }
                 library.put(s)
             }
@@ -263,7 +266,10 @@ final class LiveSession {
             s.rich = f["rich"]?.string ?? ""
             s.updated = max(s.updated, u)
             s.raw["_pushed"] = .number(s.updated)
-            if let who = x["who"]?.string, !who.isEmpty { s.raw["lastEditBy"] = .string(who) }
+            if let who = x["who"]?.string, !who.isEmpty {
+                    if s.raw["lastEditBy"]?.string != who { s.raw.removeValue(forKey: "lastEditById") }
+                    s.raw["lastEditBy"] = .string(who)
+                }
             bridge?.lastEdit = .distantPast
             library.put(s)
             takeSnapshot(s)
