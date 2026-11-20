@@ -441,11 +441,10 @@ struct RichTextEditor: UIViewRepresentable {
             UIColor(red: 1, green: 204 / 255, blue: 0, alpha: 0.38), UIColor(red: 162 / 255, green: 132 / 255, blue: 94 / 255, alpha: 0.32)
         ]
 
-        /// The co-writer's own colour (the strongest of their avatar's colours): a soft highlight, a deeper cursor.
+        /// Quiet, system colours (like Notes' change highlights): a grey fill behind the words and a grey cursor;
+        /// their photo is the only colour.
         static func changeColours(_ who: ChangeAuthor?) -> (tint: UIColor, ink: UIColor) {
-            let h = CoverPick(id: who?.id ?? who?.name.lowercased() ?? "x").hexes[0]
-            let r = CGFloat((h >> 16) & 255) / 255, g = CGFloat((h >> 8) & 255) / 255, b = CGFloat(h & 255) / 255
-            return (UIColor(red: r, green: g, blue: b, alpha: 0.38), UIColor(red: r * 0.62, green: g * 0.62, blue: b * 0.62, alpha: 1))
+            (UIColor.tertiarySystemFill, UIColor.secondaryLabel)
         }
         private var changeViews: [UIView] = []
         private var changeHosts: [UIHostingController<AnyView>] = []
