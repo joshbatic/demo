@@ -349,19 +349,18 @@ html.devbuild #splash .spl-l,html.devbuild #splash .spl-d{display:none}html.devb
 .igrp{margin:0 16px;background:var(--igrp);border-radius:14px;overflow:hidden}
 #ilist .igrp .idea{display:block;padding:11px 16px 12px;border-radius:0}
 #ilist .igrp .idea+.idea::before{left:16px}
-#ilist .idea .ilb{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;line-height:1.3;color:var(--mute);margin-bottom:3px}
-#ilist .idea .ilb b{font-weight:600}
-#ilist .idea.k-title .ilb b{color:var(--k-title)}#ilist .idea.k-concept .ilb b{color:var(--k-concept)}#ilist .idea.k-memo .ilb b{color:var(--k-memo)}
-#ilist .idea .ilb .iwhen{flex:none}
+#ilist .idea .itop{display:flex;align-items:center;gap:12px}
+#ilist .idea .ibody{flex:1;min-width:0}
+#ilist .idea .imeta{display:flex;align-items:center;gap:5px;font-size:15px;line-height:1.3;color:var(--mute);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ilist .idea .imeta svg{flex:none}
+#ilist .idea .iplay{width:36px;height:36px;margin:0;opacity:1;background:var(--tint);color:var(--ontint)}#ilist .idea .iplay svg{width:14px;height:14px}
+#ilist .idea .imemo{margin:12px 0 2px}#ilist .idea .imemo .imp{width:38px;height:38px}#ilist .idea .imemo .imw{height:34px}
+@media (hover:hover){#ilist .igrp .idea:hover{background:var(--fill)}}
 #ilist .idea .itx{font-size:17px;line-height:1.35;white-space:pre-line;overflow-wrap:anywhere}
 #ilist .idea.k-title .itx{font-weight:600}
-#ilist .idea .imr{display:flex;align-items:center;gap:10px}
-#ilist .idea .imr .itx{flex:1;min-width:0}
-#ilist .idea .imr .ilen{flex:none;font-size:13px;color:var(--mute);font-variant-numeric:tabular-nums}
 .iplay{flex:none;width:30px;height:30px;margin:-4px -6px -4px 0;border-radius:50%;color:var(--ink);opacity:.8;display:grid;place-items:center;transition:transform .12s}
 .iplay:active{transform:scale(.88)}.iplay svg{width:15px;height:15px}
 #ilist .igrp .idea>.rdel{position:absolute;right:12px;top:50%;margin-top:-16px}
-@media (hover:hover){#ilist .igrp .idea:hover{background:var(--fill)}#ilist .igrp .idea:hover .iwhen,#ilist .igrp .idea:hover .imr{padding-right:40px}}
 /* the idea sheet */
 #sheet7 .ikseg{margin:2px 20px 14px}
 #sheet7 .ifield{margin:0 20px 14px}
@@ -21125,8 +21124,8 @@ UW-K-ER-M-AH-N	zukerman93
 UW-L-UW-Z	zulus82
 AH-M-W-AH-L-T	zumwalt82`;
 /* git commit this build came from, shown at the bottom of Account. Written by scripts/stamp-version.sh — don't edit by hand. */
-var APP_COMMIT='5643110';
-var APP_SEQ=900;
+var APP_COMMIT='220cc64';
+var APP_SEQ=902;
 /* the version people see, the same as the iPhone app's; Account shows it with the build number so every device can be compared */
 var APP_VERSION='1.3.0';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
@@ -21308,7 +21307,7 @@ function imWarm(i){var m=i.memo;if(m&&!sfUrlNow(m))sfUrl1(m).catch(function(){})
 function imPlay(i){var m=i&&i.memo;if(!m)return;if(!IDA){IDA=new Audio();IDA.preload='auto';['play','pause','ended','timeupdate'].forEach(function(ev){IDA.addEventListener(ev,imPaintAll)})}
   if(IDA_ID===m.id&&IDA.src){if(IDA.paused)IDA.play().catch(function(){});else IDA.pause();return}
   try{if(lpAu&&!lpAu.paused)lpAu.pause()}catch(e){}if(typeof sfStopPreview==='function')sfStopPreview();
-  var go=function(u){IDA_ID=m.id;IDA.src=u;IDA.play().catch(function(){imPaintAll()});imPaintAll()};
+  var go=function(u){var was=IDA_ID;IDA_ID=m.id;IDA.src=u;IDA.play().catch(function(){imPaintAll()});if(was!==m.id&&$('#ilist')&&$('#vIdeas')&&$('#vIdeas').classList.contains('on'))renderIdeas();imPaintAll()};
   var now=sfUrlNow(m);if(now)return go(now);
   sfUrl1(m).then(go,function(e){toast(/^local:/.test(m.path)?'This voice memo is still uploading from the device it was recorded on.':'Couldn’t play it: '+sfErr(e))})}
 function imRow(i,big){var m=i.memo,r=document.createElement('div');r.className='imemo'+(big?' big':'');r.dataset.mid=m.id;
@@ -21372,17 +21371,24 @@ function ideaGroup(t){var d=new Date(t),now=new Date(),day=function(x){return ne
   return d.getFullYear()===now.getFullYear()?d.toLocaleDateString([],{month:'long'}):String(d.getFullYear())}
 /* when it was: the time today and yesterday, the weekday this week, else the date */
 function ideaWhen(t){var g=ideaGroup(t),d=new Date(t);return g==='Today'||g==='Yesterday'?d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):g==='Previous 7 Days'?d.toLocaleDateString([],{weekday:'long'}):fd(t)}
+/* an idea in the list, like a note in Notes: its words, then a grey line with the time (a small symbol for a Title or
+   Concept, a memo's length, the song it went into). A memo has a play button; playing it opens the row into a
+   waveform you can drag through, right in the list. The iPhone's is IdeaCard. */
+var IK_SYM={title:'<path d="M5 6h14M12 6v13"/>',concept:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z"/>'};
 function ideaRow(i){var k=i.memo?'memo':ikOf(i),b=document.createElement('div');b.className='idea k-'+k;b.setAttribute('role','button');b.tabIndex=0;
-  var lb=document.createElement('div');lb.className='ilb';var l=document.createElement('span'),kb=document.createElement('b');kb.textContent=IK_NAME[k];l.appendChild(kb);
-  var st=ideaSongTitle(i);if(st)l.appendChild(document.createTextNode(' · in '+st));
-  var w=document.createElement('span');w.className='iwhen';w.textContent=ideaWhen(i.updated);lb.appendChild(l);lb.appendChild(w);b.appendChild(lb);
-  var tx=document.createElement('div');tx.className='itx';tx.textContent=(i.text||'').trim()||'Voice memo';
-  if(i.memo){var r=document.createElement('div');r.className='imr';r.appendChild(tx);var ln=document.createElement('span');ln.className='ilen';ln.textContent=sfTime(i.memo.dur||0);r.appendChild(ln);
-    var pb=document.createElement('button');pb.className='iplay';pb.dataset.mid=i.memo.id;pb.setAttribute('aria-label','Play voice memo');pb.innerHTML=SVG_PLAY;pb.onmousedown=prevent;
-    pb.onclick=function(e){e.stopPropagation();haptic('light');imPlay(i)};imWarm(i);r.appendChild(pb);b.appendChild(r)}
-  else b.appendChild(tx);
+  var open=!!(i.memo&&IDA_ID===i.memo.id&&IDA&&IDA.src);
+  var top=document.createElement('div');top.className='itop';
+  if(i.memo&&!open){var pb=document.createElement('button');pb.className='iplay';pb.dataset.mid=i.memo.id;pb.setAttribute('aria-label','Play voice memo');pb.innerHTML=SVG_PLAY;pb.onmousedown=prevent;
+    pb.onclick=function(e){e.stopPropagation();haptic('light');imPlay(i)};imWarm(i);top.appendChild(pb)}
+  var body=document.createElement('div');body.className='ibody';
+  var tx=document.createElement('div');tx.className='itx';tx.textContent=(i.text||'').trim()||'Voice memo';body.appendChild(tx);
+  var meta=document.createElement('div');meta.className='imeta';
+  if(IK_SYM[k])meta.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+IK_SYM[k]+'</svg>';
+  var parts=[ideaWhen(i.updated)];if(i.memo)parts.push(sfTime(i.memo.dur||0));var st=ideaSongTitle(i);if(st)parts.push('In '+st);
+  meta.appendChild(document.createTextNode(parts.join(' ')));body.appendChild(meta);top.appendChild(body);b.appendChild(top);
+  if(open)b.appendChild(imRow(i,false));
   swipeDelete(b,'idea',function(){deleteIdea(i)});
-  b.onclick=function(e){if(e.target.closest('.iplay,.rdel'))return;editIdea(i)};b.onkeydown=function(e){if((e.key==='Enter'||e.key===' ')&&e.target===b){e.preventDefault();editIdea(i)}};return b}
+  b.onclick=function(e){if(e.target.closest('.iplay,.rdel,.imemo'))return;editIdea(i)};b.onkeydown=function(e){if((e.key==='Enter'||e.key===' ')&&e.target===b){e.preventDefault();editIdea(i)}};return b}
 function renderIdeas(){ideaMemosPending();
   var q=($('#iq').value||'').toLowerCase(),L=$('#ilist');L.innerHTML='';
   var tagRow=$('#itagrow');if(tagRow){tagRow.innerHTML='';tagRow.hidden=true}
@@ -25587,7 +25593,10 @@ function onAuthUser(){
 var OB={i:0,busy:false,err:''};
 function obKey(){return 'songpad:onboarded'+(AUTH_USER&&AUTH_USER.id?':'+AUTH_USER.id:'')}
 function obDone(){try{return localStorage.getItem(obKey())==='1'}catch(e){return true}}
-function obMaybe(){if(!AUTH_USER||DEV_MODE||DEV_BUILD||obDone()||$('#ob'))return;if(BETA&&BETA.st&&['open','admin','approved'].indexOf(BETA.st)<0)return;obOpen()}
+function obMaybe(){if(!AUTH_USER||DEV_MODE||DEV_BUILD||obDone()||$('#ob'))return;
+  /* an account that already has a username has been through this (signing in again, or a new device): never ask again */
+  if(MY_PROFILE&&MY_PROFILE.username){obMarkDone();return}if(BETA&&BETA.st&&['open','admin','approved'].indexOf(BETA.st)<0)return;obOpen()}
+function obMarkDone(){try{localStorage.setItem(obKey(),'1');localStorage.setItem('songpad:onboarded','1')}catch(e){}}
 function obClose(){try{localStorage.setItem(obKey(),'1');localStorage.setItem('songpad:onboarded','1')}catch(e){}var o=$('#ob');if(!o)return;o.classList.remove('on');setTimeout(function(){o.remove()},300);try{haptic('success')}catch(e){}
   /* then Pro, once, as the last thing onboarding shows (like the iPhone app) */
   if(!isPro())setTimeout(function(){if(!isPro()&&!$('#pw.on'))openPaywall('')},700)}
@@ -25763,6 +25772,8 @@ function loadProfile(){var c=sbClient();if(!c||!AUTH_USER)return;var uid=AUTH_US
     if(r&&r.error)return;
     var row=r&&r.data&&r.data[0];
     if(row){MY_PROFILE=row;profCacheSet(uid,row);
+      /* the profile turned up while onboarding was open: a returning account keeps its name and username, no questions */
+      if(row.username&&$('#ob')){obMarkDone();var ob=$('#ob');ob.classList.remove('on');setTimeout(function(){ob.remove()},300)}
       if(!row.display_name){var wn=(AUTH_USER.user_metadata||{});wn=wn.full_name||wn.name||'';if(wn){c.from('profiles').update({display_name:wn,updated_at:new Date().toISOString()}).eq('user_id',uid).then(function(){});MY_PROFILE.display_name=wn;profCacheSet(uid,MY_PROFILE)}}
       refreshAccount();paintAcctIcons();return}
     if(cached){
