@@ -471,7 +471,8 @@ struct RichTextEditor: UIViewRepresentable {
             changeViews = []; changeHosts = []
             guard let who else { return }
             let ink = Self.changeColours(who).ink
-            var faces = Set<Int>()
+            // their photo goes once, beside the last thing they changed
+            let lastMark = marks.max { $0.location < $1.location }
             for r in marks {
                 guard let p = tv.position(from: tv.beginningOfDocument, offset: NSMaxRange(r)),
                       let p0 = tv.position(from: tv.beginningOfDocument, offset: r.location) else { continue }
@@ -482,13 +483,12 @@ struct RichTextEditor: UIViewRepresentable {
                 line.layer.cornerRadius = 1
                 line.isUserInteractionEnabled = false
                 tv.addSubview(line); changeViews.append(line)
-                // one photo per line, in the margin
-                guard faces.insert(Int(c0.minY.rounded())).inserted else { continue }
+                guard r == lastMark else { continue }
                 let face = UIHostingController(rootView: AnyView(
                     Avatar(url: who.avatar, name: who.name, size: 16, id: who.id)
                         .overlay(Circle().strokeBorder(Color(uiColor: .systemBackground), lineWidth: 1.5))))
                 face.view.backgroundColor = .clear
-                face.view.frame = CGRect(x: max(1, tv.textContainerInset.left - 18), y: c0.midY - 8, width: 16, height: 16)
+                face.view.frame = CGRect(x: max(1, tv.textContainerInset.left - 18), y: c.midY - 8, width: 16, height: 16)
                 face.view.isUserInteractionEnabled = false
                 face.view.accessibilityLabel = "Changed by \(who.name)"
                 tv.addSubview(face.view)

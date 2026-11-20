@@ -24463,13 +24463,15 @@ function cwPaint(){var h=$('#here'),sc=$('#sc');if(!CWM||!cur||CWM.id!==cur.id||
   h.innerHTML=cwFace(16)+'<span></span>';h.lastChild.textContent=CWM.nm+' changed '+CWM.n+' line'+(CWM.n===1?'':'s')+cwAgo(cur.lastEditAt);
   h.onclick=function(){var f=$('#cwm .cwt');if(f)sc.scrollTo({top:Math.max(0,f.offsetTop-140),behavior:'smooth'})};
   var lay=$('#cwm');if(!lay){lay=document.createElement('div');lay.id='cwm';lay.setAttribute('aria-hidden','true');sc.appendChild(lay)}
-  lay.innerHTML='';var b=sc.getBoundingClientRect(),ox=sc.scrollLeft-b.left,oy=sc.scrollTop-b.top,txt=getText(),col=cwCol(),lx=lyr.getBoundingClientRect().left+ox,faces={};
+  lay.innerHTML='';var b=sc.getBoundingClientRect(),ox=sc.scrollLeft-b.left,oy=sc.scrollTop-b.top,txt=getText(),col=cwCol(),lx=lyr.getBoundingClientRect().left+ox;
+  /* their photo goes once, beside the last thing they changed */
+  var lastR=CWM.r.reduce(function(a,r){return!a||r.s>a.s?r:a},null);
   CWM.r.forEach(function(r){if(r.e>txt.length)return;try{var rg=document.createRange(),p=locate(r.s),q=locate(r.e);rg.setStart(p[0],p[1]);rg.setEnd(q[0],q[1]);
     var rects=[].filter.call(rg.getClientRects(),function(c){return c.width>=1});
     rects.forEach(function(c){var d=document.createElement('i');d.className='cwt';d.style.cssText='left:'+(c.left+ox-1)+'px;top:'+(c.top+oy)+'px;width:'+(c.width+2)+'px;height:'+c.height+'px;background:'+col.tint;lay.appendChild(d)});
     var end=rg.cloneRange();end.collapse(false);var c=end.getClientRects()[0]||end.getBoundingClientRect();
     if(c&&c.height){var k=document.createElement('b');k.className='cwc';k.style.cssText='left:'+(c.left+ox)+'px;top:'+(c.top+oy)+'px;height:'+c.height+'px;background:'+col.ink;lay.appendChild(k)}
-    var f=rects[0]||c;if(f&&f.height){var y=Math.round(f.top+oy);if(!faces[y]){faces[y]=1;var fc=document.createElement('b');fc.className='cwf';fc.style.cssText='left:'+(lx-23)+'px;top:'+(y+(f.height-18)/2)+'px';fc.innerHTML=cwFace(18);lay.appendChild(fc)}}}catch(e){}})}
+    var f=c&&c.height?c:rects[rects.length-1];if(r===lastR&&f&&f.height){var y=Math.round(f.top+oy);var fc=document.createElement('b');fc.className='cwf';fc.style.cssText='left:'+(lx-23)+'px;top:'+(y+(f.height-18)/2)+'px';fc.innerHTML=cwFace(18);lay.appendChild(fc)}}catch(e){}})}
 function cwClear(){if(!CWM)return;clearTimeout(CWM.t);CWM=null;var l=$('#cwm');if(l)l.innerHTML='';var h=$('#here');if(h&&h.className==='cwnote'){h.hidden=true;h.className='';h.innerHTML=''}}
 function cwDone(){if(!CWM)return;var id=CWM.id,s=songs.filter(function(x){return x.id===id})[0];cwClear();if(s){SEEN[id]=s.lyrics||'';saveSeen()}}
 /* leaving a shared song: its words as they are now count as seen */
