@@ -978,6 +978,13 @@ body.ios .song{padding:13px 24px}
 .pane>*{flex-shrink:0}
 .sbox{min-width:0}
 .cbtn{flex:none}
+#cwm{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;z-index:1}
+#cwm .cwt{position:absolute;background:rgba(232,89,12,.16);border-radius:4px}
+#cwm .cwc{position:absolute;width:2px;margin-left:1px;background:#E8590C;border-radius:1px}
+#cwm .cwc img{position:absolute;left:-10px;top:-23px;box-shadow:0 0 0 2px #E8590C;background:#fff}
+#here.cwpill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 3px;border-radius:99px;background:rgba(232,89,12,.14);color:#7A2E05;font-weight:600}
+:root[data-theme="dark"] #here.cwpill{color:#FFB98A}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) #here.cwpill{color:#FFB98A}}
 #here{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:13px;color:var(--mute)}
 #here img,.cm img{width:22px;height:22px;border-radius:50%;object-fit:cover;flex:none;box-shadow:0 0 0 2px var(--bg)}
 #here .st{display:flex}#here .st img+img{margin-left:-7px}
@@ -21118,8 +21125,8 @@ UW-K-ER-M-AH-N	zukerman93
 UW-L-UW-Z	zulus82
 AH-M-W-AH-L-T	zumwalt82`;
 /* git commit this build came from, shown at the bottom of Account. Written by scripts/stamp-version.sh — don't edit by hand. */
-var APP_COMMIT='7728757';
-var APP_SEQ=898;
+var APP_COMMIT='5643110';
+var APP_SEQ=900;
 /* the version people see, the same as the iPhone app's; Account shows it with the build number so every device can be compared */
 var APP_VERSION='1.3.0';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
@@ -21517,7 +21524,7 @@ function navCalm(){if(window.desktop)return true;try{return matchMedia('(prefers
 function fitHeads(){['vList','vIdeas'].forEach(function(id){var v=document.getElementById(id),h=v&&v.querySelector('.lhead'),sc=v&&v.querySelector('.scroll');
   if(!h||!sc||!v.classList.contains('on'))return;var hh=h.getBoundingClientRect().bottom-v.getBoundingClientRect().top;if(hh>20)sc.style.paddingTop=Math.round(hh)+'px'})}
 window.addEventListener('resize',function(){requestAnimationFrame(fitHeads)});
-function show(id){setTimeout(fitHeads,0);requestAnimationFrame(fitHeads);
+function show(id){setTimeout(fitHeads,0);requestAnimationFrame(fitHeads);if(id!=='vEdit'&&typeof cwLeave==='function')cwLeave();
   /* leaving Ideas mid-recording keeps the memo rather than leaving the mic on in the background */
   if(id!=='vIdeas'&&typeof IREC!=='undefined'&&IREC)irecStop(true);
   var from=document.querySelector('.view.on'),fromId=from&&from.id,to=document.getElementById(id);
@@ -21991,7 +21998,7 @@ var KY=['','C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];KY.slice(1).for
 $('#f-key').innerHTML=KY.map(function(k){return'<option value="'+k+'">'+(k||'None')+'</option>'}).join('');
 var map={'#title':'title','#f-artist':'artist','#chd':'chords','#f-key':'key','#f-bpm':'bpm','#f-tuning':'tuning','#f-status':'status','#f-folder':'folder','#f-notes':'notes'};
 Object.keys(map).forEach(function(sel){$(sel).addEventListener('input',function(){if(!cur)return;cur[map[sel]]=this.value;cur.updated=Date.now();save();if(sel==='#f-key')chordChips();hdr()})});
-function openSong(id){if(window.ALB)ALB.ret=null;
+function openSong(id){if(window.ALB)ALB.ret=null;if(cur&&cur.id!==id&&typeof cwLeave==='function')cwLeave();
   cur=songs.filter(function(s){return s.id===id})[0];if(!cur)return;sheet(false);LSK=null;scheme=cur.scheme||'auto';if(typeof setRateMode==='function'&&rateMode)setRateMode(false);PF=mkPF(cur.pf||pgGet());MC={};gearDot();
   Object.keys(map).forEach(function(sel){$(sel).value=cur[map[sel]]||''});setLyr(cur);hdr();
   $('#fl').innerHTML=Array.from(new Set(songs.map(function(s){return s.folder}).filter(Boolean))).map(function(f){return'<option value="'+f.replace(/"/g,'&quot;')+'">'}).join('');
@@ -23516,7 +23523,7 @@ function isOwnerOf(s){return!!(s&&AUTH_USER&&s.owner===AUTH_USER.id)}
    the longer one is kept if it contains the other, otherwise both are kept (yours first), and your copy from
    before the merge is saved in Versions. Files merge as before (fileMerge). While the live channel is connected
    none of this is needed: live patches already keep everyone's words in step. */
-var SH_SKIP={updated:1,lastEditBy:1,lastEditAt:1,owner:1,ownerEmail:1,members:1,shared:1,versions:1,audio:1,files:1,rmFiles:1,rich:1},SH_LINES={lyrics:1,chords:1,notes:1};
+var SH_SKIP={updated:1,lastEditBy:1,lastEditById:1,lastEditAt:1,owner:1,ownerEmail:1,members:1,shared:1,versions:1,audio:1,files:1,rmFiles:1,rich:1},SH_LINES={lyrics:1,chords:1,notes:1};
 function shBase(d){var o={};Object.keys(d||{}).forEach(function(k){if(k[0]!=='_'&&!SH_SKIP[k])o[k]=d[k]});return JSON.parse(JSON.stringify(o))}
 function shKeep(s,d){s._srv=d.updated||0;s._base=shBase(d)}
 function shStr(v){return v==null?'':typeof v==='string'?v:libStr(v)}
@@ -23555,7 +23562,7 @@ function shMergeInto(s,d){var o=s._base||{},mine=JSON.parse(JSON.stringify(s)),n
   if(clash&&(mine.lyrics||'')!==(s.lyrics||''))vl.push({t:Date.now(),lyrics:mine.lyrics||'',rich:mine.rich||'',label:'Your words before merging'});
   if(vl.length)s.versions=vl.slice(-30);
   fileMerge(s,d.rmFiles,d.audio,d.files);
-  if(took)s.lastEditBy=d.lastEditBy||s.lastEditBy;
+  if(took&&d.lastEditBy){s.lastEditBy=d.lastEditBy;if(d.lastEditById)s.lastEditById=d.lastEditById;else delete s.lastEditById}
   return took}
 /* show a merged or pulled song on screen if it's the one open */
 function shPaint(s,sel,focused){if(s!==cur)return;Object.keys(map).forEach(function(sel2){var el=$(sel2);if(el&&document.activeElement!==el)el.value=s[map[sel2]]||''});setLyr(s);
@@ -23580,7 +23587,7 @@ function pushShared(s){if(!AUTH_USER)return;var c=sbClient();if(!c)return;
       if(shMergeInto(s,d)){s.updated=Math.max(Date.now(),(d.updated||0)+1);shPaint(s,sel,focused);LIVE.applying=true;try{saveLocal(ACTIVE_KEY||currentKey())}finally{LIVE.applying=false}renderList();renderSide()}
       shKeep(s,d)}
     pushShared1(s);fin()},function(){pushShared1(s);fin()})}
-function pushShared1(s){if(!AUTH_USER)return;var c=sbClient();if(!c)return;s.lastEditBy=AUTH_USER.email;s.lastEditAt=Date.now();var body=ser(s),u=body.updated;
+function pushShared1(s){if(!AUTH_USER)return;var c=sbClient();if(!c)return;s.lastEditBy=AUTH_USER.email;s.lastEditById=AUTH_USER.id;s.lastEditAt=Date.now();var body=ser(s),u=body.updated;
   /* co-writers update the owner's row; only the owner creates it. An upsert from a co-writer is checked against
      the "create" rule too, which only the owner passes, so it was refused even though they're allowed to edit */
   var mineOwn=!s.owner||s.owner===AUTH_USER.id;
@@ -23710,7 +23717,7 @@ function liveApply(s,nv,x,shift){var mine=s===cur,whole=!!nv._whole;delete nv._w
   Object.keys(nv).forEach(function(k){s[k]=k==='bpm'&&nv[k]!==''&&!isNaN(+nv[k])?+nv[k]:nv[k]});
   if(mine&&txt&&('lyrics' in nv)&&!('rich' in nv))s.rich='';
   /* only mark it as pushed when nothing of ours was waiting to go up; otherwise our own unsent typing would be skipped */
-  var clean0=(s.updated||0)<=(s._pushed||0);s.updated=Math.max(s.updated||0,x.u||0);if(clean0)s._pushed=Math.max(s._pushed||0,s.updated);s.lastEditBy=x.who||s.lastEditBy;
+  var clean0=(s.updated||0)<=(s._pushed||0);s.updated=Math.max(s.updated||0,x.u||0);if(clean0)s._pushed=Math.max(s._pushed||0,s.updated);if(x.who&&x.who!==s.lastEditBy)delete s.lastEditById;s.lastEditBy=x.who||s.lastEditBy;
   if(LIVE.snap&&whole){Object.keys(nv).forEach(function(k){LIVE.snap[k]=liveVal(s,k)});LIVE.snap._rich=liveVal(s,'rich')}
   if(mine){if(txt){setLyr(s);if(sel){var L=getText().length,mv=function(p){if(shift){if(p>=shift.at+shift.d)p+=shift.i-shift.d;else if(p>shift.at)p=shift.at+shift.i}return Math.max(0,Math.min(p,L))};setSel(mv(sel.s),mv(sel.e))}}
     Object.keys(map).forEach(function(q){var el=$(q);if(el&&document.activeElement!==el&&map[q] in nv)el.value=s[map[q]]||''});
@@ -24402,17 +24409,56 @@ var SEEN={};try{SEEN=JSON.parse(localStorage.getItem('songpad:seen'))||{}}catch(
 function saveSeen(){try{localStorage.setItem('songpad:seen',JSON.stringify(SEEN))}catch(e){}}
 function addedLines(oldText,newText){var oldCt={};(oldText||'').split('\n').forEach(function(l){l=l.trim();if(!l)return;oldCt[l]=(oldCt[l]||0)+1});
   var add=[];(newText||'').split('\n').forEach(function(l){l=l.trim();if(!l)return;if(oldCt[l]>0)oldCt[l]--;else add.push(l)});return add}
+/* co-writer changes: what a co-writer changed in a shared song since this device last had it open. The changed words
+   of each edited line (or a whole new line) get a light tint and a cursor with their photo, and a pill says who and
+   when; they go when you start typing, after a minute and a half, or when you leave the song. The words as you
+   leave a shared song count as seen, so your own edits never get a marker. The iPhone's is CoWriterChanges.swift. */
+var CWM=null;
+function cwDiff(oldT,newT){var A=oldT.split('\n'),B=newT.split('\n'),n=A.length,m=B.length;if(n*m>400000)return[];
+  var at=A.map(function(x){return x.trim()}),bt=B.map(function(x){return x.trim()}),L=[],i,j;
+  for(i=0;i<=n;i++)L.push(new Int32Array(m+1));
+  for(i=n-1;i>=0;i--)for(j=m-1;j>=0;j--)L[i][j]=at[i]===bt[j]?L[i+1][j+1]+1:Math.max(L[i+1][j],L[i][j+1]);
+  var st=[],p=0;B.forEach(function(b){st.push(p);p+=b.length+1});
+  var out=[],del=[],ins=[],sp=function(c){return c===' '||c==='\t'};
+  /* an edited line pairs with the removed line it shares the most of (start and end), so only its new words are marked */
+  function sim(a,b){var x=0;while(x<a.length&&x<b.length&&a[x]===b[x])x++;var y=0;while(y<a.length-x&&y<b.length-x&&a[a.length-1-y]===b[b.length-1-y])y++;return x+y}
+  function flush(){var used={};ins.forEach(function(bj){if(!bt[bj])return;var b=B[bj],s0=0,e=b.length,best=-1,bs=3;
+      del.forEach(function(di){if(used[di])return;var v=sim(A[di],b);if(v>bs){bs=v;best=di}});
+      if(best>=0){used[best]=1;var a=A[best];while(s0<a.length&&s0<b.length&&a[s0]===b[s0])s0++;var t=0;while(t<a.length-s0&&t<b.length-s0&&a[a.length-1-t]===b[b.length-1-t])t++;e=b.length-t;
+        while(s0>0&&!sp(b[s0-1]))s0--;while(e<b.length&&!sp(b[e]))e++;if(e<s0)e=s0}
+      out.push({s:st[bj]+s0,e:st[bj]+e})});del=[];ins=[]}
+  i=0;j=0;while(i<n||j<m){if(i<n&&j<m&&at[i]===bt[j]){flush();i++;j++}else if(j<m&&(i>=n||L[i][j+1]>=L[i+1][j])){ins.push(j);j++}else{del.push(i);i++}}
+  flush();return out}
+function cwAgo(t){if(!t)return'';var m=Math.round((Date.now()-t)/60000);if(m<1)return' · just now';if(m<60)return' · '+m+' min ago';var h=Math.round(m/60);if(h<24)return' · '+h+' hr ago';var d=Math.round(h/24);return' · '+d+(d===1?' day':' days')+' ago'}
 function renderCollabHint(){var h=$('#here');if(!h)return;
   if(!cur||!cur.shared||!AUTH_USER){h.hidden=true;return}
-  var lyr2=cur.lyrics||'',seen=SEEN[cur.id];
-  if(seen===undefined){SEEN[cur.id]=lyr2;saveSeen();h.hidden=true;return}
-  var who=cur.lastEditBy&&cur.lastEditBy!==AUTH_USER.email?cur.lastEditBy:null;
-  if(!who||seen===lyr2){h.hidden=true;return}
-  var add=addedLines(seen,lyr2);
-  if(!add.length){h.hidden=true;return}
-  var nm=who.split('@')[0];nm=nm.charAt(0).toUpperCase()+nm.slice(1);
-  h.hidden=false;h.style.cursor='pointer';h.textContent=nm+' added '+add.length+' new line'+(add.length>1?'s':'')+' · tap to dismiss';
-  h.onclick=function(){SEEN[cur.id]=cur.lyrics||'';saveSeen();h.hidden=true}}
+  if(CWM&&CWM.id===cur.id){cwPaint();return}
+  var now=cur.lyrics||'',seen=SEEN[cur.id];
+  if(seen===undefined){SEEN[cur.id]=now;saveSeen();h.hidden=true;return}
+  var by=cur.lastEditBy;if(!by||by===AUTH_USER.email||seen===now){h.hidden=true;return}
+  var R=cwDiff(seen,now).slice(0,12);if(!R.length){h.hidden=true;return}
+  var ln={};R.forEach(function(r){ln[now.lastIndexOf('\n',r.s-1)]=1});
+  var nm=by.split('@')[0];nm=nm.charAt(0).toUpperCase()+nm.slice(1);
+  var others=(cur.members||[]).filter(function(x){return x!==AUTH_USER.id}),uid=cur.lastEditById||(others.length===1?others[0]:null);
+  CWM={id:cur.id,r:R,n:Object.keys(ln).length,nm:nm,av:'',uid:uid,t:setTimeout(cwDone,90000)};
+  cwPaint();
+  if(uid)fetchProfiles([uid],function(m){var pr=m[uid];if(!pr||!CWM||CWM.uid!==uid)return;CWM.nm=pr.display_name||pr.username||CWM.nm;if(avOk(pr.avatar_url))CWM.av=pr.avatar_url;cwPaint()})}
+function cwFace(sz){var u=CWM.av||avInitialsURL(CWM.nm,CWM.uid||CWM.nm);return'<img alt="" referrerpolicy="no-referrer" src="'+esc(u)+'" style="width:'+sz+'px;height:'+sz+'px;border-radius:50%;object-fit:cover;display:block">'}
+function cwPaint(){var h=$('#here'),sc=$('#sc');if(!CWM||!cur||CWM.id!==cur.id||!sc)return;
+  h.hidden=false;h.style.cursor='pointer';h.className='cwpill';
+  h.innerHTML=cwFace(18)+'<span></span>';h.lastChild.textContent=CWM.nm+' changed '+CWM.n+' line'+(CWM.n===1?'':'s')+cwAgo(cur.lastEditAt);
+  h.onclick=function(){var f=$('#cwm .cwt');if(f)sc.scrollTo({top:Math.max(0,f.offsetTop-140),behavior:'smooth'})};
+  var lay=$('#cwm');if(!lay){lay=document.createElement('div');lay.id='cwm';lay.setAttribute('aria-hidden','true');sc.appendChild(lay)}
+  lay.innerHTML='';var b=sc.getBoundingClientRect(),ox=sc.scrollLeft-b.left,oy=sc.scrollTop-b.top,txt=getText();
+  CWM.r.forEach(function(r){if(r.e>txt.length)return;try{var rg=document.createRange(),p=locate(r.s),q=locate(r.e);rg.setStart(p[0],p[1]);rg.setEnd(q[0],q[1]);
+    [].forEach.call(rg.getClientRects(),function(c){if(c.width<1)return;var d=document.createElement('i');d.className='cwt';d.style.cssText='left:'+(c.left+ox)+'px;top:'+(c.top+oy)+'px;width:'+c.width+'px;height:'+c.height+'px';lay.appendChild(d)});
+    rg.collapse(false);var c=rg.getClientRects()[0]||rg.getBoundingClientRect();if(c&&c.height){var k=document.createElement('b');k.className='cwc';k.style.cssText='left:'+(c.left+ox)+'px;top:'+(c.top+oy)+'px;height:'+c.height+'px';k.innerHTML=cwFace(20);lay.appendChild(k)}}catch(e){}})}
+function cwClear(){if(!CWM)return;clearTimeout(CWM.t);CWM=null;var l=$('#cwm');if(l)l.innerHTML='';var h=$('#here');if(h&&h.className==='cwpill'){h.hidden=true;h.className='';h.innerHTML=''}}
+function cwDone(){if(!CWM)return;var id=CWM.id,s=songs.filter(function(x){return x.id===id})[0];cwClear();if(s){SEEN[id]=s.lyrics||'';saveSeen()}}
+/* leaving a shared song: its words as they are now count as seen */
+function cwLeave(){if(cur&&cur.shared){SEEN[cur.id]=cur.lyrics||'';saveSeen()}cwClear()}
+lyr.addEventListener('input',function(){if(CWM)cwDone()});
+window.addEventListener('resize',function(){if(CWM)cwPaint()});
 function isPinned(s){return!!PINS[s.id]}
 function setPin(s,on){if(on)PINS[s.id]=Date.now();else delete PINS[s.id];try{localStorage.setItem('songpad:pins',JSON.stringify(PINS))}catch(e){}renderList();renderSide()}
 function removeSong(s){haptic('warning');var name=s.title||'Song',uid=AUTH_USER&&AUTH_USER.id;
