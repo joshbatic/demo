@@ -25763,7 +25763,7 @@ function applyCredits(song,orderedIds){
     var names=orderedIds.map(function(id){return id===(AUTH_USER&&AUTH_USER.id)?myName():(nameMap[id]||'')}).filter(Boolean);
     var line=joinNames(names);if(!line||line===song.artist)return;
     if(!song.artist||song.artist===song._autoArtist){
-      song.artist=line;song._autoArtist=line;song.updated=Date.now();save();if(song.shared)pushShared(song);
+      song.artist=line;song._autoArtist=line;song.updated=(+song.updated||0)+1;save();if(song.shared)pushShared(song);
       if(cur===song){hdr();if($('#sheet2').classList.contains('on'))buildSettings();renderList();renderSide()}
     }
   })
@@ -25775,9 +25775,10 @@ function renameMyArtistCredit(oldName,newName){
   newName=(newName||'').trim();if(!newName||newName===oldName)return;
   var changed=false;
   songs.forEach(function(s){
-    /* only songs whose credit really changes count as edited; one already showing the new name keeps its time */
+    /* a name change never counts as editing a song: its edited time moves on by just 1 ms, enough for the change
+       to win the sync on other devices without changing the time anyone sees */
     if(s.artist&&s.artist!==newName&&(s.artist===oldName||s.artist===s._autoArtist)){
-      s.artist=newName;s._autoArtist=newName;s.updated=Date.now();changed=true;
+      s.artist=newName;s._autoArtist=newName;s.updated=(+s.updated||0)+1;changed=true;
       if(s.shared)pushShared(s);
     }
   });
