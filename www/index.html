@@ -22553,7 +22553,7 @@ function rwSong(text,skip){var key=text+'\u0000'+(skip||'');if(RWCTX.k===key)ret
   if(WL)words.forEach(function(w){(wlList('syn',w)||[]).concat(wlList('rel',w)||[]).forEach(function(x){R[nw(x)]=(R[nw(x)]||0)+1})});
   return RWCTX={k:WL?key:null,has:has,R:R,ends:ends}}
 function rankWords(a,o){
-  var w=nw(o.w||''),sw=o.w?(String(o.w).indexOf(' ')>=0?lsyl(o.w):syl(o.w)):0,left=o.left||0,C=rwSong(o.song,w),me=o.line?nw(lastW(o.line)):'';
+  var w=nw(o.w||''),sw=o.w?(String(o.w).indexOf(' ')>=0?lsyl(o.w):syl(o.w)):0,left=o.left||0,C=rwSong(o.song,w),me=o.line?nw(lastW(o.line)):'',ing=String(o.w||'').indexOf(' ')<0&&/ing$/.test(w)&&sw>=2;
   var sc=a.map(function(x,i){var k=nw(x),e=W[k],s=sy(x),v=0;
     if(e&&(e.t>=8||(e.s>=2&&k.length<=e.s)))v+=100;
     if(sw)v+=(left&&s===left)?0:Math.min(9,Math.abs(s-sw)*3);
@@ -22561,11 +22561,20 @@ function rankWords(a,o){
     if(WL){var tie=C.R[k]?1:0,L=(wlList('syn',x)||[]).concat(wlList('rel',x)||[]);for(var j=0;j<L.length&&tie<2;j++)if(C.has[nw(L[j])])tie++;v-=tie>=2?3.5:tie*1.5}
     if(w&&k!==w&&(k.length>w.length&&k.slice(-w.length)===w||w.length>k.length&&w.slice(-k.length)===k))v+=3;
     if(C.ends[k]&&k!==me)v+=2;
+    if(ing&&!(/ing$/.test(k)&&s>=2))v+=2; /* the same form: "getting" → "setting", "forgetting" before "wedding" */
     return[x,v,i]});
   sc.sort(function(p,q){return p[1]-q[1]||p[2]-q[2]});return sc.map(function(p){return p[0]})}
 /* fetch it in the background soon after the app opens, so the first lookup doesn't wait */
 setTimeout(function(){wlLoad().catch(function(){})},4000);
-function getR(w){var d=DM[nw(w)];if(d&&!d.then)return{src:'dm',p:fl(d.p),n:fl(d.n)};var S=rsets(w);return{src:'local',p:fl(S.p),n:fl(S.n)}}
+/* shapeOK: does x rhyme from the same stressed vowel as w? A rhyme counts from the stressed vowel to the end ("getting" →
+   -etting, two vowels), so "sting" or "thing" only share the unstressed -ing. Datamuse is loose about this; the built-in
+   lists already follow it. Phrases go by their last word; a word the dictionary doesn't know needs the same syllables. */
+function shapeOK(w,x){var g=rsets(w).gi;if(g==null)return true;var need=TK[g].filter(isV).length,sp=x.indexOf(' ')>=0,e=W[nw(sp?lastW(x):x)];
+  if(e)return TK[e.k].filter(isV).length===need;return sp||sy(x)===syl(w)}
+function getR(w){var S=rsets(w),d=DM[nw(w)];
+  if(d&&!d.then){var P=d.p.filter(function(x){return shapeOK(w,x)}),h={};P.forEach(function(x){h[x]=1});S.p.forEach(function(x){if(!h[x]){h[x]=1;P.push(x)}});
+    return{src:'dm',p:fl(P),n:fl(d.n.filter(function(x){return!h[x]&&shapeOK(w,x)}))}}
+  return{src:'local',p:fl(S.p),n:fl(S.n)}}
 /* ---------- rhyme bar ---------- */
 var sampleFn=null,LSC={},LSK=null,GENHIST={},scheme='auto',lastTk='';
 try{claude.use('sample').then(function(s){sampleFn=s;rhyme()},function(){})}catch(e){}

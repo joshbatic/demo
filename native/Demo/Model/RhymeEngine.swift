@@ -180,6 +180,18 @@ nonisolated final class RhymeEngine: @unchecked Sendable {
         return first + rest
     }
 
+    /// `shapeOK`: does `cand` rhyme from the same stressed vowel as `target`? A rhyme counts from the stressed vowel to the
+    /// end ("getting" → -etting, two vowels), so "sting" or "thing" only share the unstressed -ing and don't rhyme with it.
+    /// Online rhyme lists are loose about this; the dictionary's own lists already follow it. Phrases go by their last word;
+    /// a word the dictionary doesn't know needs the same syllable count.
+    func shapeOK(_ target: String, _ cand: String, syl: (String) -> Int) -> Bool {
+        guard let tg = sets(target).group else { return true }
+        let need = keys[tg].filter(Self.isV).count
+        let last = cand.contains(" ") ? RhymeContext.lastWord(cand) : cand
+        if let e = words[Self.normalise(last)] { return keys[e.group].filter(Self.isV).count == need }
+        return cand.contains(" ") || syl(cand) == syllables(target)
+    }
+
     func rhymesWith(_ a: String, _ b: String) -> Bool {
         let x = Self.normalise(a), y = Self.normalise(b)
         if x.isEmpty || y.isEmpty { return false }

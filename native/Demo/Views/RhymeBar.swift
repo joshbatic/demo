@@ -157,7 +157,17 @@ final class WordResults {
     private func build(local: Bool) {
         let eng = RhymeEngine.shared
         var p: [String], n: [String]
-        if !local, let s = dmCached { (p, n) = s } else { let s = eng.sets(word); p = s.perfect; n = s.near }
+        let own = eng.sets(word)
+        if !local, let s = dmCached {
+            // online lists are loose: keep only words rhyming from the same stressed vowel, and add the dictionary's own
+            // perfect rhymes they missed
+            let w = word
+            p = s.0.filter { eng.shapeOK(w, $0, syl: syl) }
+            let have = Set(p)
+            p += own.perfect.filter { !have.contains($0) }
+            let all = Set(p)
+            n = s.1.filter { !all.contains($0) && eng.shapeOK(w, $0, syl: syl) }
+        } else { p = own.perfect; n = own.near }
         // syllables like the word, everyday words and ties to this song first; rare words last (WordRank)
         p = WordRank.rank(eng.filter(p, register: register), word: word, left: left, song: song, line: line, syl: syl)
         n = WordRank.rank(eng.filter(n, register: register), word: word, left: left, song: song, line: line, syl: syl)

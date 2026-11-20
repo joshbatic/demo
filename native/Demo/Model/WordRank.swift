@@ -9,7 +9,7 @@ import Foundation
 ///   being rhymed doesn't count): -1.5 for one, -3.5 for two or more, so a less usual word that fits what the song is
 ///   about can jump ahead.
 /// - +3 for a rhyme that's just the same word inside a longer one ("time" → "sometime"), +2 for a word already
-///   ending another line of the song.
+///   ending another line of the song, +2 for a word not in the same "-ing" form as a word like "getting".
 /// - rare words (the two rarest tiers) and abbreviations read letter by letter still go last.
 nonisolated enum WordRank {
     private struct Song { var key = ""; var has = Set<String>(); var related: [String: Int] = [:]; var ends: [String: Int] = [:] }
@@ -44,6 +44,7 @@ nonisolated enum WordRank {
         let w = RhymeEngine.normalise(word)
         let sw = word.isEmpty ? 0 : (word.contains(" ") ? eng.lineSyllables(word) : eng.syllables(word))
         let c = song(text, skip: w)
+        let ing = !word.contains(" ") && w.hasSuffix("ing") && sw >= 2
         let lastWord = line.split(whereSeparator: { !($0.isLetter || $0 == "'") }).last.map { RhymeEngine.normalise(String($0)) } ?? ""
         let scored = a.enumerated().map { (i, x) -> (String, Double, Int) in
             let k = RhymeEngine.normalise(x), e = eng.words[k], s = syl(x)
@@ -60,6 +61,8 @@ nonisolated enum WordRank {
             }
             if !w.isEmpty, k != w, (k.count > w.count && k.hasSuffix(w)) || (w.count > k.count && w.hasSuffix(k)) { v += 3 }
             if c.ends[k] != nil, k != lastWord { v += 2 }
+            // the same form as the word: "getting" → "setting", "forgetting" before "wedding"
+            if ing, !(k.hasSuffix("ing") && s >= 2) { v += 2 }
             return (x, v, i)
         }
         return scored.sorted { $0.1 != $1.1 ? $0.1 < $1.1 : $0.2 < $1.2 }.map(\.0)
