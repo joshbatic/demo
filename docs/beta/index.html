@@ -978,7 +978,8 @@ body.ios .song{padding:13px 24px}
 .sbox{min-width:0}
 .cbtn{flex:none}
 #cwm{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;z-index:1}
-#cwm .cwt{position:absolute;border-radius:5px;mix-blend-mode:multiply}
+#cwm .cwt{position:absolute;border-radius:5px}
+:root{--cwfill:rgba(120,120,128,.16)}:root[data-theme="dark"]{--cwfill:rgba(120,120,128,.32)}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--cwfill:rgba(120,120,128,.32)}}
 #cwm .cwc{position:absolute;width:2px;border-radius:1px}
 #cwm .cwf{position:absolute;width:18px;height:18px;border-radius:50%;box-shadow:0 0 0 1.5px var(--bg)}
 #here.cwnote{display:flex;align-items:center;gap:6px;font-weight:500}
@@ -21122,8 +21123,8 @@ UW-K-ER-M-AH-N	zukerman93
 UW-L-UW-Z	zulus82
 AH-M-W-AH-L-T	zumwalt82`;
 /* git commit this build came from, shown at the bottom of Account. Written by scripts/stamp-version.sh — don't edit by hand. */
-var APP_COMMIT='7c4f715';
-var APP_SEQ=904;
+var APP_COMMIT='f8339c5';
+var APP_SEQ=906;
 /* the version people see, the same as the iPhone app's; Account shows it with the build number so every device can be compared */
 var APP_VERSION='1.3.0';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
@@ -24447,9 +24448,9 @@ function renderCollabHint(){var h=$('#here');if(!h)return;
   CWM={id:cur.id,r:R,n:Object.keys(ln).length,nm:nm,av:'',uid:uid,t:setTimeout(cwDone,90000)};
   cwPaint();
   if(uid)fetchProfiles([uid],function(m){var pr=m[uid];if(!pr||!CWM||CWM.uid!==uid)return;CWM.nm=pr.display_name||pr.username||CWM.nm;if(avOk(pr.avatar_url))CWM.av=pr.avatar_url;cwPaint()})}
-/* the co-writer's own colour (the strongest of their avatar's colours): a soft highlight, and a deeper shade for the cursor */
-function cwCol(){var h=covHex(CWM.uid||CWM.nm)[0],n=parseInt(h.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,d=function(x){return Math.round(x*.62)};
-  return{tint:'rgba('+r+','+g+','+b+',.38)',ink:'rgb('+d(r)+','+d(g)+','+d(b)+')'}}
+/* quiet, system colours (like Notes' change highlights): a grey fill behind the words, the text colour for the cursor;
+   their photo is the only colour */
+function cwCol(){return{tint:'var(--cwfill)',ink:'var(--mute)'}}
 function cwFace(sz){var u=CWM.av||avInitialsURL(CWM.nm,CWM.uid||CWM.nm);return'<img alt="" referrerpolicy="no-referrer" src="'+esc(u)+'" style="width:'+sz+'px;height:'+sz+'px;border-radius:50%;object-fit:cover;display:block">'}
 function cwPaint(){var h=$('#here'),sc=$('#sc');if(!CWM||!cur||CWM.id!==cur.id||!sc)return;
   h.hidden=false;h.style.cursor='pointer';h.className='cwnote';
