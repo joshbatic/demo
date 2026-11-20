@@ -447,6 +447,8 @@ struct RichTextEditor: UIViewRepresentable {
         // MARK: rhyme map and syllable counts (drawn over the text, never saved into it)
 
         private var viewsTask: Task<Void, Never>?
+        /// What the tints were last drawn from, so the page only redraws when they change.
+        private var tintKey = ""
         private let gutter = UIView()
         static let mapColours: [UIColor] = [
             UIColor(red: 1, green: 149 / 255, blue: 0, alpha: 0.30), UIColor(red: 52 / 255, green: 199 / 255, blue: 89 / 255, alpha: 0.28),
@@ -530,6 +532,15 @@ struct RichTextEditor: UIViewRepresentable {
                 tlm.addRenderingAttribute(.backgroundColor, value: Self.changeColours(bridge.changeAuthor).tint, for: tr)
             }
             placeChangeCursors(tv, bridge.changeMarks.filter { NSMaxRange($0) <= len }, who: bridge.changeAuthor)
+            // TextKit 2 doesn't redraw lines whose tints changed until something else lays them out again (the rhyme map
+            // stayed blank until syllable counts were switched), so redraw the page when the tints change
+            let tinted = bridge.showMap || !bridge.rateMarks.isEmpty || !bridge.changeMarks.isEmpty
+            let key = tinted ? "\(bridge.showMap)|\(text.hashValue)|\(bridge.rateMarks.count)|\(bridge.changeMarks)" : ""
+            if key != tintKey {
+                tintKey = key
+                tlm.invalidateLayout(for: tlm.documentRange)
+                tlm.textViewportLayoutController.layoutViewport()
+            }
             // syllable gutter
             let wantLeft: CGFloat = bridge.showSyl ? 50 : 18
             if tv.textContainerInset.left != wantLeft { tv.textContainerInset.left = wantLeft }
