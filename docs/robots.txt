@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /beta/
+Disallow: /s/
+
+Sitemap: https://hellodemo.app/sitemap.xml

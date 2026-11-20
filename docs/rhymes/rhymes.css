@@ -1,0 +1,31 @@
+/* the rhyming dictionary (scripts/rhymes/build.py): the site's look, words as plain links in rows */
+.rh{padding-top:8px}
+.rh h1{font-size:36px;line-height:1.1;letter-spacing:-.6px;margin:8px 0 6px}
+.rh h2{font-size:22px;letter-spacing:-.2px;margin:34px 0 4px}
+.rh h3{font-size:13px;font-weight:600;color:var(--mute);margin:16px 0 6px}
+.rhcrumb{font-size:14px;color:var(--mute);margin:0}
+.rhcrumb a{text-decoration:none}.rhcrumb a:hover{color:var(--ink)}
+.rhsub,.rhnote,.rhnone{color:var(--mute);margin:0 0 4px}
+.rhnote{font-size:15px}
+.rhw{display:flex;flex-wrap:wrap;gap:8px;margin:0}
+.rhw a,.rhw span{font-size:17px;padding:6px 12px;border-radius:99px;background:var(--fill);text-decoration:none}
+.rhw a:hover{background:var(--tint);color:var(--ontint)}
+.rhw span{color:var(--mute)}
+.rhmoreh{font-size:17px!important}
+.rhmore a{font-size:15px;padding:4px 10px}
+.rhaz{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+.rhaz a{width:38px;height:38px;display:grid;place-items:center;border-radius:10px;background:var(--fill);text-decoration:none;font-weight:600}
+.rhaz a:hover{background:var(--tint);color:var(--ontint)}
+.rhcta{margin:44px 0 0;padding:22px;border-radius:22px;background:var(--hero)}
+.rhcta b{font-size:20px;letter-spacing:-.2px}
+.rhcta p{margin:6px 0 16px;max-width:520px}
+.rhbtns{display:flex;flex-wrap:wrap;gap:10px}
+.rhbtns a{text-decoration:none;font-weight:600;font-size:16px;padding:12px 18px;border-radius:99px}
+.rhbtns .go{background:var(--tint);color:var(--ontint)}
+.rhbtns .alt{background:var(--card2);color:var(--ink)}
+.rhfind{display:flex;gap:8px;margin:20px 0 0}
+.rhfind input{flex:1;min-width:0;font:inherit;font-size:18px;padding:12px 16px;border-radius:14px;border:0;background:var(--fill);color:var(--ink);outline:none}
+.rhfind input:focus-visible{box-shadow:0 0 0 2px var(--tint)}
+.rhfind button{font:inherit;font-weight:600;padding:0 18px;border-radius:14px;border:0;background:var(--tint);color:var(--ontint);cursor:pointer}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (max-width:480px){.rh h1{font-size:30px}.rhfind{flex-direction:column}.rhfind button{height:48px}}
