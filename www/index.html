@@ -349,19 +349,18 @@ html.devbuild #splash .spl-l,html.devbuild #splash .spl-d{display:none}html.devb
 .igrp{margin:0 16px;background:var(--igrp);border-radius:14px;overflow:hidden}
 #ilist .igrp .idea{display:block;padding:11px 16px 12px;border-radius:0}
 #ilist .igrp .idea+.idea::before{left:16px}
-#ilist .idea .ilb{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;line-height:1.3;color:var(--mute);margin-bottom:3px}
-#ilist .idea .ilb b{font-weight:600}
-#ilist .idea.k-title .ilb b{color:var(--k-title)}#ilist .idea.k-concept .ilb b{color:var(--k-concept)}#ilist .idea.k-memo .ilb b{color:var(--k-memo)}
-#ilist .idea .ilb .iwhen{flex:none}
+#ilist .idea .itop{display:flex;align-items:center;gap:12px}
+#ilist .idea .ibody{flex:1;min-width:0}
+#ilist .idea .imeta{display:flex;align-items:center;gap:5px;font-size:15px;line-height:1.3;color:var(--mute);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ilist .idea .imeta svg{flex:none}
+#ilist .idea .iplay{width:36px;height:36px;margin:0;opacity:1;background:var(--tint);color:var(--ontint)}#ilist .idea .iplay svg{width:14px;height:14px}
+#ilist .idea .imemo{margin:12px 0 2px}#ilist .idea .imemo .imp{width:38px;height:38px}#ilist .idea .imemo .imw{height:34px}
+@media (hover:hover){#ilist .igrp .idea:hover{background:var(--fill)}}
 #ilist .idea .itx{font-size:17px;line-height:1.35;white-space:pre-line;overflow-wrap:anywhere}
 #ilist .idea.k-title .itx{font-weight:600}
-#ilist .idea .imr{display:flex;align-items:center;gap:10px}
-#ilist .idea .imr .itx{flex:1;min-width:0}
-#ilist .idea .imr .ilen{flex:none;font-size:13px;color:var(--mute);font-variant-numeric:tabular-nums}
 .iplay{flex:none;width:30px;height:30px;margin:-4px -6px -4px 0;border-radius:50%;color:var(--ink);opacity:.8;display:grid;place-items:center;transition:transform .12s}
 .iplay:active{transform:scale(.88)}.iplay svg{width:15px;height:15px}
 #ilist .igrp .idea>.rdel{position:absolute;right:12px;top:50%;margin-top:-16px}
-@media (hover:hover){#ilist .igrp .idea:hover{background:var(--fill)}#ilist .igrp .idea:hover .iwhen,#ilist .igrp .idea:hover .imr{padding-right:40px}}
 /* the idea sheet */
 #sheet7 .ikseg{margin:2px 20px 14px}
 #sheet7 .ifield{margin:0 20px 14px}
@@ -978,6 +977,12 @@ body.ios .song{padding:13px 24px}
 .pane>*{flex-shrink:0}
 .sbox{min-width:0}
 .cbtn{flex:none}
+#cwm{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;z-index:1}
+#cwm .cwt{position:absolute;border-radius:5px}
+:root{--cwfill:rgba(120,120,128,.16)}:root[data-theme="dark"]{--cwfill:rgba(120,120,128,.32)}@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--cwfill:rgba(120,120,128,.32)}}
+#cwm .cwc{position:absolute;width:2px;border-radius:1px}
+#cwm .cwf{position:absolute;width:18px;height:18px;border-radius:50%;box-shadow:0 0 0 1.5px var(--bg)}
+#here.cwnote{display:flex;align-items:center;gap:6px;font-weight:500}
 #here{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:13px;color:var(--mute)}
 #here img,.cm img{width:22px;height:22px;border-radius:50%;object-fit:cover;flex:none;box-shadow:0 0 0 2px var(--bg)}
 #here .st{display:flex}#here .st img+img{margin-left:-7px}
@@ -1456,6 +1461,22 @@ body.nglass .ngsw{opacity:0!important}
 #stuckb svg{filter:none!important}
 
 /* ---------- first-run onboarding (once per device, after signing in) ---------- */
+#impx .nb{white-space:nowrap}
+#impx{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.32);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .25s}
+#impx.on{opacity:1}
+#impx .imcard{background:var(--bg);width:100%;max-width:560px;max-height:90%;overflow-y:auto;border-radius:28px 28px 0 0;padding:18px 16px calc(24px + env(safe-area-inset-bottom,0px))}
+@media(min-width:700px){#impx{align-items:center}#impx .imcard{border-radius:24px}}
+#impx .imhd{display:flex;align-items:center;justify-content:space-between;padding:0 4px}
+#impx h2{font-size:26px;font-weight:800;letter-spacing:-.5px;margin:0}
+#impx .imdone{font:inherit;font-size:16px;font-weight:600;border:0;background:var(--fill);color:var(--ink);border-radius:99px;height:40px;padding:0 16px;cursor:pointer}
+#impx .imsub{font-size:15px;color:var(--mute);margin:8px 4px 16px}
+#impx .imlist{background:var(--fill);border-radius:14px;overflow:hidden}
+#impx .imrow{display:flex;gap:14px;align-items:center;padding:14px 16px}#impx .imrow+.imrow{border-top:.5px solid var(--sep)}
+#impx .imic{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none}
+#impx .imtx{flex:1;min-width:0}#impx .imtx b{display:block;font-size:16px}#impx .imtx span{display:block;font-size:14px;line-height:1.4;color:var(--mute);margin-top:2px}
+#impx .imbtn,#impx .imadd{font:inherit;font-size:14px;font-weight:600;border:0;border-radius:99px;height:36px;padding:0 14px;background:var(--tint);color:var(--ontint);cursor:pointer}
+#impx .impaste{margin-top:14px}#impx textarea{width:100%;box-sizing:border-box;min-height:200px;border:0;border-radius:14px;background:var(--fill);color:var(--ink);font:inherit;font-size:16px;padding:14px;resize:vertical}
+#impx .imrowb{display:flex;justify-content:flex-end;gap:10px;margin-top:10px}#impx .imcancel{font:inherit;font-size:14px;font-weight:600;border:0;background:none;color:var(--mute);cursor:pointer}
 #ob{position:fixed;inset:0;z-index:2147482000;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;align-items:center;opacity:0;transition:opacity .3s}
 #ob.on{opacity:1}
 #ob .obtop{width:100%;display:flex;justify-content:flex-end;padding:calc(env(safe-area-inset-top,0px) + 14px) 22px 0;height:58px}
@@ -21102,10 +21123,10 @@ UW-K-ER-M-AH-N	zukerman93
 UW-L-UW-Z	zulus82
 AH-M-W-AH-L-T	zumwalt82`;
 /* git commit this build came from, shown at the bottom of Account. Written by scripts/stamp-version.sh — don't edit by hand. */
-var APP_COMMIT='15bf670';
-var APP_SEQ=883;
+var APP_COMMIT='24bd69c';
+var APP_SEQ=908;
 /* the version people see, the same as the iPhone app's; Account shows it with the build number so every device can be compared */
-var APP_VERSION='1.3.0';
+var APP_VERSION='1.4.0';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
 function currentKey(){if(typeof DEV_MODE!=='undefined'&&DEV_MODE&&!AUTH_USER)return K_DEV;if(typeof AUTH_USER!=='undefined'&&AUTH_USER&&AUTH_USER.id)return K+':'+AUTH_USER.id;return K}
 /* ---------- the library on this device: IndexedDB ----------
@@ -21285,7 +21306,7 @@ function imWarm(i){var m=i.memo;if(m&&!sfUrlNow(m))sfUrl1(m).catch(function(){})
 function imPlay(i){var m=i&&i.memo;if(!m)return;if(!IDA){IDA=new Audio();IDA.preload='auto';['play','pause','ended','timeupdate'].forEach(function(ev){IDA.addEventListener(ev,imPaintAll)})}
   if(IDA_ID===m.id&&IDA.src){if(IDA.paused)IDA.play().catch(function(){});else IDA.pause();return}
   try{if(lpAu&&!lpAu.paused)lpAu.pause()}catch(e){}if(typeof sfStopPreview==='function')sfStopPreview();
-  var go=function(u){IDA_ID=m.id;IDA.src=u;IDA.play().catch(function(){imPaintAll()});imPaintAll()};
+  var go=function(u){var was=IDA_ID;IDA_ID=m.id;IDA.src=u;IDA.play().catch(function(){imPaintAll()});if(was!==m.id&&$('#ilist')&&$('#vIdeas')&&$('#vIdeas').classList.contains('on'))renderIdeas();imPaintAll()};
   var now=sfUrlNow(m);if(now)return go(now);
   sfUrl1(m).then(go,function(e){toast(/^local:/.test(m.path)?'This voice memo is still uploading from the device it was recorded on.':'Couldn’t play it: '+sfErr(e))})}
 function imRow(i,big){var m=i.memo,r=document.createElement('div');r.className='imemo'+(big?' big':'');r.dataset.mid=m.id;
@@ -21349,17 +21370,24 @@ function ideaGroup(t){var d=new Date(t),now=new Date(),day=function(x){return ne
   return d.getFullYear()===now.getFullYear()?d.toLocaleDateString([],{month:'long'}):String(d.getFullYear())}
 /* when it was: the time today and yesterday, the weekday this week, else the date */
 function ideaWhen(t){var g=ideaGroup(t),d=new Date(t);return g==='Today'||g==='Yesterday'?d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):g==='Previous 7 Days'?d.toLocaleDateString([],{weekday:'long'}):fd(t)}
+/* an idea in the list, like a note in Notes: its words, then a grey line with the time (a small symbol for a Title or
+   Concept, a memo's length, the song it went into). A memo has a play button; playing it opens the row into a
+   waveform you can drag through, right in the list. The iPhone's is IdeaCard. */
+var IK_SYM={title:'<path d="M5 6h14M12 6v13"/>',concept:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z"/>'};
 function ideaRow(i){var k=i.memo?'memo':ikOf(i),b=document.createElement('div');b.className='idea k-'+k;b.setAttribute('role','button');b.tabIndex=0;
-  var lb=document.createElement('div');lb.className='ilb';var l=document.createElement('span'),kb=document.createElement('b');kb.textContent=IK_NAME[k];l.appendChild(kb);
-  var st=ideaSongTitle(i);if(st)l.appendChild(document.createTextNode(' · in '+st));
-  var w=document.createElement('span');w.className='iwhen';w.textContent=ideaWhen(i.updated);lb.appendChild(l);lb.appendChild(w);b.appendChild(lb);
-  var tx=document.createElement('div');tx.className='itx';tx.textContent=(i.text||'').trim()||'Voice memo';
-  if(i.memo){var r=document.createElement('div');r.className='imr';r.appendChild(tx);var ln=document.createElement('span');ln.className='ilen';ln.textContent=sfTime(i.memo.dur||0);r.appendChild(ln);
-    var pb=document.createElement('button');pb.className='iplay';pb.dataset.mid=i.memo.id;pb.setAttribute('aria-label','Play voice memo');pb.innerHTML=SVG_PLAY;pb.onmousedown=prevent;
-    pb.onclick=function(e){e.stopPropagation();haptic('light');imPlay(i)};imWarm(i);r.appendChild(pb);b.appendChild(r)}
-  else b.appendChild(tx);
+  var open=!!(i.memo&&IDA_ID===i.memo.id&&IDA&&IDA.src);
+  var top=document.createElement('div');top.className='itop';
+  if(i.memo&&!open){var pb=document.createElement('button');pb.className='iplay';pb.dataset.mid=i.memo.id;pb.setAttribute('aria-label','Play voice memo');pb.innerHTML=SVG_PLAY;pb.onmousedown=prevent;
+    pb.onclick=function(e){e.stopPropagation();haptic('light');imPlay(i)};imWarm(i);top.appendChild(pb)}
+  var body=document.createElement('div');body.className='ibody';
+  var tx=document.createElement('div');tx.className='itx';tx.textContent=(i.text||'').trim()||'Voice memo';body.appendChild(tx);
+  var meta=document.createElement('div');meta.className='imeta';
+  if(IK_SYM[k])meta.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+IK_SYM[k]+'</svg>';
+  var parts=[ideaWhen(i.updated)];if(i.memo)parts.push(sfTime(i.memo.dur||0));var st=ideaSongTitle(i);if(st)parts.push('In '+st);
+  meta.appendChild(document.createTextNode(parts.join(' ')));body.appendChild(meta);top.appendChild(body);b.appendChild(top);
+  if(open)b.appendChild(imRow(i,false));
   swipeDelete(b,'idea',function(){deleteIdea(i)});
-  b.onclick=function(e){if(e.target.closest('.iplay,.rdel'))return;editIdea(i)};b.onkeydown=function(e){if((e.key==='Enter'||e.key===' ')&&e.target===b){e.preventDefault();editIdea(i)}};return b}
+  b.onclick=function(e){if(e.target.closest('.iplay,.rdel,.imemo'))return;editIdea(i)};b.onkeydown=function(e){if((e.key==='Enter'||e.key===' ')&&e.target===b){e.preventDefault();editIdea(i)}};return b}
 function renderIdeas(){ideaMemosPending();
   var q=($('#iq').value||'').toLowerCase(),L=$('#ilist');L.innerHTML='';
   var tagRow=$('#itagrow');if(tagRow){tagRow.innerHTML='';tagRow.hidden=true}
@@ -21501,7 +21529,7 @@ function navCalm(){if(window.desktop)return true;try{return matchMedia('(prefers
 function fitHeads(){['vList','vIdeas'].forEach(function(id){var v=document.getElementById(id),h=v&&v.querySelector('.lhead'),sc=v&&v.querySelector('.scroll');
   if(!h||!sc||!v.classList.contains('on'))return;var hh=h.getBoundingClientRect().bottom-v.getBoundingClientRect().top;if(hh>20)sc.style.paddingTop=Math.round(hh)+'px'})}
 window.addEventListener('resize',function(){requestAnimationFrame(fitHeads)});
-function show(id){setTimeout(fitHeads,0);requestAnimationFrame(fitHeads);
+function show(id){setTimeout(fitHeads,0);requestAnimationFrame(fitHeads);if(id!=='vEdit'&&typeof cwLeave==='function')cwLeave();
   /* leaving Ideas mid-recording keeps the memo rather than leaving the mic on in the background */
   if(id!=='vIdeas'&&typeof IREC!=='undefined'&&IREC)irecStop(true);
   var from=document.querySelector('.view.on'),fromId=from&&from.id,to=document.getElementById(id);
@@ -21975,7 +22003,7 @@ var KY=['','C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];KY.slice(1).for
 $('#f-key').innerHTML=KY.map(function(k){return'<option value="'+k+'">'+(k||'None')+'</option>'}).join('');
 var map={'#title':'title','#f-artist':'artist','#chd':'chords','#f-key':'key','#f-bpm':'bpm','#f-tuning':'tuning','#f-status':'status','#f-folder':'folder','#f-notes':'notes'};
 Object.keys(map).forEach(function(sel){$(sel).addEventListener('input',function(){if(!cur)return;cur[map[sel]]=this.value;cur.updated=Date.now();save();if(sel==='#f-key')chordChips();hdr()})});
-function openSong(id){if(window.ALB)ALB.ret=null;
+function openSong(id){if(window.ALB)ALB.ret=null;if(cur&&cur.id!==id&&typeof cwLeave==='function')cwLeave();
   cur=songs.filter(function(s){return s.id===id})[0];if(!cur)return;sheet(false);LSK=null;scheme=cur.scheme||'auto';if(typeof setRateMode==='function'&&rateMode)setRateMode(false);PF=mkPF(cur.pf||pgGet());MC={};gearDot();
   Object.keys(map).forEach(function(sel){$(sel).value=cur[map[sel]]||''});setLyr(cur);hdr();
   $('#fl').innerHTML=Array.from(new Set(songs.map(function(s){return s.folder}).filter(Boolean))).map(function(f){return'<option value="'+f.replace(/"/g,'&quot;')+'">'}).join('');
@@ -22553,7 +22581,7 @@ function rwSong(text,skip){var key=text+'\u0000'+(skip||'');if(RWCTX.k===key)ret
   if(WL)words.forEach(function(w){(wlList('syn',w)||[]).concat(wlList('rel',w)||[]).forEach(function(x){R[nw(x)]=(R[nw(x)]||0)+1})});
   return RWCTX={k:WL?key:null,has:has,R:R,ends:ends}}
 function rankWords(a,o){
-  var w=nw(o.w||''),sw=o.w?(String(o.w).indexOf(' ')>=0?lsyl(o.w):syl(o.w)):0,left=o.left||0,C=rwSong(o.song,w),me=o.line?nw(lastW(o.line)):'';
+  var w=nw(o.w||''),sw=o.w?(String(o.w).indexOf(' ')>=0?lsyl(o.w):syl(o.w)):0,left=o.left||0,C=rwSong(o.song,w),me=o.line?nw(lastW(o.line)):'',ing=String(o.w||'').indexOf(' ')<0&&/ing$/.test(w)&&sw>=2;
   var sc=a.map(function(x,i){var k=nw(x),e=W[k],s=sy(x),v=0;
     if(e&&(e.t>=8||(e.s>=2&&k.length<=e.s)))v+=100;
     if(sw)v+=(left&&s===left)?0:Math.min(9,Math.abs(s-sw)*3);
@@ -22561,11 +22589,20 @@ function rankWords(a,o){
     if(WL){var tie=C.R[k]?1:0,L=(wlList('syn',x)||[]).concat(wlList('rel',x)||[]);for(var j=0;j<L.length&&tie<2;j++)if(C.has[nw(L[j])])tie++;v-=tie>=2?3.5:tie*1.5}
     if(w&&k!==w&&(k.length>w.length&&k.slice(-w.length)===w||w.length>k.length&&w.slice(-k.length)===k))v+=3;
     if(C.ends[k]&&k!==me)v+=2;
+    if(ing&&!(/ing$/.test(k)&&s>=2))v+=2; /* the same form: "getting" → "setting", "forgetting" before "wedding" */
     return[x,v,i]});
   sc.sort(function(p,q){return p[1]-q[1]||p[2]-q[2]});return sc.map(function(p){return p[0]})}
 /* fetch it in the background soon after the app opens, so the first lookup doesn't wait */
 setTimeout(function(){wlLoad().catch(function(){})},4000);
-function getR(w){var d=DM[nw(w)];if(d&&!d.then)return{src:'dm',p:fl(d.p),n:fl(d.n)};var S=rsets(w);return{src:'local',p:fl(S.p),n:fl(S.n)}}
+/* shapeOK: does x rhyme from the same stressed vowel as w? A rhyme counts from the stressed vowel to the end ("getting" →
+   -etting, two vowels), so "sting" or "thing" only share the unstressed -ing. Datamuse is loose about this; the built-in
+   lists already follow it. Phrases go by their last word; a word the dictionary doesn't know needs the same syllables. */
+function shapeOK(w,x){var g=rsets(w).gi;if(g==null)return true;var need=TK[g].filter(isV).length,sp=x.indexOf(' ')>=0,e=W[nw(sp?lastW(x):x)];
+  if(e)return TK[e.k].filter(isV).length===need;return sp||sy(x)===syl(w)}
+function getR(w){var S=rsets(w),d=DM[nw(w)];
+  if(d&&!d.then){var P=d.p.filter(function(x){return shapeOK(w,x)}),h={};P.forEach(function(x){h[x]=1});S.p.forEach(function(x){if(!h[x]){h[x]=1;P.push(x)}});
+    return{src:'dm',p:fl(P),n:fl(d.n.filter(function(x){return!h[x]&&shapeOK(w,x)}))}}
+  return{src:'local',p:fl(S.p),n:fl(S.n)}}
 /* ---------- rhyme bar ---------- */
 var sampleFn=null,LSC={},LSK=null,GENHIST={},scheme='auto',lastTk='';
 try{claude.use('sample').then(function(s){sampleFn=s;rhyme()},function(){})}catch(e){}
@@ -23491,7 +23528,7 @@ function isOwnerOf(s){return!!(s&&AUTH_USER&&s.owner===AUTH_USER.id)}
    the longer one is kept if it contains the other, otherwise both are kept (yours first), and your copy from
    before the merge is saved in Versions. Files merge as before (fileMerge). While the live channel is connected
    none of this is needed: live patches already keep everyone's words in step. */
-var SH_SKIP={updated:1,lastEditBy:1,lastEditAt:1,owner:1,ownerEmail:1,members:1,shared:1,versions:1,audio:1,files:1,rmFiles:1,rich:1},SH_LINES={lyrics:1,chords:1,notes:1};
+var SH_SKIP={updated:1,lastEditBy:1,lastEditById:1,lastEditAt:1,owner:1,ownerEmail:1,members:1,shared:1,versions:1,audio:1,files:1,rmFiles:1,rich:1},SH_LINES={lyrics:1,chords:1,notes:1};
 function shBase(d){var o={};Object.keys(d||{}).forEach(function(k){if(k[0]!=='_'&&!SH_SKIP[k])o[k]=d[k]});return JSON.parse(JSON.stringify(o))}
 function shKeep(s,d){s._srv=d.updated||0;s._base=shBase(d)}
 function shStr(v){return v==null?'':typeof v==='string'?v:libStr(v)}
@@ -23530,7 +23567,7 @@ function shMergeInto(s,d){var o=s._base||{},mine=JSON.parse(JSON.stringify(s)),n
   if(clash&&(mine.lyrics||'')!==(s.lyrics||''))vl.push({t:Date.now(),lyrics:mine.lyrics||'',rich:mine.rich||'',label:'Your words before merging'});
   if(vl.length)s.versions=vl.slice(-30);
   fileMerge(s,d.rmFiles,d.audio,d.files);
-  if(took)s.lastEditBy=d.lastEditBy||s.lastEditBy;
+  if(took&&d.lastEditBy){s.lastEditBy=d.lastEditBy;if(d.lastEditById)s.lastEditById=d.lastEditById;else delete s.lastEditById}
   return took}
 /* show a merged or pulled song on screen if it's the one open */
 function shPaint(s,sel,focused){if(s!==cur)return;Object.keys(map).forEach(function(sel2){var el=$(sel2);if(el&&document.activeElement!==el)el.value=s[map[sel2]]||''});setLyr(s);
@@ -23555,7 +23592,7 @@ function pushShared(s){if(!AUTH_USER)return;var c=sbClient();if(!c)return;
       if(shMergeInto(s,d)){s.updated=Math.max(Date.now(),(d.updated||0)+1);shPaint(s,sel,focused);LIVE.applying=true;try{saveLocal(ACTIVE_KEY||currentKey())}finally{LIVE.applying=false}renderList();renderSide()}
       shKeep(s,d)}
     pushShared1(s);fin()},function(){pushShared1(s);fin()})}
-function pushShared1(s){if(!AUTH_USER)return;var c=sbClient();if(!c)return;s.lastEditBy=AUTH_USER.email;s.lastEditAt=Date.now();var body=ser(s),u=body.updated;
+function pushShared1(s){if(!AUTH_USER)return;var c=sbClient();if(!c)return;s.lastEditBy=AUTH_USER.email;s.lastEditById=AUTH_USER.id;s.lastEditAt=Date.now();var body=ser(s),u=body.updated;
   /* co-writers update the owner's row; only the owner creates it. An upsert from a co-writer is checked against
      the "create" rule too, which only the owner passes, so it was refused even though they're allowed to edit */
   var mineOwn=!s.owner||s.owner===AUTH_USER.id;
@@ -23679,17 +23716,23 @@ function liveFull(x){if(!x||x.id!==LIVE.id||x.dev===LIB_DEV||!x.f)return;var s=l
   var nv={};LIVE_F.concat(['rich']).forEach(function(k){if(x.f[k]!=null)nv[k]=String(x.f[k])});nv._whole=1;liveApply(s,nv,x,null)}
 function liveDom(at,dl,ins){ins=nlNorm(ins);var a=locate(at),b=locate(at+dl),r=document.createRange();r.setStart(a[0],a[1]);r.setEnd(b[0],b[1]);r.deleteContents();
   var fr=document.createDocumentFragment();ins.split('\n').forEach(function(t,i){if(i)fr.appendChild(document.createElement('br'));if(t)fr.appendChild(document.createTextNode(t))});r.insertNode(fr);lyr.normalize()}
-function liveApply(s,nv,x,shift){var mine=s===cur,whole=!!nv._whole;delete nv._whole;var focused=mine&&document.activeElement===lyr,sel=focused?getSel():null,txt=('lyrics' in nv)||('rich' in nv);
-  if(mine&&!whole&&('lyrics' in nv)&&shift){var want=nv.lyrics;try{liveDom(shift.at,shift.d,want.slice(shift.at,shift.at+shift.i))}catch(e){}
+/* a co-writer's edit goes in without disturbing yours: your cursor stays where it was (text they type at the very
+   spot you're on goes after it), the line you're on stays put on the screen, and your rhyme bar keeps your word */
+function liveMv(shift,p,L){if(shift){var a=shift.at,d=shift.d,i=shift.i;if(p>a+d||(d>0&&p===a+d))p+=i-d;else if(p>a)p=a+i}return Math.max(0,Math.min(p,L))}
+function liveCaretTop(){var g=getSelection();if(!g.rangeCount||!lyr.contains(g.anchorNode))return null;var r=g.getRangeAt(0).cloneRange();r.collapse(true);var c=r.getClientRects()[0]||r.getBoundingClientRect();return c&&c.height?c.top:null}
+function liveKeep(y0){if(y0==null)return;var y1=liveCaretTop(),sc=$('#sc');if(y1!=null&&sc&&Math.abs(y1-y0)>.5)sc.scrollTop+=y1-y0}
+function liveApply(s,nv,x,shift){var mine=s===cur,whole=!!nv._whole;delete nv._whole;var focused=mine&&document.activeElement===lyr,sel=focused?getSel():null,txt=('lyrics' in nv)||('rich' in nv),y0=focused?liveCaretTop():null;
+  if(mine&&!whole&&('lyrics' in nv)&&shift){var want=nv.lyrics;try{liveDom(shift.at,shift.d,want.slice(shift.at,shift.at+shift.i));if(sel){var L0=getText().length;LIVE.quiet=Date.now();setSel(liveMv(shift,sel.s,L0),liveMv(shift,sel.e,L0))}}catch(e){}
     if(getText()===want){delete nv.lyrics;s.lyrics=want;s.rich=lyr.innerHTML;txt=false}}
   Object.keys(nv).forEach(function(k){s[k]=k==='bpm'&&nv[k]!==''&&!isNaN(+nv[k])?+nv[k]:nv[k]});
   if(mine&&txt&&('lyrics' in nv)&&!('rich' in nv))s.rich='';
   /* only mark it as pushed when nothing of ours was waiting to go up; otherwise our own unsent typing would be skipped */
-  var clean0=(s.updated||0)<=(s._pushed||0);s.updated=Math.max(s.updated||0,x.u||0);if(clean0)s._pushed=Math.max(s._pushed||0,s.updated);s.lastEditBy=x.who||s.lastEditBy;
+  var clean0=(s.updated||0)<=(s._pushed||0);s.updated=Math.max(s.updated||0,x.u||0);if(clean0)s._pushed=Math.max(s._pushed||0,s.updated);if(x.who&&x.who!==s.lastEditBy)delete s.lastEditById;s.lastEditBy=x.who||s.lastEditBy;
   if(LIVE.snap&&whole){Object.keys(nv).forEach(function(k){LIVE.snap[k]=liveVal(s,k)});LIVE.snap._rich=liveVal(s,'rich')}
-  if(mine){if(txt){setLyr(s);if(sel){var L=getText().length,mv=function(p){if(shift){if(p>=shift.at+shift.d)p+=shift.i-shift.d;else if(p>shift.at)p=shift.at+shift.i}return Math.max(0,Math.min(p,L))};setSel(mv(sel.s),mv(sel.e))}}
+  if(mine){if(txt){var st0=$('#sc')?$('#sc').scrollTop:0;setLyr(s);if(sel){var L=getText().length;LIVE.quiet=Date.now();setSel(liveMv(shift,sel.s,L),liveMv(shift,sel.e,L))}else if($('#sc'))$('#sc').scrollTop=st0}
+    liveKeep(y0);
     Object.keys(map).forEach(function(q){var el=$(q);if(el&&document.activeElement!==el&&map[q] in nv)el.value=s[map[q]]||''});
-    hdr();LSK=null;rhyme();refreshViews();liveHere(x.who)}
+    hdr();refreshViews();liveHere(x.who)}
   LIVE.applying=true;try{save()}finally{LIVE.applying=false}renderList()}
 /* "Sam is writing…" under the title while their changes are coming in */
 var liveHereT=null;
@@ -24080,7 +24123,7 @@ function fromText(txt,name){txt=txt.replace(/\r/g,'');var L=txt.split('\n'),titl
   var body=L.slice(i).join('\n').replace(/^\n+/,''),ch='',nt='',ci=body.indexOf('\n--- Chords ---\n'),ni=body.indexOf('\n--- Notes ---\n');
   if(ni>=0){nt=body.slice(ni+15).trim();body=body.slice(0,ni)}if(ci>=0){ch=body.slice(ci+16).trim();body=body.slice(0,ci)}
   if(!title||title.length>80){body=txt;title=(name||'Imported').replace(/\.[^.]+$/,'')}
-  return Object.assign({id:'s'+Date.now()+Math.floor(Math.random()*1e4),title:title,lyrics:body.replace(/\s+$/,''),chords:ch,notes:nt,status:'Idea',folder:'',updated:Date.now()},meta)}
+  return Object.assign({id:'s'+Date.now()+Math.floor(Math.random()*1e4),title:title,lyrics:tagSections(body.replace(/\s+$/,'')),chords:ch,notes:nt,status:'Idea',folder:'',updated:Date.now()},meta)}
 function importSongs(list,keep){var added=0,upd=0,skip=0;list.forEach(function(s){if(!s||typeof s!=='object'||typeof s.id!=='string'){skip++;return}
     s=JSON.parse(JSON.stringify(s));if(!keep){delete s.shared;delete s.owner;delete s.members}Object.keys(s).forEach(function(k){if(k[0]==='_')delete s[k]});
     ['title','lyrics','rich','chords','notes','artist','folder','status','key','bpm','tuning','capo','time'].forEach(function(k){if(s[k]!=null&&typeof s[k]!=='string')s[k]=String(s[k])});
@@ -24091,7 +24134,7 @@ function importSongs(list,keep){var added=0,upd=0,skip=0;list.forEach(function(s
     if(!ex){songs.push(s);added++}else if(!ex.shared&&was>(ex.updated||0)){Object.keys(ex).forEach(function(k){delete ex[k]});Object.assign(ex,s);upd++}else skip++});
   save();renderList();renderSide();return[added,upd,skip]}
 $('#newfolderb').onclick=function(){createFolder(false)};
-$('#impb').onclick=function(){$('#impin').click()};
+$('#impb').onclick=function(){impOpen()};
 $('#impin').onchange=function(){var fs=[].slice.call(this.files||[]);this.value='';if(!fs.length)return;var all=[],left=fs.length,bad=0;
   fs.forEach(function(f){var rd=new FileReader();rd.onload=function(){try{if(/\.json$/i.test(f.name)||/^\s*[\[{]/.test(rd.result)){var d=JSON.parse(rd.result);all=all.concat(Array.isArray(d)?d:Array.isArray(d.songs)?d.songs:[d])}else all.push(fromText(rd.result,f.name))}catch(e){bad++}done()};rd.onerror=function(){bad++;done()};rd.readAsText(f)});
   function done(){if(--left)return;var r=importSongs(all);toast((r[0]?r[0]+' song'+(r[0]>1?'s':'')+' added':'No new songs')+(r[1]?', '+r[1]+' updated':'')+(r[2]?', '+r[2]+' already here':'')+(bad?', '+bad+' file'+(bad>1?'s':'')+' unreadable':''))}};
@@ -24377,17 +24420,62 @@ var SEEN={};try{SEEN=JSON.parse(localStorage.getItem('songpad:seen'))||{}}catch(
 function saveSeen(){try{localStorage.setItem('songpad:seen',JSON.stringify(SEEN))}catch(e){}}
 function addedLines(oldText,newText){var oldCt={};(oldText||'').split('\n').forEach(function(l){l=l.trim();if(!l)return;oldCt[l]=(oldCt[l]||0)+1});
   var add=[];(newText||'').split('\n').forEach(function(l){l=l.trim();if(!l)return;if(oldCt[l]>0)oldCt[l]--;else add.push(l)});return add}
+/* co-writer changes: what a co-writer changed in a shared song since this device last had it open. The changed words
+   of each edited line (or a whole new line) get a light tint and a cursor with their photo, and a pill says who and
+   when; they go when you start typing, after a minute and a half, or when you leave the song. The words as you
+   leave a shared song count as seen, so your own edits never get a marker. The iPhone's is CoWriterChanges.swift. */
+var CWM=null;
+function cwDiff(oldT,newT){var A=oldT.split('\n'),B=newT.split('\n'),n=A.length,m=B.length;if(n*m>400000)return[];
+  var at=A.map(function(x){return x.trim()}),bt=B.map(function(x){return x.trim()}),L=[],i,j;
+  for(i=0;i<=n;i++)L.push(new Int32Array(m+1));
+  for(i=n-1;i>=0;i--)for(j=m-1;j>=0;j--)L[i][j]=at[i]===bt[j]?L[i+1][j+1]+1:Math.max(L[i+1][j],L[i][j+1]);
+  var st=[],p=0;B.forEach(function(b){st.push(p);p+=b.length+1});
+  var out=[],del=[],ins=[],sp=function(c){return c===' '||c==='\t'};
+  /* an edited line pairs with the removed line it shares the most of (start and end), so only its new words are marked */
+  function sim(a,b){var x=0;while(x<a.length&&x<b.length&&a[x]===b[x])x++;var y=0;while(y<a.length-x&&y<b.length-x&&a[a.length-1-y]===b[b.length-1-y])y++;return x+y}
+  function flush(){var used={};ins.forEach(function(bj){if(!bt[bj])return;var b=B[bj],s0=0,e=b.length,best=-1,bs=3;
+      del.forEach(function(di){if(used[di])return;var v=sim(A[di],b);if(v>bs){bs=v;best=di}});
+      if(best>=0){used[best]=1;var a=A[best];while(s0<a.length&&s0<b.length&&a[s0]===b[s0])s0++;var t=0;while(t<a.length-s0&&t<b.length-s0&&a[a.length-1-t]===b[b.length-1-t])t++;e=b.length-t;
+        while(s0>0&&!sp(b[s0-1]))s0--;while(e<b.length&&!sp(b[e]))e++;if(e<s0)e=s0}
+      out.push({s:st[bj]+s0,e:st[bj]+e})});del=[];ins=[]}
+  i=0;j=0;while(i<n||j<m){if(i<n&&j<m&&at[i]===bt[j]){flush();i++;j++}else if(j<m&&(i>=n||L[i][j+1]>=L[i+1][j])){ins.push(j);j++}else{del.push(i);i++}}
+  flush();return out}
+function cwAgo(t){if(!t)return'';var m=Math.round((Date.now()-t)/60000);if(m<1)return' · just now';if(m<60)return' · '+m+' min ago';var h=Math.round(m/60);if(h<24)return' · '+h+' hr ago';var d=Math.round(h/24);return' · '+d+(d===1?' day':' days')+' ago'}
 function renderCollabHint(){var h=$('#here');if(!h)return;
   if(!cur||!cur.shared||!AUTH_USER){h.hidden=true;return}
-  var lyr2=cur.lyrics||'',seen=SEEN[cur.id];
-  if(seen===undefined){SEEN[cur.id]=lyr2;saveSeen();h.hidden=true;return}
-  var who=cur.lastEditBy&&cur.lastEditBy!==AUTH_USER.email?cur.lastEditBy:null;
-  if(!who||seen===lyr2){h.hidden=true;return}
-  var add=addedLines(seen,lyr2);
-  if(!add.length){h.hidden=true;return}
-  var nm=who.split('@')[0];nm=nm.charAt(0).toUpperCase()+nm.slice(1);
-  h.hidden=false;h.style.cursor='pointer';h.textContent=nm+' added '+add.length+' new line'+(add.length>1?'s':'')+' · tap to dismiss';
-  h.onclick=function(){SEEN[cur.id]=cur.lyrics||'';saveSeen();h.hidden=true}}
+  if(CWM&&CWM.id===cur.id){cwPaint();return}
+  var now=cur.lyrics||'',seen=SEEN[cur.id];
+  if(seen===undefined){SEEN[cur.id]=now;saveSeen();h.hidden=true;return}
+  var by=cur.lastEditBy;if(!by||by===AUTH_USER.email||seen===now){h.hidden=true;return}
+  var R=cwDiff(seen,now).slice(0,12);if(!R.length){h.hidden=true;return}
+  var ln={};R.forEach(function(r){ln[now.lastIndexOf('\n',r.s-1)]=1});
+  var nm=by.split('@')[0];nm=nm.charAt(0).toUpperCase()+nm.slice(1);
+  var others=(cur.members||[]).filter(function(x){return x!==AUTH_USER.id}),uid=cur.lastEditById||(others.length===1?others[0]:null);
+  CWM={id:cur.id,r:R,n:Object.keys(ln).length,nm:nm,av:'',uid:uid,t:setTimeout(cwDone,90000)};
+  cwPaint();
+  if(uid)fetchProfiles([uid],function(m){var pr=m[uid];if(!pr||!CWM||CWM.uid!==uid)return;CWM.nm=pr.display_name||pr.username||CWM.nm;if(avOk(pr.avatar_url))CWM.av=pr.avatar_url;cwPaint()})}
+/* quiet, system colours (like Notes' change highlights): a grey fill behind the words, the text colour for the cursor;
+   their photo is the only colour */
+function cwCol(){return{tint:'var(--cwfill)',ink:'var(--mute)'}}
+function cwFace(sz){var u=CWM.av||avInitialsURL(CWM.nm,CWM.uid||CWM.nm);return'<img alt="" referrerpolicy="no-referrer" src="'+esc(u)+'" style="width:'+sz+'px;height:'+sz+'px;border-radius:50%;object-fit:cover;display:block">'}
+function cwPaint(){var h=$('#here'),sc=$('#sc');if(!CWM||!cur||CWM.id!==cur.id||!sc)return;
+  h.hidden=false;h.style.cursor='pointer';h.className='cwnote';
+  h.innerHTML=cwFace(16)+'<span></span>';h.lastChild.textContent=CWM.nm+' changed '+CWM.n+' line'+(CWM.n===1?'':'s')+cwAgo(cur.lastEditAt);
+  h.onclick=function(){var f=$('#cwm .cwt');if(f)sc.scrollTo({top:Math.max(0,f.offsetTop-140),behavior:'smooth'})};
+  var lay=$('#cwm');if(!lay){lay=document.createElement('div');lay.id='cwm';lay.setAttribute('aria-hidden','true');sc.appendChild(lay)}
+  lay.innerHTML='';var b=sc.getBoundingClientRect(),ox=sc.scrollLeft-b.left,oy=sc.scrollTop-b.top,txt=getText(),col=cwCol(),lx=lyr.getBoundingClientRect().left+ox,faces={};
+  CWM.r.forEach(function(r){if(r.e>txt.length)return;try{var rg=document.createRange(),p=locate(r.s),q=locate(r.e);rg.setStart(p[0],p[1]);rg.setEnd(q[0],q[1]);
+    var rects=[].filter.call(rg.getClientRects(),function(c){return c.width>=1});
+    rects.forEach(function(c){var d=document.createElement('i');d.className='cwt';d.style.cssText='left:'+(c.left+ox-1)+'px;top:'+(c.top+oy)+'px;width:'+(c.width+2)+'px;height:'+c.height+'px;background:'+col.tint;lay.appendChild(d)});
+    var end=rg.cloneRange();end.collapse(false);var c=end.getClientRects()[0]||end.getBoundingClientRect();
+    if(c&&c.height){var k=document.createElement('b');k.className='cwc';k.style.cssText='left:'+(c.left+ox)+'px;top:'+(c.top+oy)+'px;height:'+c.height+'px;background:'+col.ink;lay.appendChild(k)}
+    var f=rects[0]||c;if(f&&f.height){var y=Math.round(f.top+oy);if(!faces[y]){faces[y]=1;var fc=document.createElement('b');fc.className='cwf';fc.style.cssText='left:'+(lx-23)+'px;top:'+(y+(f.height-18)/2)+'px';fc.innerHTML=cwFace(18);lay.appendChild(fc)}}}catch(e){}})}
+function cwClear(){if(!CWM)return;clearTimeout(CWM.t);CWM=null;var l=$('#cwm');if(l)l.innerHTML='';var h=$('#here');if(h&&h.className==='cwnote'){h.hidden=true;h.className='';h.innerHTML=''}}
+function cwDone(){if(!CWM)return;var id=CWM.id,s=songs.filter(function(x){return x.id===id})[0];cwClear();if(s){SEEN[id]=s.lyrics||'';saveSeen()}}
+/* leaving a shared song: its words as they are now count as seen */
+function cwLeave(){if(cur&&cur.shared){SEEN[cur.id]=cur.lyrics||'';saveSeen()}cwClear()}
+lyr.addEventListener('input',function(){if(CWM)cwDone()});
+window.addEventListener('resize',function(){if(CWM)cwPaint()});
 function isPinned(s){return!!PINS[s.id]}
 function setPin(s,on){if(on)PINS[s.id]=Date.now();else delete PINS[s.id];try{localStorage.setItem('songpad:pins',JSON.stringify(PINS))}catch(e){}renderList();renderSide()}
 function removeSong(s){haptic('warning');var name=s.title||'Song',uid=AUTH_USER&&AUTH_USER.id;
@@ -25516,7 +25604,10 @@ function onAuthUser(){
 var OB={i:0,busy:false,err:''};
 function obKey(){return 'songpad:onboarded'+(AUTH_USER&&AUTH_USER.id?':'+AUTH_USER.id:'')}
 function obDone(){try{return localStorage.getItem(obKey())==='1'}catch(e){return true}}
-function obMaybe(){if(!AUTH_USER||DEV_MODE||DEV_BUILD||obDone()||$('#ob'))return;if(BETA&&BETA.st&&['open','admin','approved'].indexOf(BETA.st)<0)return;obOpen()}
+function obMaybe(){if(!AUTH_USER||DEV_MODE||DEV_BUILD||obDone()||$('#ob'))return;
+  /* an account that already has a username has been through this (signing in again, or a new device): never ask again */
+  if(MY_PROFILE&&MY_PROFILE.username){obMarkDone();return}if(BETA&&BETA.st&&['open','admin','approved'].indexOf(BETA.st)<0)return;obOpen()}
+function obMarkDone(){try{localStorage.setItem(obKey(),'1');localStorage.setItem('songpad:onboarded','1')}catch(e){}}
 function obClose(){try{localStorage.setItem(obKey(),'1');localStorage.setItem('songpad:onboarded','1')}catch(e){}var o=$('#ob');if(!o)return;o.classList.remove('on');setTimeout(function(){o.remove()},300);try{haptic('success')}catch(e){}
   /* then Pro, once, as the last thing onboarding shows (like the iPhone app) */
   if(!isPro())setTimeout(function(){if(!isPro()&&!$('#pw.on'))openPaywall('')},700)}
@@ -25567,6 +25658,27 @@ function obSave(){if(OB.busy)return;var n=(OB.name||'').trim(),u=(OB.user||'').t
   var p=u?saveUsername(u,n||null):saveLinks({display_name:n});
   p.then(function(){OB.busy=false;if(n){MY_PROFILE=MY_PROFILE||{};MY_PROFILE.display_name=n;profCacheSet(AUTH_USER.id,MY_PROFILE)}refreshAccount();paintAcctIcons();obClose()},
     function(e){OB.busy=false;OB.err=(e&&e.message)||'Couldn’t save. Try again.';obRender();try{haptic('warning')}catch(x){}})}
+/* ---------- Bring your songs in: Notes and Voice Memos (iPhone share sheet), lyric files, pasting ---------- */
+function impOpen(){var x=$('#impx');if(x)x.remove();x=document.createElement('div');x.id='impx';x.setAttribute('role','dialog');x.setAttribute('aria-modal','true');x.setAttribute('aria-label','Bring your songs in');
+  var row=function(bg,fg,path,t,d,btn){return'<div class="imrow"><span class="imic" style="background:'+bg+';color:'+fg+'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+path+'</svg></span><div class="imtx"><b>'+t+'</b><span>'+d+'</span></div>'+(btn?'<button class="imbtn" data-a="'+btn[0]+'">'+btn[1]+'</button>':'')+'</div>'};
+  x.innerHTML='<div class="imcard"><div class="imhd"><h2>Bring your songs in</h2><button class="imdone">Done</button></div><p class="imsub">Your songs stay private. Nothing is shared until you share it.</p><div class="imlist">'+
+    row('#FFF4C2','#7A5B00','<rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/>','From Notes','On iPhone, in Notes, tap Share, then <span class="nb">*[demo]</span>. Each note becomes a song.')+
+    row('#FFE1E1','#9A1C1C','<path d="M4 12h1.5M7.5 8v8M11 5v14M14.5 9v6M18 7v10M20.5 12H20"/>','From Voice Memos','On iPhone, share a memo to <span class="nb">*[demo]</span>. It lands in Ideas, ready to start a song.')+
+    row('#DCEBFF','#0B4AA2','<path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v8a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/>','Lyric files','Text files or a <span class="nb">*[demo]</span> backup. Pick lots at once.',['file','Choose'])+
+    row('#E6F6EC','#146B3A','<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/>','Paste lyrics','The first line becomes the title.',['paste','Paste'])+
+    '</div><div class="impaste" hidden><textarea aria-label="Lyrics to add" placeholder="Paste or type a song. The first line becomes its title."></textarea><div class="imrowb"><button class="imcancel">Cancel</button><button class="imadd">Add Song</button></div></div></div>';
+  document.body.appendChild(x);requestAnimationFrame(function(){x.classList.add('on')});
+  var close=function(){x.classList.remove('on');setTimeout(function(){x.remove()},250)};
+  x.onclick=function(e){if(e.target===x)close()};x.querySelector('.imdone').onclick=close;
+  x.addEventListener('keydown',function(e){if(e.key==='Escape'){e.stopPropagation();close()}});
+  var pa=x.querySelector('.impaste'),ta=pa.querySelector('textarea');
+  x.querySelector('[data-a="file"]').onclick=function(){$('#impin').click()};
+  x.querySelector('[data-a="paste"]').onclick=function(){pa.hidden=false;ta.focus();try{navigator.clipboard.readText().then(function(t){if(t&&!ta.value)ta.value=t},function(){})}catch(e){}};
+  pa.querySelector('.imcancel').onclick=function(){pa.hidden=true;ta.value=''};
+  pa.querySelector('.imadd').onclick=function(){var t=ta.value.trim();if(!t)return;var s=fromText(t,'Pasted lyrics');s.artist=myName();importSongs([s]);toast('“'+(s.title||'Song')+'” added');try{haptic('success')}catch(e){}pa.hidden=true;ta.value='';close()}}
+/* "Chorus" or "Verse 2:" on its own line becomes a section tag ("[Chorus]") when lyrics come in from elsewhere */
+function tagSections(b){return b.split('\n').map(function(l){if(l.length>24||!/^\s*[\(\[]?\s*(intro|verse|pre[- ]?chorus|chorus|post[- ]?chorus|bridge|middle 8|hook|refrain|interlude|breakdown|tag|outro)(\s*\d+)?\s*[\)\]]?\s*:?\s*$/i.test(l))return l;
+  return'['+l.replace(/^[\s\(\[]+|[\s\)\]:]+$/g,'').split(/\s+/).map(function(w){return w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()}).join(' ')+']'}).join('\n')}
 /* ---------- profile: username, display name & avatar, public so collaborators can find and credit you ---------- */
 function myName(){return(MY_PROFILE&&(MY_PROFILE.display_name||MY_PROFILE.username))||(AUTH_USER&&AUTH_USER.user_metadata&&(AUTH_USER.user_metadata.full_name||AUTH_USER.user_metadata.name))||''}
 /* the account icon (top of the song list, and in the sidebar) shows the signed-in user's own
@@ -25671,6 +25783,8 @@ function loadProfile(){var c=sbClient();if(!c||!AUTH_USER)return;var uid=AUTH_US
     if(r&&r.error)return;
     var row=r&&r.data&&r.data[0];
     if(row){MY_PROFILE=row;profCacheSet(uid,row);
+      /* the profile turned up while onboarding was open: a returning account keeps its name and username, no questions */
+      if(row.username&&$('#ob')){obMarkDone();var ob=$('#ob');ob.classList.remove('on');setTimeout(function(){ob.remove()},300)}
       if(!row.display_name){var wn=(AUTH_USER.user_metadata||{});wn=wn.full_name||wn.name||'';if(wn){c.from('profiles').update({display_name:wn,updated_at:new Date().toISOString()}).eq('user_id',uid).then(function(){});MY_PROFILE.display_name=wn;profCacheSet(uid,MY_PROFILE)}}
       refreshAccount();paintAcctIcons();return}
     if(cached){
@@ -25717,7 +25831,7 @@ function applyCredits(song,orderedIds){
     var names=orderedIds.map(function(id){return id===(AUTH_USER&&AUTH_USER.id)?myName():(nameMap[id]||'')}).filter(Boolean);
     var line=joinNames(names);if(!line||line===song.artist)return;
     if(!song.artist||song.artist===song._autoArtist){
-      song.artist=line;song._autoArtist=line;song.updated=Date.now();save();if(song.shared)pushShared(song);
+      song.artist=line;song._autoArtist=line;song.updated=(+song.updated||0)+1;save();if(song.shared)pushShared(song);
       if(cur===song){hdr();if($('#sheet2').classList.contains('on'))buildSettings();renderList();renderSide()}
     }
   })
@@ -25729,8 +25843,10 @@ function renameMyArtistCredit(oldName,newName){
   newName=(newName||'').trim();if(!newName||newName===oldName)return;
   var changed=false;
   songs.forEach(function(s){
-    if(s.artist&&(s.artist===oldName||s.artist===s._autoArtist)){
-      s.artist=newName;s._autoArtist=newName;s.updated=Date.now();changed=true;
+    /* a name change never counts as editing a song: its edited time moves on by just 1 ms, enough for the change
+       to win the sync on other devices without changing the time anyone sees */
+    if(s.artist&&s.artist!==newName&&(s.artist===oldName||s.artist===s._autoArtist)){
+      s.artist=newName;s._autoArtist=newName;s.updated=(+s.updated||0)+1;changed=true;
       if(s.shared)pushShared(s);
     }
   });
@@ -25928,6 +26044,7 @@ function cloudSync(first){
       q.then(function(w){
         var lost=(w&&w.error&&!prevAt&&w.error.code==='23505')||(w&&!w.error&&!(w.data&&w.data.length));
         if(lost){if(++tries<4)return attempt();return done()}
+        if(w&&w.error&&/jwt expired/i.test(w.error.message||'')&&!attempt.renewed){attempt.renewed=1;c.auth.refreshSession().then(attempt,done);return}
         if(w&&w.error){console.warn('cloud save failed',w.error.message);toast('Couldn’t sync to your account: '+w.error.message);return done()}
         libSeenAt=w.data[0].updated_at;libSet('base',ids);libPing();done();
       },function(e){console.warn('cloud save failed',e);done()});
@@ -26557,7 +26674,7 @@ function renderAccount(){if(PW.on)pwRender();var o=$('#acc'),pro=isPro(),page=AC
   var g2=accSection(o,'Your songs');
   if(AUTH_USER){var nCred=songs.filter(function(s){return s.title&&s.status==='Finished'}).length;
     g2.appendChild(accCell({glass:1,tile:ACC_LN.sign,grad:3,tileCls:'credtile',label:'Credits',value:nCred?String(nCred):'',chev:true,onclick:function(){accGo('credits')}}))}
-  g2.appendChild(accCell({glass:1,tile:ACC_LN.down,grad:2,label:'Import Songs',chev:true,onclick:function(){sheet(false);$('#impin').click()}}));
+  g2.appendChild(accCell({glass:1,tile:ACC_LN.down,grad:2,label:'Import Songs',chev:true,onclick:function(){sheet(false);impOpen()}}));
   g2.appendChild(accCell({glass:1,tile:ACC_LN.up,grad:7,label:'Export All Songs',chev:true,onclick:function(){sheet(false);$('#expb').click()}}));
   /* storage used against the account's limit; fetched fresh each time Account opens, then shown */
   if(AUTH_USER&&!DEV_MODE){var sv=STORE?(STORE.limit!=null?sfSize(STORE.used)+' of '+sfSize(STORE.limit):sfSize(STORE.used)||'0 KB'):'…';
@@ -27363,7 +27480,7 @@ function shRender(d,o){o=o||{};var A=d.audio&&d.audio.src?d.audio:null,blocks=d.
   (d.alb&&d.alb.id?'<a class="alb" href="'+SH_LISTEN+q(d.alb.id)+'"><svg width="9" height="15" viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'+shEsc(d.alb.title||'Album')+'</a>':'')+
   '<div id="np"><div class="top"><img class="art" alt="" src="'+q(d.art||'')+'"><div class="meta"><b>'+shEsc(title)+'</b>'+(sub?'<span>'+shEsc(sub)+'</span>':'')+'</div>'+(A?'<button class="pp" id="pp" aria-label="Play"></button>':'')+'</div>'+
   (A?'<canvas id="wv" tabindex="0" role="slider" aria-label="Position in the song" data-d="'+(+A.dur||0)+'" data-p="'+q(JSON.stringify((A.peaks||[]).map(Number).filter(isFinite)))+'"></canvas><div class="bot"><span id="at">0:00</span><div class="sk"><button id="bk" aria-label="Back 15 seconds">'+(o.skB||'−15')+'</button><button id="fw" aria-label="Forward 15 seconds">'+(o.skF||'+15')+'</button></div><span id="du"></span></div>':'')+'</div>'+
-  '<div id="ly">'+body+'</div><footer><a href="https://hellodemo.app/" target="_blank" rel="noopener">Written in *[demo]</a><a class="rp" href="mailto:help@hellodemo.app?subject=Report%20a%20shared%20song" onclick="this.href=this.href.split(\'&\')[0]+\'&body=\'+encodeURIComponent(\'Link: \'+location.href+\'\\n\\nWhat\\u2019s wrong:\\n\')">Report</a></footer></main>'+
+  '<div id="ly">'+body+'</div><footer><a href="https://apps.apple.com/app/id6825757339" target="_blank" rel="noopener">Written in *[demo]</a><a class="rp" href="mailto:help@hellodemo.app?subject=Report%20a%20shared%20song" onclick="this.href=this.href.split(\'&\')[0]+\'&body=\'+encodeURIComponent(\'Link: \'+location.href+\'\\n\\nWhat\\u2019s wrong:\\n\')">Report</a></footer></main>'+
   (A?'<audio id="au" preload="auto" src="'+q(A.src)+'" data-title="'+q(title)+'" data-artist="'+q(d.artist||'')+'"></audio><script>'+shWaveDraw.toString()+'('+shPlayerJS.toString()+')()<\/script>':'')+
   '</body></html>'}
 /* a shared album, laid out like the album page in the app on the share page's colours; each song opens its own link:
@@ -27389,7 +27506,7 @@ function shAlbumRender(d){var q=shEsc,t=d.tracks||[],title=d.title||'Untitled Al
   'footer{margin-top:56px;color:hsla(var(--k),.4);font-size:14px;font-weight:600}footer .rp{margin-left:16px;font-weight:500}footer a{color:inherit;text-decoration:none}footer a:hover{color:hsla(var(--k),.7)}'+
   '</style></head><body><main><div class="hd">'+(d.art?'<img class="art" alt="" src="'+q(d.art)+'">':'')+'<h1>'+shEsc(title)+'</h1>'+(d.artist?'<div class="by">'+shEsc(d.artist)+'</div>':'')+'<div class="meta">'+shEsc(meta)+'</div></div>'+
   '<div class="tl">'+(rows||'<p style="opacity:.5">No songs yet</p>')+'</div>'+
-  '<footer><a href="https://hellodemo.app/" target="_blank" rel="noopener">Written in *[demo]</a><a class="rp" href="mailto:help@hellodemo.app?subject=Report%20a%20shared%20album" onclick="this.href=this.href.split(\'&\')[0]+\'&body=\'+encodeURIComponent(\'Link: \'+location.href+\'\\n\\nWhat\\u2019s wrong:\\n\')">Report</a></footer></main></body></html>'}
+  '<footer><a href="https://apps.apple.com/app/id6825757339" target="_blank" rel="noopener">Written in *[demo]</a><a class="rp" href="mailto:help@hellodemo.app?subject=Report%20a%20shared%20album" onclick="this.href=this.href.split(\'&\')[0]+\'&body=\'+encodeURIComponent(\'Link: \'+location.href+\'\\n\\nWhat\\u2019s wrong:\\n\')">Report</a></footer></main></body></html>'}
 /*SHARE-RENDER:END*/
 function shPage(song,bg,withAudio){var a=withAudio?audCur(song):null;
   return(a?shAudioBlob(a).then(blobUrl64):Promise.resolve(null)).then(function(au){
@@ -27620,7 +27737,10 @@ $('#gear').onmousedown=function(e){e.preventDefault()};$('#gear').onclick=functi
 $('#lm').onmousedown=function(e){e.preventDefault()};
 $('#lm').onclick=function(){if(!lines&&!isPro())return upsell('lines');lines=!lines;rhyme()};
 lyr.addEventListener('input',function(){if(getText()===''&&lyr.innerHTML!=='')lyr.innerHTML='';if(cur){cur.lyrics=getText();cur.rich=lyr.innerHTML;cur.updated=Date.now();lastEdit=Date.now();save()}setTimeout(function(){rhyme();reveal()},0);refreshViews()});
-document.addEventListener('selectionchange',function(){if(document.activeElement===$('#lyr'))setTimeout(function(){rhyme();reveal(true);updateFmtState()},0)});
+document.addEventListener('selectionchange',function(){if(document.activeElement===$('#lyr')){
+  /* the caret only moved because a co-writer's edit went in: the page and the rhyme bar stay as they are */
+  if(typeof LIVE!=='undefined'&&LIVE.quiet&&Date.now()-LIVE.quiet<120)return;
+  setTimeout(function(){rhyme();reveal(true);updateFmtState()},0)}});
 
 /* ---------- albums (supabase/albums.sql) ----------
    Each album is its own row in the albums table: { id, title, kind, year, artist, art, updated }, synced row by row

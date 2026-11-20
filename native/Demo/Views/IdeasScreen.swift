@@ -283,56 +283,59 @@ enum IdeaLook {
     }
 }
 
-/// An idea in the list: a small label (its kind, coloured, and the song it went into) with the time opposite,
-/// then its words in full. A memo ends with its length and a play icon. Matches the web's ideaRow.
+/// An idea in the list, like a note in Notes: its words, then a grey line with the time (a small symbol for a Title
+/// or Concept, the length of a memo, the song it went into). A memo has a play button; playing it opens the row
+/// into a waveform you can drag through, right in the list. Matches the web's ideaRow.
 struct IdeaCard: View {
     let idea: Idea
     @Environment(\.library) private var library
-    @Environment(\.colorScheme) private var scheme
     private var player: AudioPlayer { AudioPlayer.shared }
 
     var body: some View {
         let k = idea.memo != nil ? "memo" : IdeaLook.kind(idea)
         let t = idea.text.trimmingCharacters(in: .whitespacesAndNewlines)
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 10) {
-                label(k)
-                Spacer(minLength: 8)
-                Text(when).foregroundStyle(.secondary)
-            }
-            .font(.system(size: 12.5)).lineLimit(1)
-            HStack(spacing: 10) {
-                Text(t.isEmpty ? "Voice memo" : t)
-                    .font(.system(size: 17, weight: k == "title" ? .semibold : .regular))
-                    .foregroundStyle(.primary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                if let m = idea.memo {
-                    let key = AudioPlayer.key(idea: idea.id), on = player.isActive(key) && player.isPlaying
-                    Text(SongFiles.time(m.dur)).font(.system(size: 13).monospacedDigit()).foregroundStyle(.secondary)
+        let key = AudioPlayer.key(idea: idea.id)
+        let open = idea.memo != nil && player.isActive(key)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .center, spacing: 12) {
+                if let m = idea.memo, !open {
                     Button { Haptics.tap(); player.toggle(key, item: m, fallbackDuration: m.dur) } label: {
-                        Image(systemName: on ? "pause.fill" : "play.fill").font(.system(size: 15))
-                            .foregroundStyle(.primary.opacity(0.8))
-                            .frame(width: 30, height: 30).contentShape(Rectangle())
+                        Image(systemName: "play.fill").font(.system(size: 14, weight: .bold)).foregroundStyle(Theme.onTint)
+                            .frame(width: 36, height: 36).background(Theme.tint, in: Circle())
+                            .contentShape(Circle())
                     }
                     .buttonStyle(.borderless)
-                    .accessibilityLabel(on ? "Pause voice memo" : "Play voice memo")
+                    .accessibilityLabel("Play voice memo")
                 }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(t.isEmpty ? "Voice memo" : t)
+                        .font(.system(size: 17, weight: k == "title" ? .semibold : .regular))
+                        .foregroundStyle(.primary)
+                    HStack(spacing: 5) {
+                        if let sym = Self.symbol(k) { Image(systemName: sym).font(.system(size: 12, weight: .medium)) }
+                        Text(detail)
+                    }
+                    .font(.system(size: 15)).foregroundStyle(.secondary).lineLimit(1)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            if open, let m = idea.memo {
+                MemoPlayer(ideaID: idea.id, memo: m, large: true)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
+        .animation(.snappy(duration: 0.25), value: open)
     }
 
-    private func label(_ k: String) -> Text {
-        let c: Color = switch k {
-        case "title": Color(hex: scheme == .dark ? 0xFFB35C : 0xC9700F)
-        case "concept": Color(hex: scheme == .dark ? 0xA993FF : 0x7151E8)
-        case "memo": Color(hex: scheme == .dark ? 0x4CD3A8 : 0x16916F)
-        default: .secondary
-        }
-        var t = Text(IdeaLook.name(k)).fontWeight(.semibold).foregroundColor(c)
-        if let sid = idea.usedSongID, let s = library.song(sid) {
-            t = t + Text(" · in " + (s.title.isEmpty ? "Untitled" : s.title)).foregroundColor(.secondary)
-        }
-        return t
+    /// Titles and Concepts get a small grey symbol; Lines and memos need none.
+    static func symbol(_ k: String) -> String? { ["title": "textformat", "concept": "lightbulb"][k] }
+
+    /// "9:41 pm", then a memo's length and the song it went into.
+    private var detail: String {
+        var parts = [when]
+        if let m = idea.memo { parts.append(SongFiles.time(m.dur)) }
+        if let sid = idea.usedSongID, let s = library.song(sid) { parts.append("In " + (s.title.isEmpty ? "Untitled" : s.title)) }
+        return parts.joined(separator: "  ")
     }
 
     /// The time today and yesterday, the weekday this week, else the date (the web's ideaWhen).

@@ -18,7 +18,12 @@ struct RootView: View {
             case .waitlist(let status):
                 WaitlistView(status: status).transition(.opacity)
             case .ready:
-                if !Onboarding.needed(session.userID, tick: onboardTick) { SongListScreen().transition(.opacity) }
+                // an account that already has a username has been through onboarding (signing in again, or a new
+                // device): it keeps its name and username and goes straight to its songs
+                if !Onboarding.needed(session.userID, tick: onboardTick) || !(session.profile.username ?? "").isEmpty {
+                    SongListScreen().transition(.opacity)
+                        .onAppear { if !(session.profile.username ?? "").isEmpty { Onboarding.markDone(session.userID) } }
+                }
                 else {
                     OnboardingView {
                         Onboarding.markDone(session.userID)

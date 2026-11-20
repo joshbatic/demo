@@ -39,6 +39,8 @@ final class AppSession {
     var quickAction: String?
     /// Ideas should start recording ("record") or put the keyboard up ("new-idea") when it opens.
     var ideasStart: String?
+    /// Bring your songs in, from anywhere (the welcome sheet, Account, the song list).
+    var importOpen = false
     let library = LibraryStore()
 
     nonisolated struct Profile: Codable, Equatable {

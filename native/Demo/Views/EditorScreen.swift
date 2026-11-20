@@ -39,6 +39,12 @@ struct EditorScreen: View {
     @State private var sprintWords = 0
     @State private var sprintNow = Date()
 
+    /// A co-writer's changes since this device last had the song open (CoWriterChanges.swift).
+    @State private var changes: [NSRange] = []
+    @State private var changeAuthor: ChangeAuthor?
+    @State private var changeLines = 0
+    @State private var changeTimer: Task<Void, Never>?
+
     private var song: Song? { library.song(songID) }
 
     var body: some View {
@@ -163,6 +169,7 @@ struct EditorScreen: View {
             // live on every song: co-writers on a shared one, and your own other devices on any
             live.start(songID: songID, library: library, session: session, bridge: bridge)
             markSeenIfNew()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { showChanges() }
             // a brand-new, empty song: straight to typing (the text view may take a moment to exist)
             if let s = library.song(songID), s.title.isEmpty, s.lyrics.isEmpty, !s.isShared {
                 Task {
@@ -178,6 +185,8 @@ struct EditorScreen: View {
         }
         .onDisappear {
             if library.editingID == songID { library.editingID = nil }
+            // a shared song's words as you leave them count as seen, so your own edits never get a co-writer's marker
+            if let s = song, s.isShared { changeTimer?.cancel(); changes = []; changeAuthor = nil; setSeen(s.lyrics) }
             if session.toastAvoidTop == rhymeTop { session.toastAvoidTop = nil }
             // leaving the song pauses its audio (spec §4.10)
             if !showPlay { AudioPlayer.shared.pause(ifSong: songID) }
@@ -219,31 +228,52 @@ struct EditorScreen: View {
         return CanonicalJSON.string(.array([s.raw["rmFiles"] ?? .null, s.raw["audio"] ?? .null, s.raw["files"] ?? .null]))
     }
 
-    private static var seenKey: String { "songpad:seen" }
-    private func seenLyrics() -> String? { (UserDefaults.standard.dictionary(forKey: Self.seenKey) as? [String: String])?[songID] }
-    private func setSeen(_ v: String) {
-        var d = (UserDefaults.standard.dictionary(forKey: Self.seenKey) as? [String: String]) ?? [:]
-        d[songID] = v
-        UserDefaults.standard.set(d, forKey: Self.seenKey)
-    }
+    private func seenLyrics() -> String? { SeenLyrics.get(songID) }
+    private func setSeen(_ v: String) { SeenLyrics.set(songID, v) }
     private func markSeenIfNew() { if seenLyrics() == nil, let s = song { setSeen(s.lyrics) } }
 
-    /// "Sam added 3 new lines": lines a co-writer added since I last dismissed it (data spec §3.11).
-    private func addedHint(_ s: Song) -> String? {
-        guard s.isShared, let seen = seenLyrics(), seen != s.lyrics else { return nil }
+    /// On opening a shared song: what a co-writer changed since this device last had it open.
+    private func showChanges() {
+        guard let s = song, s.isShared, let seen = seenLyrics(), seen != s.lyrics else { return }
         let by = s.raw["lastEditBy"]?.string ?? ""
-        guard !by.isEmpty, by != session.email, by != session.myName else { return nil }
-        var before: [String: Int] = [:]
-        for l in seen.components(separatedBy: "\n") { let t = l.trimmingCharacters(in: .whitespaces); if !t.isEmpty { before[t, default: 0] += 1 } }
-        var added = 0
-        for l in s.lyrics.components(separatedBy: "\n") {
-            let t = l.trimmingCharacters(in: .whitespaces)
-            guard !t.isEmpty else { continue }
-            if (before[t] ?? 0) > 0 { before[t]! -= 1 } else { added += 1 }
+        guard !by.isEmpty, by != session.email, by != session.myName else { return }
+        let r = Array(ChangeDiff.ranges(old: seen, new: s.lyrics).prefix(12))
+        guard !r.isEmpty else { return }
+        let first = by.components(separatedBy: "@")[0]
+        let who = ChangeAuthor(name: first.prefix(1).uppercased() + first.dropFirst(), avatar: nil, id: s.raw["lastEditById"]?.string)
+        changes = r; changeLines = ChangeDiff.lineCount(r, in: s.lyrics); changeAuthor = who
+        bridge.changeAuthor = who; bridge.changeMarks = r
+        // their name and photo: the account that last edited, or the only other person on the song
+        Task {
+            let people = await Collab.shared.people(s).filter { !$0.isMe }
+            let p = people.first { $0.id == who.id } ?? (people.count == 1 ? people[0] : nil)
+            guard let p, !changes.isEmpty else { return }
+            let w = ChangeAuthor(name: p.name, avatar: p.avatar, id: p.id)
+            changeAuthor = w; bridge.changeAuthor = w
         }
-        guard added > 0 else { return nil }
-        let name = by.components(separatedBy: "@")[0]
-        return (name.prefix(1).uppercased() + name.dropFirst()) + " added \(added) new \(added == 1 ? "line" : "lines") · tap to dismiss"
+        changeTimer?.cancel()
+        changeTimer = Task { try? await Task.sleep(for: .seconds(90)); if !Task.isCancelled { withAnimation(.smooth) { clearChanges() } } }
+    }
+
+    /// The markers go (typing, the timer, or leaving the song) and the words as they are now count as seen.
+    private func clearChanges() {
+        changeTimer?.cancel(); changeTimer = nil
+        bridge.changeMarks = []; bridge.changeAuthor = nil
+        changes = []; changeAuthor = nil
+        if let s = song { setSeen(s.lyrics) }
+    }
+
+    private func scrollToFirstChange() {
+        guard let r = changes.first, let tv = bridge.textView,
+              let p = tv.position(from: tv.beginningOfDocument, offset: r.location) else { return }
+        Haptics.tap()
+        tv.scrollRectToVisible(tv.caretRect(for: p).insetBy(dx: 0, dy: -140), animated: true)
+    }
+
+    private var changeAgo: String {
+        guard let t = song?.raw["lastEditAt"]?.number, t > 0 else { return "" }
+        let f = RelativeDateTimeFormatter(); f.unitsStyle = .short
+        return " · " + f.localizedString(for: Date(timeIntervalSince1970: t / 1000), relativeTo: Date())
     }
 
     private func titleRow(_ s: Song) -> some View {
@@ -269,9 +299,21 @@ struct EditorScreen: View {
                     .font(.subheadline).foregroundStyle(.tertiary).lineLimit(1)
                 if let who = live.writing {
                     Text("\(who) is writing…").font(.footnote.weight(.medium)).foregroundStyle(Theme.proGreen)
-                } else if let hint = addedHint(s) {
-                    Text(hint).font(.footnote.weight(.medium)).foregroundStyle(.secondary)
-                        .onTapGesture { setSeen(s.lyrics); Haptics.tap(); library.put(s) }
+                } else if let who = changeAuthor, !changes.isEmpty {
+                    // "Sam changed 2 lines · 1 hr ago", like "Sam is writing…": tap to go to the first change
+                    Button { scrollToFirstChange() } label: {
+                        HStack(spacing: 6) {
+                            Avatar(url: who.avatar, name: who.name, size: 16, id: who.id)
+                            Text("\(who.name) changed \(changeLines) \(changeLines == 1 ? "line" : "lines")\(changeAgo)").lineLimit(1)
+                        }
+                        .font(.footnote.weight(.medium))
+                        .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .transition(.opacity)
+                } else if s.isShared {
+                    // a shared song keeps this line's space, so "Sam is writing…" coming and going never moves the page
+                    Text(" ").font(.footnote.weight(.medium)).hidden()
                 }
             }
         }
@@ -586,6 +628,7 @@ struct EditorScreen: View {
         if plain != s.lyrics || rich != s.rich {
             s.setText(lyrics: plain, rich: rich)
             library.put(s, typing: true)
+            if !changes.isEmpty { withAnimation(.smooth) { clearChanges() } }
         }
         return (rich, plain)
     }

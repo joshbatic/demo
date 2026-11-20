@@ -11,6 +11,9 @@ final class EditorBridge {
     /// The stored text this view last loaded or saved, and when the user last typed.
     var lastKey = ""
     var lastEdit = Date.distantPast
+    /// True while a co-writer's edit (or a reload from another device) is going in: the page doesn't scroll to the
+    /// caret and the rhyme bar doesn't change word for it.
+    var applyingRemote = false
     /// The text and selection whenever either changes (the rhyme bar follows it).
     var onSelection: ((String, NSRange) -> Void)?
     weak var coordinator: RichTextEditor.Coordinator?
@@ -21,6 +24,9 @@ final class EditorBridge {
     var caretLocation: Int { textView?.selectedRange.location ?? 0 }
     /// Rate mode: quotes to mark in the lyrics, green for what's working and red for issues.
     var rateMarks: [(quote: String, good: Bool)] = [] { didSet { coordinator?.scheduleViews(now: true) } }
+    /// A co-writer's changes since you last had the song open (CoWriterChanges.swift): tinted, with a cursor and their photo.
+    var changeMarks: [NSRange] = [] { didSet { coordinator?.scheduleViews(now: true) } }
+    var changeAuthor: ChangeAuthor? { didSet { if oldValue != changeAuthor { coordinator?.scheduleViews(now: true) } } }
 
     // MARK: inserting words
 
@@ -336,6 +342,15 @@ struct RichTextEditor: UIViewRepresentable {
 
     private func load(_ tv: UITextView, _ c: Coordinator) {
         let sel = tv.selectedRange
+        // a reload (another device, a co-writer's whole song): the page stays where it was
+        let offset = tv.contentOffset
+        bridge.applyingRemote = true
+        defer {
+            bridge.applyingRemote = false
+            tv.layoutIfNeeded()
+            let maxY = max(0, tv.contentSize.height + tv.contentInset.bottom - tv.bounds.height)
+            tv.contentOffset = CGPoint(x: offset.x, y: min(max(0, offset.y), maxY))
+        }
         let a = NSMutableAttributedString(attributedString: RichText.attributed(html: rich, plain: lyrics, font: EditorBridge.baseFont, color: .label))
         let p = NSMutableParagraphStyle(); p.lineSpacing = 6
         a.addAttribute(.paragraphStyle, value: p, range: NSRange(location: 0, length: a.length))
@@ -378,12 +393,12 @@ struct RichTextEditor: UIViewRepresentable {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) { (tv as? LyricsTextView)?.keepCaretVisible(animated: true) }
         }
 
-        func afterChange(_ tv: UITextView) {
+        func afterChange(_ tv: UITextView, remote: Bool = false) {
             normalizeBreaks(tv)
             styleSectionTags(tv)
             updatePlaceholder(tv)
             bridge?.emit()
-            bridge?.onSelection?(tv.text, tv.selectedRange)
+            if !remote { bridge?.onSelection?(tv.text, tv.selectedRange) }
             scheduleViews()
         }
 
@@ -406,6 +421,8 @@ struct RichTextEditor: UIViewRepresentable {
         }
 
         func textViewDidChangeSelection(_ tv: UITextView) {
+            // a co-writer's edit moved the text under the caret: not a move of yours
+            if bridge?.applyingRemote == true { return }
             bridge?.onSelection?(tv.text, tv.selectedRange)
             // only for an empty selection; a drag-selection is left where the finger put it. keepCaretVisible
             // only centres the line while typing: a tap that moves the caret leaves the page where it is
@@ -438,6 +455,45 @@ struct RichTextEditor: UIViewRepresentable {
             UIColor(red: 1, green: 204 / 255, blue: 0, alpha: 0.38), UIColor(red: 162 / 255, green: 132 / 255, blue: 94 / 255, alpha: 0.32)
         ]
 
+        /// Quiet, system colours (like Notes' change highlights): a grey fill behind the words and a grey cursor;
+        /// their photo is the only colour.
+        static func changeColours(_ who: ChangeAuthor?) -> (tint: UIColor, ink: UIColor) {
+            (UIColor.tertiarySystemFill, UIColor.secondaryLabel)
+        }
+        private var changeViews: [UIView] = []
+        private var changeHosts: [UIHostingController<AnyView>] = []
+
+        /// A thin cursor in the co-writer's colour where each change ends, and their photo in the margin beside the line.
+        private func placeChangeCursors(_ tv: UITextView, _ marks: [NSRange], who: ChangeAuthor?) {
+            changeViews.forEach { $0.removeFromSuperview() }
+            changeViews = []; changeHosts = []
+            guard let who else { return }
+            let ink = Self.changeColours(who).ink
+            var faces = Set<Int>()
+            for r in marks {
+                guard let p = tv.position(from: tv.beginningOfDocument, offset: NSMaxRange(r)),
+                      let p0 = tv.position(from: tv.beginningOfDocument, offset: r.location) else { continue }
+                let c = tv.caretRect(for: p), c0 = tv.caretRect(for: p0)
+                guard c.height > 0, c.minY.isFinite, c0.minY.isFinite else { continue }
+                let line = UIView(frame: CGRect(x: c.minX, y: c.minY, width: 2, height: c.height))
+                line.backgroundColor = ink
+                line.layer.cornerRadius = 1
+                line.isUserInteractionEnabled = false
+                tv.addSubview(line); changeViews.append(line)
+                // one photo per line, in the margin
+                guard faces.insert(Int(c0.minY.rounded())).inserted else { continue }
+                let face = UIHostingController(rootView: AnyView(
+                    Avatar(url: who.avatar, name: who.name, size: 16, id: who.id)
+                        .overlay(Circle().strokeBorder(Color(uiColor: .systemBackground), lineWidth: 1.5))))
+                face.view.backgroundColor = .clear
+                face.view.frame = CGRect(x: max(1, tv.textContainerInset.left - 18), y: c0.midY - 8, width: 16, height: 16)
+                face.view.isUserInteractionEnabled = false
+                face.view.accessibilityLabel = "Changed by \(who.name)"
+                tv.addSubview(face.view)
+                changeViews.append(face.view); changeHosts.append(face)
+            }
+        }
+
         func scheduleViews(now: Bool = false) {
             viewsTask?.cancel()
             viewsTask = Task { [weak self] in
@@ -466,6 +522,14 @@ struct RichTextEditor: UIViewRepresentable {
                       let e = tcm.location(s, offsetBy: r.length), let tr = NSTextRange(location: s, end: e) else { continue }
                 tlm.addRenderingAttribute(.backgroundColor, value: m.good ? UIColor.systemGreen.withAlphaComponent(0.2) : UIColor.systemRed.withAlphaComponent(0.18), for: tr)
             }
+            // a co-writer's changes: a light tint, then a cursor with their photo at the end of each change
+            let len = (text as NSString).length
+            for r in bridge.changeMarks where r.length > 0 && NSMaxRange(r) <= len {
+                guard let s = tcm.location(tcm.documentRange.location, offsetBy: r.location),
+                      let e = tcm.location(s, offsetBy: r.length), let tr = NSTextRange(location: s, end: e) else { continue }
+                tlm.addRenderingAttribute(.backgroundColor, value: Self.changeColours(bridge.changeAuthor).tint, for: tr)
+            }
+            placeChangeCursors(tv, bridge.changeMarks.filter { NSMaxRange($0) <= len }, who: bridge.changeAuthor)
             // syllable gutter
             let wantLeft: CGFloat = bridge.showSyl ? 50 : 18
             if tv.textContainerInset.left != wantLeft { tv.textContainerInset.left = wantLeft }

@@ -9,7 +9,7 @@ import Foundation
 /// one is kept if it contains the other, otherwise both (yours first), and your words from before the merge go
 /// into Versions. Same rules as the web app's shMergeInto.
 nonisolated enum SharedMerge {
-    static let skip: Set<String> = ["updated", "lastEditBy", "lastEditAt", "owner", "ownerEmail", "members", "shared",
+    static let skip: Set<String> = ["updated", "lastEditBy", "lastEditById", "lastEditAt", "owner", "ownerEmail", "members", "shared",
                                     "versions", "audio", "files", "rmFiles", "rich"]
     static let lineFields: Set<String> = ["lyrics", "chords", "notes"]
 
@@ -132,7 +132,10 @@ nonisolated enum SharedMerge {
         }
         if !vl.isEmpty { s.raw["versions"] = .array(Array(vl.suffix(30))) }
         Collab.fileMerge(&s, rm: d["rmFiles"]?.object ?? [:], audio: d["audio"]?.array ?? [], files: d["files"]?.array ?? [])
-        if took, let by = d["lastEditBy"] { s.raw["lastEditBy"] = by }
+        if took, let by = d["lastEditBy"] {
+            s.raw["lastEditBy"] = by
+            if let id = d["lastEditById"] { s.raw["lastEditById"] = id } else { s.raw.removeValue(forKey: "lastEditById") }
+        }
         return took
     }
 }

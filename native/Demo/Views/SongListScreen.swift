@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
+import StoreKit
 
 /// The song list: Pinned first, then folders and Songs, each group ordered by its newest song
 /// (spec §1.6), with search, swipe actions and press-and-hold menus.
@@ -8,6 +9,7 @@ struct SongListScreen: View {
     @Environment(\.appSession) private var session
     @Environment(\.library) private var library
     @State private var path: [String] = []
+    @Environment(\.requestReview) private var requestReview
     @State private var query = ""
     @State private var headerSmall = false
     @State private var confirmDelete: Song?
@@ -164,8 +166,15 @@ struct SongListScreen: View {
                 default: break
                 }
             }
-            .fileImporter(isPresented: $importing, allowedContentTypes: [.json, .plainText, .text], allowsMultipleSelection: true) { r in
-                if case .success(let urls) = r, !urls.isEmpty { Haptics.success(); session.toast = library.importFiles(urls) }
+            .sheet(isPresented: $importing) { ImportScreen() }
+            .sheet(isPresented: Binding(get: { session.importOpen }, set: { session.importOpen = $0 })) { ImportScreen() }
+            // what Notes or Voice Memos shared to *[demo] while it was closed
+            .task { await ShareInbox.drain(session) }
+            // back from writing a song: Apple's rating prompt, at most once a version (ReviewAsk.swift)
+            .task { ReviewAsk.noteOpen() }
+            .onChange(of: path) { old, new in
+                guard new.isEmpty, !old.isEmpty, ReviewAsk.shouldAsk(library) else { return }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { requestReview() }
             }
             .sheet(item: Binding(get: { exportURL.map(ShareSheet.IdentURL.init) }, set: { exportURL = $0?.url })) { u in
                 ActivityView(items: [u.url])

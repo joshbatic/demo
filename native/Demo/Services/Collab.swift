@@ -144,6 +144,7 @@ final class Collab {
             }
         }
         s.raw["lastEditBy"] = .string(session.email)
+        s.raw["lastEditById"] = .string(uid)
         s.raw["lastEditAt"] = .number(Clock.nowMs)
         let body = Self.ser(s)
         let now = ISO8601DateFormatter().string(from: Date())
@@ -162,7 +163,7 @@ final class Collab {
         // remember what was pushed (device-only key)
         if var now = library.song(s.id) {
             now.raw["_pushed"] = .number(max(now.raw["_pushed"]?.number ?? 0, s.updated))
-            now.raw["lastEditBy"] = s.raw["lastEditBy"]; now.raw["lastEditAt"] = s.raw["lastEditAt"]
+            now.raw["lastEditBy"] = s.raw["lastEditBy"]; now.raw["lastEditAt"] = s.raw["lastEditAt"]; now.raw["lastEditById"] = s.raw["lastEditById"]
             if case .object(let b) = body { SharedMerge.keep(&now.raw, b) }
             library.putQuietly(now)
         }
@@ -187,7 +188,7 @@ final class Collab {
             if s.id == liveSongID { lastLivePush[s.id] = Date() }
             Task { [weak self] in
                 defer { self?.pushing.remove(s.id) }
-                do { try await self?.push(s) } catch PushError.notMember {
+                do { try await withFreshSession { try await self?.push(s) } } catch PushError.notMember {
                     await self?.goneCheck()
                     if let self, self.library?.song(s.id) != nil, !self.warned.contains(s.id) {
                         self.warned.insert(s.id)

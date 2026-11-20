@@ -113,19 +113,35 @@ extension EditorBridge {
 
     /// A co-writer's change: spliced into the text without touching the undo stack, keeping my caret
     /// where it was relative to the words around it.
+    /// A co-writer's edit, put into the text without disturbing yours: your cursor stays where it was (text they
+    /// type at the very spot you're on goes after it), the page doesn't move (the line you're on stays put on the
+    /// screen), and your rhyme bar keeps following your word, not theirs.
     func applyRemote(at: Int, delete: Int, insert: String) {
         guard let tv = textView else { return }
         let ns = (tv.text ?? "") as NSString
         let a = min(max(0, at), ns.length), len = min(delete, ns.length - a)
         let sel = tv.selectedRange
         let ins = (insert as NSString).length
+        // where your line sits on the screen now
+        let anchorBefore = tv.selectedTextRange.map { tv.caretRect(for: $0.start).minY }
+        applyingRemote = true
+        defer { applyingRemote = false }
         tv.textStorage.beginEditing()
         tv.textStorage.replaceCharacters(in: NSRange(location: a, length: len), with: NSAttributedString(string: insert, attributes: EditorBridge.baseAttributes))
         tv.textStorage.endEditing()
-        func shift(_ p: Int) -> Int { p >= a + len ? p + ins - len : (p > a ? a + ins : p) }
+        func shift(_ p: Int) -> Int { p > a + len || (len > 0 && p == a + len) ? p + ins - len : (p > a ? a + ins : p) }
         let s0 = shift(sel.location), s1 = shift(sel.location + sel.length)
         tv.selectedRange = NSRange(location: s0, length: max(0, s1 - s0))
-        coordinator?.afterChange(tv)
+        // keep your line where it was on the screen (their edit above it would otherwise push it)
+        if let y0 = anchorBefore, y0.isFinite, let r = tv.selectedTextRange {
+            tv.layoutIfNeeded()
+            let y1 = tv.caretRect(for: r.start).minY
+            if y1.isFinite, abs(y1 - y0) > 0.5 {
+                let maxY = max(0, tv.contentSize.height + tv.contentInset.bottom - tv.bounds.height)
+                tv.contentOffset.y = min(max(0, tv.contentOffset.y + (y1 - y0)), maxY)
+            }
+        }
+        coordinator?.afterChange(tv, remote: true)
     }
 
     /// Words in the lyrics right now (sprint counts).

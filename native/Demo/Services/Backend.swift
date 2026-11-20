@@ -21,6 +21,20 @@ nonisolated enum Backend {
     }
 }
 
+/// The sign-in token ran out before the app renewed it (usually just after the app comes back from the background).
+nonisolated func isAuthExpired(_ error: Error) -> Bool {
+    let m = describe(error).lowercased()
+    return m.contains("jwt expired") || m.contains("token is expired") || m.contains("invalid jwt")
+}
+
+/// Runs `op`; if it failed only because the sign-in token had expired, renews the session and tries once more.
+@MainActor func withFreshSession<T>(_ op: () async throws -> T) async throws -> T {
+    do { return try await op() } catch where isAuthExpired(error) {
+        _ = try? await Backend.client.auth.refreshSession()
+        return try await op()
+    }
+}
+
 /// A readable message for anything Supabase throws.
 nonisolated func describe(_ error: Error) -> String {
     if let e = error as? PostgrestError { return e.message }
