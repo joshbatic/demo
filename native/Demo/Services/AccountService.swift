@@ -62,7 +62,8 @@ extension AppSession {
     /// renameMyArtistCredit: songs still crediting my old name follow the new one.
     func renameMyArtistCredit(from old: String, to new: String) {
         guard !old.isEmpty, !new.isEmpty, old != new else { return }
-        for var s in library.songs where s.artist == old || (s.raw["_autoArtist"]?.string ?? "") == old {
+        // only songs whose credit really changes count as edited; one already showing the new name keeps its time
+        for var s in library.songs where s.artist != new && (s.artist == old || (s.raw["_autoArtist"]?.string ?? "") == old) {
             s.artist = new; s.raw["_autoArtist"] = .string(new); s.touch(); library.put(s)
         }
     }

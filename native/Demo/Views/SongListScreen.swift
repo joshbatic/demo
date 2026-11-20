@@ -166,19 +166,6 @@ struct SongListScreen: View {
             }
             .sheet(isPresented: $importing) { ImportScreen() }
             .sheet(isPresented: Binding(get: { session.importOpen }, set: { session.importOpen = $0 })) { ImportScreen() }
-            // after onboarding (RootView): the first song with three tips, or Bring your songs in
-            .onChange(of: session.afterOnboarding, initial: true) { _, a in
-                guard let a else { return }
-                session.afterOnboarding = nil
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    if a == "import" { session.importOpen = true; return }
-                    let s = Song.new(artist: session.myName)
-                    library.add(s)
-                    session.tipStep = 0
-                    session.tipsSongID = s.id
-                    path = [s.id]
-                }
-            }
             // what Notes or Voice Memos shared to *[demo] while it was closed
             .task { await ShareInbox.drain(session) }
             .sheet(item: Binding(get: { exportURL.map(ShareSheet.IdentURL.init) }, set: { exportURL = $0?.url })) { u in

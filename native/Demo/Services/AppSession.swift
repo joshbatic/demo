@@ -39,10 +39,6 @@ final class AppSession {
     var quickAction: String?
     /// Ideas should start recording ("record") or put the keyboard up ("new-idea") when it opens.
     var ideasStart: String?
-    /// Onboarding's choice, carried out by the song list: "song" (first song, with tips) or "import".
-    var afterOnboarding: String?
-    var tipsSongID: String?
-    var tipStep = 0
     /// Bring your songs in, from anywhere (the welcome sheet, Account, the song list).
     var importOpen = false
     let library = LibraryStore()

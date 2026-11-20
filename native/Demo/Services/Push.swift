@@ -24,9 +24,11 @@ final class Push: NSObject {
         await refreshStatus()
         if status == .authorized || status == .provisional || status == .ephemeral {
             UIApplication.shared.registerForRemoteNotifications()
+        } else if status == .notDetermined && UserDefaults.standard.bool(forKey: Onboarding.doneKey) {
+            // onboarding asks on its last step; someone who skipped past it gets the prompt once the list settles
+            try? await Task.sleep(for: .seconds(1.5))
+            await ask()
         }
-        // not asked yet: no prompt here. It's asked for when it's first useful (sharing a song, accepting an invite,
-        // writing to support), so it never arrives cold after sign-in.
     }
 
     /// Asks (system prompt) when not asked yet, with a toast that says why; registers when allowed.
