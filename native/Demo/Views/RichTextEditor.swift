@@ -441,33 +441,43 @@ struct RichTextEditor: UIViewRepresentable {
             UIColor(red: 1, green: 204 / 255, blue: 0, alpha: 0.38), UIColor(red: 162 / 255, green: 132 / 255, blue: 94 / 255, alpha: 0.32)
         ]
 
-        static let changeColour = UIColor(red: 232 / 255, green: 89 / 255, blue: 12 / 255, alpha: 1)
-        static let changeTint = UIColor(red: 232 / 255, green: 89 / 255, blue: 12 / 255, alpha: 0.16)
+        /// The co-writer's own colour (the strongest of their avatar's colours): a soft highlight, a deeper cursor.
+        static func changeColours(_ who: ChangeAuthor?) -> (tint: UIColor, ink: UIColor) {
+            let h = CoverPick(id: who?.id ?? who?.name.lowercased() ?? "x").hexes[0]
+            let r = CGFloat((h >> 16) & 255) / 255, g = CGFloat((h >> 8) & 255) / 255, b = CGFloat(h & 255) / 255
+            return (UIColor(red: r, green: g, blue: b, alpha: 0.38), UIColor(red: r * 0.62, green: g * 0.62, blue: b * 0.62, alpha: 1))
+        }
         private var changeViews: [UIView] = []
         private var changeHosts: [UIHostingController<AnyView>] = []
 
-        /// The cursors: a thin line in the co-writer's colour where each change ends, their photo just above it.
+        /// A thin cursor in the co-writer's colour where each change ends, and their photo in the margin beside the line.
         private func placeChangeCursors(_ tv: UITextView, _ marks: [NSRange], who: ChangeAuthor?) {
             changeViews.forEach { $0.removeFromSuperview() }
             changeViews = []; changeHosts = []
             guard let who else { return }
+            let ink = Self.changeColours(who).ink
+            var faces = Set<Int>()
             for r in marks {
-                guard let p = tv.position(from: tv.beginningOfDocument, offset: NSMaxRange(r)) else { continue }
-                let c = tv.caretRect(for: p)
-                guard c.height > 0, c.minY.isFinite else { continue }
+                guard let p = tv.position(from: tv.beginningOfDocument, offset: NSMaxRange(r)),
+                      let p0 = tv.position(from: tv.beginningOfDocument, offset: r.location) else { continue }
+                let c = tv.caretRect(for: p), c0 = tv.caretRect(for: p0)
+                guard c.height > 0, c.minY.isFinite, c0.minY.isFinite else { continue }
                 let line = UIView(frame: CGRect(x: c.minX, y: c.minY, width: 2, height: c.height))
-                line.backgroundColor = Self.changeColour
+                line.backgroundColor = ink
                 line.layer.cornerRadius = 1
                 line.isUserInteractionEnabled = false
+                tv.addSubview(line); changeViews.append(line)
+                // one photo per line, in the margin
+                guard faces.insert(Int(c0.minY.rounded())).inserted else { continue }
                 let face = UIHostingController(rootView: AnyView(
-                    Avatar(url: who.avatar, name: who.name, size: 20, id: who.id)
-                        .overlay(Circle().strokeBorder(Color(uiColor: Self.changeColour), lineWidth: 2))))
+                    Avatar(url: who.avatar, name: who.name, size: 16, id: who.id)
+                        .overlay(Circle().strokeBorder(Color(uiColor: .systemBackground), lineWidth: 1.5))))
                 face.view.backgroundColor = .clear
-                face.view.frame = CGRect(x: c.minX - 10, y: c.minY - 22, width: 22, height: 22)
+                face.view.frame = CGRect(x: max(1, tv.textContainerInset.left - 18), y: c0.midY - 8, width: 16, height: 16)
                 face.view.isUserInteractionEnabled = false
                 face.view.accessibilityLabel = "Changed by \(who.name)"
-                tv.addSubview(line); tv.addSubview(face.view)
-                changeViews += [line, face.view]; changeHosts.append(face)
+                tv.addSubview(face.view)
+                changeViews.append(face.view); changeHosts.append(face)
             }
         }
 
@@ -504,7 +514,7 @@ struct RichTextEditor: UIViewRepresentable {
             for r in bridge.changeMarks where r.length > 0 && NSMaxRange(r) <= len {
                 guard let s = tcm.location(tcm.documentRange.location, offsetBy: r.location),
                       let e = tcm.location(s, offsetBy: r.length), let tr = NSTextRange(location: s, end: e) else { continue }
-                tlm.addRenderingAttribute(.backgroundColor, value: Self.changeTint, for: tr)
+                tlm.addRenderingAttribute(.backgroundColor, value: Self.changeColours(bridge.changeAuthor).tint, for: tr)
             }
             placeChangeCursors(tv, bridge.changeMarks.filter { NSMaxRange($0) <= len }, who: bridge.changeAuthor)
             // syllable gutter

@@ -300,16 +300,14 @@ struct EditorScreen: View {
                 if let who = live.writing {
                     Text("\(who) is writing…").font(.footnote.weight(.medium)).foregroundStyle(Theme.proGreen)
                 } else if let who = changeAuthor, !changes.isEmpty {
-                    // "Sam changed 2 lines · 1 hr ago": tap to go to the first change
+                    // "Sam changed 2 lines · 1 hr ago", like "Sam is writing…": tap to go to the first change
                     Button { scrollToFirstChange() } label: {
                         HStack(spacing: 6) {
-                            Avatar(url: who.avatar, name: who.name, size: 18, id: who.id)
+                            Avatar(url: who.avatar, name: who.name, size: 16, id: who.id)
                             Text("\(who.name) changed \(changeLines) \(changeLines == 1 ? "line" : "lines")\(changeAgo)").lineLimit(1)
                         }
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(Color(red: 0.48, green: 0.18, blue: 0.02))
-                        .padding(.leading, 3).padding(.trailing, 10).padding(.vertical, 3)
-                        .background(Color(red: 232 / 255, green: 89 / 255, blue: 12 / 255).opacity(0.14), in: Capsule())
+                        .font(.footnote.weight(.medium))
+                        .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
                     .transition(.opacity)
