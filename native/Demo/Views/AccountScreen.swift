@@ -63,9 +63,7 @@ struct AccountScreen: View {
                 default: SupportPage(tickets: $tickets)
                 }
             }
-            .fileImporter(isPresented: $importing, allowedContentTypes: [.json, .plainText, .text], allowsMultipleSelection: true) { r in
-                if case .success(let urls) = r, !urls.isEmpty { Haptics.success(); session.toast = library.importFiles(urls) }
-            }
+            .sheet(isPresented: $importing) { ImportScreen() }
             .sheet(item: Binding(get: { exportURL.map(ShareSheet.IdentURL.init) }, set: { exportURL = $0?.url })) { u in
                 ActivityView(items: [u.url])
             }

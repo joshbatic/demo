@@ -1,4 +1,6 @@
 import Foundation
+import PDFKit
+import UIKit
 
 // MARK: - folders (spec §3.6)
 
@@ -90,6 +92,15 @@ extension LibraryStore {
         for u in urls {
             let ok = u.startAccessingSecurityScopedResource()
             defer { if ok { u.stopAccessingSecurityScopedResource() } }
+            let ext = u.pathExtension.lowercased()
+            if ext == "pdf" || ext == "rtf" {
+                // PDFs and Rich Text: their words only
+                let t = ext == "pdf" ? PDFDocument(url: u)?.string
+                    : (try? NSAttributedString(url: u, options: [.documentType: NSAttributedString.DocumentType.rtf], documentAttributes: nil))?.string
+                guard let t, !t.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { bad += 1; continue }
+                all.append(.object(SongBackup.fromText(t, name: u.lastPathComponent)))
+                continue
+            }
             guard let data = try? Data(contentsOf: u), let text = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .isoLatin1) else { bad += 1; continue }
             let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
             if u.pathExtension.lowercased() == "json" || trimmed.hasPrefix("[") || trimmed.hasPrefix("{") {
@@ -160,6 +171,8 @@ enum SongBackup {
             if title.isEmpty { title = "Imported" }
         }
         while let last = body.last, last.isWhitespace { body.removeLast() }
+        // "Chorus" or "Verse 2:" on its own line becomes a section tag
+        body = LyricText.tagSections(body)
         let now = Clock.nowMs
         var o: [String: JSONValue] = [
             "id": .string("s\(Int64(now))\(Int.random(in: 0..<10_000))"), "title": .string(title), "lyrics": .string(body),

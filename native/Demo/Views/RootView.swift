@@ -370,97 +370,56 @@ struct OnboardingView: View {
     @State private var suggesting = false
     @FocusState private var field: Int?
 
-    private let pages = 6
+    /// What the welcome page's buttons chose: "song" (the first song, with tips) or "import" (Bring your songs in).
+    @State private var intent: String?
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Spacer()
-                if step < pages - 1 {
-                    Button("Skip") { finish() }.font(.system(size: 17)).foregroundStyle(.secondary)
-                }
-            }
-            .frame(height: 44).padding(.horizontal, 20)
-
-            TabView(selection: $step) {
-                feature(art: AnyView(AppMark(size: 120).shadow(color: .black.opacity(0.12), radius: 16, y: 8)),
-                        title: "Write it down.",
-                        text: "Lyrics, ideas and demos together, one song at a time.").tag(0)
-                feature(art: AnyView(RhymeArt()), title: "Rhymes as you type.",
-                        text: "Rhymes, synonyms and phrases for the word you’re on, right above the keyboard.").tag(1)
-                feature(art: AnyView(MemoArt()), title: "Catch it before it’s gone.",
-                        text: "Jot a line or hum a melody in Ideas, then turn it into a song.").tag(2)
-                feature(art: AnyView(ShareArt()), title: "Hear it with the words.",
-                        text: "Add your demo and the lyrics light up in time. Send it with a link anyone can open. Try it free with Pro.").tag(3)
-                profile.tag(4)
-                notifications.tag(5)
-            }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .animation(.snappy, value: step)
-
-            // the dots step aside while typing, so they never sit over the fields
-            if field == nil {
-                HStack(spacing: 7) {
-                    ForEach(0..<pages, id: \.self) { i in
-                        Capsule().fill(i == step ? Color.primary : Color.primary.opacity(0.18))
-                            .frame(width: i == step ? 18 : 7, height: 7)
+        Group {
+            if step == 0 {
+                // A: one welcome page (Onboarding.swift), then your name and username
+                WelcomeSheet(onStart: { intent = "song"; toProfile() }, onImport: { intent = "import"; toProfile() })
+                    .overlay(alignment: .topTrailing) {
+                        Button("Skip") { finish() }.font(.system(size: 17)).foregroundStyle(.secondary)
+                            .padding(.horizontal, 20).frame(height: 44)
                     }
+                    .transition(.opacity)
+            } else {
+                VStack(spacing: 0) {
+                    profile
+                    VStack(spacing: 10) {
+                        Button { Haptics.tap(); saveProfile() } label: {
+                            Text(saving ? "Saving…" : "Continue").font(.system(size: 17, weight: .semibold)).foregroundStyle(Theme.onTint)
+                                .frame(maxWidth: .infinity, minHeight: 52).background(Theme.tint, in: Capsule())
+                        }
+                        .buttonStyle(PressScale())
+                        .disabled(saving)
+                        if field == nil {
+                            Button("Later") { field = nil; finish() }
+                                .font(.system(size: 16, weight: .medium)).foregroundStyle(.secondary).frame(height: 30)
+                        }
+                    }
+                    .padding(.horizontal, 24).padding(.top, field == nil ? 0 : 10).padding(.bottom, 12)
                 }
-                .animation(.snappy, value: step)
-                .padding(.top, 12).padding(.bottom, 20)
-                .accessibilityHidden(true)
+                .transition(.opacity)
             }
-
-            VStack(spacing: 10) {
-                Button { primary() } label: {
-                    Text(primaryTitle).font(.system(size: 17, weight: .semibold)).foregroundStyle(Theme.onTint)
-                        .frame(maxWidth: .infinity, minHeight: 52).background(Theme.tint, in: Capsule())
-                }
-                .buttonStyle(PressScale())
-                .disabled(saving)
-                if field == nil {
-                    Button(secondaryTitle ?? " ") { secondary() }
-                        .font(.system(size: 16, weight: .medium)).foregroundStyle(.secondary)
-                        .frame(height: 30)
-                        .opacity(secondaryTitle == nil ? 0 : 1).disabled(secondaryTitle == nil)
-                }
-            }
-            .padding(.horizontal, 24).padding(.top, field == nil ? 0 : 10).padding(.bottom, 12)
         }
         .background(Color(uiColor: .systemBackground).ignoresSafeArea())
         .onAppear { prefill() }
         .onChange(of: session.profile) { _, _ in prefill() }
         .animation(.snappy(duration: 0.25), value: field)
-        // the fields are filled in already, so the keyboard waits for a tap rather than covering the page
-        .onChange(of: step) { _, _ in field = nil; error = nil }
     }
 
-    private var primaryTitle: String {
-        switch step {
-        case 4: return saving ? "Saving…" : "Continue"
-        case 5: return "Turn On Notifications"
-        default: return "Continue"
-        }
-    }
-    private var secondaryTitle: String? { step == 4 ? "Later" : step == 5 ? "Not Now" : nil }
-
-    private func primary() {
+    private func toProfile() {
         Haptics.tap()
-        switch step {
-        case 4: saveProfile()
-        case 5: Task { await Push.shared.ask(); finish() }
-        default: withAnimation(.snappy) { step += 1 }
-        }
+        withAnimation(.snappy) { step = 1 }
     }
-    private func secondary() {
-        if step == 4 { field = nil; withAnimation(.snappy) { step = 5 } } else { finish() }
-    }
-    /// Into the app, then Pro once, as the last thing onboarding shows (closed with ✕; never again after this).
+
+    /// Into the app, then the first song (with three tips) or Bring your songs in, as the welcome page chose.
+    /// No paywall and no notifications prompt here: notifications are asked for when they're first useful
+    /// (sharing a song, accepting an invite).
     private func finish() {
         field = nil; Haptics.success(); done()
-        guard !session.plan.isPro else { return }
-        let s = session
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { if !s.plan.isPro && s.paywallWhy == nil { s.paywallWhy = "" } }
+        session.afterOnboarding = intent
     }
 
     // MARK: pages
@@ -571,12 +530,12 @@ struct OnboardingView: View {
     private func saveProfile() {
         field = nil
         let n = name.trimmingCharacters(in: .whitespacesAndNewlines), u = username.trimmingCharacters(in: .whitespaces)
-        if n.isEmpty && u.isEmpty { withAnimation(.snappy) { step = 5 }; return }
+        if n.isEmpty && u.isEmpty { finish(); return }
         saving = true
         Task {
             let e = await session.saveNameAndUsername(name: n, username: u)
             saving = false
-            if let e { error = e; Haptics.warning(); field = 1 } else { withAnimation(.snappy) { step = 5 } }
+            if let e { error = e; Haptics.warning(); field = 1 } else { finish() }
         }
     }
 }

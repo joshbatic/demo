@@ -1456,6 +1456,36 @@ body.nglass .ngsw{opacity:0!important}
 #stuckb svg{filter:none!important}
 
 /* ---------- first-run onboarding (once per device, after signing in) ---------- */
+#ob .nb,#impx .nb{white-space:nowrap}
+#ob .obhero{width:100%;height:calc(210px + env(safe-area-inset-top,0px));background:linear-gradient(160deg,#BFE3F5,#CFC8F7 55%,#F1D3EC);display:flex;align-items:center;justify-content:center;position:relative;flex:none;padding-top:env(safe-area-inset-top,0px)}
+#ob .obhero i{width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,#fff 0 12%,rgba(255,255,255,.55) 13% 16%,rgba(255,255,255,.18) 17% 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.7),0 18px 40px rgba(60,50,110,.18)}
+#ob .obhero .obskip{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:22px;color:#3A3550}
+#ob .obwel{justify-content:flex-start;padding-top:26px}
+#ob .obrows{display:flex;flex-direction:column;gap:22px;margin-top:26px;text-align:left;width:100%}
+#ob .obrow{display:flex;gap:16px;align-items:flex-start}#ob .obrow svg{flex:none;margin-top:2px}
+#ob .obrow b{display:block;font-size:16px}#ob .obrow span{display:block;font-size:15px;line-height:1.35;color:var(--mute);margin-top:2px}
+#ob .obfine{font-size:13px;color:var(--mute);text-align:center;margin-top:6px}
+#fstip{position:absolute;left:4px;right:4px;bottom:calc(100% + 10px);background:#1C1C1E;color:#fff;border-radius:16px;padding:14px 18px 12px;box-shadow:0 12px 30px rgba(0,0,0,.22);text-align:left}
+#fstip b{font-size:16px;display:block}#fstip p{font-size:14px;line-height:1.4;color:rgba(255,255,255,.8);margin:4px 0 0}
+#fstip .fsrow{display:flex;align-items:center;gap:6px;margin-top:10px}#fstip .fsdots{display:flex;gap:6px;flex:1}
+#fstip .fsdots i{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.3)}#fstip .fsdots i.on{width:18px;background:#fff}
+#fstip button{font:inherit;font-size:14px;font-weight:600;border:0;cursor:pointer;padding:8px 6px;background:none;color:rgba(255,255,255,.75)}
+#fstip .fsnext{background:#fff;color:#000;border-radius:99px;padding:8px 14px}
+#impx{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.32);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .25s}
+#impx.on{opacity:1}
+#impx .imcard{background:var(--bg);width:100%;max-width:560px;max-height:90%;overflow-y:auto;border-radius:28px 28px 0 0;padding:18px 16px calc(24px + env(safe-area-inset-bottom,0px))}
+@media(min-width:700px){#impx{align-items:center}#impx .imcard{border-radius:24px}}
+#impx .imhd{display:flex;align-items:center;justify-content:space-between;padding:0 4px}
+#impx h2{font-size:26px;font-weight:800;letter-spacing:-.5px;margin:0}
+#impx .imdone{font:inherit;font-size:16px;font-weight:600;border:0;background:var(--fill);color:var(--ink);border-radius:99px;height:40px;padding:0 16px;cursor:pointer}
+#impx .imsub{font-size:15px;color:var(--mute);margin:8px 4px 16px}
+#impx .imlist{background:var(--fill);border-radius:14px;overflow:hidden}
+#impx .imrow{display:flex;gap:14px;align-items:center;padding:14px 16px}#impx .imrow+.imrow{border-top:.5px solid var(--sep)}
+#impx .imic{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none}
+#impx .imtx{flex:1;min-width:0}#impx .imtx b{display:block;font-size:16px}#impx .imtx span{display:block;font-size:14px;line-height:1.4;color:var(--mute);margin-top:2px}
+#impx .imbtn,#impx .imadd{font:inherit;font-size:14px;font-weight:600;border:0;border-radius:99px;height:36px;padding:0 14px;background:var(--tint);color:var(--ontint);cursor:pointer}
+#impx .impaste{margin-top:14px}#impx textarea{width:100%;box-sizing:border-box;min-height:200px;border:0;border-radius:14px;background:var(--fill);color:var(--ink);font:inherit;font-size:16px;padding:14px;resize:vertical}
+#impx .imrowb{display:flex;justify-content:flex-end;gap:10px;margin-top:10px}#impx .imcancel{font:inherit;font-size:14px;font-weight:600;border:0;background:none;color:var(--mute);cursor:pointer}
 #ob{position:fixed;inset:0;z-index:2147482000;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;align-items:center;opacity:0;transition:opacity .3s}
 #ob.on{opacity:1}
 #ob .obtop{width:100%;display:flex;justify-content:flex-end;padding:calc(env(safe-area-inset-top,0px) + 14px) 22px 0;height:58px}
@@ -21975,7 +22005,7 @@ var KY=['','C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];KY.slice(1).for
 $('#f-key').innerHTML=KY.map(function(k){return'<option value="'+k+'">'+(k||'None')+'</option>'}).join('');
 var map={'#title':'title','#f-artist':'artist','#chd':'chords','#f-key':'key','#f-bpm':'bpm','#f-tuning':'tuning','#f-status':'status','#f-folder':'folder','#f-notes':'notes'};
 Object.keys(map).forEach(function(sel){$(sel).addEventListener('input',function(){if(!cur)return;cur[map[sel]]=this.value;cur.updated=Date.now();save();if(sel==='#f-key')chordChips();hdr()})});
-function openSong(id){if(window.ALB)ALB.ret=null;
+function openSong(id){if(window.ALB)ALB.ret=null;setTimeout(fsTip,0);
   cur=songs.filter(function(s){return s.id===id})[0];if(!cur)return;sheet(false);LSK=null;scheme=cur.scheme||'auto';if(typeof setRateMode==='function'&&rateMode)setRateMode(false);PF=mkPF(cur.pf||pgGet());MC={};gearDot();
   Object.keys(map).forEach(function(sel){$(sel).value=cur[map[sel]]||''});setLyr(cur);hdr();
   $('#fl').innerHTML=Array.from(new Set(songs.map(function(s){return s.folder}).filter(Boolean))).map(function(f){return'<option value="'+f.replace(/"/g,'&quot;')+'">'}).join('');
@@ -24089,7 +24119,7 @@ function fromText(txt,name){txt=txt.replace(/\r/g,'');var L=txt.split('\n'),titl
   var body=L.slice(i).join('\n').replace(/^\n+/,''),ch='',nt='',ci=body.indexOf('\n--- Chords ---\n'),ni=body.indexOf('\n--- Notes ---\n');
   if(ni>=0){nt=body.slice(ni+15).trim();body=body.slice(0,ni)}if(ci>=0){ch=body.slice(ci+16).trim();body=body.slice(0,ci)}
   if(!title||title.length>80){body=txt;title=(name||'Imported').replace(/\.[^.]+$/,'')}
-  return Object.assign({id:'s'+Date.now()+Math.floor(Math.random()*1e4),title:title,lyrics:body.replace(/\s+$/,''),chords:ch,notes:nt,status:'Idea',folder:'',updated:Date.now()},meta)}
+  return Object.assign({id:'s'+Date.now()+Math.floor(Math.random()*1e4),title:title,lyrics:tagSections(body.replace(/\s+$/,'')),chords:ch,notes:nt,status:'Idea',folder:'',updated:Date.now()},meta)}
 function importSongs(list,keep){var added=0,upd=0,skip=0;list.forEach(function(s){if(!s||typeof s!=='object'||typeof s.id!=='string'){skip++;return}
     s=JSON.parse(JSON.stringify(s));if(!keep){delete s.shared;delete s.owner;delete s.members}Object.keys(s).forEach(function(k){if(k[0]==='_')delete s[k]});
     ['title','lyrics','rich','chords','notes','artist','folder','status','key','bpm','tuning','capo','time'].forEach(function(k){if(s[k]!=null&&typeof s[k]!=='string')s[k]=String(s[k])});
@@ -24100,7 +24130,7 @@ function importSongs(list,keep){var added=0,upd=0,skip=0;list.forEach(function(s
     if(!ex){songs.push(s);added++}else if(!ex.shared&&was>(ex.updated||0)){Object.keys(ex).forEach(function(k){delete ex[k]});Object.assign(ex,s);upd++}else skip++});
   save();renderList();renderSide();return[added,upd,skip]}
 $('#newfolderb').onclick=function(){createFolder(false)};
-$('#impb').onclick=function(){$('#impin').click()};
+$('#impb').onclick=function(){impOpen()};
 $('#impin').onchange=function(){var fs=[].slice.call(this.files||[]);this.value='';if(!fs.length)return;var all=[],left=fs.length,bad=0;
   fs.forEach(function(f){var rd=new FileReader();rd.onload=function(){try{if(/\.json$/i.test(f.name)||/^\s*[\[{]/.test(rd.result)){var d=JSON.parse(rd.result);all=all.concat(Array.isArray(d)?d:Array.isArray(d.songs)?d.songs:[d])}else all.push(fromText(rd.result,f.name))}catch(e){bad++}done()};rd.onerror=function(){bad++;done()};rd.readAsText(f)});
   function done(){if(--left)return;var r=importSongs(all);toast((r[0]?r[0]+' song'+(r[0]>1?'s':'')+' added':'No new songs')+(r[1]?', '+r[1]+' updated':'')+(r[2]?', '+r[2]+' already here':'')+(bad?', '+bad+' file'+(bad>1?'s':'')+' unreadable':''))}};
@@ -25527,15 +25557,15 @@ function obKey(){return 'songpad:onboarded'+(AUTH_USER&&AUTH_USER.id?':'+AUTH_US
 function obDone(){try{return localStorage.getItem(obKey())==='1'}catch(e){return true}}
 function obMaybe(){if(!AUTH_USER||DEV_MODE||DEV_BUILD||obDone()||$('#ob'))return;if(BETA&&BETA.st&&['open','admin','approved'].indexOf(BETA.st)<0)return;obOpen()}
 function obClose(){try{localStorage.setItem(obKey(),'1');localStorage.setItem('songpad:onboarded','1')}catch(e){}var o=$('#ob');if(!o)return;o.classList.remove('on');setTimeout(function(){o.remove()},300);try{haptic('success')}catch(e){}
-  /* then Pro, once, as the last thing onboarding shows (like the iPhone app) */
-  if(!isPro())setTimeout(function(){if(!isPro()&&!$('#pw.on'))openPaywall('')},700)}
+  /* then what the welcome page chose: the first song with three tips, or Bring your songs in. No paywall here. */
+  var it=OB.intent;OB.intent=null;if(it)setTimeout(function(){if(it==='import')impOpen();else{newSong();if(cur){FSTIP={id:cur.id,i:0};fsTip()}}},350)}
 function obOpen(){var o=document.createElement('div');o.id='ob';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','Welcome to *[demo]');document.body.appendChild(o);
   try{var ae=document.activeElement;if(ae&&ae.blur&&ae!==document.body)ae.blur()}catch(e){}
   OB={i:0,busy:false,err:'',name:(MY_PROFILE&&MY_PROFILE.display_name)||((AUTH_USER.user_metadata||{}).full_name)||((AUTH_USER.user_metadata||{}).name)||'',user:(MY_PROFILE&&MY_PROFILE.username)||''};
   obRender();requestAnimationFrame(function(){o.classList.add('on')});obSuggest();
-  o.addEventListener('keydown',function(e){if(e.key==='Escape'){obClose()}else if(e.key==='ArrowRight'&&OB.i<4&&e.target.tagName!=='INPUT'){OB.i++;obRender()}else if(e.key==='ArrowLeft'&&OB.i>0&&e.target.tagName!=='INPUT'){OB.i--;obRender()}});
+  o.addEventListener('keydown',function(e){if(e.key==='Escape'){obClose()}else if(e.key==='ArrowRight'&&OB.i<1&&e.target.tagName!=='INPUT'){OB.i++;obRender()}else if(e.key==='ArrowLeft'&&OB.i>0&&e.target.tagName!=='INPUT'){OB.i--;obRender()}});
   /* swipe between pages on touch screens */
-  var x0=null;o.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});o.addEventListener('touchend',function(e){if(x0==null)return;var dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)<50)return;if(dx<0&&OB.i<4){OB.i++;obRender()}else if(dx>0&&OB.i>0){OB.i--;obRender()}})}
+  var x0=null;o.addEventListener('touchstart',function(e){x0=e.touches[0].clientX},{passive:true});o.addEventListener('touchend',function(e){if(x0==null)return;var dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)<50)return;if(dx<0&&OB.i<1){OB.i++;obRender()}else if(dx>0&&OB.i>0){OB.i--;obRender()}})}
 /* no username yet: suggest one from the name (or the email, unless it's Apple's private relay), free on the server */
 function obSuggest(){if(OB.user)return;var em=(AUTH_USER&&AUTH_USER.email)||'';
   var clean=function(x){return(x||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9_]/g,'')};
@@ -25549,13 +25579,13 @@ function obArt(i){if(i===0){var dk=document.documentElement.getAttribute('data-t
   if(i===3)return'<div class="obcard obshare"><div class="obsp"><i></i><span><b>Porch Light</b><small>0:41 / 2:58</small></span><em><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg></em></div><p style="opacity:.45">I left the porch light on</p><p class="on">in case you found your way</p><p style="opacity:.3">back down the gravel road</p><p style="opacity:.3">before the break of day</p></div>';
   var b=[8,14,22,30,18,26,36,24,16,28,34,20,12,24,30,18,10,20,26,14,8,16];
   return'<div class="obcard"><div class="obline" style="font-size:19px;font-weight:500">hum this over the bridge?</div><div class="obmemo"><span class="obplay"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg></span><span class="obbars">'+b.map(function(h,k){return'<i style="height:'+h+'px;opacity:'+(k<8?.9:.25)+'"></i>'}).join('')+'</span><span style="font-size:13px;color:var(--mute)">0:12</span></div></div>'}
-function obRender(){var o=$('#ob');if(!o)return;var i=OB.i,last=i===4;
+function obRender(){var o=$('#ob');if(!o)return;var i=OB.i,last=i>=1;if(i===0)return obWelcome(o);
   var pages=[['Write it down.','Lyrics, ideas and demos together, one song at a time.'],['Rhymes as you type.','Rhymes, synonyms and phrases for the word you’re on, right above the keyboard.'],['Catch it before it’s gone.','Jot a line or hum a melody in Ideas, then turn it into a song.'],['Hear it with the words.','Add your demo and the lyrics light up in time. Send it with a link anyone can open. Try it free with Pro.']];
   var h='<div class="obtop">'+(last?'':'<button class="obskip" id="obskip">Skip</button>')+'</div><div class="obpage">';
   if(!last)h+='<div class="obart">'+obArt(i)+'</div><h1></h1><p class="obp"></p>';
   else h+='<div class="obav" id="obav"></div><h1 style="font-size:24px;letter-spacing:-.3px;margin-top:18px">What should co-writers call you?</h1><p class="obp" style="font-size:16px">Your name goes on your songs. Co-writers find you by your username.</p>'+
     '<div class="obform"><label><input id="obname" placeholder="Name" autocomplete="name"></label><label><span style="color:var(--mute)">@</span><input id="obuser" placeholder="username" autocapitalize="off" autocomplete="username" spellcheck="false"></label></div><div class="obnote" id="obnote"></div>';
-  h+='</div><div class="obdots" aria-hidden="true">'+[0,1,2,3,4].map(function(k){return'<i class="'+(k===i?'on':'')+'"></i>'}).join('')+'</div>'+
+  h+='</div><div class="obdots" aria-hidden="true">'+[0,1].map(function(k){return'<i class="'+(k===i?'on':'')+'"></i>'}).join('')+'</div>'+
     '<div class="obbtns"><button class="obgo" id="obgo"></button><button class="obsec" id="obsec"'+(last?'':' hidden')+'>Later</button></div>';
   o.innerHTML=h;
   if(!last){o.querySelector('h1').textContent=pages[i][0];o.querySelector('.obp').textContent=pages[i][1]}
@@ -25576,6 +25606,49 @@ function obSave(){if(OB.busy)return;var n=(OB.name||'').trim(),u=(OB.user||'').t
   var p=u?saveUsername(u,n||null):saveLinks({display_name:n});
   p.then(function(){OB.busy=false;if(n){MY_PROFILE=MY_PROFILE||{};MY_PROFILE.display_name=n;profCacheSet(AUTH_USER.id,MY_PROFILE)}refreshAccount();paintAcctIcons();obClose()},
     function(e){OB.busy=false;OB.err=(e&&e.message)||'Couldn’t save. Try again.';obRender();try{haptic('warning')}catch(x){}})}
+/* the welcome page (onboarding A): three things *[demo] does, then the name step; its two buttons decide what
+   happens after onboarding (OB.intent). The iPhone app's is WelcomeSheet in Onboarding.swift. */
+function obWelcome(o){
+  var ic={rhy:'<path d="M4 6h16M4 12h10M4 18h7"/><path d="M17 15l2 2 3-4"/>',mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',co:'<circle cx="9" cy="8" r="3.2"/><path d="M3 19c.8-3.3 3.2-5 6-5s5.2 1.7 6 5"/><path d="M18 8v6M15 11h6"/>'};
+  var row=function(k,t,d){return'<div class="obrow"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ic[k]+'</svg><div><b>'+t+'</b><span>'+d+'</span></div></div>'};
+  o.innerHTML='<div class="obhero"><i></i><button class="obskip" id="obskip">Skip</button></div><div class="obpage obwel"><h1>Welcome to <span class="nb">*[demo]</span></h1><p class="obp">Everything for a song, in one place.</p><div class="obrows">'+
+    row('rhy','Rhymes as you type','Write a line and rhymes, syllables and ideas appear above the keyboard.')+
+    row('mic','Catch ideas anywhere','Hum a melody or jot a line. It waits in Ideas until you need it.')+
+    row('co','Write it together','Invite a co-writer, and share a link that plays your demo.')+
+    '</div></div><div class="obbtns"><button class="obgo" id="obstart">Start my first song</button><button class="obsec" id="obimp">I have songs to bring in</button><div class="obfine">Free to write with. Pro is optional.</div></div>';
+  var go=function(it){OB.intent=it;OB.i=1;obRender();try{haptic('light')}catch(e){}};
+  $('#obstart').onclick=function(){go('song')};$('#obimp').onclick=function(){go('import')};$('#obskip').onclick=obClose}
+/* the first song after onboarding (B): three tips, one at a time, just above the rhyme bar; Skip tips is always there */
+var FSTIP=null,FSTIPS=[['Tap a rhyme to end your line','The bar follows the word you’re on. The small number is its syllables.'],['Hum it before you forget','Ideas, at the top of your songs, records a voice memo in one tap.'],['It saves as you go','Your song is kept here and in your account. Go back to see it in your songs.']];
+function fsTip(){var el=$('#fstip');if(!FSTIP||!cur||cur.id!==FSTIP.id||FSTIP.i>=FSTIPS.length){if(el)el.remove();if(FSTIP&&FSTIP.i>=FSTIPS.length)FSTIP=null;return}
+  if(!el){el=document.createElement('div');el.id='fstip';el.setAttribute('role','status');$('#rhy').appendChild(el)}
+  var i=FSTIP.i,t=FSTIPS[i],lastT=i===FSTIPS.length-1;
+  el.innerHTML='<b></b><p></p><div class="fsrow"><span class="fsdots">'+FSTIPS.map(function(x,k){return'<i class="'+(k===i?'on':'')+'"></i>'}).join('')+'</span>'+(lastT?'':'<button class="fsskip">Skip tips</button>')+'<button class="fsnext">'+(lastT?'Done':'Next')+'</button></div>';
+  el.querySelector('b').textContent=t[0];el.querySelector('p').textContent=t[1];
+  el.querySelector('.fsnext').onclick=function(e){e.preventDefault();FSTIP.i++;fsTip()};
+  var sk=el.querySelector('.fsskip');if(sk)sk.onclick=function(e){e.preventDefault();FSTIP=null;fsTip()};
+  [].forEach.call(el.querySelectorAll('button'),function(b){b.onmousedown=function(e){e.preventDefault()}})}
+/* ---------- Bring your songs in: Notes and Voice Memos (iPhone share sheet), lyric files, pasting ---------- */
+function impOpen(){var x=$('#impx');if(x)x.remove();x=document.createElement('div');x.id='impx';x.setAttribute('role','dialog');x.setAttribute('aria-modal','true');x.setAttribute('aria-label','Bring your songs in');
+  var row=function(bg,fg,path,t,d,btn){return'<div class="imrow"><span class="imic" style="background:'+bg+';color:'+fg+'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+path+'</svg></span><div class="imtx"><b>'+t+'</b><span>'+d+'</span></div>'+(btn?'<button class="imbtn" data-a="'+btn[0]+'">'+btn[1]+'</button>':'')+'</div>'};
+  x.innerHTML='<div class="imcard"><div class="imhd"><h2>Bring your songs in</h2><button class="imdone">Done</button></div><p class="imsub">Your songs stay private. Nothing is shared until you share it.</p><div class="imlist">'+
+    row('#FFF4C2','#7A5B00','<rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/>','From Notes','On iPhone, in Notes, tap Share, then <span class="nb">*[demo]</span>. Each note becomes a song.')+
+    row('#FFE1E1','#9A1C1C','<path d="M4 12h1.5M7.5 8v8M11 5v14M14.5 9v6M18 7v10M20.5 12H20"/>','From Voice Memos','On iPhone, share a memo to <span class="nb">*[demo]</span>. It lands in Ideas, ready to start a song.')+
+    row('#DCEBFF','#0B4AA2','<path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l2 2h6.5A2.5 2.5 0 0 1 21 9.5v8a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/>','Lyric files','Text files or a <span class="nb">*[demo]</span> backup. Pick lots at once.',['file','Choose'])+
+    row('#E6F6EC','#146B3A','<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/>','Paste lyrics','The first line becomes the title.',['paste','Paste'])+
+    '</div><div class="impaste" hidden><textarea aria-label="Lyrics to add" placeholder="Paste or type a song. The first line becomes its title."></textarea><div class="imrowb"><button class="imcancel">Cancel</button><button class="imadd">Add Song</button></div></div></div>';
+  document.body.appendChild(x);requestAnimationFrame(function(){x.classList.add('on')});
+  var close=function(){x.classList.remove('on');setTimeout(function(){x.remove()},250)};
+  x.onclick=function(e){if(e.target===x)close()};x.querySelector('.imdone').onclick=close;
+  x.addEventListener('keydown',function(e){if(e.key==='Escape'){e.stopPropagation();close()}});
+  var pa=x.querySelector('.impaste'),ta=pa.querySelector('textarea');
+  x.querySelector('[data-a="file"]').onclick=function(){$('#impin').click()};
+  x.querySelector('[data-a="paste"]').onclick=function(){pa.hidden=false;ta.focus();try{navigator.clipboard.readText().then(function(t){if(t&&!ta.value)ta.value=t},function(){})}catch(e){}};
+  pa.querySelector('.imcancel').onclick=function(){pa.hidden=true;ta.value=''};
+  pa.querySelector('.imadd').onclick=function(){var t=ta.value.trim();if(!t)return;var s=fromText(t,'Pasted lyrics');s.artist=myName();importSongs([s]);toast('“'+(s.title||'Song')+'” added');try{haptic('success')}catch(e){}pa.hidden=true;ta.value='';close()}}
+/* "Chorus" or "Verse 2:" on its own line becomes a section tag ("[Chorus]") when lyrics come in from elsewhere */
+function tagSections(b){return b.split('\n').map(function(l){if(l.length>24||!/^\s*[\(\[]?\s*(intro|verse|pre[- ]?chorus|chorus|post[- ]?chorus|bridge|middle 8|hook|refrain|interlude|breakdown|tag|outro)(\s*\d+)?\s*[\)\]]?\s*:?\s*$/i.test(l))return l;
+  return'['+l.replace(/^[\s\(\[]+|[\s\)\]:]+$/g,'').split(/\s+/).map(function(w){return w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()}).join(' ')+']'}).join('\n')}
 /* ---------- profile: username, display name & avatar, public so collaborators can find and credit you ---------- */
 function myName(){return(MY_PROFILE&&(MY_PROFILE.display_name||MY_PROFILE.username))||(AUTH_USER&&AUTH_USER.user_metadata&&(AUTH_USER.user_metadata.full_name||AUTH_USER.user_metadata.name))||''}
 /* the account icon (top of the song list, and in the sidebar) shows the signed-in user's own
@@ -26567,7 +26640,7 @@ function renderAccount(){if(PW.on)pwRender();var o=$('#acc'),pro=isPro(),page=AC
   var g2=accSection(o,'Your songs');
   if(AUTH_USER){var nCred=songs.filter(function(s){return s.title&&s.status==='Finished'}).length;
     g2.appendChild(accCell({glass:1,tile:ACC_LN.sign,grad:3,tileCls:'credtile',label:'Credits',value:nCred?String(nCred):'',chev:true,onclick:function(){accGo('credits')}}))}
-  g2.appendChild(accCell({glass:1,tile:ACC_LN.down,grad:2,label:'Import Songs',chev:true,onclick:function(){sheet(false);$('#impin').click()}}));
+  g2.appendChild(accCell({glass:1,tile:ACC_LN.down,grad:2,label:'Import Songs',chev:true,onclick:function(){sheet(false);impOpen()}}));
   g2.appendChild(accCell({glass:1,tile:ACC_LN.up,grad:7,label:'Export All Songs',chev:true,onclick:function(){sheet(false);$('#expb').click()}}));
   /* storage used against the account's limit; fetched fresh each time Account opens, then shown */
   if(AUTH_USER&&!DEV_MODE){var sv=STORE?(STORE.limit!=null?sfSize(STORE.used)+' of '+sfSize(STORE.limit):sfSize(STORE.used)||'0 KB'):'…';

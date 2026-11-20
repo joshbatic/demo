@@ -66,6 +66,16 @@ struct EditorScreen: View {
                         topBar
                             .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxY } action: { topBarBottom = $0 }
                         Spacer(minLength: 0)
+                        // the first song after sign-up: three tips, one at a time (Onboarding.swift)
+                        if session.tipsSongID == songID {
+                            FirstSongTip(step: session.tipStep, onNext: {
+                                withAnimation(.snappy) {
+                                    if session.tipStep < FirstSongTip.tips.count - 1 { session.tipStep += 1 } else { session.tipsSongID = nil }
+                                }
+                            }, onSkip: { withAnimation(.snappy) { session.tipsSongID = nil } })
+                            .padding(.horizontal, 14)
+                            .padding(.bottom, 8)
+                        }
                         if Guide.isView(song) {
                             EmptyView()
                         } else if sprintEnd != nil {

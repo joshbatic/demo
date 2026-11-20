@@ -42,6 +42,7 @@ struct DemoApp: App {
                 Haptics.warm()
                 QuickActions.refresh(session.library)
                 Task { await session.library.checkRemote() }
+                Task { await ShareInbox.drain(session) }
                 RemoteConfig.shared.foreground()
                 Task { await Push.shared.refreshStatus() }
                 if session.userID != nil && Date().timeIntervalSince(session.planAt) > 60 { Task { await session.refreshPlan() } }
