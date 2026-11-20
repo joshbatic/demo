@@ -311,6 +311,9 @@ struct EditorScreen: View {
                     }
                     .buttonStyle(.plain)
                     .transition(.opacity)
+                } else if s.isShared {
+                    // a shared song keeps this line's space, so "Sam is writing…" coming and going never moves the page
+                    Text(" ").font(.footnote.weight(.medium)).hidden()
                 }
             }
         }

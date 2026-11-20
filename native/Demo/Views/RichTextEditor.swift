@@ -11,6 +11,9 @@ final class EditorBridge {
     /// The stored text this view last loaded or saved, and when the user last typed.
     var lastKey = ""
     var lastEdit = Date.distantPast
+    /// True while a co-writer's edit (or a reload from another device) is going in: the page doesn't scroll to the
+    /// caret and the rhyme bar doesn't change word for it.
+    var applyingRemote = false
     /// The text and selection whenever either changes (the rhyme bar follows it).
     var onSelection: ((String, NSRange) -> Void)?
     weak var coordinator: RichTextEditor.Coordinator?
@@ -339,6 +342,15 @@ struct RichTextEditor: UIViewRepresentable {
 
     private func load(_ tv: UITextView, _ c: Coordinator) {
         let sel = tv.selectedRange
+        // a reload (another device, a co-writer's whole song): the page stays where it was
+        let offset = tv.contentOffset
+        bridge.applyingRemote = true
+        defer {
+            bridge.applyingRemote = false
+            tv.layoutIfNeeded()
+            let maxY = max(0, tv.contentSize.height + tv.contentInset.bottom - tv.bounds.height)
+            tv.contentOffset = CGPoint(x: offset.x, y: min(max(0, offset.y), maxY))
+        }
         let a = NSMutableAttributedString(attributedString: RichText.attributed(html: rich, plain: lyrics, font: EditorBridge.baseFont, color: .label))
         let p = NSMutableParagraphStyle(); p.lineSpacing = 6
         a.addAttribute(.paragraphStyle, value: p, range: NSRange(location: 0, length: a.length))
@@ -381,12 +393,12 @@ struct RichTextEditor: UIViewRepresentable {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) { (tv as? LyricsTextView)?.keepCaretVisible(animated: true) }
         }
 
-        func afterChange(_ tv: UITextView) {
+        func afterChange(_ tv: UITextView, remote: Bool = false) {
             normalizeBreaks(tv)
             styleSectionTags(tv)
             updatePlaceholder(tv)
             bridge?.emit()
-            bridge?.onSelection?(tv.text, tv.selectedRange)
+            if !remote { bridge?.onSelection?(tv.text, tv.selectedRange) }
             scheduleViews()
         }
 
@@ -409,6 +421,8 @@ struct RichTextEditor: UIViewRepresentable {
         }
 
         func textViewDidChangeSelection(_ tv: UITextView) {
+            // a co-writer's edit moved the text under the caret: not a move of yours
+            if bridge?.applyingRemote == true { return }
             bridge?.onSelection?(tv.text, tv.selectedRange)
             // only for an empty selection; a drag-selection is left where the finger put it. keepCaretVisible
             // only centres the line while typing: a tap that moves the caret leaves the page where it is
