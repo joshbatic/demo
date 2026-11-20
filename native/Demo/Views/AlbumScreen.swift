@@ -183,6 +183,8 @@ struct AlbumScreen: View {
     @State private var adding = false
     @State private var reading = false
     @State private var confirmDelete = false
+    @State private var confirmStop = false
+    @State private var linking = false
 
     var body: some View {
         if let a = library.album(albumID) {
@@ -268,10 +270,7 @@ struct AlbumScreen: View {
                 .accessibilityLabel("Songs")
                 Spacer()
                 HStack(spacing: 4) {
-                    ShareLink(item: tracklist(a, tracks)) {
-                        Icon("ic-share", 21).foregroundStyle(.primary).frame(width: 48, height: 48).contentShape(Rectangle())
-                    }
-                    .accessibilityLabel("Share tracklist")
+                    shareMenu(a, tracks)
                     Menu {
                         Button { Haptics.tap(); editing = true } label: { Label("Edit \(a.kind)", systemImage: "pencil") }
                         Button { Haptics.tap(); adding = true } label: { Label("Add Songs", systemImage: "plus") }
@@ -395,6 +394,61 @@ struct AlbumScreen: View {
         let last = max(a.updated, tracks.map(\.updated).max() ?? 0)
         let ago = RelativeDateTimeFormatter().localizedString(for: Date(timeIntervalSince1970: last / 1000), relativeTo: Date())
         return "\(tracks.count) \(tracks.count == 1 ? "song" : "songs"), \(lines) \(lines == 1 ? "line" : "lines") · Edited \(ago)"
+    }
+
+    /// Share: the album's own page (a link anyone can open, each song opening its own link), or the tracklist as text.
+    private func shareMenu(_ a: Album, _ tracks: [Song]) -> some View {
+        let mine = AlbumShare.mine(a, uid: session.userID)
+        let url = (mine?["id"]?.string).flatMap { URL(string: ShareLink_.url($0)) }
+        return Menu {
+            if let url {
+                ShareLink(item: url) { Label("Share Link", systemImage: "square.and.arrow.up") }
+                Button { makeLink(a, tracks) } label: { Label("Update Link", systemImage: "arrow.clockwise") }
+            } else {
+                Button { makeLink(a, tracks) } label: { Label("Create Share Link", systemImage: "link") }
+            }
+            Button {
+                UIPasteboard.general.string = tracklist(a, tracks); Haptics.success(); session.toast = "Tracklist copied"
+            } label: { Label("Copy Tracklist", systemImage: "list.number") }
+            if url != nil {
+                Section { Button(role: .destructive) { confirmStop = true } label: { Label("Stop Sharing", systemImage: "xmark.circle") } }
+            }
+        } label: {
+            Group {
+                if linking { ProgressView() } else { Icon("ic-share", 21).foregroundStyle(.primary) }
+            }
+            .frame(width: 48, height: 48).contentShape(Rectangle())
+        }
+        .disabled(linking)
+        .accessibilityLabel("Share")
+        .confirmDestroy("Stop the album link?", isPresented: $confirmStop, message: "Anyone with the link can no longer open it. Each song’s own link keeps working.", action: "Stop Sharing") {
+            guard let uid = session.userID else { return }
+            Task {
+                do { try await AlbumShare.stop(a, uid: uid, library: library); Haptics.thud(); session.toast = "The album link no longer works. Each song’s own link still does." }
+                catch { session.toast = "Couldn’t stop sharing: " + SongFiles.message(error) }
+            }
+        }
+    }
+
+    private func makeLink(_ a: Album, _ tracks: [Song]) {
+        guard let uid = session.userID else { session.toast = "Sign in to make share links."; return }
+        guard !tracks.isEmpty else { session.toast = "Add songs to the album first"; return }
+        let had = AlbumShare.mine(a, uid: uid)
+        let artist = a.artist.trimmingCharacters(in: .whitespaces).isEmpty ? session.myName : a.artist
+        linking = true
+        Task {
+            defer { linking = false }
+            do {
+                let id = try await AlbumShare.make(a, artist: artist, uid: uid, pro: session.plan.isPro, library: library) { i, n in
+                    session.toast = (had == nil ? "Making" : "Updating") + " the link… song \(i) of \(n)"
+                }
+                UIPasteboard.general.string = ShareLink_.url(id)
+                Haptics.success()
+                session.toast = (had == nil ? "Link ready" : "Link updated") + " and copied"
+            } catch {
+                session.toast = "Couldn’t make the link: " + SongFiles.message(error)
+            }
+        }
     }
 
     private func tracklist(_ a: Album, _ tracks: [Song]) -> String {

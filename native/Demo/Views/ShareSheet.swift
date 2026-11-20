@@ -444,7 +444,7 @@ struct ShareSheet: View {
             do {
                 try await withThrowingTaskGroup(of: Void.self) { g in
                     g.addTask { @MainActor in
-                        try await publish(s, id: id, uid: uid, bg: bg, audio: withAudio, art: artImg, og: ogImg)
+                        try await ShareLink_.publish(s, id: id, uid: uid, bg: bg, audio: withAudio, art: artImg, og: ogImg, library: library)
                     }
                     g.addTask { try await Task.sleep(for: .seconds(180)); throw ShareError.timeout }
                     try await g.next()
@@ -462,7 +462,38 @@ struct ShareSheet: View {
 
     enum ShareError: Error { case timeout }
 
-    private func publish(_ s: Song, id: String, uid: String, bg: SharePalette.Background, audio: FileItem?, art: UIImage?, og: UIImage?) async throws {
+    private func stopLink() async {
+        guard let uid = session.userID, let id = myShare?["id"]?.string else { return }
+        _ = try? await Backend.client.from("shares").delete().eq("id", value: id).execute()
+        let bucket = Backend.client.storage.from("shares")
+        if let files = try? await bucket.list(path: "\(uid)/\(id)") {
+            let paths = files.map { "\(uid)/\(id)/" + $0.name }
+            if !paths.isEmpty { _ = try? await bucket.remove(paths: paths) }
+        }
+        if var s = library.song(songID) {
+            var shares = s.raw["shares"]?.object ?? [:]
+            shares.removeValue(forKey: uid)
+            s.raw["shares"] = .object(shares)
+            s.touch(); library.put(s)
+        }
+        Haptics.thud()
+        session.toast = "The link no longer works"
+    }
+}
+
+/// The system share sheet.
+struct ActivityView: UIViewControllerRepresentable {
+    let items: [Any]
+    func makeUIViewController(context: Context) -> UIActivityViewController { UIActivityViewController(activityItems: items, applicationActivities: nil) }
+    func updateUIViewController(_ vc: UIActivityViewController, context: Context) {}
+}
+
+extension ShareLink_ {
+    /// Makes or updates a song's share link (`alb`: the album link it belongs to, so the page links back to it).
+    @MainActor
+    static func publish(_ s: Song, id: String, uid: String, bg: SharePalette.Background, audio: FileItem?, art: UIImage?, og: UIImage?,
+                        alb: [String: JSONValue]? = nil, library: LibraryStore) async throws {
+        let myShare = s.raw["shares"]?[uid]?.object
         let bucket = Backend.client.storage.from("shares")
         let v = String(Int(Date().timeIntervalSince1970 * 1000), radix: 36)
         let folder = "\(uid)/\(id)"
@@ -508,7 +539,7 @@ struct ShareSheet: View {
                 let n = "audio-\(v).\(ext)"; keep.insert(n)
                 let path = folder + "/" + n
                 do {
-                    guard !a.isLocal, a.size <= 40 * 1_048_576 else { throw ShareError.timeout }
+                    guard !a.isLocal, a.size <= 40 * 1_048_576 else { throw ShareSheet.ShareError.timeout }
                     _ = try await Backend.client.storage.from(SongFiles.bucket).copy(from: a.path, to: path, options: DestinationOptions(destinationBucket: "shares"))
                 } catch {
                     let local = try await SongFiles.playableURL(a)
@@ -520,6 +551,7 @@ struct ShareSheet: View {
             }
             aid = a.id; aname = a.name
         } else { data["audio"] = .null }
+        if let alb { data["alb"] = .object(alb) }
         let exp = Clock.nowMs + 30 * 86_400_000
         let row: [String: JSONValue] = ["id": .string(id), "owner": .string(uid), "song_id": .string(s.id), "data": .object(data),
                                         "audio_path": apath.map { .string($0) } ?? .null,
@@ -542,28 +574,4 @@ struct ShareSheet: View {
         library.put(now)
     }
 
-    private func stopLink() async {
-        guard let uid = session.userID, let id = myShare?["id"]?.string else { return }
-        _ = try? await Backend.client.from("shares").delete().eq("id", value: id).execute()
-        let bucket = Backend.client.storage.from("shares")
-        if let files = try? await bucket.list(path: "\(uid)/\(id)") {
-            let paths = files.map { "\(uid)/\(id)/" + $0.name }
-            if !paths.isEmpty { _ = try? await bucket.remove(paths: paths) }
-        }
-        if var s = library.song(songID) {
-            var shares = s.raw["shares"]?.object ?? [:]
-            shares.removeValue(forKey: uid)
-            s.raw["shares"] = .object(shares)
-            s.touch(); library.put(s)
-        }
-        Haptics.thud()
-        session.toast = "The link no longer works"
-    }
-}
-
-/// The system share sheet.
-struct ActivityView: UIViewControllerRepresentable {
-    let items: [Any]
-    func makeUIViewController(context: Context) -> UIActivityViewController { UIActivityViewController(activityItems: items, applicationActivities: nil) }
-    func updateUIViewController(_ vc: UIActivityViewController, context: Context) {}
 }
