@@ -296,3 +296,93 @@ struct SongsView: View {
 #Preview(as: .systemSmall) { SongsWidget() } timeline: { SnapEntry(date: .now, snap: .sample) }
 #Preview(as: .systemMedium) { SongsWidget() } timeline: { SnapEntry(date: .now, snap: .sample) }
 #Preview(as: .systemLarge) { SongsWidget() } timeline: { SnapEntry(date: .now, snap: .sample) }
+
+// MARK: - Rhyme of the Day
+
+struct RhymeEntry: TimelineEntry {
+    let date: Date
+    let day: RhymeOfTheDay.Day
+    let snap: Snapshot
+}
+
+/// A new word at midnight; the colour still follows your latest song.
+struct RhymeProvider: TimelineProvider {
+    func placeholder(in context: Context) -> RhymeEntry { RhymeEntry(date: .now, day: RhymeOfTheDay.day(), snap: .sample) }
+    func getSnapshot(in context: Context, completion: @escaping (RhymeEntry) -> Void) {
+        completion(RhymeEntry(date: .now, day: RhymeOfTheDay.day(), snap: Snapshot.load()))
+    }
+    func getTimeline(in context: Context, completion: @escaping (Timeline<RhymeEntry>) -> Void) {
+        let snap = Snapshot.load()
+        let cal = Calendar.current
+        let midnight = cal.startOfDay(for: cal.date(byAdding: .day, value: 1, to: .now) ?? .now)
+        let entries = [RhymeEntry(date: .now, day: RhymeOfTheDay.day(), snap: snap),
+                       RhymeEntry(date: midnight, day: RhymeOfTheDay.day(midnight), snap: snap)]
+        completion(Timeline(entries: entries, policy: .after(midnight.addingTimeInterval(60))))
+    }
+}
+
+struct RhymeWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "rhyme", provider: RhymeProvider()) { e in
+            RhymeView(e: e)
+                .containerBackground(for: .widget) { WidgetTint(snap: e.snap) }
+        }
+        .configurationDisplayName("Rhyme of the Day")
+        .description("A new word every day, with its rhymes. Tap to start a song with it.")
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular, .accessoryInline])
+    }
+}
+
+struct RhymeView: View {
+    @Environment(\.widgetFamily) private var family
+    let e: RhymeEntry
+
+    var body: some View {
+        let d = e.day
+        switch family {
+        case .accessoryInline:
+            Text("\(d.word): \(d.rhymes.prefix(3).joined(separator: ", "))")
+                .widgetURL(Links.url("new-song"))
+        case .accessoryRectangular:
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Rhyme of the day").font(.caption2).foregroundStyle(.secondary)
+                Text(d.word).font(.headline).widgetAccentable()
+                Text(d.rhymes.prefix(4).joined(separator: " · ")).font(.caption).lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .widgetURL(Links.url("new-song"))
+        case .systemMedium:
+            HStack(alignment: .top, spacing: 14) {
+                VStack(alignment: .leading, spacing: 4) {
+                    WLabel(text: "Rhyme of the day")
+                    Spacer(minLength: 0)
+                    Text(d.word).font(.system(size: 34, weight: .bold)).foregroundStyle(.white)
+                        .minimumScaleFactor(0.5).lineLimit(1)
+                    Text("Tap to start a song").font(.system(size: 12, weight: .medium)).foregroundStyle(.white.opacity(0.72))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                // the rhymes, as glass pills
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(Array(d.rhymes.prefix(5)), id: \.self) { r in
+                        Text(r).font(.system(size: 14, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
+                            .padding(.horizontal, 10).frame(height: 24)
+                            .background(Color.white.opacity(0.2), in: Capsule())
+                    }
+                }
+                .frame(width: 120, alignment: .leading)
+            }
+            .widgetURL(Links.url("new-song"))
+        default:
+            VStack(alignment: .leading, spacing: 4) {
+                WLabel(text: "Rhyme of the day")
+                Spacer(minLength: 0)
+                Text(d.word).font(.system(size: 30, weight: .bold)).foregroundStyle(.white)
+                    .minimumScaleFactor(0.5).lineLimit(1)
+                Text(d.rhymes.prefix(3).joined(separator: " · ")).font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.85)).lineLimit(2)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            .widgetURL(Links.url("new-song"))
+        }
+    }
+}
