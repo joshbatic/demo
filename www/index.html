@@ -25937,6 +25937,7 @@ function cloudSync(first){
       q.then(function(w){
         var lost=(w&&w.error&&!prevAt&&w.error.code==='23505')||(w&&!w.error&&!(w.data&&w.data.length));
         if(lost){if(++tries<4)return attempt();return done()}
+        if(w&&w.error&&/jwt expired/i.test(w.error.message||'')&&!attempt.renewed){attempt.renewed=1;c.auth.refreshSession().then(attempt,done);return}
         if(w&&w.error){console.warn('cloud save failed',w.error.message);toast('Couldn’t sync to your account: '+w.error.message);return done()}
         libSeenAt=w.data[0].updated_at;libSet('base',ids);libPing();done();
       },function(e){console.warn('cloud save failed',e);done()});

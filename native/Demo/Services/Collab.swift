@@ -187,7 +187,7 @@ final class Collab {
             if s.id == liveSongID { lastLivePush[s.id] = Date() }
             Task { [weak self] in
                 defer { self?.pushing.remove(s.id) }
-                do { try await self?.push(s) } catch PushError.notMember {
+                do { try await withFreshSession { try await self?.push(s) } } catch PushError.notMember {
                     await self?.goneCheck()
                     if let self, self.library?.song(s.id) != nil, !self.warned.contains(s.id) {
                         self.warned.insert(s.id)

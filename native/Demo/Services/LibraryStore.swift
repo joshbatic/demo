@@ -182,7 +182,8 @@ final class LibraryStore {
         let client = Backend.client
         let rows: [Row]
         do {
-            rows = try await client.from("cloud_library").select("data, updated_at").eq("user_id", value: uid).limit(1).execute().value
+            // (renews an expired sign-in first, so the write below goes through too)
+            rows = try await withFreshSession { try await client.from("cloud_library").select("data, updated_at").eq("user_id", value: uid).limit(1).execute().value }
         } catch {
             if base == nil { notice = "Couldn’t reach cloud storage: \(describe(error))" }
             return
