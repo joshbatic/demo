@@ -28,7 +28,7 @@ nonisolated func isAuthExpired(_ error: Error) -> Bool {
 }
 
 /// Runs `op`; if it failed only because the sign-in token had expired, renews the session and tries once more.
-nonisolated func withFreshSession<T>(_ op: () async throws -> T) async throws -> T {
+@MainActor func withFreshSession<T>(_ op: () async throws -> T) async throws -> T {
     do { return try await op() } catch where isAuthExpired(error) {
         _ = try? await Backend.client.auth.refreshSession()
         return try await op()
