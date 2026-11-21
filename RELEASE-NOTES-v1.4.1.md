@@ -11,7 +11,6 @@ Released on the web and Mac on 21 Nov 2026, and the App Store update for iPhone 
 ## Fixes
 - Co-writer changes show their photo once, beside the last thing they changed, not on every changed line.
 - [Section] lines get the grey bold tag style however they arrive: imported songs, songs from Notes, pasted text, or typing the closing ].
-- Share pages: the colours stay put behind the lyrics, with no hard edge at the top or bottom when you scroll or bounce.
 - iPhone: the rhyme map shows as soon as it's switched on.
 - Lines (Pro) no longer fails with "Could not get suggestions" when the AI runs long (server fix, live since 21 Nov).
 
