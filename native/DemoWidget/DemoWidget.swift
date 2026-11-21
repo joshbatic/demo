@@ -353,33 +353,27 @@ struct RhymeView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .widgetURL(Links.url("new-song"))
         case .systemMedium:
-            HStack(alignment: .top, spacing: 16) {
-                VStack(alignment: .leading, spacing: 0) {
-                    WLabel(text: "Rhyme of the day")
-                    Text(d.word).font(.system(size: 34, weight: .bold)).minimumScaleFactor(0.5).lineLimit(1).padding(.top, 6)
-                    Spacer(minLength: 0)
-                    Text("Tap to start a song").font(.system(size: 13)).foregroundStyle(wSecondary)
+            VStack(alignment: .leading, spacing: 0) {
+                WLabel(text: "Rhyme of the day", trailing: "Tap to start a song")
+                Spacer(minLength: 0)
+                HStack(alignment: .center, spacing: 14) {
+                    Text(d.word).font(.system(size: 40, weight: .bold)).tracking(-0.8)
+                        .minimumScaleFactor(0.5).lineLimit(1)
+                        .frame(width: 118, alignment: .leading)
+                    RhymeChips(words: RhymeChips.fit(d.rhymes, width: 176, rows: 3))
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                VStack(alignment: .leading, spacing: 3) {
-                    ForEach(Array(d.rhymes.prefix(5)), id: \.self) { r in
-                        Text(r).font(.system(size: 15)).foregroundStyle(wSecondary).lineLimit(1)
-                    }
-                }
-                .frame(width: 110, alignment: .leading)
+                Spacer(minLength: 0)
             }
             .foregroundStyle(.white)
             .widgetURL(Links.url("new-song"))
         default:
             VStack(alignment: .leading, spacing: 0) {
                 WLabel(text: "Rhyme of the day")
-                Text(d.word).font(.system(size: 28, weight: .bold)).minimumScaleFactor(0.5).lineLimit(1).padding(.top, 6)
+                Text(d.word).font(.system(size: 32, weight: .bold)).tracking(-0.6)
+                    .minimumScaleFactor(0.5).lineLimit(1).padding(.top, 4)
                 Spacer(minLength: 0)
-                VStack(alignment: .leading, spacing: 2) {
-                    ForEach(Array(d.rhymes.prefix(3)), id: \.self) { r in
-                        Text(r).font(.system(size: 15)).foregroundStyle(wSecondary).lineLimit(1)
-                    }
-                }
+                RhymeChips(words: RhymeChips.fit(d.rhymes, width: 140, rows: 2))
             }
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -387,3 +381,59 @@ struct RhymeView: View {
         }
     }
 }
+
+/// The rhymes as glass chips, like the rhyme bar in the app, wrapping onto as many rows as `fit` chose.
+struct RhymeChips: View {
+    let words: [String]
+    var body: some View {
+        ChipFlow(spacing: 5, rowSpacing: 6) {
+            ForEach(words, id: \.self) { w in
+                Text(w).font(.system(size: 14, weight: .semibold)).lineLimit(1).fixedSize()
+                    .padding(.horizontal, 10).frame(height: 26)
+                    .background(Color.white.opacity(0.2), in: Capsule())
+                    .widgetAccentable()
+            }
+        }
+    }
+
+    /// The rhymes that fit in `rows` rows of `width` points, in order (a widget can't scroll or hide what spills over).
+    static func fit(_ words: [String], width: CGFloat, rows: Int) -> [String] {
+        let font = UIFont.systemFont(ofSize: 14, weight: .semibold)
+        var out: [String] = [], row = 1, x: CGFloat = 0
+        for w in words {
+            let cw = ceil((w as NSString).size(withAttributes: [.font: font]).width) + 20
+            if cw > width { continue }
+            if x > 0 && x + 5 + cw > width { row += 1; x = 0 }
+            if row > rows { break }
+            x += (x > 0 ? 5 : 0) + cw
+            out.append(w)
+        }
+        return out
+    }
+}
+
+/// Lays its views out left to right, wrapping onto new rows.
+struct ChipFlow: Layout {
+    var spacing: CGFloat
+    var rowSpacing: CGFloat
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let maxW = proposal.width ?? .infinity
+        var x: CGFloat = 0, y: CGFloat = 0, rowH: CGFloat = 0, widest: CGFloat = 0
+        for v in subviews {
+            let s = v.sizeThatFits(.unspecified)
+            if x > 0 && x + s.width > maxW { y += rowH + rowSpacing; x = 0; rowH = 0 }
+            x += s.width + spacing; rowH = max(rowH, s.height); widest = max(widest, x - spacing)
+        }
+        return CGSize(width: min(widest, maxW), height: y + rowH)
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x = bounds.minX, y = bounds.minY, rowH: CGFloat = 0
+        for v in subviews {
+            let s = v.sizeThatFits(.unspecified)
+            if x > bounds.minX && x + s.width > bounds.maxX { y += rowH + rowSpacing; x = bounds.minX; rowH = 0 }
+            v.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(s))
+            x += s.width + spacing; rowH = max(rowH, s.height)
+        }
+    }
+}
+
