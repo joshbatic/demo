@@ -49,6 +49,9 @@ struct IdeasScreen: View {
     @State private var query = ""
     @State private var editing: IdeaTarget?
     @State private var recorder = MemoRecorder()
+    /// The memo opened in the list, like Voice Memos (one at a time).
+    @State private var openMemo: String?
+    @State private var confirmDelete: Idea?
 
     /// The Idea sheet's subject: an existing idea or a new blank one.
     struct IdeaTarget: Identifiable { let id: String; let idea: Idea? }
@@ -72,28 +75,43 @@ struct IdeasScreen: View {
             ForEach(groups) { g in
                 Section {
                     ForEach(g.ideas) { i in
-                        // a tap opens it; a swipe deletes it. Not a Button, so the list's own swipe isn't fighting it.
-                        IdeaCard(idea: i)
+                        let open = i.memo != nil && openMemo == i.id
+                        // a tap opens a memo right in the list (like Voice Memos) and an idea in its sheet; a swipe deletes it.
+                        // Not a Button, so the list's own swipe isn't fighting it.
+                        IdeaCard(idea: i, open: open, startSong: { Task { await startSong(i) } }, delete: { confirmDelete = i })
                             .contentShape(Rectangle())
-                            .onTapGesture { editing = IdeaTarget(id: i.id, idea: i) }
-                            .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 11, trailing: 12))
+                            .onTapGesture {
+                                if i.memo != nil {
+                                    Haptics.tap()
+                                    withAnimation(.snappy(duration: 0.28)) { openMemo = open ? nil : i.id }
+                                } else { editing = IdeaTarget(id: i.id, idea: i) }
+                            }
+                            .listRowInsets(open ? EdgeInsets(top: 6, leading: 14, bottom: 6, trailing: 14) : EdgeInsets(top: 11, leading: 20, bottom: 11, trailing: 20))
+                            .listRowSeparator(open ? .hidden : .visible)
+                            .listRowBackground(Color(.systemBackground))
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 Button(role: .destructive) { delete(i) } label: { Label("Delete", systemImage: "trash") }.tint(.red)
                             }
                             .contextMenu {
                                 Button { Task { await startSong(i) } } label: { Label("Start a Song", systemImage: "music.note") }
+                                if i.memo != nil { Button { editing = IdeaTarget(id: i.id, idea: i) } label: { Label("Add Words", systemImage: "text.alignleft") } }
                                 if !i.text.isEmpty { Button { UIPasteboard.general.string = i.text } label: { Label("Copy", systemImage: "doc.on.doc") } }
                                 Button(role: .destructive) { delete(i) } label: { Label("Delete Idea", systemImage: "trash") }
                             }
                     }
                 } header: {
                     Text(g.id).font(.system(size: 20, weight: .bold)).foregroundStyle(.primary).textCase(nil)
-                        .padding(.leading, -8)
+                        .padding(.top, 8)
                 }
             }
         }
-        .listStyle(.insetGrouped)
-        .listSectionSpacing(6)
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Color(.systemBackground))
+        .confirmDestroy("Delete this memo?", isPresented: Binding(get: { confirmDelete != nil }, set: { if !$0 { confirmDelete = nil } }),
+                        message: "This can’t be undone.", action: "Delete Memo") {
+            if let i = confirmDelete { delete(i) }
+        }
         .scrollDismissesKeyboard(.interactively)
         .toolbar(.hidden, for: .navigationBar)
         .safeAreaInset(edge: .top, spacing: 0) { header }
@@ -223,6 +241,8 @@ struct IdeasScreen: View {
 
     private func delete(_ i: Idea) {
         Haptics.thud()
+        if openMemo == i.id { openMemo = nil }
+        if AudioPlayer.shared.isActive(AudioPlayer.key(idea: i.id)) { AudioPlayer.shared.stop() }
         IdeaMemos.deleteFile(i.memo)
         withAnimation { library.deleteIdea(i.id) }
     }
@@ -283,59 +303,107 @@ enum IdeaLook {
     }
 }
 
-/// An idea in the list, like a note in Notes: its words, then a grey line with the time (a small symbol for a Title
-/// or Concept, the length of a memo, the song it went into). A memo has a play button; playing it opens the row
-/// into a waveform you can drag through, right in the list. Matches the web's ideaRow.
+/// An idea in the list. Words read like a note in Notes: the words, then a grey line with the time (and a small symbol
+/// for a Title or Concept). A memo reads like a recording in Voice Memos: its name, the time, and its length on the
+/// right; tapped, it opens right in the list with its waveform, the time, skip back and forward, play, delete and
+/// Start a Song. Matches the web's ideaRow.
 struct IdeaCard: View {
     let idea: Idea
+    var open = false
+    var startSong: () -> Void = {}
+    var delete: () -> Void = {}
     @Environment(\.library) private var library
     private var player: AudioPlayer { AudioPlayer.shared }
 
     var body: some View {
-        let k = idea.memo != nil ? "memo" : IdeaLook.kind(idea)
-        let t = idea.text.trimmingCharacters(in: .whitespacesAndNewlines)
-        let key = AudioPlayer.key(idea: idea.id)
-        let open = idea.memo != nil && player.isActive(key)
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .center, spacing: 12) {
-                if let m = idea.memo, !open {
-                    Button { Haptics.tap(); player.toggle(key, item: m, fallbackDuration: m.dur) } label: {
-                        Image(systemName: "play.fill").font(.system(size: 14, weight: .bold)).foregroundStyle(Theme.onTint)
-                            .frame(width: 36, height: 36).background(Theme.tint, in: Circle())
-                            .contentShape(Circle())
-                    }
-                    .buttonStyle(.borderless)
-                    .accessibilityLabel("Play voice memo")
-                }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(t.isEmpty ? "Voice memo" : t)
-                        .font(.system(size: 17, weight: k == "title" ? .semibold : .regular))
-                        .foregroundStyle(.primary)
-                    HStack(spacing: 5) {
-                        if let sym = Self.symbol(k) { Image(systemName: sym).font(.system(size: 12, weight: .medium)) }
-                        Text(detail)
-                    }
-                    .font(.system(size: 15)).foregroundStyle(.secondary).lineLimit(1)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            if open, let m = idea.memo {
-                MemoPlayer(ideaID: idea.id, memo: m, large: true)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-            }
+        Group {
+            if let m = idea.memo, open { openMemo(m) } else { row }
         }
-        .animation(.snappy(duration: 0.25), value: open)
+    }
+
+    private var name: String {
+        let t = idea.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return t.isEmpty ? "Voice Memo" : t
+    }
+
+    private var row: some View {
+        let k = idea.memo != nil ? "memo" : IdeaLook.kind(idea)
+        return VStack(alignment: .leading, spacing: 3) {
+            Text(name)
+                .font(.system(size: 17, weight: k == "title" || k == "memo" ? .semibold : .regular))
+                .foregroundStyle(.primary).lineLimit(idea.memo != nil ? 2 : 6)
+            HStack(spacing: 5) {
+                if let sym = Self.symbol(k) { Image(systemName: sym).font(.system(size: 12, weight: .medium)) }
+                Text(detail).lineLimit(1)
+                Spacer(minLength: 8)
+                if let m = idea.memo { Text(SongFiles.time(m.dur)).monospacedDigit() }
+            }
+            .font(.system(size: 15)).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func openMemo(_ m: FileItem) -> some View {
+        let key = AudioPlayer.key(idea: idea.id)
+        let active = player.isActive(key)
+        let dur = active && player.duration > 0 ? player.duration : m.dur
+        let t = active ? player.time : 0
+        return VStack(alignment: .leading, spacing: 0) {
+            Text(name).font(.system(size: 17, weight: .semibold)).lineLimit(3)
+            Text(detail).font(.system(size: 15)).foregroundStyle(.secondary).padding(.top, 3)
+            Waveform(peaks: m.peaks, progress: dur > 0 ? t / dur : 0, duration: dur, tickEvery: 1, height: 36) { f in
+                if active { player.seek(f * dur) } else { player.load(key, item: m, fallbackDuration: m.dur, autoplay: false, at: f * dur) }
+            }
+            .padding(.top, 16)
+            HStack {
+                Text(SongFiles.time(t))
+                Spacer()
+                Text("−" + SongFiles.time(max(0, dur - t)))
+            }
+            .font(.system(size: 13).monospacedDigit()).foregroundStyle(.secondary).padding(.top, 6)
+            HStack(spacing: 0) {
+                Button(action: delete) {
+                    Image(systemName: "trash").font(.system(size: 19)).foregroundStyle(.red).frame(width: 44, height: 44)
+                }
+                .accessibilityLabel("Delete memo")
+                Spacer(minLength: 4)
+                HStack(spacing: 14) {
+                    Button { Haptics.tap(); if active { player.skip(-15) } } label: {
+                        Image(systemName: "gobackward.15").font(.system(size: 22)).frame(width: 44, height: 44)
+                    }
+                    .accessibilityLabel("Back 15 seconds")
+                    Button { Haptics.tap(); player.toggle(key, item: m, fallbackDuration: m.dur) } label: {
+                        Image(systemName: active && player.isPlaying ? "pause.fill" : "play.fill").font(.system(size: 30)).frame(width: 48, height: 48)
+                    }
+                    .accessibilityLabel(active && player.isPlaying ? "Pause" : "Play")
+                    Button { Haptics.tap(); if active { player.skip(15) } } label: {
+                        Image(systemName: "goforward.15").font(.system(size: 22)).frame(width: 44, height: 44)
+                    }
+                    .accessibilityLabel("Forward 15 seconds")
+                }
+                .foregroundStyle(.primary)
+                Spacer(minLength: 4)
+                Button(action: startSong) {
+                    Text("Start a Song").font(.system(size: 14, weight: .semibold)).foregroundStyle(.primary)
+                        .padding(.horizontal, 13).frame(height: 32)
+                        .background(Color(.systemBackground), in: Capsule())
+                }
+            }
+            .buttonStyle(.borderless)
+            .padding(.top, 4)
+        }
+        .padding(.horizontal, 14).padding(.top, 12).padding(.bottom, 6)
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     /// Titles and Concepts get a small grey symbol; Lines and memos need none.
     static func symbol(_ k: String) -> String? { ["title": "textformat", "concept": "lightbulb"][k] }
 
-    /// "9:41 pm", then a memo's length and the song it went into.
+    /// "9:41 pm", then the song it went into (a memo's length sits on the right).
     private var detail: String {
         var parts = [when]
-        if let m = idea.memo { parts.append(SongFiles.time(m.dur)) }
         if let sid = idea.usedSongID, let s = library.song(sid) { parts.append("In " + (s.title.isEmpty ? "Untitled" : s.title)) }
-        return parts.joined(separator: "  ")
+        return parts.joined(separator: " · ")
     }
 
     /// The time today and yesterday, the weekday this week, else the date (the web's ideaWhen).
