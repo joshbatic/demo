@@ -305,7 +305,7 @@ enum IdeaLook {
 
 /// An idea in the list. Words read like a note in Notes: the words, then a grey line with the time (and a small symbol
 /// for a Title or Concept). A memo reads like a recording in Voice Memos: its name, the time, and its length on the
-/// right; tapped, it opens right in the list with its waveform, the time, skip back and forward, play, delete and
+/// right; tapped, it opens right in the list with its waveform (drag to scrub), the time, play, delete and
 /// Start a Song. Matches the web's ideaRow.
 struct IdeaCard: View {
     let idea: Idea
@@ -369,31 +369,20 @@ struct IdeaCard: View {
                 Text("−" + SongFiles.time(max(0, dur - t)))
             }
             .font(.system(size: 13).monospacedDigit()).foregroundStyle(.secondary).padding(.top, 6)
-            HStack(spacing: 0) {
+            HStack(spacing: 4) {
+                Button { Haptics.tap(); player.toggle(key, item: m, fallbackDuration: m.dur) } label: {
+                    Image(systemName: active && player.isPlaying ? "pause.fill" : "play.fill").font(.system(size: 28))
+                        .foregroundStyle(.primary).frame(width: 44, height: 44)
+                }
+                .accessibilityLabel(active && player.isPlaying ? "Pause" : "Play")
+                Spacer(minLength: 8)
                 Button(action: delete) {
                     Image(systemName: "trash").font(.system(size: 19)).foregroundStyle(.red).frame(width: 44, height: 44)
                 }
                 .accessibilityLabel("Delete memo")
-                Spacer(minLength: 4)
-                HStack(spacing: 14) {
-                    Button { Haptics.tap(); if active { player.skip(-15) } } label: {
-                        Image(systemName: "gobackward.15").font(.system(size: 22)).frame(width: 44, height: 44)
-                    }
-                    .accessibilityLabel("Back 15 seconds")
-                    Button { Haptics.tap(); player.toggle(key, item: m, fallbackDuration: m.dur) } label: {
-                        Image(systemName: active && player.isPlaying ? "pause.fill" : "play.fill").font(.system(size: 30)).frame(width: 48, height: 48)
-                    }
-                    .accessibilityLabel(active && player.isPlaying ? "Pause" : "Play")
-                    Button { Haptics.tap(); if active { player.skip(15) } } label: {
-                        Image(systemName: "goforward.15").font(.system(size: 22)).frame(width: 44, height: 44)
-                    }
-                    .accessibilityLabel("Forward 15 seconds")
-                }
-                .foregroundStyle(.primary)
-                Spacer(minLength: 4)
                 Button(action: startSong) {
                     Label("Start a Song", systemImage: "plus").font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.onTint)
-                        .labelStyle(.titleAndIcon)
+                        .labelStyle(.titleAndIcon).lineLimit(1).fixedSize()
                         .padding(.leading, 10).padding(.trailing, 13).frame(height: 32)
                         .background(Theme.tint, in: Capsule())
                 }

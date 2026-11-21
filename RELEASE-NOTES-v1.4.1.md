@@ -5,7 +5,7 @@ Released on the web and Mac on 21 Nov 2026, and the App Store update for iPhone 
 ## What's new
 - **Rhyme of the Day widget (iPhone).** A new word every morning with its rhymes as chips, like the rhyme bar, in small, medium and Lock Screen sizes. Tap it to start a song.
 - **New widgets (iPhone).** Record Idea, Continue Writing and Rhyme of the Day follow Apple's own layout (a small label on top, your words in system type, round buttons) on your latest song's own pastel gradient, and turn to glass on a Clear or Tinted Home Screen.
-- **Ideas, like Voice Memos.** Ideas sit on white like Notes. A voice memo shows its name, when you made it and its length; tap it to open it right in the list with its waveform, the time left, back and forward 15 seconds, play, delete and Start a Song.
+- **Ideas, like Voice Memos.** Ideas sit on white like Notes. A voice memo shows its name, when you made it and its length; tap it to open it right in the list with its waveform, the time left, play, delete and Start a Song.
 - **Share an album from iPhone.** The album's Share button makes its share page, like the web: Create or Update Link, Share Link, Copy Tracklist and Stop Sharing.
 
 ## Fixes
@@ -18,7 +18,7 @@ Released on the web and Mac on 21 Nov 2026, and the App Store update for iPhone 
 ## App Store "What's New" (iPhone)
 Bring your songs in: share a note from Notes or a recording from Voice Memos straight into *[demo], or import lyric files, PDFs and pasted songs.
 See what a co-writer changed since you last opened a shared song, and live co-writing that stays steady while you both type.
-Ideas that work like Voice Memos: tap a memo to play it, skip and scrub right in the list.
+Ideas that work like Voice Memos: tap a memo to play it and scrub through it right in the list.
 Smarter rhymes that follow the stressed sound.
 New widgets, including Rhyme of the Day, on your song's own colours.
 Share a whole album as a link, with every song on it.
