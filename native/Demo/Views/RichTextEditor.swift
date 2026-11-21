@@ -358,6 +358,8 @@ struct RichTextEditor: UIViewRepresentable {
         tv.typingAttributes = EditorBridge.baseAttributes
         if sel.location <= a.length { tv.selectedRange = NSRange(location: min(sel.location, a.length), length: 0) }
         bridge.lastKey = rich + "\u{0}" + lyrics
+        // a song brought in as plain text (an import, a share from Notes, another device) gets its [Section] lines styled
+        c.styleSectionTags(tv)
         c.updatePlaceholder(tv)
         c.scheduleViews(now: true)
     }
@@ -576,7 +578,7 @@ struct RichTextEditor: UIViewRepresentable {
         }
 
         /// Lines like [Chorus] are bold and slate, the way the web styles them (tagBold).
-        private func styleSectionTags(_ tv: UITextView) {
+        func styleSectionTags(_ tv: UITextView) {
             let s = tv.textStorage
             let ns = s.string as NSString
             let sel = tv.selectedRange

@@ -37,7 +37,7 @@ struct Snapshot: Codable, Equatable {
              line: "Counting backwards from the end of you"),
         Item(id: "5", title: "Coastline Radio", detail: "Idea", updated: Date().timeIntervalSince1970 * 1000 - 9 * 86_400_000,
              line: "Static on the coastline radio"),
-    ], idea: "A moth that only loves the porch light", ideaCount: 12, tint: ["8A5A9E", "4E3260"])
+    ], idea: "A moth that only loves the porch light", ideaCount: 12, tint: ["E8D9FF", "C4DDFF", "FFD6C4", "352A55"])
 }
 
 /// A song's cover picture from the shared folder, if the app has written one.

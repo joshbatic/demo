@@ -1,40 +1,62 @@
 import SwiftUI
 import WidgetKit
 
-// The widgets follow Apple's own pattern in glass: one small label at the top, the content in system type,
-// white words over a quiet tint of the latest song's colour. On a Clear Home Screen iOS swaps the tint for real
-// glass over the wallpaper, which is the look these are drawn for.
+// The widgets follow Apple's own pattern: one small label at the top, the content in system type, on the latest
+// song's own pastel gradient (the colours its share page and album page use), in a deep shade of the same colour.
+// On a Clear or Tinted Home Screen iOS swaps the colours for its glass and draws the words in white.
 
-/// The background: a quiet, smoky tint of the latest song's colour with a thin bright rim, so it reads as a pane
-/// of glass. No glows or shading: the content carries the widget. iOS replaces it on Clear and Tinted screens.
+/// The latest song's colours, as the app writes them (Snapshot.tint): top, bottom, glow and ink.
+struct WTheme {
+    let top: Color, bot: Color, glow: Color, ink: Color
+    init(_ snap: Snapshot) {
+        let t = (snap.tint?.count ?? 0) >= 4 ? snap.tint! : ["E3D4FF", "BFDDFF", "FFD3BE", "3B2E5A"]
+        top = Color(hexString: t[0]); bot = Color(hexString: t[1]); glow = Color(hexString: t[2]); ink = Color(hexString: t[3])
+    }
+}
+
+extension EnvironmentValues {
+    /// The words' colour: a deep shade of the song's colour.
+    @Entry var wInk: Color = Color(red: 0.23, green: 0.18, blue: 0.35)
+}
+
+extension View {
+    /// The song's colours behind the widget and its ink for the words.
+    func wThemed(_ snap: Snapshot) -> some View {
+        let t = WTheme(snap)
+        return self.environment(\.wInk, t.ink)
+            .containerBackground(for: .widget) { WidgetTint(theme: t) }
+    }
+}
+
+/// The background, like the share page's: the colour washing diagonally into the next, a soft glow in the top
+/// corner, and a thin bright rim.
 struct WidgetTint: View {
-    let snap: Snapshot
+    let theme: WTheme
     var body: some View {
-        let t = snap.tint ?? ["8E7FB8", "5E5288"]
-        let a = Color(hexString: t[0]), b = Color(hexString: t.count > 1 ? t[1] : t[0])
-        ZStack {
-            LinearGradient(colors: [a, b], startPoint: .top, endPoint: .bottom)
-            Color.white.opacity(0.1)
-            ContainerRelativeShape()
-                .strokeBorder(LinearGradient(colors: [.white.opacity(0.45), .white.opacity(0.12)], startPoint: .top, endPoint: .bottom), lineWidth: 1)
+        GeometryReader { g in
+            ZStack {
+                LinearGradient(colors: [theme.top, theme.bot], startPoint: UnitPoint(x: 0.2, y: 0), endPoint: UnitPoint(x: 0.8, y: 1))
+                RadialGradient(colors: [theme.glow, theme.glow.opacity(0)], center: UnitPoint(x: 0.88, y: 0.04),
+                               startRadius: 0, endRadius: max(g.size.width, g.size.height) * 0.75)
+                ContainerRelativeShape()
+                    .strokeBorder(LinearGradient(colors: [.white.opacity(0.6), .white.opacity(0.15)], startPoint: .top, endPoint: .bottom), lineWidth: 1)
+            }
         }
     }
 }
 
-/// Secondary text on glass.
-let wSecondary = Color.white.opacity(0.72)
-
 /// The label at the top of a widget, like the coloured title on Apple's Notes widget, with something on the right.
 struct WLabel: View {
+    @Environment(\.wInk) private var ink
     let text: String
     var trailing: String? = nil
     var body: some View {
         HStack(spacing: 4) {
             Text(text).font(.system(size: 13, weight: .semibold)).lineLimit(1).widgetAccentable()
             Spacer(minLength: 4)
-            if let trailing { Text(trailing).font(.system(size: 13, weight: .medium)).foregroundStyle(wSecondary) }
+            if let trailing { Text(trailing).font(.system(size: 13, weight: .medium)).foregroundStyle(ink.opacity(0.62)) }
         }
-        .foregroundStyle(.white)
+        .foregroundStyle(ink)
     }
 }
 
@@ -57,8 +79,9 @@ struct WCover: View {
     }
 }
 
-/// A capsule button: white for the main action, glass for the rest.
+/// A capsule button: filled in the ink colour for the main action, frosted white for the rest.
 struct WPill: View {
+    @Environment(\.wInk) private var ink
     let title: String?
     let icon: String
     var main = false
@@ -68,24 +91,25 @@ struct WPill: View {
             Image(systemName: icon).font(.system(size: 13, weight: .semibold))
             if let title { Text(title).font(.system(size: 13.5, weight: .semibold)).lineLimit(1) }
         }
-        .foregroundStyle(main ? Color.black.opacity(0.85) : .white)
+        .foregroundStyle(main ? Color.white : ink)
         .frame(maxWidth: title == nil ? height : .infinity, minHeight: height, maxHeight: height)
         .frame(width: title == nil ? height : nil)
-        .background(main ? Color.white.opacity(0.92) : Color.white.opacity(0.2), in: Capsule())
+        .background(main ? ink : Color.white.opacity(0.5), in: Capsule())
     }
 }
 
-/// A round button: white with a dark icon for the main action, glass with a white icon for the rest.
+/// A round button: filled in the ink colour for the main action, frosted white for the rest.
 struct WRound: View {
+    @Environment(\.wInk) private var ink
     let icon: String
     var size: CGFloat
     var main = true
     var body: some View {
         Image(systemName: icon)
             .font(.system(size: size * 0.4, weight: .semibold))
-            .foregroundStyle(main ? Color.black.opacity(0.85) : .white)
+            .foregroundStyle(main ? Color.white : ink)
             .frame(width: size, height: size)
-            .background(main ? Color.white.opacity(0.92) : Color.white.opacity(0.22), in: Circle())
+            .background(main ? ink : Color.white.opacity(0.5), in: Circle())
             .widgetAccentable(main)
     }
 }
@@ -98,7 +122,7 @@ struct RecordWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "record", provider: SnapProvider()) { e in
             RecordView(snap: e.snap)
-                .containerBackground(for: .widget) { WidgetTint(snap: e.snap) }
+                .wThemed(e.snap)
         }
         .configurationDisplayName("Record Idea")
         .description("One tap and you’re recording, or jot an idea or start a song.")
@@ -107,6 +131,7 @@ struct RecordWidget: Widget {
 }
 
 struct RecordView: View {
+    @Environment(\.wInk) private var ink
     @Environment(\.widgetFamily) private var family
     let snap: Snapshot
 
@@ -139,15 +164,15 @@ struct RecordView: View {
                 WRound(icon: "mic.fill", size: 52)
                 Spacer(minLength: 0)
                 Text("Record idea").font(.system(size: 15, weight: .semibold))
-                Text(ideasText(snap.ideaCount)).font(.system(size: 13)).foregroundStyle(wSecondary).padding(.top, 1)
+                Text(ideasText(snap.ideaCount)).font(.system(size: 13)).foregroundStyle(ink.opacity(0.62)).padding(.top, 1)
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(ink)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             .widgetURL(Links.url("record"))
         }
     }
 
-    /// Medium: Record (white), Write Idea and New Song as round buttons with their names under them.
+    /// Medium: Record (filled), Write Idea and New Song as round buttons with their names under them.
     private var quick: some View {
         VStack(spacing: 0) {
             WLabel(text: "*[demo]", trailing: snap.ideaCount > 0 ? ideasText(snap.ideaCount) : nil)
@@ -165,7 +190,7 @@ struct RecordView: View {
         Link(destination: Links.url(action)) {
             VStack(spacing: 7) {
                 WRound(icon: icon, size: 56, main: main)
-                Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(.white).lineLimit(1)
+                Text(title).font(.system(size: 13, weight: .semibold)).foregroundStyle(ink).lineLimit(1)
             }
             .frame(maxWidth: .infinity)
         }
@@ -178,7 +203,7 @@ struct SongsWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "songs", provider: SnapProvider()) { e in
             SongsView(snap: e.snap)
-                .containerBackground(for: .widget) { WidgetTint(snap: e.snap) }
+                .wThemed(e.snap)
         }
         .configurationDisplayName("Continue Writing")
         .description("Pick up the song you were writing, right where you left off.")
@@ -187,6 +212,7 @@ struct SongsWidget: Widget {
 }
 
 struct SongsView: View {
+    @Environment(\.wInk) private var ink
     @Environment(\.widgetFamily) private var family
     let snap: Snapshot
 
@@ -211,7 +237,7 @@ struct SongsView: View {
                 }
             }
         }
-        .foregroundStyle(.white)
+        .foregroundStyle(ink)
     }
 
     /// The cover and the song's name.
@@ -220,7 +246,7 @@ struct SongsView: View {
             WCover(item: s, size: cover, radius: cover * 0.2)
             VStack(alignment: .leading, spacing: 2) {
                 Text(s.title).font(.system(size: 15, weight: .semibold)).lineLimit(1)
-                Text(s.detail).font(.system(size: 13)).foregroundStyle(wSecondary).lineLimit(1)
+                Text(s.detail).font(.system(size: 13)).foregroundStyle(ink.opacity(0.62)).lineLimit(1)
             }
         }
     }
@@ -247,7 +273,7 @@ struct SongsView: View {
             WLabel(text: "Continue writing", trailing: ago(s.updated))
             heading(s, cover: 48).padding(.top, 10)
             Spacer(minLength: 6)
-            if let p = s.prev { Text(p).font(.system(size: 15)).foregroundStyle(wSecondary).lineLimit(1) }
+            if let p = s.prev { Text(p).font(.system(size: 15)).foregroundStyle(ink.opacity(0.62)).lineLimit(1) }
             Text(s.line ?? "No lyrics yet").font(.system(size: 15, weight: .medium)).lineLimit(s.prev == nil ? 2 : 1)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -267,17 +293,17 @@ struct SongsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(.top, 10)
-            Rectangle().fill(.white.opacity(0.25)).frame(height: 0.5).padding(.top, 12).padding(.bottom, 4)
+            Rectangle().fill(ink.opacity(0.15)).frame(height: 0.5).padding(.top, 12).padding(.bottom, 4)
             ForEach(snap.songs.dropFirst().prefix(4)) { r in
                 Link(destination: Links.url("song", r.id)) {
                     HStack(spacing: 11) {
                         WCover(item: r, size: 34, radius: 7)
                         VStack(alignment: .leading, spacing: 0) {
                             Text(r.title).font(.system(size: 14.5, weight: .semibold)).lineLimit(1)
-                            Text(r.line ?? r.detail).font(.system(size: 13)).foregroundStyle(wSecondary).lineLimit(1)
+                            Text(r.line ?? r.detail).font(.system(size: 13)).foregroundStyle(ink.opacity(0.62)).lineLimit(1)
                         }
                         Spacer(minLength: 4)
-                        Text(ago(r.updated)).font(.system(size: 12.5)).foregroundStyle(wSecondary)
+                        Text(ago(r.updated)).font(.system(size: 12.5)).foregroundStyle(ink.opacity(0.62))
                     }
                     .padding(.vertical, 5)
                 }
@@ -326,7 +352,7 @@ struct RhymeWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "rhyme", provider: RhymeProvider()) { e in
             RhymeView(e: e)
-                .containerBackground(for: .widget) { WidgetTint(snap: e.snap) }
+                .wThemed(e.snap)
         }
         .configurationDisplayName("Rhyme of the Day")
         .description("A new word every day, with its rhymes. Tap to start a song with it.")
@@ -335,6 +361,7 @@ struct RhymeWidget: Widget {
 }
 
 struct RhymeView: View {
+    @Environment(\.wInk) private var ink
     @Environment(\.widgetFamily) private var family
     let e: RhymeEntry
 
@@ -365,7 +392,7 @@ struct RhymeView: View {
                 }
                 Spacer(minLength: 0)
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(ink)
             .widgetURL(Links.url("new-song"))
         default:
             VStack(alignment: .leading, spacing: 0) {
@@ -375,7 +402,7 @@ struct RhymeView: View {
                 Spacer(minLength: 0)
                 RhymeChips(words: RhymeChips.fit(d.rhymes, width: 140, rows: 2))
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(ink)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             .widgetURL(Links.url("new-song"))
         }
@@ -384,13 +411,14 @@ struct RhymeView: View {
 
 /// The rhymes as glass chips, like the rhyme bar in the app, wrapping onto as many rows as `fit` chose.
 struct RhymeChips: View {
+    @Environment(\.wInk) private var ink
     let words: [String]
     var body: some View {
         ChipFlow(spacing: 5, rowSpacing: 6) {
             ForEach(words, id: \.self) { w in
                 Text(w).font(.system(size: 14, weight: .semibold)).lineLimit(1).fixedSize()
                     .padding(.horizontal, 10).frame(height: 26)
-                    .background(Color.white.opacity(0.2), in: Capsule())
+                    .background(Color.white.opacity(0.5), in: Capsule())
                     .widgetAccentable()
             }
         }
