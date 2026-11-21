@@ -117,14 +117,12 @@ enum WidgetShare {
         WidgetCenter.shared.reloadAllTimelines()
     }
 
-    /// The latest song's main colour, deep enough for white words (iOS swaps it for glass in Clear mode).
+    /// The latest song's colours for the widgets, the same pastel gradient as its share page: top, bottom, glow and ink.
     private static func tint(_ s: Song) -> [String] {
-        let c = SharePalette.palette(s).first ?? HSL(h: 260, s: 0.3, l: 0.5)
-        // soft glass colours (greys stay grey): light at the top, a gentler deep at the foot
-        let sat = c.s < 0.14 ? 0.06 : min(0.42, max(0.28, c.s * 0.6))
-        return [(0.6, 0.0), (0.4, 14.0)].map { l, turn in
-            let (r, g, b) = SharePalette.rgb(HSL(h: (c.h + turn).truncatingRemainder(dividingBy: 360), s: sat, l: l))
-            return String(format: "%02X%02X%02X", Int(r * 255), Int(g * 255), Int(b * 255))
+        let bg = SharePalette.background(SharePalette.palette(s), 0)
+        return [bg.top, bg.bot, bg.glow, bg.ink].map { c in
+            let (r, g, b) = SharePalette.rgb(c)
+            return String(format: "%02X%02X%02X", Int((r * 255).rounded()), Int((g * 255).rounded()), Int((b * 255).rounded()))
         }
     }
 

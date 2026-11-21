@@ -358,6 +358,8 @@ struct RichTextEditor: UIViewRepresentable {
         tv.typingAttributes = EditorBridge.baseAttributes
         if sel.location <= a.length { tv.selectedRange = NSRange(location: min(sel.location, a.length), length: 0) }
         bridge.lastKey = rich + "\u{0}" + lyrics
+        // a song brought in as plain text (an import, a share from Notes, another device) gets its [Section] lines styled
+        c.styleSectionTags(tv)
         c.updatePlaceholder(tv)
         c.scheduleViews(now: true)
     }
@@ -447,6 +449,8 @@ struct RichTextEditor: UIViewRepresentable {
         // MARK: rhyme map and syllable counts (drawn over the text, never saved into it)
 
         private var viewsTask: Task<Void, Never>?
+        /// What the tints were last drawn from, so the page only redraws when they change.
+        private var tintKey = ""
         private let gutter = UIView()
         static let mapColours: [UIColor] = [
             UIColor(red: 1, green: 149 / 255, blue: 0, alpha: 0.30), UIColor(red: 52 / 255, green: 199 / 255, blue: 89 / 255, alpha: 0.28),
@@ -469,7 +473,8 @@ struct RichTextEditor: UIViewRepresentable {
             changeViews = []; changeHosts = []
             guard let who else { return }
             let ink = Self.changeColours(who).ink
-            var faces = Set<Int>()
+            // their photo goes once, beside the last thing they changed
+            let lastMark = marks.max { $0.location < $1.location }
             for r in marks {
                 guard let p = tv.position(from: tv.beginningOfDocument, offset: NSMaxRange(r)),
                       let p0 = tv.position(from: tv.beginningOfDocument, offset: r.location) else { continue }
@@ -480,13 +485,12 @@ struct RichTextEditor: UIViewRepresentable {
                 line.layer.cornerRadius = 1
                 line.isUserInteractionEnabled = false
                 tv.addSubview(line); changeViews.append(line)
-                // one photo per line, in the margin
-                guard faces.insert(Int(c0.minY.rounded())).inserted else { continue }
+                guard r == lastMark else { continue }
                 let face = UIHostingController(rootView: AnyView(
                     Avatar(url: who.avatar, name: who.name, size: 16, id: who.id)
                         .overlay(Circle().strokeBorder(Color(uiColor: .systemBackground), lineWidth: 1.5))))
                 face.view.backgroundColor = .clear
-                face.view.frame = CGRect(x: max(1, tv.textContainerInset.left - 18), y: c0.midY - 8, width: 16, height: 16)
+                face.view.frame = CGRect(x: max(1, tv.textContainerInset.left - 18), y: c.midY - 8, width: 16, height: 16)
                 face.view.isUserInteractionEnabled = false
                 face.view.accessibilityLabel = "Changed by \(who.name)"
                 tv.addSubview(face.view)
@@ -530,6 +534,15 @@ struct RichTextEditor: UIViewRepresentable {
                 tlm.addRenderingAttribute(.backgroundColor, value: Self.changeColours(bridge.changeAuthor).tint, for: tr)
             }
             placeChangeCursors(tv, bridge.changeMarks.filter { NSMaxRange($0) <= len }, who: bridge.changeAuthor)
+            // TextKit 2 doesn't redraw lines whose tints changed until something else lays them out again (the rhyme map
+            // stayed blank until syllable counts were switched), so redraw the page when the tints change
+            let tinted = bridge.showMap || !bridge.rateMarks.isEmpty || !bridge.changeMarks.isEmpty
+            let key = tinted ? "\(bridge.showMap)|\(text.hashValue)|\(bridge.rateMarks.count)|\(bridge.changeMarks)" : ""
+            if key != tintKey {
+                tintKey = key
+                tlm.invalidateLayout(for: tlm.documentRange)
+                tlm.textViewportLayoutController.layoutViewport()
+            }
             // syllable gutter
             let wantLeft: CGFloat = bridge.showSyl ? 50 : 18
             if tv.textContainerInset.left != wantLeft { tv.textContainerInset.left = wantLeft }
@@ -565,7 +578,7 @@ struct RichTextEditor: UIViewRepresentable {
         }
 
         /// Lines like [Chorus] are bold and slate, the way the web styles them (tagBold).
-        private func styleSectionTags(_ tv: UITextView) {
+        func styleSectionTags(_ tv: UITextView) {
             let s = tv.textStorage
             let ns = s.string as NSString
             let sel = tv.selectedRange

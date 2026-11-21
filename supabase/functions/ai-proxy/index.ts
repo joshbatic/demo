@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
     : complex ? [{ model: "gpt-5", effort: "medium", max: 5000 }]
     : tier === "write" ? [
         ...(envW ? [{ model: envW, effort: "low", max: 4000 }] : []),
-        { model: "gpt-5", effort: "low", max: 4000 },
+        { model: "gpt-5", effort: "low", max: 8000 },
         { model: "gpt-5-mini", effort: "low", max: 4000 },
       ]
     : tier === "judge" ? [
@@ -124,7 +124,11 @@ Deno.serve(async (req) => {
       await record(j.model || t.model, j.usage);
       const choice = j.choices?.[0];
       const text: string = choice?.message?.content ?? "";
-      if (!text.trim()) return json({ error: choice?.finish_reason === "length" ? "The AI ran out of room before answering. Try again." : "The AI returned an empty response." });
+      if (!text.trim()) {
+        // gpt-5 can spend its whole allowance thinking; the next model in the plan answers instead
+        if (choice?.finish_reason === "length" && t !== plan[plan.length - 1]) { console.warn("ran out of room", t.model); last = "The AI ran out of room before answering. Try again."; continue; }
+        return json({ error: choice?.finish_reason === "length" ? "The AI ran out of room before answering. Try again." : "The AI returned an empty response." });
+      }
       return json({ text });
     }
     return json({ error: last });
