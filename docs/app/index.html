@@ -21126,7 +21126,7 @@ AH-M-W-AH-L-T	zumwalt82`;
 var APP_COMMIT='09c838d';
 var APP_SEQ=950;
 /* the version people see, the same as the iPhone app's; Account shows it with the build number so every device can be compared */
-var APP_VERSION='1.4.0';
+var APP_VERSION='1.4.1';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
 function currentKey(){if(typeof DEV_MODE!=='undefined'&&DEV_MODE&&!AUTH_USER)return K_DEV;if(typeof AUTH_USER!=='undefined'&&AUTH_USER&&AUTH_USER.id)return K+':'+AUTH_USER.id;return K}
 /* ---------- the library on this device: IndexedDB ----------
@@ -22066,7 +22066,9 @@ function clean(h){var d=new DOMParser().parseFromString('<body>'+h,'text/html').
 /* one kind of line break everywhere: \r\n, \r and Unicode line/paragraph separators (pasted on iPhone or from other
    apps) become \n; the editor is pre-wrap, so a raw \n in the formatting shows as a line too */
 function nlNorm(t){return typeof t==='string'?t.replace(/\r\n|[\r\u2028\u2029]/g,'\n'):t}
-function setLyr(s){if(s.lyrics)s.lyrics=nlNorm(s.lyrics);if(s.rich)s.rich=nlNorm(s.rich);var x=s.lyrics||'';lyr.innerHTML=s.rich?clean(s.rich):esc(x).replace(/\n/g,'<br>')+(/\n$/.test(x)?'<br>':'');if(getText()==='')lyr.innerHTML='';guideView(s)}
+/* plain lyrics (an import, a paste, a song from another device without formatting): [Section] lines get the tag style */
+function tagLineHtml(l){var m=/^(\s*)(\[[^\]\n]+\])(\s*)$/.exec(l);return m?esc(m[1])+'<span style="font-weight: bold; color: #8E8E96;">'+esc(m[2])+'</span>'+esc(m[3]):esc(l)}
+function setLyr(s){if(s.lyrics)s.lyrics=nlNorm(s.lyrics);if(s.rich)s.rich=nlNorm(s.rich);var x=s.lyrics||'';lyr.innerHTML=s.rich?clean(s.rich):x.split('\n').map(tagLineHtml).join('<br>')+(/\n$/.test(x)?'<br>':'');if(getText()==='')lyr.innerHTML='';guideView(s)}
 /* cover art is always a picture the app made itself (a data: image). Anything else, such as a web address a
    co-writer put in a shared song, is ignored rather than loaded, so it can't be used to track who opens it */
 function artOk(a){return typeof a==='string'&&/^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(a)}
@@ -22121,7 +22123,9 @@ function tagBold(only){var s=getSel(),v=getText(),pos=0,done=false;
 lyr.addEventListener('beforeinput',function(e){if(e.inputType==='insertParagraph'){e.preventDefault();document.execCommand('insertLineBreak')}});
 /* the word under the caret is only marked when you tap or click into it, never while typing */
 var LYR_TAP=0,LYR_TYPE=0;lyr.addEventListener('input',function(){LYR_TYPE=Date.now();try{setHL('tw')}catch(e){}});['pointerdown','touchstart','mousedown'].forEach(function(ev){lyr.addEventListener(ev,function(){LYR_TAP=Date.now()+1},{passive:true})});
-lyr.addEventListener('paste',function(e){e.preventDefault();ins(lyr,((e.clipboardData||window.clipboardData).getData('text/plain')||'').replace(/\r\n|[\r\u2028\u2029]/g,'\n'))});
+lyr.addEventListener('paste',function(e){e.preventDefault();ins(lyr,((e.clipboardData||window.clipboardData).getData('text/plain')||'').replace(/\r\n|[\r\u2028\u2029]/g,'\n'));tagBold()});
+/* closing a [Section] by typing ] styles it straight away */
+lyr.addEventListener('input',function(e){if(e.data===']'){var s=getSel();tagBold(getText().slice(0,s.s).split('\n').length-1)}});
 lyr.addEventListener('drop',function(e){e.preventDefault()});
 /* formatting */
 var COL=[['Rose','#E5566F'],['Amber','#D4881C'],['Moss','#4E9A5B'],['Tide','#2C8DBF'],['Indigo','#5D6BE0'],['Plum','#A35FCB'],['Slate','#8E8E96']],HL=[['Hook','rgba(255,204,0,.38)'],['Rework','rgba(255,69,58,.24)'],['Idea','rgba(10,132,255,.22)']];
@@ -24463,13 +24467,15 @@ function cwPaint(){var h=$('#here'),sc=$('#sc');if(!CWM||!cur||CWM.id!==cur.id||
   h.innerHTML=cwFace(16)+'<span></span>';h.lastChild.textContent=CWM.nm+' changed '+CWM.n+' line'+(CWM.n===1?'':'s')+cwAgo(cur.lastEditAt);
   h.onclick=function(){var f=$('#cwm .cwt');if(f)sc.scrollTo({top:Math.max(0,f.offsetTop-140),behavior:'smooth'})};
   var lay=$('#cwm');if(!lay){lay=document.createElement('div');lay.id='cwm';lay.setAttribute('aria-hidden','true');sc.appendChild(lay)}
-  lay.innerHTML='';var b=sc.getBoundingClientRect(),ox=sc.scrollLeft-b.left,oy=sc.scrollTop-b.top,txt=getText(),col=cwCol(),lx=lyr.getBoundingClientRect().left+ox,faces={};
+  lay.innerHTML='';var b=sc.getBoundingClientRect(),ox=sc.scrollLeft-b.left,oy=sc.scrollTop-b.top,txt=getText(),col=cwCol(),lx=lyr.getBoundingClientRect().left+ox;
+  /* their photo goes once, beside the last thing they changed */
+  var lastR=CWM.r.reduce(function(a,r){return!a||r.s>a.s?r:a},null);
   CWM.r.forEach(function(r){if(r.e>txt.length)return;try{var rg=document.createRange(),p=locate(r.s),q=locate(r.e);rg.setStart(p[0],p[1]);rg.setEnd(q[0],q[1]);
     var rects=[].filter.call(rg.getClientRects(),function(c){return c.width>=1});
     rects.forEach(function(c){var d=document.createElement('i');d.className='cwt';d.style.cssText='left:'+(c.left+ox-1)+'px;top:'+(c.top+oy)+'px;width:'+(c.width+2)+'px;height:'+c.height+'px;background:'+col.tint;lay.appendChild(d)});
     var end=rg.cloneRange();end.collapse(false);var c=end.getClientRects()[0]||end.getBoundingClientRect();
     if(c&&c.height){var k=document.createElement('b');k.className='cwc';k.style.cssText='left:'+(c.left+ox)+'px;top:'+(c.top+oy)+'px;height:'+c.height+'px;background:'+col.ink;lay.appendChild(k)}
-    var f=rects[0]||c;if(f&&f.height){var y=Math.round(f.top+oy);if(!faces[y]){faces[y]=1;var fc=document.createElement('b');fc.className='cwf';fc.style.cssText='left:'+(lx-23)+'px;top:'+(y+(f.height-18)/2)+'px';fc.innerHTML=cwFace(18);lay.appendChild(fc)}}}catch(e){}})}
+    var f=c&&c.height?c:rects[rects.length-1];if(r===lastR&&f&&f.height){var y=Math.round(f.top+oy);var fc=document.createElement('b');fc.className='cwf';fc.style.cssText='left:'+(lx-23)+'px;top:'+(y+(f.height-18)/2)+'px';fc.innerHTML=cwFace(18);lay.appendChild(fc)}}catch(e){}})}
 function cwClear(){if(!CWM)return;clearTimeout(CWM.t);CWM=null;var l=$('#cwm');if(l)l.innerHTML='';var h=$('#here');if(h&&h.className==='cwnote'){h.hidden=true;h.className='';h.innerHTML=''}}
 function cwDone(){if(!CWM)return;var id=CWM.id,s=songs.filter(function(x){return x.id===id})[0];cwClear();if(s){SEEN[id]=s.lyrics||'';saveSeen()}}
 /* leaving a shared song: its words as they are now count as seen */
@@ -27461,7 +27467,10 @@ function shRender(d,o){o=o||{};var A=d.audio&&d.audio.src?d.audio:null,blocks=d.
   '<title>'+shEsc(title)+(d.artist?' – '+shEsc(d.artist):'')+'</title><meta name="theme-color" content="'+q(d.bg.top)+'"><meta property="og:title" content="'+q(title)+'">'+
   /* iOS 26 Safari ignores theme-color and tints the strip behind the status bar / Dynamic Island (and the
      bar at the bottom) from the page's solid background-color, so the gradient sits on a solid top colour */
-  '<style>*{box-sizing:border-box}html{background:'+d.bg.top+'}:root{--k:'+d.bg.k+'}body{margin:0;min-height:100vh;color:hsl(var(--k));font:18px/1.4 '+SH_FONT+';-webkit-font-smoothing:antialiased;background:'+shBgCss(d.bg)+';background-color:'+d.bg.top+'}'+
+  '<style>*{box-sizing:border-box}html{background:'+d.bg.top+'}:root{--k:'+d.bg.k+'}body{margin:0;min-height:100vh;color:hsl(var(--k));font:18px/1.4 '+SH_FONT+';-webkit-font-smoothing:antialiased;background:transparent}'+
+  /* the colours are one fixed layer the size of the screen (iOS ignores background-attachment:fixed), so scrolling to
+     the end or bouncing past it never shows where the page's own background stops */
+  'body::before{content:"";position:fixed;top:0;left:0;right:0;height:100lvh;z-index:-1;pointer-events:none;background:'+shBgCss(d.bg)+'}'+
   'main{max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 28px) 22px 80px}'+
   'button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}'+
   '#np{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);z-index:2;margin:0 0 44px;padding:12px 14px '+(A?'6px':'12px')+' 12px;border-radius:24px;background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);box-shadow:0 0 0 .5px hsla(var(--k),.1),0 1px 1px hsla(var(--k),.06),0 10px 30px hsla(var(--k),.14),inset 0 1px 0 rgba(255,255,255,.6);-webkit-user-select:none;user-select:none}'+
@@ -27492,7 +27501,10 @@ function shAlbumRender(d){var q=shEsc,t=d.tracks||[],title=d.title||'Untitled Al
     return x.link?'<a class="tr" href="'+SH_LISTEN+q(x.link)+'">'+inner+'</a>':'<div class="tr">'+inner+'</div>'}).join('');
   return'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'+
   '<title>'+shEsc(title)+(d.artist?' – '+shEsc(d.artist):'')+'</title><meta name="theme-color" content="'+q(d.bg.top)+'">'+
-  '<style>*{box-sizing:border-box}html{background:'+d.bg.top+'}:root{--k:'+d.bg.k+'}body{margin:0;min-height:100vh;color:hsl(var(--k));font:17px/1.35 '+SH_FONT+';-webkit-font-smoothing:antialiased;background:'+shBgCss(d.bg)+';background-color:'+d.bg.top+';background-attachment:fixed}'+
+  '<style>*{box-sizing:border-box}html{background:'+d.bg.top+'}:root{--k:'+d.bg.k+'}body{margin:0;min-height:100vh;color:hsl(var(--k));font:17px/1.35 '+SH_FONT+';-webkit-font-smoothing:antialiased;background:transparent}'+
+  /* the colours are one fixed layer the size of the screen (iOS ignores background-attachment:fixed), so scrolling to
+     the end or bouncing past it never shows where the page's own background stops */
+  'body::before{content:"";position:fixed;top:0;left:0;right:0;height:100lvh;z-index:-1;pointer-events:none;background:'+shBgCss(d.bg)+'}'+
   'main{max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 40px) 20px 80px}'+
   '.hd{text-align:center}.art{display:block;width:min(264px,70vw);aspect-ratio:1;object-fit:cover;border-radius:10px;margin:0 auto 26px;box-shadow:0 18px 40px hsla(var(--k),.22),0 3px 10px hsla(var(--k),.1)}'+
   'h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.4px;line-height:1.2}.by{font-size:21px;margin-top:2px;opacity:.9}.meta{margin-top:7px;font-size:13px;font-weight:600;color:hsla(var(--k),.6)}'+
