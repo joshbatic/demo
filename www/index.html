@@ -341,14 +341,24 @@ html.devbuild #splash .spl-l,html.devbuild #splash .spl-d{display:none}html.devb
 .ijot.gf.recording,.ijot.gf.arming{display:flex}.ijot .ijrow{display:none!important}
 /* ---------- Ideas: grey page, one rounded list per day. Each idea: a small label (its kind, coloured, and the
    song it went into) with the time opposite, then its words in full. A memo ends with its length and a play icon. */
-#vIdeas{--igbg:#F2F2F7;--igrp:#fff;--k-title:#C9700F;--k-concept:#7151E8;--k-memo:#16916F;background:var(--igbg)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #vIdeas{--igbg:#000;--igrp:#1C1C1E;--k-title:#FFB35C;--k-concept:#A993FF;--k-memo:#4CD3A8}}
-:root[data-theme="dark"] #vIdeas{--igbg:#000;--igrp:#1C1C1E;--k-title:#FFB35C;--k-concept:#A993FF;--k-memo:#4CD3A8}
+#vIdeas{--igbg:var(--bg,#fff);--igrp:transparent;--k-title:#C9700F;--k-concept:#7151E8;--k-memo:#16916F;background:var(--igbg)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #vIdeas{--igbg:#000;--igrp:transparent;--k-title:#FFB35C;--k-concept:#A993FF;--k-memo:#4CD3A8}}
+:root[data-theme="dark"] #vIdeas{--igbg:#000;--igrp:transparent;--k-title:#FFB35C;--k-concept:#A993FF;--k-memo:#4CD3A8}
 .isub{padding:0 24px;margin:0 0 2px;font-size:15px;color:var(--mute)}
 .ihd{font-size:20px;font-weight:700;letter-spacing:-.2px;margin:18px 24px 8px}
-.igrp{margin:0 16px;background:var(--igrp);border-radius:14px;overflow:hidden}
-#ilist .igrp .idea{display:block;padding:11px 16px 12px;border-radius:0}
-#ilist .igrp .idea+.idea::before{left:16px}
+.igrp{margin:0 20px;background:var(--igrp);overflow:visible;border-bottom:.5px solid var(--sep)}
+#ilist .igrp .idea{display:block;padding:11px 0 12px;border-radius:0}
+#ilist .igrp .idea+.idea::before{left:0;right:0}
+/* a memo opened in the list, like Voice Memos: a soft panel with its waveform and controls */
+#ilist .igrp .idea.open{margin:4px -12px;padding:12px 14px 6px;border-radius:18px;background:var(--fill)}#ilist .igrp .idea.open::before,#ilist .igrp .idea.open+.idea::before{display:none}
+#ilist .idea .imdur{margin-left:auto;padding-left:10px;font-variant-numeric:tabular-nums}
+#ilist .idea .iopen{display:block;margin:14px 0 0}#ilist .idea .iopen .imw{display:block;width:100%;height:36px;color:var(--ink)}
+#ilist .idea .iopen .imtr{display:flex;justify-content:space-between;font-size:13px;color:var(--mute);margin-top:6px;font-variant-numeric:tabular-nums}
+#ilist .idea .iopen .imc{display:flex;align-items:center;justify-content:space-between;margin-top:2px}#ilist .idea .iopen .imcc{display:flex;align-items:center;gap:14px}
+#ilist .idea .iopen button{border:0;background:none;color:var(--ink);display:grid;place-items:center;width:44px;height:44px;padding:0;cursor:pointer}#ilist .idea .iopen button svg{width:24px;height:24px}
+#ilist .idea .iopen .imp{width:48px;height:48px;background:none;color:var(--ink)}#ilist .idea .iopen .imp svg{width:30px;height:30px}
+#ilist .idea .iopen .imdel{color:#FF3B30}#ilist .idea .iopen .imdel svg{width:21px;height:21px}
+#ilist .idea .iopen .imsong{width:auto;height:32px;padding:0 13px;border-radius:16px;background:var(--bg,#fff);font:600 14px/1 inherit;font-family:inherit}
 #ilist .idea .itop{display:flex;align-items:center;gap:12px}
 #ilist .idea .ibody{flex:1;min-width:0}
 #ilist .idea .imeta{display:flex;align-items:center;gap:5px;font-size:15px;line-height:1.3;color:var(--mute);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -357,7 +367,7 @@ html.devbuild #splash .spl-l,html.devbuild #splash .spl-d{display:none}html.devb
 #ilist .idea .imemo{margin:12px 0 2px}#ilist .idea .imemo .imp{width:38px;height:38px}#ilist .idea .imemo .imw{height:34px}
 @media (hover:hover){#ilist .igrp .idea:hover{background:var(--fill)}}
 #ilist .idea .itx{font-size:17px;line-height:1.35;white-space:pre-line;overflow-wrap:anywhere}
-#ilist .idea.k-title .itx{font-weight:600}
+#ilist .idea.k-title .itx,#ilist .idea.k-memo .itx{font-weight:600}
 .iplay{flex:none;width:30px;height:30px;margin:-4px -6px -4px 0;border-radius:50%;color:var(--ink);opacity:.8;display:grid;place-items:center;transition:transform .12s}
 .iplay:active{transform:scale(.88)}.iplay svg{width:15px;height:15px}
 #ilist .igrp .idea>.rdel{position:absolute;right:12px;top:50%;margin-top:-16px}
@@ -21123,8 +21133,8 @@ UW-K-ER-M-AH-N	zukerman93
 UW-L-UW-Z	zulus82
 AH-M-W-AH-L-T	zumwalt82`;
 /* git commit this build came from, shown at the bottom of Account. Written by scripts/stamp-version.sh — don't edit by hand. */
-var APP_COMMIT='4230ce5';
-var APP_SEQ=967;
+var APP_COMMIT='0c52a20';
+var APP_SEQ=970;
 /* the version people see, the same as the iPhone app's; Account shows it with the build number so every device can be compared */
 var APP_VERSION='1.4.1';
 var K='songpad:v1',K_DEV='songpad:devmode:v1',ACTIVE_KEY=null,songs=[],cur=null,lines=false,$=function(s){return document.querySelector(s)};
@@ -21341,7 +21351,7 @@ function imSeek(i,f){var m=i.memo;
 function imPaintRow(r,m){var on=IDA_ID===m.id&&IDA,playing=on&&!IDA.paused,f=on&&IDA.duration?IDA.currentTime/IDA.duration:0,b=r.querySelector('.imp'),S=IMS&&IMS.m===m?IMS:null;
   if(S&&S.on)f=S.f;
   if(b._on!==playing){b._on=playing;b.innerHTML=playing?SVG_PAUSE:SVG_PLAY;b.setAttribute('aria-label',playing?'Pause voice memo':'Play voice memo')}
-  var D=m.dur||(on&&IDA.duration)||0;r.querySelector('.imt').textContent=S&&S.on?sfTime(f*D)+' / '+sfTime(D):on&&(playing||IDA.currentTime>0)?sfTime(IDA.currentTime)+' / '+sfTime(D):sfTime(D);
+  var D=m.dur||(on&&IDA.duration)||0;var lf=r.querySelector('.imleft');if(lf){var tn=S&&S.on?f*D:on?IDA.currentTime:0;r.querySelector('.imt').textContent=sfTime(tn);lf.textContent='−'+sfTime(Math.max(0,D-tn))}else r.querySelector('.imt').textContent=S&&S.on?sfTime(f*D)+' / '+sfTime(D):on&&(playing||IDA.currentTime>0)?sfTime(IDA.currentTime)+' / '+sfTime(D):sfTime(D);
   var cv=r.querySelector('.imw'),dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(!w)return;if(cv.width!==Math.round(w*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
   var x=cv.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);shWaveDraw(x,m.peaks&&m.peaks.length?m.peaks:null,0,0,w,h,f,getComputedStyle(cv).color,S?S.mag:0,S?S.x:-1)}
 function imPaintAll(){document.querySelectorAll('.imemo').forEach(function(r){var i=ideas.filter(function(x){return x.memo&&x.memo.id===r.dataset.mid})[0];if(i)imPaintRow(r,i.memo)});document.querySelectorAll('.iplay').forEach(function(b){var on=IDA_ID===b.dataset.mid&&IDA&&!IDA.paused;if(b._on!==on){b._on=on;b.innerHTML=on?SVG_PAUSE:SVG_PLAY;b.setAttribute('aria-label',on?'Pause voice memo':'Play voice memo')}})}
@@ -21374,20 +21384,39 @@ function ideaWhen(t){var g=ideaGroup(t),d=new Date(t);return g==='Today'||g==='Y
    Concept, a memo's length, the song it went into). A memo has a play button; playing it opens the row into a
    waveform you can drag through, right in the list. The iPhone's is IdeaCard. */
 var IK_SYM={title:'<path d="M5 6h14M12 6v13"/>',concept:'<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z"/>'};
+var IOPEN=null;
 function ideaRow(i){var k=i.memo?'memo':ikOf(i),b=document.createElement('div');b.className='idea k-'+k;b.setAttribute('role','button');b.tabIndex=0;
-  var open=!!(i.memo&&IDA_ID===i.memo.id&&IDA&&IDA.src);
+  var open=!!(i.memo&&IOPEN===i.id);if(open)b.className+=' open';b.setAttribute('aria-expanded',i.memo?String(open):'false');
   var top=document.createElement('div');top.className='itop';
-  if(i.memo&&!open){var pb=document.createElement('button');pb.className='iplay';pb.dataset.mid=i.memo.id;pb.setAttribute('aria-label','Play voice memo');pb.innerHTML=SVG_PLAY;pb.onmousedown=prevent;
-    pb.onclick=function(e){e.stopPropagation();haptic('light');imPlay(i)};imWarm(i);top.appendChild(pb)}
   var body=document.createElement('div');body.className='ibody';
-  var tx=document.createElement('div');tx.className='itx';tx.textContent=(i.text||'').trim()||'Voice memo';body.appendChild(tx);
+  var tx=document.createElement('div');tx.className='itx';tx.textContent=(i.text||'').trim()||'Voice Memo';body.appendChild(tx);
   var meta=document.createElement('div');meta.className='imeta';
   if(IK_SYM[k])meta.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+IK_SYM[k]+'</svg>';
-  var parts=[ideaWhen(i.updated)];if(i.memo)parts.push(sfTime(i.memo.dur||0));var st=ideaSongTitle(i);if(st)parts.push('In '+st);
-  meta.appendChild(document.createTextNode(parts.join(' ')));body.appendChild(meta);top.appendChild(body);b.appendChild(top);
-  if(open)b.appendChild(imRow(i,false));
+  var parts=[ideaWhen(i.updated)],st=ideaSongTitle(i);if(st)parts.push('In '+st);
+  meta.appendChild(document.createTextNode(parts.join(' · ')));
+  /* a memo's length sits on the right, like Voice Memos */
+  if(i.memo&&!open){var d=document.createElement('span');d.className='imdur';d.textContent=sfTime(i.memo.dur||0);meta.appendChild(d)}
+  body.appendChild(meta);top.appendChild(body);b.appendChild(top);
+  if(open)b.appendChild(imOpen(i));
   swipeDelete(b,'idea',function(){deleteIdea(i)});
-  b.onclick=function(e){if(e.target.closest('.iplay,.rdel,.imemo'))return;editIdea(i)};b.onkeydown=function(e){if((e.key==='Enter'||e.key===' ')&&e.target===b){e.preventDefault();editIdea(i)}};return b}
+  var go=function(){if(i.memo){haptic('light');IOPEN=open?null:i.id;renderIdeas()}else editIdea(i)};
+  b.onclick=function(e){if(e.target.closest('.rdel,.imemo'))return;go()};b.onkeydown=function(e){if((e.key==='Enter'||e.key===' ')&&e.target===b){e.preventDefault();go()}};return b}
+/* a memo opened in the list: its waveform to drag through, the time gone and left, then delete, back 15, play,
+   forward 15 and Start a Song (the iPhone's IdeaCard.openMemo) */
+var SVG_B15='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v4h4"/><text x="12" y="15.5" font-size="7" font-weight="700" text-anchor="middle" fill="currentColor" stroke="none">15</text></svg>',
+  SVG_F15='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4h-4"/><text x="12" y="15.5" font-size="7" font-weight="700" text-anchor="middle" fill="currentColor" stroke="none">15</text></svg>',
+  SVG_TRASH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
+function imOpen(i){var m=i.memo,r=document.createElement('div');r.className='imemo iopen';r.dataset.mid=m.id;
+  r.innerHTML='<canvas class="imw" aria-hidden="true"></canvas><div class="imtr"><span class="imt"></span><span class="imleft"></span></div>'+
+    '<div class="imc"><button class="imdel" aria-label="Delete memo">'+SVG_TRASH+'</button><div class="imcc"><button class="imb" aria-label="Back 15 seconds">'+SVG_B15+'</button>'+
+    '<button class="imp" aria-label="Play voice memo">'+SVG_PLAY+'</button><button class="imf" aria-label="Forward 15 seconds">'+SVG_F15+'</button></div><button class="imsong">Start a Song</button></div>';
+  r.addEventListener('click',function(e){e.stopPropagation()});
+  var skip=function(dt){if(IDA_ID===m.id&&IDA&&IDA.src){var d=isFinite(IDA.duration)&&IDA.duration?IDA.duration:m.dur||0;IDA.currentTime=Math.max(0,Math.min(d-.05,IDA.currentTime+dt));imPaintAll()}};
+  r.querySelector('.imp').onclick=function(){haptic('light');imPlay(i)};
+  r.querySelector('.imb').onclick=function(){haptic('light');skip(-15)};r.querySelector('.imf').onclick=function(){haptic('light');skip(15)};
+  r.querySelector('.imsong').onclick=function(){ideaToSong(i)};
+  r.querySelector('.imdel').onclick=function(){var ok=function(y){if(y){IOPEN=null;deleteIdea(i)}};var nd=natDestroy({title:'Delete this memo?',message:'This can’t be undone.',ok:'Delete Memo'});if(nd)nd.then(ok);else ok(confirm('Delete this memo? This can’t be undone.'))};
+  imScrub(r.querySelector('.imw'),r,i);imWarm(i);setTimeout(function(){imPaintRow(r,m)},0);return r}
 function renderIdeas(){ideaMemosPending();
   var q=($('#iq').value||'').toLowerCase(),L=$('#ilist');L.innerHTML='';
   var tagRow=$('#itagrow');if(tagRow){tagRow.innerHTML='';tagRow.hidden=true}
