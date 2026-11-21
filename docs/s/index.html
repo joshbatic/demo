@@ -94,7 +94,10 @@ function shRender(d,o){o=o||{};var A=d.audio&&d.audio.src?d.audio:null,blocks=d.
   '<title>'+shEsc(title)+(d.artist?' – '+shEsc(d.artist):'')+'</title><meta name="theme-color" content="'+q(d.bg.top)+'"><meta property="og:title" content="'+q(title)+'">'+
   /* iOS 26 Safari ignores theme-color and tints the strip behind the status bar / Dynamic Island (and the
      bar at the bottom) from the page's solid background-color, so the gradient sits on a solid top colour */
-  '<style>*{box-sizing:border-box}html{background:'+d.bg.top+'}:root{--k:'+d.bg.k+'}body{margin:0;min-height:100vh;color:hsl(var(--k));font:18px/1.4 '+SH_FONT+';-webkit-font-smoothing:antialiased;background:'+shBgCss(d.bg)+';background-color:'+d.bg.top+'}'+
+  '<style>*{box-sizing:border-box}html{background:'+d.bg.top+'}:root{--k:'+d.bg.k+'}body{margin:0;min-height:100vh;color:hsl(var(--k));font:18px/1.4 '+SH_FONT+';-webkit-font-smoothing:antialiased;background:transparent}'+
+  /* the colours are one fixed layer the size of the screen (iOS ignores background-attachment:fixed), so scrolling to
+     the end or bouncing past it never shows where the page's own background stops */
+  'body::before{content:"";position:fixed;top:0;left:0;right:0;height:100lvh;z-index:-1;pointer-events:none;background:'+shBgCss(d.bg)+'}'+
   'main{max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 28px) 22px 80px}'+
   'button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}'+
   '#np{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);z-index:2;margin:0 0 44px;padding:12px 14px '+(A?'6px':'12px')+' 12px;border-radius:24px;background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);box-shadow:0 0 0 .5px hsla(var(--k),.1),0 1px 1px hsla(var(--k),.06),0 10px 30px hsla(var(--k),.14),inset 0 1px 0 rgba(255,255,255,.6);-webkit-user-select:none;user-select:none}'+
@@ -125,7 +128,10 @@ function shAlbumRender(d){var q=shEsc,t=d.tracks||[],title=d.title||'Untitled Al
     return x.link?'<a class="tr" href="'+SH_LISTEN+q(x.link)+'">'+inner+'</a>':'<div class="tr">'+inner+'</div>'}).join('');
   return'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'+
   '<title>'+shEsc(title)+(d.artist?' – '+shEsc(d.artist):'')+'</title><meta name="theme-color" content="'+q(d.bg.top)+'">'+
-  '<style>*{box-sizing:border-box}html{background:'+d.bg.top+'}:root{--k:'+d.bg.k+'}body{margin:0;min-height:100vh;color:hsl(var(--k));font:17px/1.35 '+SH_FONT+';-webkit-font-smoothing:antialiased;background:'+shBgCss(d.bg)+';background-color:'+d.bg.top+';background-attachment:fixed}'+
+  '<style>*{box-sizing:border-box}html{background:'+d.bg.top+'}:root{--k:'+d.bg.k+'}body{margin:0;min-height:100vh;color:hsl(var(--k));font:17px/1.35 '+SH_FONT+';-webkit-font-smoothing:antialiased;background:transparent}'+
+  /* the colours are one fixed layer the size of the screen (iOS ignores background-attachment:fixed), so scrolling to
+     the end or bouncing past it never shows where the page's own background stops */
+  'body::before{content:"";position:fixed;top:0;left:0;right:0;height:100lvh;z-index:-1;pointer-events:none;background:'+shBgCss(d.bg)+'}'+
   'main{max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 40px) 20px 80px}'+
   '.hd{text-align:center}.art{display:block;width:min(264px,70vw);aspect-ratio:1;object-fit:cover;border-radius:10px;margin:0 auto 26px;box-shadow:0 18px 40px hsla(var(--k),.22),0 3px 10px hsla(var(--k),.1)}'+
   'h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.4px;line-height:1.2}.by{font-size:21px;margin-top:2px;opacity:.9}.meta{margin-top:7px;font-size:13px;font-weight:600;color:hsla(var(--k),.6)}'+
