@@ -328,9 +328,16 @@ struct IdeaCard: View {
 
     private var row: some View {
         let k = idea.memo != nil ? "memo" : IdeaLook.kind(idea)
-        return VStack(alignment: .leading, spacing: 3) {
+        return HStack(spacing: 12) {
+            // a voice memo reads as one at a glance: a round black badge with a waveform
+            if idea.memo != nil {
+                Image(systemName: "waveform").font(.system(size: 16, weight: .semibold)).foregroundStyle(Theme.onTint)
+                    .frame(width: 36, height: 36).background(Theme.tint, in: Circle())
+                    .accessibilityHidden(true)
+            }
+            VStack(alignment: .leading, spacing: 3) {
             Text(name)
-                .font(.system(size: 17, weight: k == "title" || k == "memo" ? .semibold : .regular))
+                .font(.system(size: 17, weight: k == "title" ? .semibold : .regular))
                 .foregroundStyle(.primary).lineLimit(idea.memo != nil ? 2 : 6)
             HStack(spacing: 5) {
                 if let sym = Self.symbol(k) { Image(systemName: sym).font(.system(size: 12, weight: .medium)) }
@@ -339,6 +346,7 @@ struct IdeaCard: View {
                 if let m = idea.memo { Text(SongFiles.time(m.dur)).monospacedDigit() }
             }
             .font(.system(size: 15)).foregroundStyle(.secondary)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -384,9 +392,10 @@ struct IdeaCard: View {
                 .foregroundStyle(.primary)
                 Spacer(minLength: 4)
                 Button(action: startSong) {
-                    Text("Start a Song").font(.system(size: 14, weight: .semibold)).foregroundStyle(.primary)
-                        .padding(.horizontal, 13).frame(height: 32)
-                        .background(Color(.systemBackground), in: Capsule())
+                    Label("Start a Song", systemImage: "plus").font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.onTint)
+                        .labelStyle(.titleAndIcon)
+                        .padding(.leading, 10).padding(.trailing, 13).frame(height: 32)
+                        .background(Theme.tint, in: Capsule())
                 }
             }
             .buttonStyle(.borderless)
@@ -518,7 +527,7 @@ struct IdeaSheet: View {
                     }
                     Section {
                         Button { Task { await startSong(c) } } label: {
-                            Label { Text("Start a Song").foregroundStyle(.primary) } icon: { TileIcon("music.note", Theme.Tile.orange) }
+                            Label { Text("Start a Song").foregroundStyle(.primary) } icon: { TileIcon("plus", Color(hex: 0x1C1C1E)) }
                         }
                         Button("Delete Idea", role: .destructive) { confirmDelete = true }
                     }
